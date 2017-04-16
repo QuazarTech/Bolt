@@ -680,6 +680,8 @@ def fields_step(args, dt):
   dx             = length_x/(N_x - 1) 
   
   charge_particle = config.charge_particle
+
+  from cks.fdtd import mode2_fdtd
   
   if(config.mode == '2D2V'):
     vel_y     = args.vel_y
@@ -691,29 +693,38 @@ def fields_step(args, dt):
     length_y     = top_boundary - bot_boundary
     dy           = length_y/(N_y - 1) 
 
-    E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
-    E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    # E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    # E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
     
-    E_x_local, E_y_local = fft_poisson(charge_particle*\
-                                       calculate_density(args)[N_ghost_y:-N_ghost_y-1, N_ghost_x:-N_ghost_x - 1],\
-                                       dx,\
-                                       dy
-                                      )
+    # E_x_local, E_y_local = fft_poisson(charge_particle*\
+    #                                    calculate_density(args)[N_ghost_y:-N_ghost_y-1, N_ghost_x:-N_ghost_x - 1],\
+    #                                    dx,\
+    #                                    dy
+    #                                   )
     
-    E_x_local = af.join(0, E_x_local, E_x_local[0])
-    E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+    # E_x_local = af.join(0, E_x_local, E_x_local[0])
+    # E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
     
-    E_y_local = af.join(0, E_y_local, E_y_local[0])
-    E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+    # E_y_local = af.join(0, E_y_local, E_y_local[0])
+    # E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
 
-    E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
-    E_x                                             = periodic_x(config, E_x)
-    E_x                                             = periodic_y(config, E_x)
+    # E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+    # E_x                                             = periodic_x(config, E_x)
+    # E_x                                             = periodic_y(config, E_x)
 
-    E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
-    E_y                                             = periodic_x(config, E_y)
-    E_y                                             = periodic_y(config, E_y)
+    # E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+    # E_y                                             = periodic_x(config, E_y)
+    # E_y                                             = periodic_y(config, E_y)
     
+    E_x = args.E_x
+    E_y = args.E_y
+    B_z = args.B_z
+
+    J_x = charge_particle * calculate_vel_bulk_x(args)
+    J_y = charge_particle * calculate_vel_bulk_y(args)
+
+    B_z, E_x, E_y = mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y)
+
     f_fields = f_interp2_v(args, af.real(E_x), af.real(E_y), dt)
 
   else:
@@ -729,8 +740,12 @@ def fields_step(args, dt):
     
     f_fields = f_interp_v(args, af.real(E_x), dt)
     
-  af.eval(f_fields)
-  return f_fields
+  args.f   = f_fields
+  args.B_z = B_z
+  args.E_x = E_x
+  args.E_y = E_y
+
+  return(args)
 
 def time_integration(args, time_array):
   """
@@ -820,7 +835,7 @@ def time_integration(args, time_array):
       args.f = collision_step(args, 0.5*dt)
     
     if(fields_enabled == "True"):
-      args.f = fields_step(args, dt)
+      args = fields_step(args, dt)
 
     args.f = periodic_x(config, args.f)
     
