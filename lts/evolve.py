@@ -48,9 +48,12 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
   collisions_enabled = config.collisions_enabled 
   tau                = config.tau
+  dt                 = config.dt
 
   if(config.mode == '2D2V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x *dv_y
+    delta_rho_hat    = np.sum(delta_f_hat) * dv_x *dv_y
+    delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
+    delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
 
   elif(config.mode == '1D1V'):
     delta_rho_hat = np.sum(delta_f_hat) * dv_x
@@ -63,16 +66,21 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
     if(config.mode == '2D2V'):
       dfdv_y_background = initialize.dfdv_y_background(config)
-      delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-      delta_E_x_hat = delta_phi_hat * (1j * k_x)
-      delta_E_y_hat = delta_phi_hat * (1j * k_y)
+      global delta_B_z_hat, delta_E_x_hat, delta_E_y_hat
+      delta_B_z_hat+= -(1j * k_x * delta_E_y_hat  - 1j * k_y * delta_E_x_hat)*dt
+      delta_E_x_hat+= (delta_B_z_hat*1j*k_y - charge_particle*delta_vel_bulk_x)*dt
+      delta_E_y_hat+= -(delta_B_z_hat*1j*k_x + charge_particle*delta_vel_bulk_y)*dt
 
-      fields_term = (charge_particle / mass_particle) * delta_E_x_hat * dfdv_x_background + \
-                    (charge_particle / mass_particle) * delta_E_y_hat * dfdv_y_background
+      fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
+                                           delta_B_z_hat   * vel_y \
+                                          ) * dfdv_x_background  + \
+                    (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
+                                           delta_B_z_hat   * vel_x
+                                          ) * dfdv_y_background
     
     elif(config.mode == '1D1V'):
       delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
-      fields_term       = (charge_particle / mass_particle) * delta_E_x_hat * dfdv_x_background
+      fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
       
   if(collisions_enabled!="True"):
     C_f = 0
@@ -134,6 +142,8 @@ def time_integration(config, delta_f_hat_initial, time_array):
   vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
   dv_x      = vel_x[1] - vel_x[0]
 
+  charge_particle = config.charge_particle
+
   if(config.mode == '2D2V'):
     vel_y_max = config.vel_y_max
     N_vel_y   = config.N_vel_y
@@ -146,7 +156,13 @@ def time_integration(config, delta_f_hat_initial, time_array):
     vel_x, vel_y = np.meshgrid(vel_x, vel_y)
     x, y         = np.meshgrid(x, y)
 
-  density_data = np.zeros(time_array.size)
+  density_data  = np.zeros(time_array.size)
+  global delta_B_z_hat, delta_E_x_hat, delta_E_y_hat
+  delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x *dv_y
+  delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+  delta_E_x_hat = delta_phi_hat * (1j * k_x)
+  delta_E_y_hat = delta_phi_hat * (1j * k_y)
+  delta_B_z_hat = 0
 
   for time_index, t0 in enumerate(time_array):
     t0 = time_array[time_index]
@@ -159,7 +175,6 @@ def time_integration(config, delta_f_hat_initial, time_array):
       delta_f_hat_initial = old_delta_f_hat.copy()
 
     new_delta_f_hat = RK4_step(config, delta_f_hat_initial, dt)
-    
     if(config.mode == '2D2V'):
       delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x*dv_y
       density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \

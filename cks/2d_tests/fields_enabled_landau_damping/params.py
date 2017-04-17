@@ -22,18 +22,18 @@ background_ions = dict(
                       )
 
 perturbation = dict(
-                    pert_real = 1e-2, 
-                    pert_imag = 0,
-                    k_x       = 2*np.pi,
-                    k_y       = 0 #2*np.pi 
+                    pert_real = 5e-3, 
+                    pert_imag = 1e-4,
+                    k_x       = 4*np.pi,
+                    k_y       = 8*np.pi 
                    ) 
 
-configuration_space = dict(N_x            = 64,
+configuration_space = dict(N_x            = 32,
                            N_ghost_x      = 3,
                            left_boundary  = 0,
                            right_boundary = 1.0,
 
-                           N_y            = 64,
+                           N_y            = 32,
                            N_ghost_y      = 3,
                            bot_boundary   = 0,
                            top_boundary   = 1.0,

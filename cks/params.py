@@ -25,15 +25,15 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 2*np.pi 
+                    k_y       = 4*np.pi 
                    ) 
 
-configuration_space = dict(N_x            = 256,
+configuration_space = dict(N_x            = 64,
                            N_ghost_x      = 1,
                            left_boundary  = 0,
                            right_boundary = 1.0,
 
-                           N_y            = 256,
+                           N_y            = 64,
                            N_ghost_y      = 1,
                            bot_boundary   = 0,
                            top_boundary   = 1.0,

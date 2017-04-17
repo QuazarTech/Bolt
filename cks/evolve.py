@@ -444,7 +444,7 @@ def fft_poisson(rho, dx, dy = None):
     rho_hat       = af.fft2(rho)
     potential_hat = af.constant(0, rho.shape[0], rho.shape[1], dtype=af.Dtype.c64)
     
-    potential_hat       = (1/(4 * np.pi**2 * (k_x**2 + k_y**2))) * rho_hat
+    potential_hat       = (1/(4 * np.pi**2 * (k_x*k_x + k_y*k_y))) * rho_hat
     potential_hat[0, :] = 0
     potential_hat[:, 0] = 0
     
@@ -723,7 +723,7 @@ def fields_step(args, dt):
     J_x = charge_particle * calculate_vel_bulk_x(args)
     J_y = charge_particle * calculate_vel_bulk_y(args)
 
-    B_z, E_x, E_y = mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y)
+    B_z, E_x, E_y = mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y, dt)
 
     f_fields = f_interp2_v(args, af.real(E_x), af.real(E_y), dt)
 
