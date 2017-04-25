@@ -445,8 +445,8 @@ def fft_poisson(rho, dx, dy = None):
     potential_hat = af.constant(0, rho.shape[0], rho.shape[1], dtype=af.Dtype.c64)
     
     potential_hat       = (1/(4 * np.pi**2 * (k_x*k_x + k_y*k_y))) * rho_hat
-    potential_hat[0, :] = 0
-    potential_hat[:, 0] = 0
+    potential_hat[0, 0] = 0
+    # potential_hat[:, 0] = 0
     
     E_x_hat = -1j * 2 * np.pi * (k_x) * potential_hat
     E_y_hat = -1j * 2 * np.pi * (k_y) * potential_hat
