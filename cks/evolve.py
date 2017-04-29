@@ -1,6 +1,5 @@
 import numpy as np
 import arrayfire as af
-import cks.initialize as initialize
 from scipy.fftpack import fftfreq
 
 def calculate_density(args):
@@ -43,7 +42,7 @@ def calculate_density(args):
 
   af.eval(density)
   return(density)
-
+  
 def calculate_vel_bulk_x(args):
   """
   This function evaluates and returns the x-component of bulk velocity in the 1D/2D space, 
@@ -109,7 +108,6 @@ def calculate_vel_bulk_y(args):
                  values in the array indicate the values in the y-component of bulk velocity with 
                  changes in x and y.
   """
-  config = args.config
   f      = args.f
   vel_x  = args.vel_x
   vel_y  = args.vel_y
@@ -446,7 +444,6 @@ def fft_poisson(rho, dx, dy = None):
     
     potential_hat       = (1/(4 * np.pi**2 * (k_x*k_x + k_y*k_y))) * rho_hat
     potential_hat[0, 0] = 0
-    # potential_hat[:, 0] = 0
     
     E_x_hat = -1j * 2 * np.pi * (k_x) * potential_hat
     E_y_hat = -1j * 2 * np.pi * (k_y) * potential_hat
@@ -681,7 +678,7 @@ def fields_step(args, dt):
   
   charge_particle = config.charge_particle
 
-  from cks.fdtd import mode2_fdtd
+  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
   
   if(config.mode == '2D2V'):
     vel_y     = args.vel_y
@@ -718,12 +715,17 @@ def fields_step(args, dt):
     
     E_x = args.E_x
     E_y = args.E_y
+    E_z = args.E_z
+
+    B_x = args.B_x
+    B_y = args.B_y
     B_z = args.B_z
 
     J_x = charge_particle * calculate_vel_bulk_x(args)
     J_y = charge_particle * calculate_vel_bulk_y(args)
-
-    B_z, E_x, E_y = mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y, dt)
+     
+    E_x, E_y, E_z, B_x, B_y, B_z = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, 0, dt)
+    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
 
     f_fields = f_interp2_v(args, af.real(E_x), af.real(E_y), dt)
 
@@ -741,7 +743,7 @@ def fields_step(args, dt):
     f_fields = f_interp_v(args, af.real(E_x), dt)
     
   args.f   = f_fields
-  args.B_z = B_z
+  # args.B_z = B_z
   args.E_x = E_x
   args.E_y = E_y
 

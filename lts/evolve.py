@@ -66,7 +66,9 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
     if(config.mode == '2D2V'):
       dfdv_y_background = initialize.dfdv_y_background(config)
-      global delta_B_z_hat, delta_E_x_hat, delta_E_y_hat
+      global delta_B_z_hat
+      global delta_E_x_hat
+      global delta_E_y_hat
       delta_B_z_hat+= -(1j * k_x * delta_E_y_hat  - 1j * k_y * delta_E_x_hat)*dt
       delta_E_x_hat+= (delta_B_z_hat*1j*k_y - charge_particle*delta_vel_bulk_x)*dt
       delta_E_y_hat+= -(delta_B_z_hat*1j*k_x + charge_particle*delta_vel_bulk_y)*dt
@@ -157,7 +159,9 @@ def time_integration(config, delta_f_hat_initial, time_array):
     x, y         = np.meshgrid(x, y)
 
   density_data  = np.zeros(time_array.size)
-  global delta_B_z_hat, delta_E_x_hat, delta_E_y_hat
+  global delta_B_z_hat
+  global delta_E_x_hat
+  global delta_E_y_hat
   delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x *dv_y
   delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat = delta_phi_hat * (1j * k_x)
@@ -171,6 +175,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
     t1 = time_array[time_index + 1]
     t  = [t0, t1]
     dt = t1 - t0
+
     if(time_index != 0):
       delta_f_hat_initial = old_delta_f_hat.copy()
 
