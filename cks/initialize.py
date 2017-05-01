@@ -1,3 +1,11 @@
+"""
+This module contains functions which are used to initialize
+quantities, which will be used in the simulation. These quantities
+are typically set using the parameters which are set in the config
+object. As the name suggests, these functions only need to be 
+called once during the simulation run.
+"""
+
 import numpy as np
 import arrayfire as af 
 
@@ -11,13 +19,13 @@ def set(params):
 
   Parameters:
   -----------
-    params : Name of the file that contains the parameters for the simulation run
-             is passed to this function. 
+    params : Name of the file that contains the parameters for the 
+             simulation run is passed to this function. 
 
   Output:
   -------
-    config : Object whose attributes contain all the simulation parameters. This is
-             passed to the remaining solver functions.
+    config : Object whose attributes contain all the simulation parameters. 
+             This is passed to the remaining solver functions.
   """
   config = options()
 
@@ -77,10 +85,8 @@ def set(params):
   config.final_time = params.time['final_time']
   config.dt         = params.time['dt']
     
-  config.fields_enabled  = params.EM_fields['enabled']
   config.charge_particle = params.EM_fields['charge_particle']
 
-  config.collisions_enabled = params.collisions['enabled']
   config.collision_operator = params.collisions['collision_operator']
   config.tau                = params.collisions['tau']
 
@@ -88,8 +94,8 @@ def set(params):
 
 def calculate_x(config):
   """
-  Returns the 2D/4D array of x depending on the dimensionlity of the system considered,
-  which is used in the computations of the Cheng-Knorr code.
+  Returns the 2D/4D array of x depending on the dimensionlity of the 
+  system considered, which is used in the computations of the Cheng-Knorr code.
 
   Parameters:
   -----------
@@ -114,8 +120,15 @@ def calculate_x(config):
   x  = np.linspace(left_boundary, right_boundary, N_x)
   dx = x[1] - x[0]
 
-  x_ghost_left  = np.linspace(-(N_ghost_x)*dx + left_boundary, left_boundary - dx, N_ghost_x)
-  x_ghost_right = np.linspace(right_boundary + dx, right_boundary + N_ghost_x*dx , N_ghost_x)
+  x_ghost_left  = np.linspace(-(N_ghost_x)*dx + left_boundary,\
+                               left_boundary - dx,\
+                               N_ghost_x
+                             )
+
+  x_ghost_right = np.linspace(right_boundary + dx,\
+                              right_boundary + N_ghost_x*dx ,\
+                              N_ghost_x
+                             )
 
   x = np.concatenate([x_ghost_left, x, x_ghost_right])
   x = af.Array.as_type(af.to_array(x), af.Dtype.f64)
@@ -131,11 +144,13 @@ def calculate_x(config):
 
 def calculate_y(config):
   """
-  Returns the 4D array of y which is used in the computations of the Cheng-Knorr code.
+  Returns the 4D array of y which is used in the computations of the 
+  Cheng-Knorr code.
 
   Parameters:
   -----------
-    config : Object config which is obtained by set() is passed to this file
+    config : Object config which is obtained by set() is passed to this 
+             file
 
   Output:
   -------
@@ -157,8 +172,15 @@ def calculate_y(config):
   y  = np.linspace(bot_boundary, top_boundary, N_y)
   dy = y[1] - y[0]
 
-  y_ghost_bot = np.linspace(-(N_ghost_y)*dy + bot_boundary, bot_boundary - dy, N_ghost_y)
-  y_ghost_top = np.linspace(top_boundary + dy, top_boundary + N_ghost_y*dy , N_ghost_y)
+  y_ghost_bot = np.linspace(-(N_ghost_y)*dy + bot_boundary,\
+                              bot_boundary - dy,\
+                              N_ghost_y
+                           )
+
+  y_ghost_top = np.linspace(top_boundary + dy,\
+                            top_boundary + N_ghost_y*dy,\
+                            N_ghost_y
+                           )
 
   y = np.concatenate([y_ghost_bot, y, y_ghost_top])
   y = af.Array.as_type(af.to_array(y), af.Dtype.f64)
@@ -169,12 +191,14 @@ def calculate_y(config):
 
 def calculate_vel_x(config):
   """
-  Returns the 2D/4D array of vel_x depending on the dimensionality of the system considered,
-  which is used in the computations of the Cheng-Knorr code.
+  Returns the 2D/4D array of vel_x depending on the dimensionality 
+  of the system considered, which is used in the computations of the 
+  Cheng-Knorr code.
 
   Parameters:
   -----------
-    config : Object config which is obtained by set() is passed to this file
+    config : Object config which is obtained by set() is passed to 
+             this file
 
   Output:
   -------
@@ -196,7 +220,9 @@ def calculate_vel_x(config):
 
   if(config.mode == '2D2V'):
     vel_x = af.reorder(vel_x, 3, 2, 0, 1)
-    vel_x = af.tile(vel_x, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, 1, N_vel_y)
+    vel_x = af.tile(vel_x, N_y + 2*N_ghost_y,\
+                    N_x + 2*N_ghost_x, 1, N_vel_y
+                   )
 
   else:
     vel_x = af.tile(af.reorder(vel_x), N_x + 2*N_ghost_x, 1)
@@ -206,11 +232,13 @@ def calculate_vel_x(config):
 
 def calculate_vel_y(config):
   """
-  Returns the 4D array of vel_y which is used in the computations of the Cheng-Knorr code.
+  Returns the 4D array of vel_y which is used in the computations of 
+  the Cheng-Knorr code.
 
   Parameters:
   -----------
-    config : Object config which is obtained by set() is passed to this file
+    config : Object config which is obtained by set() is passed to this 
+             file
 
   Output:
   -------
@@ -231,7 +259,9 @@ def calculate_vel_y(config):
   vel_y = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
   vel_y = af.Array.as_type(af.to_array(vel_y), af.Dtype.f64)
   vel_y = af.reorder(vel_y, 3, 2, 1, 0)
-  vel_y = af.tile(vel_y, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, N_vel_x, 1)
+  vel_y = af.tile(vel_y, N_y + 2*N_ghost_y,\
+                  N_x + 2*N_ghost_x, N_vel_x, 1
+                 )
 
   af.eval(vel_y)
   return(vel_y)
@@ -248,9 +278,9 @@ def f_background(config):
 
   Output:
   -------
-    f_background : Array which contains the values of f_background at different values
-                   of (x, y, vel_x, vel_y) in the 4D case. In the 2D case, f_background 
-                   is calculated at different (x, vel_x)
+    f_background : Array which contains the values of f_background at different 
+                   values of (x, y, vel_x, vel_y) in the 4D case. In the 2D case, 
+                   f_background is calculated at different (x, vel_x)
   """
   
   mass_particle      = config.mass_particle
@@ -266,13 +296,32 @@ def f_background(config):
     vel_y = calculate_vel_y(config)
     vel_bulk_y_background  = config.vel_bulk_y_background
 
-    f_background = rho_background * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
-                   af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
+    f_background = rho_background *\
+                   (mass_particle/(2*np.pi*\
+                                   boltzmann_constant*\
+                                   temperature_background
+                                   )
+                   ) * \
+                   af.exp(-mass_particle*
+                           (vel_x - vel_bulk_x_background)**2/\
+                           (2*boltzmann_constant*temperature_background
+                           )
+                         ) * \
+                   af.exp(-mass_particle*\
+                           (vel_y - vel_bulk_y_background)**2/\
+                           (2*boltzmann_constant*temperature_background
+                           )
+                         )
 
   else:
-    f_background = rho_background * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
+    f_background = rho_background * \
+                   np.sqrt(mass_particle/\
+                           (2*np.pi*boltzmann_constant*temperature_background
+                           ) 
+                          ) * \
+                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                          (2*boltzmann_constant*temperature_background)
+                         )
   
   af.eval(f_background)
   return(f_background)
@@ -314,36 +363,46 @@ def f_initial(config):
     y                      = calculate_y(config)
     vel_y                  = calculate_vel_y(config)
     
-    rho   = rho_background + (pert_real * af.cos(k_x*x + k_y*y) - pert_imag * af.sin(k_x*x + k_y*y))
+    rho   = rho_background + (pert_real * af.cos(k_x*x + k_y*y) -\
+                              pert_imag * af.sin(k_x*x + k_y*y)
+                             )
 
     f_initial = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
-                af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
+                af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                        (2*boltzmann_constant*temperature_background)) * \
+                af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+                        (2*boltzmann_constant*temperature_background))
 
   else:
-    rho = rho_background + (pert_real * af.cos(2*np.pi*x) - pert_imag * af.sin(2*np.pi*x))
+    rho = rho_background + (pert_real * af.cos(2*np.pi*x) -\
+                            pert_imag * af.sin(2*np.pi*x)
+                           )
 
-    f_initial = rho * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
+    f_initial = rho *\
+                np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+                af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                (2*boltzmann_constant*temperature_background))
   
   af.eval(f_initial)
   return(f_initial)
 
 def time_array(config):
   """
-  Returns the value of the time_array at which we solve for in the simulation. 
-  The time_array is set depending on the options which have been mention in config.
+  Returns the value of the time_array at which we solve for in the 
+  simulation. The time_array is set depending on the options which 
+  have been mention in config.
 
   Parameters:
   -----------
-    config : Object config which is obtained by set() is passed to this file
+    config : Object config which is obtained by set() is passed to 
+             this file
 
   Output:
   -------
-    time_array : Array that contains the values of time at which the 
-                 simulation evaluates the physical quantities. 
-
+    time_array : Array that contains the values of time at which 
+                 the simulation evaluates the physical quantities. 
   """
+
   final_time = config.final_time
   dt         = config.dt
 
