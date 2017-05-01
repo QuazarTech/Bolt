@@ -36,8 +36,11 @@ pl.rcParams['ytick.direction']  = 'in'
 print(af.info())
 
 config = initialize.set(params)
-x      = initialize.calculate_x(config)
-vel_x  = initialize.calculate_vel_x(config)
+
+x     = initialize.calculate_x(config)
+vel_x = initialize.calculate_vel_x(config)
+y     = initialize.calculate_y(config)
+vel_y = initialize.calculate_vel_y(config)
 
 f_initial  = initialize.f_initial(config)
 time_array = initialize.time_array(config)
@@ -48,7 +51,9 @@ class args:
 args.config = config
 args.f      = f_initial
 args.vel_x  = vel_x
+args.vel_y  = vel_y
 args.x      = x
+args.y      = y
 
 data, f_final = evolve.time_integration(args, time_array)
 

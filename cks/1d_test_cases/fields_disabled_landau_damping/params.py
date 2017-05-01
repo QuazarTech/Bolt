@@ -71,17 +71,15 @@ velocity_space = dict(N_vel_x   = 101,
                      )
 
 time = dict(
-            final_time   = 0.5,
-            dt           = 0.01
+            final_time   = 2.0,
+            dt           = 0.005
            )
 
 EM_fields = dict(
-                 enabled         = 'False',
-                 charge_particle = -10.0
+                 charge_particle = 0
                 )
 
 collisions = dict(
-                  enabled            = 'False',
                   collision_operator = 'BGK',
-                  tau                =  0.01
+                  tau                =  np.inf
                  )

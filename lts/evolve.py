@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.integrate import odeint
 import lts.initialize as initialize
 from lts.collision_operators import BGK_collision_operator
 
@@ -23,11 +22,7 @@ def ddelta_f_hat_dt(delta_f_hat, config):
                       perturbation of the distribution function with respect to time.
   """
   mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
 
-  rho_background         = config.rho_background
-  temperature_background = config.temperature_background
-  
   vel_x_max = config.vel_x_max
   N_vel_x   = config.N_vel_x
   vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
@@ -43,51 +38,39 @@ def ddelta_f_hat_dt(delta_f_hat, config):
     vel_x, vel_y = np.meshgrid(vel_x, vel_y)
     k_y          = config.k_y   
     
-  fields_enabled  = config.fields_enabled
   charge_particle = config.charge_particle
-
-  collisions_enabled = config.collisions_enabled 
-  tau                = config.tau
-  dt                 = config.dt
 
   if(config.mode == '2D2V'):
     delta_rho_hat    = np.sum(delta_f_hat) * dv_x *dv_y
-    delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
-    delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
+    # delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
+    # delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
 
   elif(config.mode == '1D1V'):
     delta_rho_hat = np.sum(delta_f_hat) * dv_x
 
-  if(fields_enabled!="True"):
-    fields_term = 0
+  dfdv_x_background = initialize.dfdv_x_background(config)
 
-  else:
-    dfdv_x_background = initialize.dfdv_x_background(config)
+  if(config.mode == '2D2V'):
+    dfdv_y_background = initialize.dfdv_y_background(config)
 
-    if(config.mode == '2D2V'):
-      dfdv_y_background = initialize.dfdv_y_background(config)
+    # global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
+    # global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
+    delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+    delta_E_x_hat = delta_phi_hat * (1j * k_x)
+    delta_E_y_hat = delta_phi_hat * (1j * k_y)
 
-      global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
-      global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
-
-
-
-      fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
-                                           0 * delta_B_z_hat   * vel_y \
-                                          ) * dfdv_x_background  + \
-                    (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
-                                           0 * delta_B_z_hat   * vel_x
-                                          ) * dfdv_y_background
-    
-    elif(config.mode == '1D1V'):
-      delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
-      fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
+    fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
+                                         0 * delta_B_z_hat   * vel_y \
+                                        ) * dfdv_x_background  + \
+                  (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
+                                         0 * delta_B_z_hat   * vel_x
+                                        ) * dfdv_y_background
+  
+  elif(config.mode == '1D1V'):
+    delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
+    fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
       
-  if(collisions_enabled!="True"):
-    C_f = 0
-
-  else:
-    C_f   = BGK_collision_operator(config, delta_f_hat)
+  C_f   = BGK_collision_operator(config, delta_f_hat)
 
   if(config.mode == '2D2V'):
     ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
@@ -180,8 +163,6 @@ def time_integration(config, delta_f_hat_initial, time_array):
   vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
   dv_x      = vel_x[1] - vel_x[0]
 
-  charge_particle = config.charge_particle
-
   if(config.mode == '2D2V'):
     vel_y_max = config.vel_y_max
     N_vel_y   = config.N_vel_y
@@ -198,26 +179,27 @@ def time_integration(config, delta_f_hat_initial, time_array):
   global delta_B_z_hat
   global delta_E_x_hat
   global delta_E_y_hat
-  delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x *dv_y
-  delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-  delta_E_x_hat = delta_phi_hat * (1j * k_x)
-  delta_E_y_hat = delta_phi_hat * (1j * k_y)
+  # delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x *dv_y
+  # delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+  # delta_E_x_hat = delta_phi_hat * (1j * k_x)
+  # delta_E_y_hat = delta_phi_hat * (1j * k_y)
   delta_B_z_hat = 0
 
   old_delta_f_hat = delta_f_hat_initial
 
   for time_index, t0 in enumerate(time_array):
-    t0 = time_array[time_index]
-    if (time_index == time_array.size - 1):
-        break
-    t1 = time_array[time_index + 1]
-    dt = t1 - t0
+
+    if(time_index%10==0):
+      print("Computing at Time = ", t0)
+    
+    dt = time_array[1] - time_array[0]
 
     if(time_index != 0):
       delta_f_hat_initial = old_delta_f_hat.copy()
 
     new_delta_f_hat = RK4_step(config, delta_f_hat_initial, dt)
     if(config.mode == '2D2V'):
+
       delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x*dv_y
       density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
                                         delta_rho_hat.imag * np.sin(k_x*x + k_y*y)

@@ -87,8 +87,6 @@ def collision_step(args, dt):
   af.eval(f_final)
   return(f_final)
 
-
-
 def fields_step(args, dt):
   """
   Solves for the field step where df/dt + E df/dv is solved for
@@ -115,7 +113,6 @@ def fields_step(args, dt):
   """
   config = args.config
   f      = args.f
-  vel_x  = args.vel_x
   
   N_x       = config.N_x
   N_ghost_x = config.N_ghost_x
@@ -127,10 +124,11 @@ def fields_step(args, dt):
   
   charge_particle = config.charge_particle
 
-  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
-  
+  from cks.poisson_solvers import fft_poisson
+  from cks.boundary_conditions.periodic import periodic_x, periodic_y
+  from cks.interpolation_routines import f_interp_vel_1d, f_interp_vel_2d
+
   if(config.mode == '2D2V'):
-    vel_y     = args.vel_y
     N_y       = config.N_y
     N_ghost_y = config.N_ghost_y
 
@@ -139,44 +137,31 @@ def fields_step(args, dt):
     length_y     = top_boundary - bot_boundary
     dy           = length_y/(N_y - 1) 
 
-    # E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
-    # E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
     
-    # E_x_local, E_y_local = fft_poisson(charge_particle*\
-    #                                    calculate_density(args)[N_ghost_y:-N_ghost_y-1, N_ghost_x:-N_ghost_x - 1],\
-    #                                    dx,\
-    #                                    dy
-    #                                   )
+    E_x_local, E_y_local = fft_poisson(charge_particle*\
+                                       calculate_density(args)[N_ghost_y:-N_ghost_y-1,\
+                                                               N_ghost_x:-N_ghost_x - 1],\
+                                       dx,\
+                                       dy
+                                      )
     
-    # E_x_local = af.join(0, E_x_local, E_x_local[0])
-    # E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+    E_x_local = af.join(0, E_x_local, E_x_local[0])
+    E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
     
-    # E_y_local = af.join(0, E_y_local, E_y_local[0])
-    # E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+    E_y_local = af.join(0, E_y_local, E_y_local[0])
+    E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
 
-    # E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
-    # E_x                                             = periodic_x(config, E_x)
-    # E_x                                             = periodic_y(config, E_x)
+    E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+    E_x                                             = periodic_x(config, E_x)
+    E_x                                             = periodic_y(config, E_x)
 
-    # E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
-    # E_y                                             = periodic_x(config, E_y)
-    # E_y                                             = periodic_y(config, E_y)
+    E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+    E_y                                             = periodic_x(config, E_y)
+    E_y                                             = periodic_y(config, E_y)
     
-    E_x = args.E_x
-    E_y = args.E_y
-    E_z = args.E_z
-
-    B_x = args.B_x
-    B_y = args.B_y
-    B_z = args.B_z
-
-    J_x = charge_particle * calculate_vel_bulk_x(args)
-    J_y = charge_particle * calculate_vel_bulk_y(args)
-     
-    E_x, E_y, E_z, B_x, B_y, B_z = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, 0, dt)
-    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
-
-    f_fields = f_interp2_v(args, af.real(E_x), af.real(E_y), dt)
+    f_fields = f_interp_vel_2d(args, af.real(E_x), af.real(E_y), dt)
 
   else:
     E_x       = af.constant(0, f.shape[0], dtype = af.Dtype.c64)
@@ -189,12 +174,9 @@ def fields_step(args, dt):
     E_x[N_ghost_x:-N_ghost_x] = E_x_local
     E_x                       = periodic_x(config, E_x)     
     
-    f_fields = f_interp_v(args, af.real(E_x), dt)
+    f_fields = f_interp_vel_1d(args, af.real(E_x), dt)
     
   args.f   = f_fields
-  # args.B_z = B_z
-  args.E_x = E_x
-  args.E_y = E_y
 
   return(args)
 
@@ -234,92 +216,55 @@ def time_integration(args, time_array):
                 in the final time step.
   """
   config = args.config
-  f      = args.f
-  vel_x  = args.vel_x
-  x      = args.x 
-  
-  if(config.mode == '2D2V'):
-    y      = args.y 
-    vel_y  = args.vel_y
-  
+    
   data      = np.zeros(time_array.size)
 
-  fields_enabled     = config.fields_enabled
-  collisions_enabled = config.collisions_enabled
+  from cks.interpolation_routines import f_interp_1d, f_interp_2d
+  from cks.boundary_conditions.periodic import periodic_x, periodic_y
 
   for time_index, t0 in enumerate(time_array):
     if(time_index%10 == 0):
         print("Computing for Time = ", t0)
-    # We shall split the Boltzmann-Equation and solve it:
-    # In this step we are solving the collisionless equation
+
     dt = time_array[1] - time_array[0]
-    
     if(config.mode == '2D2V'):
-      args.f = f_interp2(args, 0.25*dt)
-    else:
-      args.f = f_interp(args, 0.25*dt)
-    
-    args.f = periodic_x(config, args.f)
-
-    if(config.mode == '2D2V'):
+      args.f = f_interp_2d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
-
-    if(collisions_enabled == "True"):
       args.f = collision_step(args, 0.5*dt)
-
-    args.f = periodic_x(config, args.f)
-    
-    if(config.mode == '2D2V'):
+      args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = f_interp2(args, 0.25*dt)
-    else:
-      args.f = f_interp(args, 0.25*dt)
-    
-    args.f = periodic_x(config, args.f)
-
-    if(config.mode == '2D2V'):
+      args.f = f_interp_2d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
-    
-    if(collisions_enabled == "True"):
+      args   = fields_step(args, dt)
+      args.f = periodic_x(config, args.f)
+      args.f = periodic_y(config, args.f)
+      args.f = f_interp_2d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
+      args.f = periodic_y(config, args.f)
       args.f = collision_step(args, 0.5*dt)
-    
-    if(fields_enabled == "True"):
-      args = fields_step(args, dt)
-
-    args.f = periodic_x(config, args.f)
-    
-    if(config.mode == '2D2V'):
+      args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = f_interp2(args, 0.25*dt)
+      args.f = f_interp_2d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
+      args.f = periodic_y(config, args.f)
+      
     else:
-      args.f = f_interp(args, 0.25*dt)
-    
-    args.f = periodic_x(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = periodic_y(config, args.f)
-
-    if(collisions_enabled == "True"):
+      args.f = f_interp_1d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
       args.f = collision_step(args, 0.5*dt)
-    
-    args.f = periodic_x(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = periodic_y(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = f_interp2(args, 0.25*dt)
-    else:
-      args.f = f_interp(args, 0.25*dt)
-    
-    args.f = periodic_x(config, args.f)
-
-    if(config.mode == '2D2V'):
-      args.f = periodic_y(config, args.f)
+      args.f = periodic_x(config, args.f)
+      args.f = f_interp_1d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
+      args   = fields_step(args, dt)
+      args.f = periodic_x(config, args.f)
+      args.f = f_interp_1d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
+      args.f = collision_step(args, 0.5*dt)
+      args.f = periodic_x(config, args.f)
+      args.f = f_interp_1d(args, 0.25*dt)
+      args.f = periodic_x(config, args.f)
 
     data[time_index] = af.max(calculate_density(args))
 

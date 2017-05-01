@@ -73,10 +73,8 @@ def set(params):
   config.final_time = params.time['final_time']
   config.dt         = params.time['dt']
     
-  config.fields_enabled  = params.EM_fields['enabled']
   config.charge_particle = params.EM_fields['charge_particle']
 
-  config.collisions_enabled = params.collisions['enabled']
   config.collision_operator = params.collisions['collision_operator']
   config.tau                = params.collisions['tau']
 
@@ -119,7 +117,7 @@ def f_background(config):
 
     f_background = rho_background * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                    np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
+                   np.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/(2*boltzmann_constant*temperature_background))
 
   elif(config.mode == '1D1V'):
     f_background = rho_background * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
@@ -215,7 +213,7 @@ def time_array(config):
   final_time = config.final_time
   dt         = config.dt
 
-  time_array = np.arange(0, final_time + dt, dt)
+  time_array = np.arange(dt, final_time + dt, dt)
 
   return time_array
 

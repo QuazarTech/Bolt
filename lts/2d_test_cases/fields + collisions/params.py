@@ -76,12 +76,10 @@ time = dict(
            )
 
 EM_fields = dict(
-                 enabled         = 'True',
-                 charge_particle = -10.0
+                 charge_particle = -10
                 )
 
 collisions = dict(
-                  enabled            = 'True',
                   collision_operator = 'BGK',
                   tau                =  0.01
                  )

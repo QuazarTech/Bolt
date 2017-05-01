@@ -25,7 +25,7 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 2*np.pi 
+                    k_y       = 4*np.pi 
                    ) 
 
 configuration_space = dict(N_x            = 16,
@@ -76,12 +76,10 @@ time = dict(
            )
 
 EM_fields = dict(
-                 enabled         = 'False',
-                 charge_particle = -10.0
+                 charge_particle = 0
                 )
 
 collisions = dict(
-                  enabled            = 'True',
                   collision_operator = 'BGK',
                   tau                =  0.01
                  )

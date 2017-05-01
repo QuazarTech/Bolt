@@ -63,3 +63,5 @@ __pycache__/
 .ipynb_checkpoints/
 
 *.mp4
+
+*.png

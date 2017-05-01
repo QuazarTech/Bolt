@@ -3,13 +3,11 @@ import arrayfire as af
 import cks.initialize as initialize
 import cks.fdtd as fdtd
 
-import N_32
-import N_64
-import N_128
-import N_256
-import N_512
-
-af.set_backend("cpu")
+import params_files.N_32 as N_32
+import params_files.N_64 as N_64
+import params_files.N_128 as N_128
+import params_files.N_256 as N_256
+import params_files.N_512 as N_512
 
 def gauss1D(x, spread):
   return af.exp(-((x - 0.5)**2 )/(2*spread**2))
@@ -61,10 +59,10 @@ def test_mode1():
     By = af.data.constant(0, X.shape[0], X.shape[1], dtype=af.Dtype.f64)
 
     Bx[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] =\
-    gauss1D(Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x], 0.1)
+    gauss1D(Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] + (dy/2), 0.1)
 
     By[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] =\
-    gauss1D(X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x], 0.1)
+    gauss1D(X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] + (dx/2), 0.1)
 
     Ez_initial = Ez.copy()
     Bx_initial = Bx.copy()
@@ -92,9 +90,9 @@ def test_mode1():
   poly_B_x = np.polyfit(x, np.log10(error_B_x), 1)
   poly_B_y = np.polyfit(x, np.log10(error_B_y), 1)
   poly_E_z = np.polyfit(x, np.log10(error_E_z), 1)
-  assert(abs(poly_B_x[0]+3)<0.3 and\
-         abs(poly_B_y[0]+3)<0.3 and\
-         abs(poly_E_z[0]+2)<0.3
+  assert(abs(poly_B_x[0]+3)<0.4 and\
+         abs(poly_B_y[0]+3)<0.4 and\
+         abs(poly_E_z[0]+2)<0.4
         )
 
 def test_mode2():
@@ -178,7 +176,7 @@ def test_mode2():
   poly_E_y = np.polyfit(x, np.log10(error_E_y), 1)
   poly_B_z = np.polyfit(x, np.log10(error_B_z), 1)
 
-  assert(abs(poly_E_x[0]+3)<0.3 and\
-         abs(poly_E_y[0]+3)<0.3 and\
-         abs(poly_B_z[0]+2)<0.3
+  assert(abs(poly_E_x[0]+3)<0.4 and\
+         abs(poly_E_y[0]+3)<0.4 and\
+         abs(poly_B_z[0]+2)<0.4
         )

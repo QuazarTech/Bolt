@@ -4,15 +4,11 @@ import cks.initialize as initialize
 import cks.fdtd as fdtd
 from lts.evolve import EM_fields_mode1, EM_fields_mode2
 
-import N_32
-import N_64
-import N_128
-import N_256
-import N_512
-
-import pylab as pl
-
-af.set_backend("cpu")
+import params_files.N_32 as N_32
+import params_files.N_64 as N_64
+import params_files.N_128 as N_128
+import params_files.N_256 as N_256
+import params_files.N_512 as N_512
 
 def test_mode1():
   config     = []
@@ -51,82 +47,70 @@ def test_mode1():
     dx = (length_x/(N_x - 1))
     dy = (length_y/(N_y - 1))
 
-    dt = (dx/4) + (dy/4)
+    dt = 0.01 * (32/config[i].N_x) 
 
-    final_time = 1
-    time       = np.arange(0, final_time, dt)
+    final_time = 0.1
+    time       = np.arange(dt, final_time + dt, dt)
 
-    Ez = af.data.constant(0, X.shape[0], X.shape[1], dtype=af.Dtype.f64)
-    Bx = af.data.constant(0, X.shape[0], X.shape[1], dtype=af.Dtype.f64)
-    By = af.data.constant(0, X.shape[0], X.shape[1], dtype=af.Dtype.f64)
+    B_x = 0.01 * af.cos(config[i].k_x*X + config[i].k_y*(Y + dy/2)) -\
+          0.02 * af.sin(config[i].k_x*X + config[i].k_y*(Y + dy/2))
 
-    B_x = 0.01 * af.cos(config[i].k_x*X + config[i].k_y*Y) - 0.02 * af.sin(config[i].k_x*X + config[i].k_y*Y)
-    B_y = 0.05 * af.cos(config[i].k_x*X + config[i].k_y*Y) - 0.01 * af.sin(config[i].k_x*X + config[i].k_y*Y)
+    B_y = 0.05 * af.cos(config[i].k_x*(X + dx/2) + config[i].k_y*Y) -\
+          0.01 * af.sin(config[i].k_x*(X + dx/2) + config[i].k_y*Y)
+    
     E_z = af.constant(0, B_x.shape[0], B_x.shape[1], dtype = af.Dtype.f64)
-
 
     delta_B_x_hat = 0.01 + 0.02*1j
     delta_B_y_hat = 0.05 + 0.01*1j
     delta_E_z_hat = 0
     delta_J_z_hat = 0
 
-    Jz = 0
-
-    data = np.zeros(time.size)
-    data_lt = np.zeros(time.size)
+    J_z = 0
 
     for time_index, t0 in enumerate(time):
-      Ez, Bx, By = fdtd.mode1_fdtd(config[i], Ez, Bx, By, Jz, dt)
+      E_z, B_x, B_y = fdtd.mode1_fdtd(config[i], E_z, B_x, B_y, J_z, dt)
       delta_E_z_hat, delta_B_x_hat, delta_B_y_hat = EM_fields_mode1(delta_E_z_hat, delta_B_x_hat,\
                                                                     delta_B_y_hat, delta_J_z_hat,\
-                                                                    config[i].k_x, config[i].k_x, dt
+                                                                    config[i].k_x, config[i].k_y, dt
                                                                    )
-      data[time_index] = af.max(af.abs(Bx))
-      data_lt[time_index] = np.abs(delta_B_x_hat)
 
-    pl.plot(time, data_lt, '--', color = 'black')
-    pl.plot(time, data)
-    pl.show()
+    Bx_lt = delta_B_x_hat.real * af.cos(config[i].k_x*X +\
+                                        config[i].k_y*(Y + dy/2)) \
+            - delta_B_x_hat.imag * af.sin(config[i].k_x*X +\
+                                          config[i].k_y*(Y + dy/2))
 
+    By_lt = delta_B_y_hat.real * af.cos(config[i].k_x*(X + dx/2) +\
+                                        config[i].k_y*Y) \
+            - delta_B_y_hat.imag * af.sin(config[i].k_x*(X + dx/2) +\
+                                          config[i].k_y*Y)
 
-  #   Bx_lt = delta_B_x_hat.real * af.cos(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                       config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]) \
-  #            - delta_B_x_hat.imag * af.sin(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                          config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x])
+    Ez_lt = delta_E_z_hat.real * af.cos(config[i].k_x*X +\
+                                        config[i].k_y*Y) \
+            - delta_E_z_hat.imag * af.sin(config[i].k_x*X +\
+                                          config[i].k_y*Y)
 
-  #   By_lt = delta_B_y_hat.real * af.cos(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                       config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]) \
-  #            - delta_B_y_hat.imag * af.sin(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                          config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x])
+    error_B_x[i] = af.sum(af.abs(B_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 Bx_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
 
-  #   Ez_lt = delta_E_z_hat.real * af.cos(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                       config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]) \
-  #            - delta_E_z_hat.imag * af.sin(config[i].k_x*X[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-  #                                          config[i].k_y*Y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x])
+    error_B_y[i] = af.sum(af.abs(B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 By_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
 
-  #   error_B_x[i] = af.sum(af.abs(Bx[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
-  #                                Bx_lt))/\
-  #                                (X.shape[0] * X.shape[1])
+    error_E_z[i] = af.sum(af.abs(E_z[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 Ez_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
 
-  #   error_B_y[i] = af.sum(af.abs(By[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
-  #                                By_lt))/\
-  #                                (X.shape[0] * X.shape[1])
+  x = np.log10(2**np.arange(5, 10))
 
-  #   error_E_z[i] = af.sum(af.abs(Ez[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
-  #                                Ez_lt))/\
-  #                                (X.shape[0] * X.shape[1])
-
-  # x = np.log10(2**np.arange(5, 10))
-
-  # poly_B_x = np.polyfit(x, np.log10(error_B_x), 1)
-  # poly_B_y = np.polyfit(x, np.log10(error_B_y), 1)
-  # poly_E_z = np.polyfit(x, np.log10(error_E_z), 1)
+  poly_B_x = np.polyfit(x, np.log10(error_B_x), 1)
+  poly_B_y = np.polyfit(x, np.log10(error_B_y), 1)
+  poly_E_z = np.polyfit(x, np.log10(error_E_z), 1)
   
-  # print(poly_B_x)
-  # assert(abs(poly_B_x[0]+3)<0.3 and\
-  #        abs(poly_B_y[0]+3)<0.3 and\
-  #        abs(poly_E_z[0]+2)<0.3
-  #       )
+  assert(abs(poly_B_x[0]+2)<0.3 and\
+         abs(poly_B_y[0]+2)<0.3 and\
+         abs(poly_E_z[0]+2)<0.3
+        )
 
 def test_mode2():
   config     = []
@@ -166,13 +150,16 @@ def test_mode2():
     dx = (length_x/(N_x - 1))
     dy = (length_y/(N_y - 1))
 
-    dt = (dx/4) + (dy/4)
+    dt = 0.01 * (32/config[i].N_x) 
 
-    final_time = 1
-    time       = np.arange(0, final_time, dt)
+    final_time = 0.1
+    time       = np.arange(dt, final_time + dt, dt)
 
-    E_x = 0.01 * af.cos(config[i].k_x*X + config[i].k_y*Y) - 0.02 * af.sin(config[i].k_x*X + config[i].k_y*Y)
-    E_y = 0.05 * af.cos(config[i].k_x*X + config[i].k_y*Y) - 0.01 * af.sin(config[i].k_x*X + config[i].k_y*Y)
+    E_x = 0.01 * af.cos(config[i].k_x*(X + dx/2) + config[i].k_y*Y) -\
+          0.02 * af.sin(config[i].k_x*(X + dx/2) + config[i].k_y*Y)
+    E_y = 0.05 * af.cos(config[i].k_x*X + config[i].k_y*(Y + dy/2)) -\
+          0.01 * af.sin(config[i].k_x*X + config[i].k_y*(Y + dy/2))
+
     B_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype = af.Dtype.f64)
 
     delta_E_x_hat = 0.01 + 0.02*1j
@@ -183,20 +170,56 @@ def test_mode2():
 
     J_x, J_y = 0, 0
 
-    data = np.zeros(time.size)
-    data_lt = np.zeros(time.size)
-
     for time_index, t0 in enumerate(time):
       B_z, E_x, E_y = fdtd.mode2_fdtd(config[i], B_z, E_x, E_y, J_x, J_y, dt)
       delta_B_z_hat, delta_E_x_hat, delta_E_y_hat = EM_fields_mode2(delta_B_z_hat, delta_E_x_hat,\
-                                                                    delta_E_y_hat, delta_J_x_hat, 0,\
-                                                                    config[i].k_x, config[i].k_x, dt
+                                                                    delta_E_y_hat, delta_J_x_hat,\
+                                                                    delta_J_y_hat, config[i].k_x,\
+                                                                    config[i].k_y, dt
                                                                    )
-      data[time_index] = af.max(af.abs(B_z))
-      data_lt[time_index] = np.abs(delta_B_z_hat)
 
-    pl.plot(time, data_lt, '--', color = 'black')
-    pl.plot(time, data)
-    pl.show()
 
-test_mode2()
+    Ex_lt = delta_E_x_hat.real * af.cos(config[i].k_x*(X + dx/2) +\
+                                        config[i].k_y*Y
+                                       ) \
+            - delta_E_x_hat.imag * af.sin(config[i].k_x*(X + dx/2) +\
+                                          config[i].k_y*Y
+                                         )
+
+    Ey_lt = delta_E_y_hat.real * af.cos(config[i].k_x*X +\
+                                        config[i].k_y*(Y + dy/2)
+                                       ) \
+             - delta_E_y_hat.imag * af.sin(config[i].k_x*X +\
+                                           config[i].k_y*(Y + dy/2)
+                                          )
+
+
+    Bz_lt = delta_B_z_hat.real * af.cos(config[i].k_x*(X + dx/2) +\
+                                        config[i].k_y*(Y + dy/2)
+                                       ) \
+             - delta_B_z_hat.imag * af.sin(config[i].k_x*(X + dx/2) +\
+                                           config[i].k_y*(Y + dy/2)
+                                          )
+
+    error_E_x[i] = af.sum(af.abs(E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 Ex_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
+
+    error_E_y[i] = af.sum(af.abs(E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 Ey_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
+
+    error_B_z[i] = af.sum(af.abs(B_z[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] -\
+                                 Bz_lt[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]))/\
+                                 (X.shape[0] * X.shape[1])
+
+  x = np.log10(2**np.arange(5, 10))
+
+  poly_E_x = np.polyfit(x, np.log10(error_E_x), 1)
+  poly_E_y = np.polyfit(x, np.log10(error_E_y), 1)
+  poly_B_z = np.polyfit(x, np.log10(error_B_z), 1)
+  
+  assert(abs(poly_E_x[0]+2)<0.3 and\
+         abs(poly_E_y[0]+2)<0.3 and\
+         abs(poly_B_z[0]+2)<0.3
+        )

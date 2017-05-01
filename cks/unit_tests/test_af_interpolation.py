@@ -1,8 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-af.set_backend("cpu")
-
 def test_1d():
   N_x      = np.arange(500, 2000, 20)
   x_interp = af.randu(10, dtype=af.Dtype.f64)

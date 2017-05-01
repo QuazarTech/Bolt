@@ -30,21 +30,29 @@ def mode1_fdtd(config, E_z, B_x, B_y, J_z, dt):
   dy = length_y/(N_y - 1)
 
   """  Updating the Magnetic fields   """
-  E_z +=   (dt/dx) * (af.signal.convolve2_separable(af.Array([0, 1, 0]), af.Array([0, 1, -1]), B_y)) \
-         - (dt/dy) * (af.signal.convolve2_separable(af.Array([0, 1, -1]), af.Array([0, 1, 0]), B_x)) \
+  
+  E_z +=   (dt/dx) * (af.signal.convolve2_separable(af.Array([0, 1, 0]),\
+                                                    af.Array([0, 1, -1]), B_y)) \
+         - (dt/dy) * (af.signal.convolve2_separable(af.Array([0, 1, -1]),\
+                                                    af.Array([0, 1, 0]), B_x)) \
          -  dt * J_z
 
   E_z = periodic_x(config, E_z)
   E_z = periodic_y(config, E_z)
 
-  B_x += -(dt/dy)*(af.signal.convolve2_separable(af.Array([1, -1, 0]), af.Array([0, 1, 0]), E_z))
-  B_y += (dt/dx)*(af.signal.convolve2_separable(af.Array([0, 1, 0]), af.Array([1, -1, 0]), E_z))
+  B_x += -(dt/dy)*(af.signal.convolve2_separable(af.Array([1, -1, 0]),\
+                                                 af.Array([0, 1, 0]), E_z))
+
+  B_y += (dt/dx)*(af.signal.convolve2_separable(af.Array([0, 1, 0]),\
+                                                af.Array([1, -1, 0]), E_z))
 
   B_x = periodic_x(config, B_x)
   B_y = periodic_x(config, B_y)
 
   B_x = periodic_y(config, B_x)
   B_y = periodic_y(config, B_y)
+
+
 
   af.eval(E_z, B_x, B_y)
   return(E_z, B_x, B_y)
@@ -78,41 +86,32 @@ def mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y, dt):
   dy = length_y/(N_y - 1)
 
   """  Updating the Magnetic field  """
-
-  E_x += (dt/dy)  * (af.signal.convolve2_separable(af.Array([0, 1, -1]), af.Array([0, 1, 0]), B_z)) - J_x * dt
-  E_y += -(dt/dx) * (af.signal.convolve2_separable(af.Array([0, 1, 0]),  af.Array([0, 1, -1]), B_z)) - J_y * dt
+  E_x += (dt/dy)  * (af.signal.convolve2_separable(af.Array([0, 1, -1]),\
+                                                   af.Array([0, 1, 0]), B_z)) - J_x * dt
+  E_y += -(dt/dx) * (af.signal.convolve2_separable(af.Array([0, 1, 0]), \
+                                                   af.Array([0, 1, -1]), B_z)) - J_y * dt
 
   E_x = periodic_x(config, E_x)
   E_y = periodic_x(config, E_y)
 
   E_x = periodic_y(config, E_x)
   E_y = periodic_y(config, E_y)
-
+  
   B_z += - (dt/dx) * (af.signal.convolve2_separable(af.Array([0,  1, 0]),\
-                                                    af.Array([1, -1, 0]),\
-                                                    E_y
-                                                   )
-           ) \
-         + (dt/dy) * (af.signal.convolve2_separable(af.Array([1, -1, 0]), af.Array([0, 1, 0]), E_x))
+                                                    af.Array([1, -1, 0]), E_y)) \
+         + (dt/dy) * (af.signal.convolve2_separable(af.Array([1, -1, 0]),\
+                                                    af.Array([0, 1, 0]), E_x))
   
   B_z = periodic_x(config, B_z)
   B_z = periodic_y(config, B_z)
-  
+
   af.eval(B_z, E_x, E_y)
   return(B_z, E_x, E_y)
-
 
 def fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, J_z, dt):
 
   E_z_new, B_x_new, B_y_new = mode1_fdtd(config, E_z, B_x, B_y, J_z, dt)
   B_z_new, E_x_new, E_y_new = mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y, dt)
-
-  # Returning the value at the n-th time-step as
-  # opposed to the original (n + 1/2)th time-step
-
-  # B_x_new_nth = 0.5 * (B_x + B_x_new)
-  # B_y_new_nth = 0.5 * (B_y + B_y_new)
-  # B_z_new_nth = 0.5 * (B_z + B_z_new)
   
   af.eval(E_x_new, E_y_new, E_z_new, B_x_new, B_y_new, B_z_new)
   return (E_x_new, E_y_new, E_z_new, B_x_new, B_y_new, B_z_new)

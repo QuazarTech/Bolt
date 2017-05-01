@@ -22,10 +22,10 @@ background_ions = dict(
                       )
 
 perturbation = dict(
-                    pert_real = 5e-3, 
-                    pert_imag = 1e-4,
-                    k_x       = 4*np.pi,
-                    k_y       = 8*np.pi 
+                    pert_real = 1e-2, 
+                    pert_imag = 0,
+                    k_x       = 2*np.pi,
+                    k_y       = 4*np.pi 
                    ) 
 
 configuration_space = dict(N_x            = 32,
@@ -76,12 +76,10 @@ time = dict(
            )
 
 EM_fields = dict(
-                 enabled         = 'True',
-                 charge_particle = -10.0
+                 charge_particle = -10
                 )
 
 collisions = dict(
-                  enabled            = 'False',
                   collision_operator = 'BGK',
-                  tau                =  0.01
+                  tau                =  np.inf
                  )

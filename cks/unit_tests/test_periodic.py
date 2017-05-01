@@ -2,8 +2,6 @@ import numpy as np
 import arrayfire as af 
 from cks.boundary_conditions.periodic import periodic_x, periodic_y
 
-af.set_backend("cpu")
-
 class options:
   pass
 

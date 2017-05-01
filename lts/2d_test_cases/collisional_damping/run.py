@@ -1,7 +1,6 @@
-import cks.initialize as initialize
-import cks.evolve as evolve
+import lts.initialize as initialize
+import lts.evolve as evolve
 import pylab as pl
-import arrayfire as af
 import params
 
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -33,26 +32,14 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
-print(af.info())
-
 config = initialize.set(params)
-x      = initialize.calculate_x(config)
-vel_x  = initialize.calculate_vel_x(config)
 
-f_initial  = initialize.f_initial(config)
-time_array = initialize.time_array(config)
+delta_f_hat_initial = initialize.init_delta_f_hat(config)
+time_array          = initialize.time_array(config)
 
-class args:
-    pass
+delta_rho_hat, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
 
-args.config = config
-args.f      = f_initial
-args.vel_x  = vel_x
-args.x      = x
-
-data, f_final = evolve.time_integration(args, time_array)
-
-pl.plot(time_array, data)
+pl.plot(time_array, delta_rho_hat)
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
