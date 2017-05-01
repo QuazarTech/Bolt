@@ -1,8 +1,9 @@
 import numpy as np
 import arrayfire as af 
 
-class config:
-  pass
+class options:
+  def __init__(self):
+    pass
 
 def set(params):
   """
@@ -18,6 +19,8 @@ def set(params):
     config : Object whose attributes contain all the simulation parameters. This is
              passed to the remaining solver functions.
   """
+  config = options()
+
   config.mode = params.mode
 
   config.mass_particle      = params.constants['mass_particle']

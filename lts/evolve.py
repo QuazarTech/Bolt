@@ -66,18 +66,17 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
     if(config.mode == '2D2V'):
       dfdv_y_background = initialize.dfdv_y_background(config)
-      global delta_B_z_hat
-      global delta_E_x_hat
-      global delta_E_y_hat
-      delta_B_z_hat+= -(1j * k_x * delta_E_y_hat  - 1j * k_y * delta_E_x_hat)*dt
-      delta_E_x_hat+= (delta_B_z_hat*1j*k_y - charge_particle*delta_vel_bulk_x)*dt
-      delta_E_y_hat+= -(delta_B_z_hat*1j*k_x + charge_particle*delta_vel_bulk_y)*dt
+
+      global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
+      global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
+
+
 
       fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
-                                           delta_B_z_hat   * vel_y \
+                                           0 * delta_B_z_hat   * vel_y \
                                           ) * dfdv_x_background  + \
                     (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
-                                           delta_B_z_hat   * vel_x
+                                           0 * delta_B_z_hat   * vel_x
                                           ) * dfdv_y_background
     
     elif(config.mode == '1D1V'):
@@ -97,6 +96,19 @@ def ddelta_f_hat_dt(delta_f_hat, config):
     ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
 
   return ddelta_f_hat_dt
+
+def EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+                     delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
+                     delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
+                     dt, k_x, k_y
+                    ):
+  
+  
+  delta_E_x_hat+=  (delta_B_z_hat*1j*k_y - delta_J_x_hat)*dt
+  delta_E_y_hat+= -(delta_B_z_hat*1j*k_x + delta_J_y_hat)*dt
+  delta_B_z_hat+= -(1j * k_x * delta_E_y_hat  - 1j * k_y * delta_E_x_hat)*dt
+  
+  return(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat)
 
 def RK4_step(config, delta_f_hat_initial, dt):
 
@@ -168,12 +180,13 @@ def time_integration(config, delta_f_hat_initial, time_array):
   delta_E_y_hat = delta_phi_hat * (1j * k_y)
   delta_B_z_hat = 0
 
+  old_delta_f_hat = delta_f_hat_initial
+
   for time_index, t0 in enumerate(time_array):
     t0 = time_array[time_index]
     if (time_index == time_array.size - 1):
         break
     t1 = time_array[time_index + 1]
-    t  = [t0, t1]
     dt = t1 - t0
 
     if(time_index != 0):
