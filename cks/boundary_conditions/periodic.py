@@ -33,8 +33,8 @@ def periodic_x(config, f):
     f[:, -N_ghost_x:] = f[:, (N_ghost_x + 1):(2*N_ghost_x + 1)]
     
   else:
-    f[:N_ghost_x,:]   = f[-(2*N_ghost_x + 1):-(N_ghost_x + 1)]
-    f[-N_ghost_x:, :] = f[(N_ghost_x + 1):(2*N_ghost_x + 1)]  
+    f[:N_ghost_x]  = f[-(2*N_ghost_x + 1):-(N_ghost_x + 1)]
+    f[-N_ghost_x:] = f[(N_ghost_x + 1):(2*N_ghost_x + 1)]  
 
   af.eval(f)
   return(f)
