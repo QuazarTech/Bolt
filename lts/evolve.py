@@ -97,18 +97,42 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
   return ddelta_f_hat_dt
 
+def EM_fields_mode1(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat,\
+                    delta_J_z_hat, k_x, k_y, dt
+                   ):
+  delta_E_z_hat += (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) * dt -\
+                   delta_J_z_hat * dt
+  delta_B_x_hat += -(delta_E_z_hat * 1j * k_y)*dt
+  delta_B_y_hat += (delta_E_z_hat * 1j * k_x)*dt
+
+  return(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat)
+
+def EM_fields_mode2(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat,\
+                    delta_J_x_hat, delta_J_y_hat, k_x, k_y, dt
+                   ):
+  delta_E_x_hat += (delta_B_z_hat * 1j * k_y)*dt - delta_J_x_hat * dt
+  delta_E_y_hat += -(delta_B_z_hat * 1j * k_x)*dt - delta_J_y_hat * dt
+  delta_B_z_hat += -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y) * dt
+
+  return(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat) 
+
 def EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
                      delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
                      delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
                      dt, k_x, k_y
                     ):
-  
-  
-  delta_E_x_hat+=  (delta_B_z_hat*1j*k_y - delta_J_x_hat)*dt
-  delta_E_y_hat+= -(delta_B_z_hat*1j*k_x + delta_J_y_hat)*dt
-  delta_B_z_hat+= -(1j * k_x * delta_E_y_hat  - 1j * k_y * delta_E_x_hat)*dt
-  
-  return(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat)
+  delta_E_z_hat, delta_B_x_hat, delta_B_y_hat = EM_fields_mode1(delta_E_z_hat, delta_B_x_hat,\
+                                                                delta_B_y_hat, delta_J_z_hat,\
+                                                                k_x, k_y, dt
+                                                               )
+
+  delta_B_z_hat, delta_E_x_hat, delta_E_y_hat = EM_fields_mode2(delta_B_z_hat, delta_E_x_hat,\
+                                                                delta_E_y_hat, delta_J_x_hat,\
+                                                                delta_J_y_hat, k_x, k_y, dt
+                                                               )
+
+  return (delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+          delta_B_x_hat, delta_B_y_hat, delta_B_z_hat)
 
 def RK4_step(config, delta_f_hat_initial, dt):
 
