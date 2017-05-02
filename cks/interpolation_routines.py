@@ -244,7 +244,7 @@ def f_interp_vel_1d(args, E_x, dt):
   af.eval(f_interp)
   return(f_interp)
 
-def f_interp_vel_2d(args, E_x, E_y, dt):
+def f_interp_vel_2d(args, F_x, F_y, dt):
   """
   Performs the interpolation in 2V velocity space. This function is
   used in solving for the fields contribution in the Boltzmann equation.
@@ -281,19 +281,18 @@ def f_interp_vel_2d(args, E_x, E_y, dt):
   vel_x  = args.vel_x
   vel_y  = args.vel_y
   
-  charge_particle = config.charge_particle
   vel_x_max       = config.vel_x_max
   vel_y_max       = config.vel_y_max
 
-  vel_x_new = vel_x - charge_particle * dt * af.tile(E_x, 1, 1,\
-                                                     f.shape[2],\
-                                                     f.shape[3]
-                                                    )
+  vel_x_new = vel_x - dt * af.tile(F_x, 1, 1,\
+                                   f.shape[2],\
+                                   f.shape[3]
+                                  )
   
-  vel_y_new = vel_y - charge_particle * dt * af.tile(E_y, 1, 1,\
-                                                     f.shape[2],\
-                                                     f.shape[3]
-                                                    )
+  vel_y_new = vel_y - dt * af.tile(F_y, 1, 1,\
+                                   f.shape[2],\
+                                   f.shape[3]
+                                  )
 
   dv_x = af.sum(vel_x[0, 0, 1, 0]-vel_x[0, 0, 0, 0])
   dv_y = af.sum(vel_y[0, 0, 0, 1]-vel_y[0, 0, 0, 0])

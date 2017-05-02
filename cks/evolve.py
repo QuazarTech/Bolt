@@ -127,6 +127,7 @@ def fields_step(args, dt):
   from cks.poisson_solvers import fft_poisson
   from cks.boundary_conditions.periodic import periodic_x, periodic_y
   from cks.interpolation_routines import f_interp_vel_1d, f_interp_vel_2d
+  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
 
   if(config.mode == '2D2V'):
     N_y       = config.N_y
@@ -137,31 +138,60 @@ def fields_step(args, dt):
     length_y     = top_boundary - bot_boundary
     dy           = length_y/(N_y - 1) 
 
-    E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
-    E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    # E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    # E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
     
-    E_x_local, E_y_local = fft_poisson(charge_particle*\
-                                       calculate_density(args)[N_ghost_y:-N_ghost_y-1,\
-                                                               N_ghost_x:-N_ghost_x - 1],\
-                                       dx,\
-                                       dy
-                                      )
+    # E_x_local, E_y_local = fft_poisson(charge_particle*\
+    #                                    calculate_density(args)[N_ghost_y:-N_ghost_y-1,\
+    #                                                            N_ghost_x:-N_ghost_x - 1],\
+    #                                    dx,\
+    #                                    dy
+    #                                   )
     
-    E_x_local = af.join(0, E_x_local, E_x_local[0])
-    E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+    # E_x_local = af.join(0, E_x_local, E_x_local[0])
+    # E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
     
-    E_y_local = af.join(0, E_y_local, E_y_local[0])
-    E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+    # E_y_local = af.join(0, E_y_local, E_y_local[0])
+    # E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
 
-    E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
-    E_x                                             = periodic_x(config, E_x)
-    E_x                                             = periodic_y(config, E_x)
+    # E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+    # E_x                                             = periodic_x(config, E_x)
+    # E_x                                             = periodic_y(config, E_x)
 
-    E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
-    E_y                                             = periodic_x(config, E_y)
-    E_y                                             = periodic_y(config, E_y)
+    # E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+    # E_y                                             = periodic_x(config, E_y)
+    # E_y                                             = periodic_y(config, E_y)
     
-    f_fields = f_interp_vel_2d(args, af.real(E_x), af.real(E_y), dt)
+    E_x = args.E_x
+    E_y = args.E_y
+    E_z = args.E_z
+
+    B_x = args.B_x
+    B_y = args.B_y
+    B_z = args.B_z
+
+    J_x = charge_particle * calculate_vel_bulk_x(args)
+    J_y = charge_particle * calculate_vel_bulk_y(args)
+
+    J_x[N_ghost_y:-N_ghost_y, N_ghost_x, -N_ghost_x] = 0.25 * (J_x[N_ghost_y:-N_ghost_y, N_ghost_x, -N_ghost_x] +\
+                                                               J_x[N_ghost_y:-N_ghost_y, N_ghost_x + 1, -N_ghost_x + 1] +\
+                                                               J_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x, -N_ghost_x] +\
+                                                               J_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1, -N_ghost_x + 1]
+                                                              )
+
+    J_x = periodic_x(config, J_x)
+    J_x = periodic_y(config, J_x)
+     
+    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, 0, dt)
+
+    # To account for half-time steps:
+    B_x = 0.5 * (B_x + B_x_new)
+    B_y = 0.5 * (B_y + B_y_new)
+    B_z = 0.5 * (B_z + B_z_new)
+
+    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+
+    f_fields = f_interp_vel_2d(args, charge_particle * E_x, charge_particle * E_y, dt)
 
   else:
     E_x       = af.constant(0, f.shape[0], dtype = af.Dtype.c64)
@@ -177,6 +207,12 @@ def fields_step(args, dt):
     f_fields = f_interp_vel_1d(args, af.real(E_x), dt)
     
   args.f   = f_fields
+  args.B_x = B_x
+  args.B_y = B_y
+  args.B_z = B_z
+  args.E_x = E_x
+  args.E_y = E_y
+  args.E_z = E_z
 
   return(args)
 

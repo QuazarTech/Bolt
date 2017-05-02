@@ -132,13 +132,13 @@ def fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
   E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
                                                             E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
                                                             E_x[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                                            E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]
+                                                            E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
                                                            )
 
   B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
                                                             B_y[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
                                                             B_y[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                                            B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x]
+                                                            B_y[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
                                                            )
 
   E_x_ck = periodic_x(config, E_x)
