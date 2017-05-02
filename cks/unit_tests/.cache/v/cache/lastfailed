@@ -1,1 +1,4 @@
-{}
+{
+  "test_fft_poisson.py::test_1d": true,
+  "test_fft_poisson.py::test_2d": true
+}

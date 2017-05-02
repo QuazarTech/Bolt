@@ -28,12 +28,12 @@ perturbation = dict(
                     k_y       = 4*np.pi 
                    ) 
 
-configuration_space = dict(N_x            = 16,
+configuration_space = dict(N_x            = 64,
                            N_ghost_x      = 3,
                            left_boundary  = 0,
                            right_boundary = 1.0,
 
-                           N_y            = 16,
+                           N_y            = 64,
                            N_ghost_y      = 3,
                            bot_boundary   = 0,
                            top_boundary   = 1.0,

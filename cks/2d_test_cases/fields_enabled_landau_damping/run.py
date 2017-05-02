@@ -1,5 +1,9 @@
 import cks.initialize as initialize
 import cks.evolve as evolve
+from cks.poisson_solvers import fft_poisson
+from cks.boundary_conditions.periodic import periodic_x, periodic_y
+import matplotlib as mpl
+mpl.use("Agg")
 import pylab as pl
 import arrayfire as af
 import params
@@ -12,7 +16,7 @@ pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
 pl.rcParams['font.size']       = 20  
 pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = True
+pl.rcParams['text.usetex']     = False
 pl.rcParams['axes.linewidth']  = 1.5
 pl.rcParams['axes.titlesize']  = 'medium'
 pl.rcParams['axes.labelsize']  = 'medium'
@@ -64,7 +68,7 @@ N_y = config.N_y
 N_ghost_x = config.N_ghost_x
 N_ghost_y = config.N_ghost_y
 
-E_x_local, E_y_local = evolve.fft_poisson(config.charge_particle*evolve.calculate_density(args)[3:-4, 3:-4], dx, dy)
+E_x_local, E_y_local = fft_poisson(config.charge_particle*evolve.calculate_density(args)[3:-4, 3:-4], dx, dy)
 
 E_x_local = af.join(0, E_x_local, E_x_local[0])
 E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
@@ -78,12 +82,22 @@ E_x = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
 E_y = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
 
 E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
-E_x                                             = evolve.periodic_x(config, E_x)
-E_x                                             = evolve.periodic_y(config, E_x)
+
+E_x                                             = periodic_x(config, E_x)
+E_x                                             = periodic_y(config, E_x)
+
+E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
+                                                          E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
+                                                          E_x[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
+                                                          E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
+                                                         )
+
+E_x                                             = periodic_x(config, E_x)
+E_x                                             = periodic_y(config, E_x)
 
 E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
-E_y                                             = evolve.periodic_x(config, E_y)
-E_y                                             = evolve.periodic_y(config, E_y)
+E_y                                             = periodic_x(config, E_y)
+E_y                                             = periodic_y(config, E_y)
 
 args.E_x = af.real(E_x)
 args.E_y = af.real(E_y)
@@ -96,5 +110,5 @@ data, f_final = evolve.time_integration(args, time_array)
 
 pl.plot(time_array, data)
 pl.xlabel('Time')
-pl.ylabel(r'$MAX(\delta \rho(x))$')
+# pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')

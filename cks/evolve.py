@@ -179,8 +179,8 @@ def fields_step(args, dt):
                                                                J_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1, -N_ghost_x + 1]
                                                               )
 
-    J_x = periodic_x(config, J_x)
-    J_x = periodic_y(config, J_x)
+    J_x = 0*periodic_x(config, J_x)
+    J_x = 0*periodic_y(config, J_x)
      
     E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, 0, dt)
 
