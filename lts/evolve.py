@@ -2,44 +2,44 @@ import numpy as np
 import lts.initialize as initialize
 from lts.collision_operators import BGK_collision_operator
 
-def EM_fields_mode1(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat,\
-                    delta_J_z_hat, k_x, k_y, dt
-                   ):
-  delta_E_z_hat += (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) * dt -\
-                   delta_J_z_hat * dt
-  delta_B_x_hat += -(delta_E_z_hat * 1j * k_y)*dt
-  delta_B_y_hat += (delta_E_z_hat * 1j * k_x)*dt
+# def EM_fields_mode1(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat,\
+#                     delta_J_z_hat, k_x, k_y, dt
+#                    ):
+#   delta_E_z_hat += (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) * dt -\
+#                    delta_J_z_hat * dt
+#   delta_B_x_hat += -(delta_E_z_hat * 1j * k_y)*dt
+#   delta_B_y_hat += (delta_E_z_hat * 1j * k_x)*dt
 
-  return(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat)
+#   return(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat)
 
-def EM_fields_mode2(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat,\
-                    delta_J_x_hat, delta_J_y_hat, k_x, k_y, dt
-                   ):
-  delta_E_x_hat += (delta_B_z_hat * 1j * k_y)*dt - delta_J_x_hat * dt
-  delta_E_y_hat += -(delta_B_z_hat * 1j * k_x)*dt - delta_J_y_hat * dt
-  delta_B_z_hat += -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y) * dt
+# def EM_fields_mode2(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat,\
+#                     delta_J_x_hat, delta_J_y_hat, k_x, k_y, dt
+#                    ):
+#   delta_E_x_hat += (delta_B_z_hat * 1j * k_y)*dt - delta_J_x_hat * dt
+#   delta_E_y_hat += -(delta_B_z_hat * 1j * k_x)*dt - delta_J_y_hat * dt
+#   delta_B_z_hat += -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y) * dt
 
-  return(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat) 
+#   return(delta_B_z_hat, delta_E_x_hat, delta_E_y_hat) 
 
-def EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
-                     delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
-                     delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
-                     dt, k_x, k_y
-                    ):
-  delta_E_z_hat, delta_B_x_hat, delta_B_y_hat = EM_fields_mode1(delta_E_z_hat, delta_B_x_hat,\
-                                                                delta_B_y_hat, delta_J_z_hat,\
-                                                                k_x, k_y, dt
-                                                               )
+# def EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+#                      delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
+#                      delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
+#                      k_x, k_y, dt
+#                     ):
+#   delta_E_z_hat, delta_B_x_hat, delta_B_y_hat = EM_fields_mode1(delta_E_z_hat, delta_B_x_hat,\
+#                                                                 delta_B_y_hat, delta_J_z_hat,\
+#                                                                 k_x, k_y, dt
+#                                                                )
 
-  delta_B_z_hat, delta_E_x_hat, delta_E_y_hat = EM_fields_mode2(delta_B_z_hat, delta_E_x_hat,\
-                                                                delta_E_y_hat, delta_J_x_hat,\
-                                                                delta_J_y_hat, k_x, k_y, dt
-                                                               )
+#   delta_B_z_hat, delta_E_x_hat, delta_E_y_hat = EM_fields_mode2(delta_B_z_hat, delta_E_x_hat,\
+#                                                                 delta_E_y_hat, delta_J_x_hat,\
+#                                                                 delta_J_y_hat, k_x, k_y, dt
+#                                                                )
 
-  return (delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
-          delta_B_x_hat, delta_B_y_hat, delta_B_z_hat)
+#   return (delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+#           delta_B_x_hat, delta_B_y_hat, delta_B_z_hat)
 
-def ddelta_f_hat_dt(delta_f_hat, config):
+def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, config):
   """
   Returns the value of the derivative of the mode perturbation of the distribution 
   function with respect to time. This is used to evolve the system with time.
@@ -66,7 +66,8 @@ def ddelta_f_hat_dt(delta_f_hat, config):
   dv_x      = vel_x[1] - vel_x[0]
   
   k_x = config.k_x   
-  dt  = config.dt
+
+  rho_background = config.rho_background
 
   if(config.mode == '2D2V'):
     vel_y_max    = config.vel_y_max
@@ -80,8 +81,8 @@ def ddelta_f_hat_dt(delta_f_hat, config):
 
   if(config.mode == '2D2V'):
     delta_rho_hat    = np.sum(delta_f_hat) * dv_x *dv_y
-    # delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
-    # delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
+    delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
+    delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
 
   elif(config.mode == '1D1V'):
     delta_rho_hat = np.sum(delta_f_hat) * dv_x
@@ -91,25 +92,21 @@ def ddelta_f_hat_dt(delta_f_hat, config):
   if(config.mode == '2D2V'):
     dfdv_y_background = initialize.dfdv_y_background(config)
 
-    global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
-    global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
     # delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
     # delta_E_x_hat = delta_phi_hat * (1j * k_x)
     # delta_E_y_hat = delta_phi_hat * (1j * k_y)
-    delta_J_x_hat, delta_J_y_hat, delta_J_z_hat = 0, 0, 0
+    delta_J_x_hat, delta_J_y_hat = charge_particle * delta_vel_bulk_x,\
+                                   charge_particle * delta_vel_bulk_y
     
-    delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
-    delta_B_x_hat, delta_B_y_hat, delta_B_z_hat  = EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
-                                                                    delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
-                                                                    delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
-                                                                    dt, k_x, k_y
-                                                                   )
+    ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
+    ddelta_E_y_hat_dt = -(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
+    ddelta_B_z_hat_dt = -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
 
     fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
-                                         0 * delta_B_z_hat   * vel_y \
+                                         charge_particle * delta_B_z_hat * vel_y \
                                         ) * dfdv_x_background  + \
                   (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
-                                         0 * delta_B_z_hat   * vel_x
+                                         charge_particle * delta_B_z_hat * vel_x
                                         ) * dfdv_y_background
   
   elif(config.mode == '1D1V'):
@@ -124,17 +121,36 @@ def ddelta_f_hat_dt(delta_f_hat, config):
   elif(config.mode == '1D1V'):
     ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
 
-  return ddelta_f_hat_dt
+  return(ddelta_f_hat_dt, ddelta_E_x_hat_dt, ddelta_E_y_hat_dt, ddelta_B_z_hat_dt)
 
 
 def RK4_step(config, delta_f_hat_initial, dt):
+  
+  global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
-  k1 = ddelta_f_hat_dt(delta_f_hat_initial, config)
-  k2 = ddelta_f_hat_dt(delta_f_hat_initial + 0.5*k1*dt, config)
-  k3 = ddelta_f_hat_dt(delta_f_hat_initial + 0.5*k2*dt, config)
-  k4 = ddelta_f_hat_dt(delta_f_hat_initial + k3*dt, config)
+  k1 = ddelta_f_hat_dt(delta_f_hat_initial,\
+                       delta_E_x_hat, delta_E_y_hat,\
+                       delta_B_z_hat, config)
+  
+  k2 = ddelta_f_hat_dt(delta_f_hat_initial + 0.5*k1[0]*dt,\
+                       delta_E_x_hat + 0.5*k1[1]*dt, delta_E_y_hat + 0.5*k1[2]*dt,\
+                       delta_B_z_hat + 0.5*k1[3]*dt, config)
+  
+  k3 = ddelta_f_hat_dt(delta_f_hat_initial + 0.5*k2[0]*dt,\
+                       delta_E_x_hat + 0.5*k2[1]*dt, delta_E_y_hat + 0.5*k2[2]*dt,\
+                       delta_B_z_hat + 0.5*k2[3]*dt, config)
 
-  return(delta_f_hat_initial + ((k1+2*k2+2*k3+k4)/6)*dt)
+  k4 = ddelta_f_hat_dt(delta_f_hat_initial + k3[0]*dt,\
+                       delta_E_x_hat + k3[1]*dt, delta_E_y_hat + k3[2]*dt,\
+                       delta_B_z_hat + k3[3]*dt, config)
+
+  delta_f_hat_new = delta_f_hat_initial + ((k1[0]+2*k2[0]+2*k3[0]+k4[0])/6)*dt
+
+  delta_E_x_hat += ((k1[1]+2*k2[1]+2*k3[1]+k4[1])/6)*dt
+  delta_E_y_hat += ((k1[2]+2*k2[2]+2*k3[2]+k4[2])/6)*dt
+  delta_B_z_hat += ((k1[3]+2*k2[3]+2*k3[3]+k4[3])/6)*dt
+
+  return(delta_f_hat_new)
 
 def time_integration(config, delta_f_hat_initial, time_array):
   """
@@ -186,17 +202,15 @@ def time_integration(config, delta_f_hat_initial, time_array):
     x, y         = np.meshgrid(x, y)
 
   density_data  = np.zeros(time_array.size)
-  global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
-  global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
+
+  global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
+  
   charge_particle = config.charge_particle
   delta_rho_hat   = np.sum(delta_f_hat_initial) * dv_x *dv_y
+  
   delta_phi_hat   = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat   = delta_phi_hat * (1j * k_x)
   delta_E_y_hat   = delta_phi_hat * (1j * k_y)
-  delta_E_z_hat   = 0
-  
-  delta_B_x_hat   = 0
-  delta_B_y_hat   = 0
   delta_B_z_hat   = 0
 
   old_delta_f_hat = delta_f_hat_initial
