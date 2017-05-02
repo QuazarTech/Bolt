@@ -55,6 +55,43 @@ args.vel_y  = vel_y
 args.x      = x
 args.y      = y
 
+dx = af.sum(x[0, 1, 0, 0] - x[0, 0, 0, 0])
+dy = af.sum(y[1, 0, 0, 0] - y[0, 0, 0, 0])
+
+N_x = config.N_x
+N_y = config.N_y
+
+N_ghost_x = config.N_ghost_x
+N_ghost_y = config.N_ghost_y
+
+E_x_local, E_y_local = evolve.fft_poisson(config.charge_particle*evolve.calculate_density(args)[3:-4, 3:-4], dx, dy)
+
+E_x_local = af.join(0, E_x_local, E_x_local[0])
+E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+
+E_y_local = af.join(0, E_y_local, E_y_local[0])
+E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+
+E_x_local.shape
+
+E_x = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
+E_y = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
+
+E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+E_x                                             = evolve.periodic_x(config, E_x)
+E_x                                             = evolve.periodic_y(config, E_x)
+
+E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+E_y                                             = evolve.periodic_x(config, E_y)
+E_y                                             = evolve.periodic_y(config, E_y)
+
+args.E_x = af.real(E_x)
+args.E_y = af.real(E_y)
+args.B_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.E_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+
 data, f_final = evolve.time_integration(args, time_array)
 
 pl.plot(time_array, data)
