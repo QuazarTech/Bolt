@@ -2,84 +2,6 @@ import numpy as np
 import lts.initialize as initialize
 from lts.collision_operators import BGK_collision_operator
 
-def ddelta_f_hat_dt(delta_f_hat, config):
-  """
-  Returns the value of the derivative of the mode perturbation of the distribution 
-  function with respect to time. This is used to evolve the system with time.
-
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-    delta_f_hat: Mode perturbation of the distribution function that is passed to the function.
-                 The array fed to this function is the result of the last time-step's integration.
-                 At t=0 the initial mode perturbation of the system as declared in the configuration
-                 file is passed to this function.
-
-  Output:
-  -------
-    ddelta_f_hat_dt : Array which contains the values of the derivative of the Fourier mode 
-                      perturbation of the distribution function with respect to time.
-  """
-  mass_particle      = config.mass_particle
-
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
-  
-  k_x = config.k_x   
-  
-  if(config.mode == '2D2V'):
-    vel_y_max    = config.vel_y_max
-    N_vel_y      = config.N_vel_y
-    vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
-    dv_y         = vel_y[1] - vel_y[0]
-    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
-    k_y          = config.k_y   
-    
-  charge_particle = config.charge_particle
-
-  if(config.mode == '2D2V'):
-    delta_rho_hat    = np.sum(delta_f_hat) * dv_x *dv_y
-    # delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
-    # delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
-
-  elif(config.mode == '1D1V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x
-
-  dfdv_x_background = initialize.dfdv_x_background(config)
-
-  if(config.mode == '2D2V'):
-    dfdv_y_background = initialize.dfdv_y_background(config)
-
-    # global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
-    # global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
-    delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-    delta_E_x_hat = delta_phi_hat * (1j * k_x)
-    delta_E_y_hat = delta_phi_hat * (1j * k_y)
-
-    fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
-                                         0 * delta_B_z_hat   * vel_y \
-                                        ) * dfdv_x_background  + \
-                  (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
-                                         0 * delta_B_z_hat   * vel_x
-                                        ) * dfdv_y_background
-  
-  elif(config.mode == '1D1V'):
-    delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
-    fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
-      
-  C_f   = BGK_collision_operator(config, delta_f_hat)
-
-  if(config.mode == '2D2V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
-  
-  elif(config.mode == '1D1V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
-
-  return ddelta_f_hat_dt
-
 def EM_fields_mode1(delta_E_z_hat, delta_B_x_hat, delta_B_y_hat,\
                     delta_J_z_hat, k_x, k_y, dt
                    ):
@@ -116,6 +38,94 @@ def EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
 
   return (delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
           delta_B_x_hat, delta_B_y_hat, delta_B_z_hat)
+
+def ddelta_f_hat_dt(delta_f_hat, config):
+  """
+  Returns the value of the derivative of the mode perturbation of the distribution 
+  function with respect to time. This is used to evolve the system with time.
+
+  Parameters:
+  -----------
+    config : Object config which is obtained by set() is passed to this file
+
+    delta_f_hat: Mode perturbation of the distribution function that is passed to the function.
+                 The array fed to this function is the result of the last time-step's integration.
+                 At t=0 the initial mode perturbation of the system as declared in the configuration
+                 file is passed to this function.
+
+  Output:
+  -------
+    ddelta_f_hat_dt : Array which contains the values of the derivative of the Fourier mode 
+                      perturbation of the distribution function with respect to time.
+  """
+  mass_particle      = config.mass_particle
+
+  vel_x_max = config.vel_x_max
+  N_vel_x   = config.N_vel_x
+  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  dv_x      = vel_x[1] - vel_x[0]
+  
+  k_x = config.k_x   
+  dt  = config.dt
+
+  if(config.mode == '2D2V'):
+    vel_y_max    = config.vel_y_max
+    N_vel_y      = config.N_vel_y
+    vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
+    dv_y         = vel_y[1] - vel_y[0]
+    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
+    k_y          = config.k_y   
+    
+  charge_particle = config.charge_particle
+
+  if(config.mode == '2D2V'):
+    delta_rho_hat    = np.sum(delta_f_hat) * dv_x *dv_y
+    # delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y/rho_background
+    # delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y/rho_background
+
+  elif(config.mode == '1D1V'):
+    delta_rho_hat = np.sum(delta_f_hat) * dv_x
+
+  dfdv_x_background = initialize.dfdv_x_background(config)
+
+  if(config.mode == '2D2V'):
+    dfdv_y_background = initialize.dfdv_y_background(config)
+
+    global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
+    global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
+    # delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+    # delta_E_x_hat = delta_phi_hat * (1j * k_x)
+    # delta_E_y_hat = delta_phi_hat * (1j * k_y)
+    delta_J_x_hat, delta_J_y_hat, delta_J_z_hat = 0, 0, 0
+    
+    delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+    delta_B_x_hat, delta_B_y_hat, delta_B_z_hat  = EM_fields_evolve(delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
+                                                                    delta_B_x_hat, delta_B_y_hat, delta_B_z_hat,\
+                                                                    delta_J_x_hat, delta_J_y_hat, delta_J_z_hat,\
+                                                                    dt, k_x, k_y
+                                                                   )
+
+    fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
+                                         0 * delta_B_z_hat   * vel_y \
+                                        ) * dfdv_x_background  + \
+                  (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
+                                         0 * delta_B_z_hat   * vel_x
+                                        ) * dfdv_y_background
+  
+  elif(config.mode == '1D1V'):
+    delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
+    fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
+      
+  C_f   = BGK_collision_operator(config, delta_f_hat)
+
+  if(config.mode == '2D2V'):
+    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
+  
+  elif(config.mode == '1D1V'):
+    ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
+
+  return ddelta_f_hat_dt
+
 
 def RK4_step(config, delta_f_hat_initial, dt):
 
@@ -176,14 +186,18 @@ def time_integration(config, delta_f_hat_initial, time_array):
     x, y         = np.meshgrid(x, y)
 
   density_data  = np.zeros(time_array.size)
-  global delta_B_z_hat
-  global delta_E_x_hat
-  global delta_E_y_hat
-  # delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x *dv_y
-  # delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-  # delta_E_x_hat = delta_phi_hat * (1j * k_x)
-  # delta_E_y_hat = delta_phi_hat * (1j * k_y)
-  delta_B_z_hat = 0
+  global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
+  global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
+  charge_particle = config.charge_particle
+  delta_rho_hat   = np.sum(delta_f_hat_initial) * dv_x *dv_y
+  delta_phi_hat   = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+  delta_E_x_hat   = delta_phi_hat * (1j * k_x)
+  delta_E_y_hat   = delta_phi_hat * (1j * k_y)
+  delta_E_z_hat   = 0
+  
+  delta_B_x_hat   = 0
+  delta_B_y_hat   = 0
+  delta_B_z_hat   = 0
 
   old_delta_f_hat = delta_f_hat_initial
 
