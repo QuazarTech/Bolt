@@ -102,24 +102,27 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
     ddelta_E_y_hat_dt = -(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
     ddelta_B_z_hat_dt = -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
 
-    fields_term = (1 / mass_particle) * (charge_particle * delta_E_x_hat + \
-                                         charge_particle * delta_B_z_hat * vel_y \
-                                        ) * dfdv_x_background  + \
-                  (1 / mass_particle) * (charge_particle * delta_E_y_hat - \
-                                         charge_particle * delta_B_z_hat * vel_x
-                                        ) * dfdv_y_background
+    fields_term = (charge_particle / mass_particle) * (delta_E_x_hat + \
+                                                       delta_B_z_hat * vel_y \
+                                                      ) * dfdv_x_background  + \
+                  (charge_particle / mass_particle) * (delta_E_y_hat - \
+                                                       delta_B_z_hat * vel_x
+                                                      ) * dfdv_y_background
   
   elif(config.mode == '1D1V'):
-    delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
-    fields_term       = (1 / mass_particle) * (charge_particle * delta_E_x_hat) * dfdv_x_background
-      
+    delta_E_x_hat     = charge_particle * (delta_rho_hat)/(1j * k_x)
+    fields_term       = (charge_particle / mass_particle) * (delta_E_x_hat) * dfdv_x_background
+    ddelta_E_x_hat_dt = 0 #(delta_B_z_hat * 1j * k_y) - delta_J_x_hat
+    ddelta_E_y_hat_dt = 0 #-(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
+    ddelta_B_z_hat_dt = 0 #-(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
+  
   C_f   = BGK_collision_operator(config, delta_f_hat)
 
   if(config.mode == '2D2V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
+    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat - fields_term + C_f
   
   elif(config.mode == '1D1V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
+    ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat - fields_term + C_f
 
   return(ddelta_f_hat_dt, ddelta_E_x_hat_dt, ddelta_E_y_hat_dt, ddelta_B_z_hat_dt)
 
@@ -206,16 +209,16 @@ def time_integration(config, delta_f_hat_initial, time_array):
   global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
   
   charge_particle = config.charge_particle
-  delta_rho_hat   = np.sum(delta_f_hat_initial) * dv_x *dv_y
-  
-  delta_phi_hat   = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-  delta_E_x_hat   = delta_phi_hat * (1j * k_x)
-  delta_E_y_hat   = delta_phi_hat * (1j * k_y)
-  delta_B_z_hat   = 0
+  delta_rho_hat   = np.sum(delta_f_hat_initial) * dv_x * dv_y
+  delta_E_x_hat   = 0 #charge_particle * delta_rho_hat
+  delta_E_y_hat   = 0 #(charge_particle * delta_rho_hat - delta_E_x_hat * 1j * k_x)/(1j * k_y)
+  delta_B_z_hat   = 0 #delta_E_x_hat * 1j
+
+  density_data[0] = np.abs(delta_rho_hat)
 
   old_delta_f_hat = delta_f_hat_initial
 
-  for time_index, t0 in enumerate(time_array):
+  for time_index, t0 in enumerate(time_array[:-1]):
 
     if(time_index%10==0):
       print("Computing for Time = ", t0)
@@ -228,10 +231,11 @@ def time_integration(config, delta_f_hat_initial, time_array):
     new_delta_f_hat = RK4_step(config, delta_f_hat_initial, dt)
     if(config.mode == '2D2V'):
 
-      delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x*dv_y
-      density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
-                                        delta_rho_hat.imag * np.sin(k_x*x + k_y*y)
-                                       )
+      delta_rho_hat                = np.sum(new_delta_f_hat)*dv_x*dv_y
+      density_data[time_index + 1] = np.abs(delta_rho_hat)  #np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
+                                       #  delta_rho_hat.imag * np.sin(k_x*x + k_y*y)
+                                       # )
+
 
     elif(config.mode == '1D1V'):
       delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x

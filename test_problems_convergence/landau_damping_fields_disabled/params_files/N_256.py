@@ -28,7 +28,7 @@ perturbation = dict(
                     k_y       = 2*np.pi 
                    ) 
 
-configuration_space = dict(N_x            = 128,
+configuration_space = dict(N_x            = 256,
                            N_ghost_x      = 3,
                            left_boundary  = 0,
                            right_boundary = 1.0,
@@ -71,7 +71,7 @@ velocity_space = dict(N_vel_x   = 401,
                      )
 
 time = dict(
-            final_time   = 1.0,
+            final_time   = 0.05,
             dt           = 0.01 * (32/configuration_space['N_x'])
            )
 
@@ -81,5 +81,5 @@ EM_fields = dict(
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  0.01
+                  tau                =  np.inf
                  )

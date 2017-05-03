@@ -213,7 +213,7 @@ def time_array(config):
   final_time = config.final_time
   dt         = config.dt
 
-  time_array = np.arange(dt, final_time + dt, dt)
+  time_array = np.arange(0, final_time + dt, dt)
 
   return time_array
 

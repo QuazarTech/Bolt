@@ -207,12 +207,12 @@ def fields_step(args, dt):
     f_fields = f_interp_vel_1d(args, af.real(E_x), dt)
     
   args.f   = f_fields
-  args.B_x = B_x
-  args.B_y = B_y
-  args.B_z = B_z
-  args.E_x = E_x
-  args.E_y = E_y
-  args.E_z = E_z
+  # args.B_x = B_x
+  # args.B_y = B_y
+  # args.B_z = B_z
+  # args.E_x = E_x
+  # args.E_y = E_y
+  # args.E_z = E_z
 
   return(args)
 
