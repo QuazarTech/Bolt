@@ -35,7 +35,7 @@ def mode1_fdtd(config, E_z, B_x, B_y, J_z, dt):
                                                     af.Array([0, 1, -1]), B_y)) \
          - (dt/dy) * (af.signal.convolve2_separable(af.Array([0, 1, -1]),\
                                                     af.Array([0, 1, 0]), B_x)) \
-         -  dt * J_z
+         - dt * J_z
 
   E_z = periodic_x(config, E_z)
   E_z = periodic_y(config, E_z)
@@ -88,8 +88,10 @@ def mode2_fdtd(config, B_z, E_x, E_y, J_x, J_y, dt):
   """  Updating the Magnetic field  """
   E_x += (dt/dy)  * (af.signal.convolve2_separable(af.Array([0, 1, -1]),\
                                                    af.Array([0, 1, 0]), B_z)) - J_x * dt
+
   E_y += -(dt/dx) * (af.signal.convolve2_separable(af.Array([0, 1, 0]), \
                                                    af.Array([0, 1, -1]), B_z)) - J_y * dt
+
 
   E_x = periodic_x(config, E_x)
   E_y = periodic_x(config, E_y)
@@ -159,3 +161,47 @@ def fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
 
   af.eval(E_x_ck, E_y_ck, E_z_ck, B_x_ck, B_y_ck, B_z_ck)
   return(E_x_ck, E_y_ck, E_z_ck, B_x_ck, B_y_ck, B_z_ck)
+
+def ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
+
+  N_ghost_x = config.N_ghost_x
+  N_ghost_y = config.N_ghost_y
+
+  E_z[N_ghost_y:-N_ghost_y, :] = 0.5 * (E_z[N_ghost_y - 1:-N_ghost_y - 1, :] +\
+                                        E_z[N_ghost_y:-N_ghost_y, :]
+                                       )
+
+  B_z[:, N_ghost_x:-N_ghost_x] = 0.5 * (B_z[:, N_ghost_x:-N_ghost_x] +\
+                                        B_z[:, N_ghost_x + 1:-N_ghost_x + 1]
+                                       )
+
+  E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
+                                                            E_x[N_ghost_y:-N_ghost_y, N_ghost_x + 1:-N_ghost_x + 1] +\
+                                                            E_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1:-N_ghost_x + 1] +\
+                                                            E_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x:-N_ghost_x]
+                                                           )
+
+  B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
+                                                            B_y[N_ghost_y:-N_ghost_y, N_ghost_x + 1:-N_ghost_x + 1] +\
+                                                            B_y[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1:-N_ghost_x + 1] +\
+                                                            B_y[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x:-N_ghost_x]
+                                                           )
+
+  E_x_fdtd = periodic_x(config, E_x)
+  E_y_fdtd = periodic_x(config, E_y)
+  E_z_fdtd = periodic_x(config, E_z)
+
+  B_x_fdtd = periodic_x(config, B_x)
+  B_y_fdtd = periodic_x(config, B_y)
+  B_z_fdtd = periodic_x(config, B_z)
+
+  E_x_fdtd = periodic_y(config, E_x)
+  E_y_fdtd = periodic_y(config, E_y)
+  E_z_fdtd = periodic_y(config, E_z)
+
+  B_x_fdtd = periodic_y(config, B_x)
+  B_y_fdtd = periodic_y(config, B_y)
+  B_z_fdtd = periodic_y(config, B_z)
+
+  af.eval(E_x_fdtd, E_y_fdtd, E_z_fdtd, B_x_fdtd, B_y_fdtd, B_z_fdtd)
+  return(E_x_fdtd, E_y_fdtd, E_z_fdtd, B_x_fdtd, B_y_fdtd, B_z_fdtd)

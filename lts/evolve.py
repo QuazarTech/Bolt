@@ -215,8 +215,8 @@ def time_integration(config, delta_f_hat_initial, time_array):
   if(config.mode == '2D2V'):
     delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y
     delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-    delta_E_x_hat = delta_phi_hat * (1j * k_x)
-    delta_E_y_hat = delta_phi_hat * (1j * k_y)
+    delta_E_x_hat = -delta_phi_hat * (1j * k_x)
+    delta_E_y_hat = -delta_phi_hat * (1j * k_y)
     delta_B_z_hat = 0 
 
   elif(config.mode == '1D1V'):

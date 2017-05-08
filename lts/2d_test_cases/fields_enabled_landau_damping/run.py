@@ -37,10 +37,9 @@ config = initialize.set(params)
 delta_f_hat_initial = initialize.init_delta_f_hat(config)
 time_array          = initialize.time_array(config)
 
-delta_rho_hat, data, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
+delta_rho_hat, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
 
 pl.plot(time_array, delta_rho_hat, label = r'$|\delta \hat{\rho}|$')
-pl.plot(time_array, data, label = r'$|\nabla \hat{\delta E}|$')
 pl.xlabel('Time')
 pl.legend()
 # pl.ylabel(r'$MAX(\delta \rho(x))$')

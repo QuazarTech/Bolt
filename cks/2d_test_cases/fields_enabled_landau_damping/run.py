@@ -2,8 +2,8 @@ import cks.initialize as initialize
 import cks.evolve as evolve
 from cks.poisson_solvers import fft_poisson
 from cks.boundary_conditions.periodic import periodic_x, periodic_y
-import matplotlib as mpl
-mpl.use("Agg")
+# import matplotlib as mpl
+# mpl.use("Agg")
 import pylab as pl
 import arrayfire as af
 import params
@@ -82,15 +82,6 @@ E_x = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
 E_y = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
 
 E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
-
-E_x                                             = periodic_x(config, E_x)
-E_x                                             = periodic_y(config, E_x)
-
-E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-                                                          E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
-                                                          E_x[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                                          E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
-                                                         )
 
 E_x                                             = periodic_x(config, E_x)
 E_x                                             = periodic_y(config, E_x)
