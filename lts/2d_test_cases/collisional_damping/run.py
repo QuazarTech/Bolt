@@ -2,6 +2,7 @@ import lts.initialize as initialize
 import lts.evolve as evolve
 import pylab as pl
 import params
+import numpy as np
 
 pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 300

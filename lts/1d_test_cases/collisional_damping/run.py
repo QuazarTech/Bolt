@@ -1,5 +1,6 @@
 import lts.initialize as initialize
 import lts.evolve as evolve
+import numpy as np
 import pylab as pl
 import params
 

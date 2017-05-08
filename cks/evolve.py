@@ -207,12 +207,12 @@ def fields_step(args, dt):
     f_fields = f_interp_vel_1d(args, af.real(E_x), dt)
     
   args.f   = f_fields
-  # args.B_x = B_x
-  # args.B_y = B_y
-  # args.B_z = B_z
-  # args.E_x = E_x
-  # args.E_y = E_y
-  # args.E_z = E_z
+  args.B_x = B_x
+  args.B_y = B_y
+  args.B_z = B_z
+  args.E_x = E_x
+  args.E_y = E_y
+  args.E_z = E_z
 
   return(args)
 
@@ -273,7 +273,7 @@ def time_integration(args, time_array):
       args.f = f_interp_2d(args, 0.25*dt)
       args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
-      args   = fields_step(args, dt)
+      # args   = fields_step(args, dt)
       args.f = periodic_x(config, args.f)
       args.f = periodic_y(config, args.f)
       args.f = f_interp_2d(args, 0.25*dt)

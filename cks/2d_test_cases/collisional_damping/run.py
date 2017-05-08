@@ -1,5 +1,7 @@
 import cks.initialize as initialize
 import cks.evolve as evolve
+import matplotlib as mpl 
+mpl.use('Agg')
 import pylab as pl
 import arrayfire as af
 import params
@@ -57,7 +59,18 @@ args.y      = y
 
 data, f_final = evolve.time_integration(args, time_array)
 
-pl.plot(time_array, data)
+import lts.initialize
+import lts.evolve
+
+delta_f_hat_initial = lts.initialize.init_delta_f_hat(config)
+time_array          = lts.initialize.time_array(config)
+
+delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config, delta_f_hat_initial, time_array)
+
+pl.plot(time_array, data, label = 'CK')
+pl.plot(time_array, delta_rho_hat, '--', color = 'black', label = 'LT')
 pl.xlabel('Time')
+pl.legend()
+pl.title('2D Collisional Damping')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')

@@ -3,6 +3,8 @@ import cks.evolve as evolve
 import pylab as pl
 import arrayfire as af
 import params
+import lts.initialize
+import lts.evolve
 
 pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 300
@@ -52,7 +54,14 @@ args.x      = x
 
 data, f_final = evolve.time_integration(args, time_array)
 
-pl.plot(time_array, data)
+delta_f_hat_initial = lts.initialize.init_delta_f_hat(config)
+
+delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config, delta_f_hat_initial, time_array)
+
+
+pl.loglog(time_array, data - 1, label = 'CK')
+pl.loglog(time_array, delta_rho_hat, '--', color = 'black', label = 'LT')
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
+pl.legend()
 pl.savefig('plot.png')

@@ -52,7 +52,11 @@ args.x      = x
 
 data, f_final = evolve.time_integration(args, time_array)
 
-pl.plot(time_array, data)
+pl.plot(time_array, data - 1, label = 'CK')
+pl.plot(time_array, data - 1, '--', color = 'green', label = 'LT')
+pl.plot(time_array, data - 1, '-.', color = 'black', label = 'Analytical')
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
+pl.xlim([0, 0.5])
+pl.legend()
 pl.savefig('plot.png')
