@@ -120,28 +120,11 @@ def fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, J_z, dt):
 
 def fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
     
-  N_ghost_x = config.N_ghost_x
-  N_ghost_y = config.N_ghost_y
+  E_z = 0.5 * (E_z + af.shift(E_z, -1, 0))
+  B_z = 0.5 * (B_z + af.shift(B_z, 0, 1))
 
-  E_z[N_ghost_y:-N_ghost_y, :] = 0.5 * (E_z[N_ghost_y:-N_ghost_y, :] +\
-                                        E_z[N_ghost_y + 1:-N_ghost_y + 1, :]
-                                       )
-
-  B_z[:, N_ghost_x:-N_ghost_x] = 0.5 * (B_z[:, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                        B_z[:, N_ghost_x:-N_ghost_x]
-                                       )
-
-  E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-                                                            E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
-                                                            E_x[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                                            E_x[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
-                                                           )
-
-  B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-                                                            B_y[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x:-N_ghost_x] +\
-                                                            B_y[N_ghost_y:-N_ghost_y, N_ghost_x - 1:-N_ghost_x - 1] +\
-                                                            B_y[N_ghost_y + 1:-N_ghost_y + 1, N_ghost_x - 1:-N_ghost_x - 1]
-                                                           )
+  E_x = 0.25 * (E_x + af.shift(E_x, -1, 0) + af.shift(E_x, 0, 1) + af.shift(E_x, -1, 1))
+  B_y = 0.25 * (B_y + af.shift(B_y, -1, 0) + af.shift(B_y, 0, 1) + af.shift(B_y, -1, 1))
 
   E_x_ck = periodic_x(config, E_x)
   E_y_ck = periodic_x(config, E_y)
@@ -164,28 +147,11 @@ def fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
 
 def ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z):
 
-  N_ghost_x = config.N_ghost_x
-  N_ghost_y = config.N_ghost_y
+  E_z = 0.5 * (E_z + af.shift(E_z, 1, 0))
+  B_z = 0.5 * (B_z + af.shift(B_z, 0, -1))
 
-  E_z[N_ghost_y:-N_ghost_y, :] = 0.5 * (E_z[N_ghost_y - 1:-N_ghost_y - 1, :] +\
-                                        E_z[N_ghost_y:-N_ghost_y, :]
-                                       )
-
-  B_z[:, N_ghost_x:-N_ghost_x] = 0.5 * (B_z[:, N_ghost_x:-N_ghost_x] +\
-                                        B_z[:, N_ghost_x + 1:-N_ghost_x + 1]
-                                       )
-
-  E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-                                                            E_x[N_ghost_y:-N_ghost_y, N_ghost_x + 1:-N_ghost_x + 1] +\
-                                                            E_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1:-N_ghost_x + 1] +\
-                                                            E_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x:-N_ghost_x]
-                                                           )
-
-  B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = 0.25 * (B_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] +\
-                                                            B_y[N_ghost_y:-N_ghost_y, N_ghost_x + 1:-N_ghost_x + 1] +\
-                                                            B_y[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1:-N_ghost_x + 1] +\
-                                                            B_y[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x:-N_ghost_x]
-                                                           )
+  E_x = 0.25 * (E_x + af.shift(E_x, 0, -1) + af.shift(E_x, 1, 0) + af.shift(E_x, 1, -1))
+  B_y = 0.25 * (B_y + af.shift(B_y, 0, -1) + af.shift(B_y, 1, 0) + af.shift(B_y, 1, -1))
 
   E_x_fdtd = periodic_x(config, E_x)
   E_y_fdtd = periodic_x(config, E_y)

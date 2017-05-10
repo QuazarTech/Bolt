@@ -131,13 +131,6 @@ def fields_step(args, dt):
   from cks.fdtd import fdtd, fdtd_grid_to_ck_grid, ck_grid_to_fdtd_grid
 
   if(config.mode == '2D2V'):
-    N_y       = config.N_y
-    N_ghost_y = config.N_ghost_y
-
-    bot_boundary = config.bot_boundary
-    top_boundary = config.top_boundary
-    length_y     = top_boundary - bot_boundary
-    dy           = length_y/(N_y - 1) 
 
     vel_x  = args.vel_x
     vel_y  = args.vel_y
@@ -155,16 +148,13 @@ def fields_step(args, dt):
     J_x = charge_particle * calculate_vel_bulk_x(args) * calculate_density(args)
     J_y = charge_particle * calculate_vel_bulk_y(args) * calculate_density(args)
 
-    J_x[N_ghost_y:-N_ghost_y, N_ghost_x, -N_ghost_x] = 0.25 * (J_x[N_ghost_y:-N_ghost_y, N_ghost_x, -N_ghost_x] +\
-                                                               J_x[N_ghost_y:-N_ghost_y, N_ghost_x + 1, -N_ghost_x + 1] +\
-                                                               J_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x, -N_ghost_x] +\
-                                                               J_x[N_ghost_y - 1:-N_ghost_y - 1, N_ghost_x + 1, -N_ghost_x + 1]
-                                                              )
+    J_x = 0.25 * (J_x + af.shift(J_x, 0, -1) + af.shift(J_x, 1, 0) + af.shift(J_x, 1, -1))
 
     J_x = periodic_x(config, J_x)
     J_x = periodic_y(config, J_x)
      
-    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, 0, dt)
+    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z,\
+                                                    J_x, J_y, 0, dt)
 
     # To account for half-time steps:
     B_x = 0.5 * (B_x + B_x_new)

@@ -16,7 +16,7 @@ pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
 pl.rcParams['font.size']       = 20  
 pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = False
+pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
 pl.rcParams['axes.titlesize']  = 'medium'
 pl.rcParams['axes.labelsize']  = 'medium'
@@ -99,7 +99,7 @@ args.E_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
 
 data, f_final = evolve.time_integration(args, time_array)
 
-pl.plot(time_array, data)
+pl.semilogy(time_array, data - 1)
 pl.xlabel('Time')
 # pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
