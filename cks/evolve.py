@@ -150,42 +150,74 @@ def fields_step(args, dt):
     B_y = args.B_y
     B_z = args.B_z
 
-    # E_x, E_y, E_z, B_x, B_y, B_z = ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    E_x, E_y, E_z, B_x, B_y, B_z = ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
     
-    # J_x = charge_particle * calculate_vel_bulk_x(args) * calculate_density(args)
-    # J_y = charge_particle * calculate_vel_bulk_y(args) * calculate_density(args)
+    J_x = charge_particle * calculate_vel_bulk_x(args) * (calculate_density(args))
+    J_y = charge_particle * calculate_vel_bulk_y(args) * (calculate_density(args))
 
-    # J_x = 0.25 * (J_x + af.shift(J_x, 0, -1) + af.shift(J_x, 1, 0) + af.shift(J_x, 1, -1))
+    J_x = 0.25 * (J_x + af.shift(J_x, 0, -1) + af.shift(J_x, 1, 0) + af.shift(J_x, 1, -1))
 
-    # J_x = periodic_x(config, J_x)
-    # J_x = periodic_y(config, J_x)
+    J_x = periodic_x(config, J_x)
+    J_x = periodic_y(config, J_x)
      
-    # E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z,\
-    #                                                 J_x, J_y, 0, dt)
+    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z,\
+                                                    J_x, J_y, 0, dt)
 
-    # # To account for half-time steps:
-    # B_x = 0.5 * (B_x + B_x_new)
-    # B_y = 0.5 * (B_y + B_y_new)
-    # B_z = 0.5 * (B_z + B_z_new)
+    # To account for half-time steps:
+    B_x = 0.5 * (B_x + B_x_new)
+    B_y = 0.5 * (B_y + B_y_new)
+    B_z = 0.5 * (B_z + B_z_new)
 
-    # E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
 
     global delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
     delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat =\
     lts.evolve.RK4_step(config, delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, dt)
 
-    E_x = delta_E_x_hat.real * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2)) -\
-          delta_E_x_hat.imag * af.sin(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2))
-    
-    E_y = delta_E_y_hat.real * af.cos(2*np.pi*x + 4*np.pi*y) -\
-          delta_E_y_hat.imag * af.sin(2*np.pi*x + 4*np.pi*y)
+    # k_x = config.k_x
+    # k_y = config.k_y
 
-    E_x = E_x[:, :, 0, 0]
-    E_y = E_y[:, :, 0, 0]
+    # E_x = delta_E_x_hat.real * af.cos(k_x*x[:, :, 0, 0] + k_y*(y[:, :, 0, 0] + dy/2)) -\
+    #       delta_E_x_hat.imag * af.sin(k_x*x[:, :, 0, 0] + k_y*(y[:, :, 0, 0] + dy/2))
     
-    F_x      = charge_particle * (E_x + 0*vel_y[:, :, 0, 0] * B_z)
-    F_y      = charge_particle * (E_y - 0*vel_x[:, :, 0, 0] * B_z)
+    # E_y = delta_E_y_hat.real * af.cos(k_x*x[:, :, 0, 0] + k_y*(y[:, :, 0, 0] + dy/2)) -\
+    #       delta_E_y_hat.imag * af.sin(k_x*x[:, :, 0, 0] + k_y*(y[:, :, 0, 0] + dy/2))
+    
+    # E_x = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    # E_y = af.constant(0, f.shape[0], f.shape[1], dtype = af.Dtype.c64)
+    
+    # E_x_local, E_y_local = fft_poisson(charge_particle*\
+    #                                    calculate_density(args)[N_ghost_y:-N_ghost_y-1, N_ghost_x:-N_ghost_x - 1],\
+    #                                    dx,\
+    #                                    dy
+    #                                   )
+    
+    # E_x_local = af.join(0, E_x_local, E_x_local[0])
+    # E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+    
+    # E_y_local = af.join(0, E_y_local, E_y_local[0])
+    # E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+
+    # E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+    E_x                                             = periodic_x(config, E_x)
+    E_x                                             = periodic_y(config, E_x)
+
+    # E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+    E_y                                             = periodic_x(config, E_y)
+    E_y                                             = periodic_y(config, E_y)
+    
+    # E_x = af.real(E_x)
+    # E_y = af.real(E_y)
+
+    # E_x, E_y, E_z, B_x, B_y, B_z = ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    # E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    
+    print('E_x_max = ', af.max(E_x))
+    
+    F_x      = charge_particle * (E_x) #+ vel_y[:, :, 0, 0] * B_z)
+    F_y      = charge_particle * (E_y) #- vel_x[:, :, 0, 0] * B_z)
+
     f_fields = f_interp_vel_2d(args, F_x, F_y, dt)
 
   else:
