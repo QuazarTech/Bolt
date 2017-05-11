@@ -176,10 +176,10 @@ def fields_step(args, dt):
     lts.evolve.RK4_step(config, delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, dt)
 
     E_x = delta_E_x_hat.real * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2)) -\
-          delta_E_x_hat.imag * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2))
+          delta_E_x_hat.imag * af.sin(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2))
     
     E_y = delta_E_y_hat.real * af.cos(2*np.pi*x + 4*np.pi*y) -\
-          delta_E_y_hat.imag * af.cos(2*np.pi*x + 4*np.pi*y)
+          delta_E_y_hat.imag * af.sin(2*np.pi*x + 4*np.pi*y)
 
     E_x = E_x[:, :, 0, 0]
     E_y = E_y[:, :, 0, 0]
