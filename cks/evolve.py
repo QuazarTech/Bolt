@@ -170,12 +170,10 @@ def fields_step(args, dt):
 
     # E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
 
-    global delta_f_hat, delta_E_x_hat, delta_E_y_hat
+    global delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
-    delta_f_hat, delta_E_x_hat, delta_E_y_hat = lts.evolve.RK4_step(config, delta_f_hat,\
-                                                                    delta_E_x_hat,\
-                                                                    delta_E_y_hat, dt
-                                                                   )
+    delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat =\
+    lts.evolve.RK4_step(config, delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, dt)
 
     E_x = delta_E_x_hat.real * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2)) -\
           delta_E_x_hat.imag * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2))
@@ -266,7 +264,7 @@ def time_integration(args, time_array):
   k_x = config.k_x
   k_y = config.k_y
 
-  global delta_f_hat, delta_E_x_hat, delta_E_y_hat
+  global delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
   delta_f_hat = lts.initialize.init_delta_f_hat(config)
 
@@ -274,6 +272,7 @@ def time_integration(args, time_array):
   delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat = -delta_phi_hat * (1j * k_x)
   delta_E_y_hat = -delta_phi_hat * (1j * k_y)
+  delta_B_z_hat = 0
 
   for time_index, t0 in enumerate(time_array):
     if(time_index%10 == 0):

@@ -47,16 +47,13 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   """
   Returns the value of the derivative of the mode perturbation of the distribution 
   function with respect to time. This is used to evolve the system with time.
-
   Parameters:
   -----------
     config : Object config which is obtained by set() is passed to this file
-
     delta_f_hat: Mode perturbation of the distribution function that is passed to the function.
                  The array fed to this function is the result of the last time-step's integration.
                  At t=0 the initial mode perturbation of the system as declared in the configuration
                  file is passed to this function.
-
   Output:
   -------
     ddelta_f_hat_dt : Array which contains the values of the derivative of the Fourier mode 
@@ -129,11 +126,7 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   return(ddelta_f_hat_dt, ddelta_E_x_hat_dt, ddelta_E_y_hat_dt, ddelta_B_z_hat_dt)
 
 
-def RK4_step(config, delta_f_hat_initial, delta_E_x_hat, delta_E_y_hat, dt):
-  
-  # global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
-
-  delta_B_z_hat = 0
+def RK4_step(config, delta_f_hat_initial, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, dt):
   
   k1 = ddelta_f_hat_dt(delta_f_hat_initial,\
                        delta_E_x_hat, delta_E_y_hat,\
@@ -157,32 +150,27 @@ def RK4_step(config, delta_f_hat_initial, delta_E_x_hat, delta_E_y_hat, dt):
   delta_E_y_hat += ((k1[2]+2*k2[2]+2*k3[2]+k4[2])/6)*dt
   delta_B_z_hat += ((k1[3]+2*k2[3]+2*k3[3]+k4[3])/6)*dt
 
-  return(delta_f_hat_new, delta_E_x_hat, delta_E_y_hat)
-  
+  return(delta_f_hat_new, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat)
+
 def time_integration(config, delta_f_hat_initial, time_array):
   """
   Performs the time integration for the simulation. This is the main function that
   evolves the system in time. The parameters this function evolves for are dictated
   by the parameters as has been set in the config object. Final distribution function
   and the array that shows the evolution of rho_hat is returned by this function.
-
   Parameters:
   -----------   
     config : Object config which is obtained by set() is passed to this file
-
     delta_f_hat_initial : Array containing the initial values of the delta_f_hat. The value
                           for this function is typically obtained from the appropriately named 
                           function from the initialize submodule.
-
     time_array : Array which consists of all the time points at which we are evolving the system.
                  Data such as the mode amplitude of the density perturbation is also computed at 
                  the time points.
-
   Output:
   -------
     density_data : The value of the amplitude of the mode expansion of the density perturbation computed at
                    the various points in time as declared in time_array
-
     new_delta_f_hat : This value that is returned by the function is the distribution function that is obtained at
                       the final time-step. This is particularly useful in cases where comparisons need to be made 
                       between results of the Cheng-Knorr and the linear theory codes.
@@ -210,8 +198,6 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
   density_data  = np.zeros(time_array.size)
 
-  global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
-  
   charge_particle = config.charge_particle
 
   if(config.mode == '2D2V'):
@@ -219,7 +205,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
     delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
     delta_E_x_hat = -delta_phi_hat * (1j * k_x)
     delta_E_y_hat = -delta_phi_hat * (1j * k_y)
-    delta_B_z_hat = 0
+    delta_B_z_hat = 0 
 
   elif(config.mode == '1D1V'):
     delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x
@@ -241,7 +227,8 @@ def time_integration(config, delta_f_hat_initial, time_array):
     if(time_index != 0):
       delta_f_hat_initial = old_delta_f_hat.copy()
 
-    new_delta_f_hat = RK4_step(config, delta_f_hat_initial, dt)
+    new_delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat =\
+    RK4_step(config, delta_f_hat_initial, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, dt)
     if(config.mode == '2D2V'):
 
       delta_rho_hat                = np.sum(new_delta_f_hat)*dv_x*dv_y
