@@ -101,5 +101,5 @@ data, f_final = evolve.time_integration(args, time_array)
 
 pl.semilogy(time_array, data - 1)
 pl.xlabel('Time')
-# pl.ylabel(r'$MAX(\delta \rho(x))$')
+pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')

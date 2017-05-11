@@ -116,14 +116,18 @@ def fields_step(args, dt):
   
   N_x       = config.N_x
   N_ghost_x = config.N_ghost_x
+  N_y       = config.N_y
+  N_ghost_y = config.N_ghost_y
 
   left_boundary  = config.left_boundary
   right_boundary = config.right_boundary
   length_x       = right_boundary - left_boundary
   dx             = length_x/(N_x - 1) 
+  dy             = 1/(N_y - 1) 
   
   charge_particle = config.charge_particle
 
+  import lts.evolve
 
   from cks.poisson_solvers import fft_poisson
   from cks.boundary_conditions.periodic import periodic_x, periodic_y
@@ -131,6 +135,9 @@ def fields_step(args, dt):
   from cks.fdtd import fdtd, fdtd_grid_to_ck_grid, ck_grid_to_fdtd_grid
 
   if(config.mode == '2D2V'):
+
+    x = args.x
+    y = args.y
 
     vel_x  = args.vel_x
     vel_y  = args.vel_y
@@ -143,28 +150,44 @@ def fields_step(args, dt):
     B_y = args.B_y
     B_z = args.B_z
 
-    E_x, E_y, E_z, B_x, B_y, B_z = ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    # E_x, E_y, E_z, B_x, B_y, B_z = ck_grid_to_fdtd_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
     
-    J_x = charge_particle * calculate_vel_bulk_x(args) * calculate_density(args)
-    J_y = charge_particle * calculate_vel_bulk_y(args) * calculate_density(args)
+    # J_x = charge_particle * calculate_vel_bulk_x(args) * calculate_density(args)
+    # J_y = charge_particle * calculate_vel_bulk_y(args) * calculate_density(args)
 
-    J_x = 0.25 * (J_x + af.shift(J_x, 0, -1) + af.shift(J_x, 1, 0) + af.shift(J_x, 1, -1))
+    # J_x = 0.25 * (J_x + af.shift(J_x, 0, -1) + af.shift(J_x, 1, 0) + af.shift(J_x, 1, -1))
 
-    J_x = periodic_x(config, J_x)
-    J_x = periodic_y(config, J_x)
+    # J_x = periodic_x(config, J_x)
+    # J_x = periodic_y(config, J_x)
      
-    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z,\
-                                                    J_x, J_y, 0, dt)
+    # E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(config, E_x, E_y, E_z, B_x, B_y, B_z,\
+    #                                                 J_x, J_y, 0, dt)
 
-    # To account for half-time steps:
-    B_x = 0.5 * (B_x + B_x_new)
-    B_y = 0.5 * (B_y + B_y_new)
-    B_z = 0.5 * (B_z + B_z_new)
+    # # To account for half-time steps:
+    # B_x = 0.5 * (B_x + B_x_new)
+    # B_y = 0.5 * (B_y + B_y_new)
+    # B_z = 0.5 * (B_z + B_z_new)
 
-    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
+    # E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(config, E_x, E_y, E_z, B_x, B_y, B_z)
 
-    F_x      = charge_particle * (E_x + vel_y[:, :, 0, 0] * B_z)
-    F_y      = charge_particle * (E_y - vel_x[:, :, 0, 0] * B_z)
+    global delta_f_hat, delta_E_x_hat, delta_E_y_hat
+
+    delta_f_hat, delta_E_x_hat, delta_E_y_hat = lts.evolve.RK4_step(config, delta_f_hat,\
+                                                                    delta_E_x_hat,\
+                                                                    delta_E_y_hat, dt
+                                                                   )
+
+    E_x = delta_E_x_hat.real * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2)) -\
+          delta_E_x_hat.imag * af.cos(2*np.pi*(x + dx/2) + 4*np.pi*(y - dy/2))
+    
+    E_y = delta_E_y_hat.real * af.cos(2*np.pi*x + 4*np.pi*y) -\
+          delta_E_y_hat.imag * af.cos(2*np.pi*x + 4*np.pi*y)
+
+    E_x = E_x[:, :, 0, 0]
+    E_y = E_y[:, :, 0, 0]
+    
+    F_x      = charge_particle * (E_x + 0*vel_y[:, :, 0, 0] * B_z)
+    F_y      = charge_particle * (E_y - 0*vel_x[:, :, 0, 0] * B_z)
     f_fields = f_interp_vel_2d(args, F_x, F_y, dt)
 
   else:
@@ -231,6 +254,26 @@ def time_integration(args, time_array):
 
   from cks.interpolation_routines import f_interp_1d, f_interp_2d
   from cks.boundary_conditions.periodic import periodic_x, periodic_y
+  import lts.initialize
+  
+  vel_x = args.vel_x
+  vel_y = args.vel_y
+
+  dv_x = af.sum(vel_x[0, 0, 1, 0] - vel_x[0, 0, 0, 0])
+  dv_y = af.sum(vel_y[0, 0, 0, 1] - vel_y[0, 0, 0, 0])
+
+  charge_particle = config.charge_particle
+  k_x = config.k_x
+  k_y = config.k_y
+
+  global delta_f_hat, delta_E_x_hat, delta_E_y_hat
+
+  delta_f_hat = lts.initialize.init_delta_f_hat(config)
+
+  delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y
+  delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+  delta_E_x_hat = -delta_phi_hat * (1j * k_x)
+  delta_E_y_hat = -delta_phi_hat * (1j * k_y)
 
   for time_index, t0 in enumerate(time_array):
     if(time_index%10 == 0):

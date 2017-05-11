@@ -129,10 +129,12 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   return(ddelta_f_hat_dt, ddelta_E_x_hat_dt, ddelta_E_y_hat_dt, ddelta_B_z_hat_dt)
 
 
-def RK4_step(config, delta_f_hat_initial, dt):
+def RK4_step(config, delta_f_hat_initial, delta_E_x_hat, delta_E_y_hat, dt):
   
-  global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
+  # global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
+  delta_B_z_hat = 0
+  
   k1 = ddelta_f_hat_dt(delta_f_hat_initial,\
                        delta_E_x_hat, delta_E_y_hat,\
                        delta_B_z_hat, config)
@@ -155,8 +157,8 @@ def RK4_step(config, delta_f_hat_initial, dt):
   delta_E_y_hat += ((k1[2]+2*k2[2]+2*k3[2]+k4[2])/6)*dt
   delta_B_z_hat += ((k1[3]+2*k2[3]+2*k3[3]+k4[3])/6)*dt
 
-  return(delta_f_hat_new)
-
+  return(delta_f_hat_new, delta_E_x_hat, delta_E_y_hat)
+  
 def time_integration(config, delta_f_hat_initial, time_array):
   """
   Performs the time integration for the simulation. This is the main function that
@@ -217,7 +219,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
     delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
     delta_E_x_hat = -delta_phi_hat * (1j * k_x)
     delta_E_y_hat = -delta_phi_hat * (1j * k_y)
-    delta_B_z_hat = 0 
+    delta_B_z_hat = 0
 
   elif(config.mode == '1D1V'):
     delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x
