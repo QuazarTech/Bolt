@@ -221,25 +221,35 @@ def fields_step(args, dt):
     f_fields = f_interp_vel_2d(args, F_x, F_y, dt)
 
   else:
-    E_x       = af.constant(0, f.shape[0], dtype = af.Dtype.c64)
-    E_x_local = fft_poisson(charge_particle*
-                            calculate_density(args)[N_ghost_x:-N_ghost_x-1],\
-                            dx
-                           )
-    E_x_local = af.join(0, E_x_local, E_x_local[0])
+    # E_x       = af.constant(0, f.shape[0], dtype = af.Dtype.c64)
+    # E_x_local = fft_poisson(charge_particle*
+    #                         calculate_density(args)[N_ghost_x:-N_ghost_x-1],\
+    #                         dx
+    #                        )
+    # E_x_local = af.join(0, E_x_local, E_x_local[0])
     
-    E_x[N_ghost_x:-N_ghost_x] = E_x_local
-    E_x                       = periodic_x(config, E_x)     
+    # E_x[N_ghost_x:-N_ghost_x] = E_x_local
+    E_x = args.E_x
+    J_x = charge_particle * calculate_vel_bulk_x(args) * (calculate_density(args))
+
+    J_x_fdtd = 0.5 * (J_x + af.shift(J_x, 0, -1))
+    J_x_fdtd = periodic_x(config, J_x_fdtd)
+
+    E_x += -J_x_fdtd * dt
+    E_x  = periodic_x(config, E_x)     
     
-    f_fields = f_interp_vel_1d(args, af.real(E_x), dt)
+    E_x_ck = 0.5 * (E_x + af.shift(E_x, 0, 1))
+    E_x_ck = periodic_x(config, E_x_ck)     
+
+    f_fields = f_interp_vel_1d(args, af.real(E_x_ck), dt)
     
   args.f   = f_fields
-  args.B_x = B_x
-  args.B_y = B_y
-  args.B_z = B_z
+  # args.B_x = B_x
+  # args.B_y = B_y
+  # args.B_z = B_z
   args.E_x = E_x
-  args.E_y = E_y
-  args.E_z = E_z
+  # args.E_y = E_y
+  # args.E_z = E_z
 
   return(args)
 
@@ -287,20 +297,20 @@ def time_integration(args, time_array):
   import lts.initialize
   
   vel_x = args.vel_x
-  vel_y = args.vel_y
+  # vel_y = args.vel_y
 
   dv_x = af.sum(vel_x[0, 0, 1, 0] - vel_x[0, 0, 0, 0])
-  dv_y = af.sum(vel_y[0, 0, 0, 1] - vel_y[0, 0, 0, 0])
+  # dv_y = af.sum(vel_y[0, 0, 0, 1] - vel_y[0, 0, 0, 0])
 
   charge_particle = config.charge_particle
   k_x = config.k_x
-  k_y = config.k_y
+  k_y = 0 #config.k_y
 
   global delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
 
   delta_f_hat = lts.initialize.init_delta_f_hat(config)
 
-  delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y
+  delta_rho_hat = np.sum(delta_f_hat) * dv_x # * dv_y
   delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat = -delta_phi_hat * (1j * k_x)
   delta_E_y_hat = -delta_phi_hat * (1j * k_y)

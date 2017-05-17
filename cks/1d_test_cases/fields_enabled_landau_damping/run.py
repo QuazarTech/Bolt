@@ -52,15 +52,36 @@ args.f      = f_initial
 args.vel_x  = vel_x
 args.x      = x
 
+dx = af.sum(x[1, 0] - x[0, 0])
+
+from cks.poisson_solvers import fft_poisson
+from cks.compute_moments import calculate_density
+charge_particle = config.charge_particle
+
+E_x       = af.constant(0, f_initial.shape[0], dtype = af.Dtype.c64)
+E_x_local = fft_poisson(charge_particle*
+                        calculate_density(args)[3:-4],\
+                        dx
+                       )
+E_x_local = af.join(0, E_x_local, E_x_local[0])
+
+E_x[3:-3] = E_x_local
+
+E_x_fdtd = 0.5 * (E_x + af.shift(E_x, 0, -1))
+
+E_x_fdtd[:3]  = E_x_fdtd[-7:-4]
+E_x_fdtd[-3:] = E_x_fdtd[4:7]
+
+args.E_x = E_x_fdtd
+
 data, f_final = evolve.time_integration(args, time_array)
 
 delta_f_hat_initial = lts.initialize.init_delta_f_hat(config)
 
 delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config, delta_f_hat_initial, time_array)
 
-
-pl.loglog(time_array, data - 1, label = 'CK')
-pl.loglog(time_array, delta_rho_hat, '--', color = 'black', label = 'LT')
+pl.semilogy(time_array, data - 1, label = 'CK')
+pl.semilogy(time_array, delta_rho_hat, '--', color = 'black', label = 'LT')
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.legend()
