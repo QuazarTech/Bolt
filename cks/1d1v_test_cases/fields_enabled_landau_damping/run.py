@@ -6,6 +6,7 @@ from cks.boundary_conditions.periodic import periodic_x, periodic_y
 # mpl.use("Agg")
 import pylab as pl
 import arrayfire as af
+import numpy as np
 import params
 
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -46,8 +47,15 @@ vel_x = initialize.calculate_vel_x(config)
 y     = initialize.calculate_y(config)
 vel_y = initialize.calculate_vel_y(config)
 
-f_initial  = initialize.f_initial(config)
-time_array = initialize.time_array(config)
+dv_x = af.sum(vel_x[0, 0, 0, 1] - vel_x[0, 0, 0, 0])
+dv_y = af.sum(vel_y[0, 0, 1, 0] - vel_y[0, 0, 0, 0])
+
+f_initial    = initialize.f_initial(config)
+f_background = initialize.f_background(config)
+time_array   = initialize.time_array(config)
+
+normalization = af.sum(f_background) * dv_x * dv_y/(x.shape[0] * x.shape[1])
+f_initial     = f_initial/normalization
 
 class args:
     pass
@@ -68,15 +76,17 @@ N_y = config.N_y
 N_ghost_x = config.N_ghost_x
 N_ghost_y = config.N_ghost_y
 
-E_x_local, E_y_local = fft_poisson(config.charge_particle*evolve.calculate_density(args)[3:-4, 3:-4], dx, dy)
+E_x_local, E_y_local = fft_poisson(config.charge_particle*evolve.calculate_density(args)\
+                                   [N_ghost_y:-N_ghost_y - 1, N_ghost_x:-N_ghost_x - 1], \
+                                   dx, \
+                                   dy 
+                                  )
 
 E_x_local = af.join(0, E_x_local, E_x_local[0])
 E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
 
 E_y_local = af.join(0, E_y_local, E_y_local[0])
 E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
-
-E_x_local.shape
 
 E_x = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
 E_y = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.c64)
@@ -90,16 +100,38 @@ E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
 E_y                                             = periodic_x(config, E_y)
 E_y                                             = periodic_y(config, E_y)
 
-args.E_x = af.real(E_x)
-args.E_y = af.real(E_y)
-args.B_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
-args.B_x = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
-args.B_y = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
-args.E_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+E_x = af.real(E_x)
+E_y = af.real(E_y)
+
+# E_x and E_y obtained above are calculated at (i, j)
+# All CK quantities have been calculated at (i, j)
+# We interpolate in the following set of lines to obtain at:
+# B_x_fdtd --> (i, j + 1/2)
+# B_y_fdtd --> (i + 1/2, j)
+# B_z_fdtd --> (i + 1/2, j + 1/2)
+
+# E_x_fdtd --> (i + 1/2, j)
+# E_y_fdtd --> (i, j + 1/2)
+# E_z_fdtd --> (i, j)
+
+E_x_fdtd = 0.5 * (E_x + af.shift(E_x, 0, -1))
+E_x_fdtd = periodic_x(config, E_x_fdtd)
+E_x_fdtd = periodic_y(config, E_x_fdtd)
+
+E_y_fdtd = 0.5 * (E_y + af.shift(E_y, -1, 0))
+E_y_fdtd = periodic_x(config, E_y_fdtd)
+E_y_fdtd = periodic_y(config, E_y_fdtd)
+
+args.E_x = E_x_fdtd
+args.E_y = E_y_fdtd
+args.B_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype = af.Dtype.f64)
+args.B_x = af.constant(0, E_x.shape[0], E_x.shape[1], dtype = af.Dtype.f64)
+args.B_y = af.constant(0, E_x.shape[0], E_x.shape[1], dtype = af.Dtype.f64)
+args.E_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype = af.Dtype.f64)
 
 data, f_final = evolve.time_integration(args, time_array)
 
-pl.semilogy(time_array, data - 1)
+pl.plot(time_array, data - 1)
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')

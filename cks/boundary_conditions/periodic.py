@@ -28,14 +28,9 @@ def periodic_x(config, f):
   
   N_ghost_x = config.N_ghost_x
 
-  if(config.mode == '2D2V'):
-    f[:, :N_ghost_x]  = f[:, -(2*N_ghost_x + 1):-(N_ghost_x + 1)]
-    f[:, -N_ghost_x:] = f[:, (N_ghost_x + 1):(2*N_ghost_x + 1)]
+  f[:, :N_ghost_x]  = f[:, -(2*N_ghost_x + 1):-(N_ghost_x + 1)]
+  f[:, -N_ghost_x:] = f[:, (N_ghost_x + 1):(2*N_ghost_x + 1)]
     
-  else:
-    f[:N_ghost_x]  = f[-(2*N_ghost_x + 1):-(N_ghost_x + 1)]
-    f[-N_ghost_x:] = f[(N_ghost_x + 1):(2*N_ghost_x + 1)]  
-
   af.eval(f)
   return(f)
 
@@ -58,10 +53,6 @@ def periodic_y(config, f):
     f : Returns the passed array after applying periodic boundary 
         conditions.
   """
-
-  if(config.mode != '2D2V'):
-    raise Exception('Not in 2D mode!')
-
   N_ghost_y = config.N_ghost_y
 
   f[:N_ghost_y]  = f[-(2*N_ghost_y + 1):-(N_ghost_y + 1)]

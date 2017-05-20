@@ -9,13 +9,13 @@ def set(params):
 
   Parameters:
   -----------
-    params : Name of the file that contains the parameters for the simulation run
-             is passed to this function. 
+    params : Name of the file that contains the parameters for the simulation 
+             run is passed to this function. 
 
   Output:
   -------
-    config : Object whose attributes contain all the simulation parameters. This is
-             passed to the remaining solver functions.
+    config : Object whose attributes contain all the simulation parameters. 
+             This is passed to the remaining solver functions.
   """
   config.mode = params.mode
 
@@ -92,8 +92,8 @@ def f_background(config):
 
   Output:
   -------
-    f_background : Array which contains the values of f_background at different values
-                   of vel_x.
+    f_background : Array which contains the values of f_background at different 
+                   values of vel_x.
   """
   
   mass_particle      = config.mass_particle
@@ -101,28 +101,35 @@ def f_background(config):
 
   rho_background         = config.rho_background
   temperature_background = config.temperature_background
+  
   vel_bulk_x_background  = config.vel_bulk_x_background
 
   vel_x_max = config.vel_x_max
   N_vel_x   = config.N_vel_x
   vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
 
-  if(config.mode == '2D2V'):
-    vel_bulk_y_background  = config.vel_bulk_y_background
+  vel_bulk_y_background  = config.vel_bulk_y_background
     
-    vel_y_max    = config.vel_y_max
-    N_vel_y      = config.N_vel_y
-    vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
-    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
+  vel_y_max    = config.vel_y_max
+  N_vel_y      = config.N_vel_y
+  vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+  vel_x, vel_y = np.meshgrid(vel_x, vel_y)
 
-    f_background = rho_background * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/(2*boltzmann_constant*temperature_background))
+  if(config.mode == '2V'):
+    f_background = rho_background * \
+                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+                   np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2 \
+                         /(2*boltzmann_constant*temperature_background)
+                         ) * \
+                   np.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2 \
+                          /(2*boltzmann_constant*temperature_background)
+                         )
 
-  elif(config.mode == '1D1V'):
-    f_background = rho_background * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+  elif(config.mode == '1V'):
+    f_background = rho_background * \
+                   np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                    np.exp(-mass_particle*vel_x**2/(2*boltzmann_constant*temperature_background))
-  
+
   else:
     raise Exception('The mode mentioned in the config file is not supported')
 
@@ -139,8 +146,8 @@ def dfdv_x_background(config):
 
   Output:
   -------
-    dfdv_x_background : Array which contains the values of dfdv_x_background at different values
-                        of vel_x.
+    dfdv_x_background : Array which contains the values of dfdv_x_background 
+                        at different values of vel_x.
   """
   vel_x_max = config.vel_x_max
   N_vel_x   = config.N_vel_x
@@ -150,17 +157,10 @@ def dfdv_x_background(config):
 
   f_background_local = f_background(config)
 
-  if(config.mode == '2D2V'):
-    dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+  dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
-    for i in range(f_background_local.shape[0]):
-      dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
-
-  elif(config.mode == '1D1V'):
-    dfdv_x_background = np.convolve(f_background_local, [1, -1], 'same') * (1/dv_x)
-
-  else:
-    raise Exception('The mode mentioned in the config file is not supported')
+  for i in range(f_background_local.shape[0]):
+    dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
 
   return dfdv_x_background
 
@@ -175,12 +175,9 @@ def dfdv_y_background(config):
 
   Output:
   -------
-    dfdv_y_background : Array which contains the values of dfdv_y_background at different values
-                        of vel_y.
+    dfdv_y_background : Array which contains the values of dfdv_y_background 
+                        at different values of vel_y.
   """
-  if(config.mode != '2D2V'):
-    raise Exception('Not in 2D mode!')
-
   vel_y_max = config.vel_y_max
   N_vel_y   = config.N_vel_y
 
@@ -228,15 +225,29 @@ def init_delta_f_hat(config):
 
   Output:
   -------
-    delta_f_hat_initial : Array which contains the values of initial mode perturbation 
-                          in the distribution function.
+    delta_f_hat_initial : Array which contains the values of initial mode 
+                          perturbation in the distribution function.
 
   """
 
   pert_real = config.pert_real 
   pert_imag = config.pert_imag 
 
+  vel_x_max = config.vel_x_max
+  N_vel_x   = config.N_vel_x
+  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  dv_x      = vel_x[1] - vel_x[0]
+
+  vel_y_max    = config.vel_y_max
+  N_vel_y      = config.N_vel_y
+  vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
+  dv_y         = vel_y[1] - vel_y[0]
+
+  normalization = np.sum(f_background(config)) * dv_x * dv_y
+
   delta_f_hat_initial = pert_real*f_background(config) +\
                         pert_imag*f_background(config)*1j 
 
+  delta_f_hat_initial = delta_f_hat_initial/normalization
+  
   return delta_f_hat_initial

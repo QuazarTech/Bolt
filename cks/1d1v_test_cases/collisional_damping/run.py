@@ -1,7 +1,9 @@
 import cks.initialize as initialize
 import cks.evolve as evolve
-import matplotlib as mpl 
-mpl.use('Agg')
+from cks.poisson_solvers import fft_poisson
+from cks.boundary_conditions.periodic import periodic_x, periodic_y
+# import matplotlib as mpl
+# mpl.use("Agg")
 import pylab as pl
 import arrayfire as af
 import params
@@ -57,20 +59,47 @@ args.vel_y  = vel_y
 args.x      = x
 args.y      = y
 
+dx = af.sum(x[0, 1, 0, 0] - x[0, 0, 0, 0])
+dy = af.sum(y[1, 0, 0, 0] - y[0, 0, 0, 0])
+
+N_x = config.N_x
+N_y = config.N_y
+
+N_ghost_x = config.N_ghost_x
+N_ghost_y = config.N_ghost_y
+
+E_x_local, E_y_local = fft_poisson(config.charge_particle*evolve.calculate_density(args)[3:-4, 3:-4], dx, dy)
+
+E_x_local = af.join(0, E_x_local, E_x_local[0])
+E_x_local = af.join(1, E_x_local, E_x_local[:, 0])
+
+E_y_local = af.join(0, E_y_local, E_y_local[0])
+E_y_local = af.join(1, E_y_local, E_y_local[:, 0])
+
+E_x_local.shape
+
+E_x = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.f64)
+E_y = af.constant(0, N_y + 2*N_ghost_y, N_x + 2*N_ghost_x, dtype=af.Dtype.f64)
+
+E_x[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_x_local
+
+E_x                                             = periodic_x(config, E_x)
+E_x                                             = periodic_y(config, E_x)
+
+E_y[N_ghost_y:-N_ghost_y, N_ghost_x:-N_ghost_x] = E_y_local
+E_y                                             = periodic_x(config, E_y)
+E_y                                             = periodic_y(config, E_y)
+
+args.E_x = E_x
+args.E_y = E_x
+args.B_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+args.E_z = af.constant(0, E_x.shape[0], E_x.shape[1], dtype=af.Dtype.f64)
+
 data, f_final = evolve.time_integration(args, time_array)
 
-import lts.initialize
-import lts.evolve
-
-delta_f_hat_initial = lts.initialize.init_delta_f_hat(config)
-time_array          = lts.initialize.time_array(config)
-
-delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config, delta_f_hat_initial, time_array)
-
-pl.plot(time_array, data, label = 'CK')
-pl.plot(time_array, delta_rho_hat, '--', color = 'black', label = 'LT')
+pl.semilogy(time_array, data - 1)
 pl.xlabel('Time')
-pl.legend()
-pl.title('2D Collisional Damping')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
