@@ -84,7 +84,7 @@ args.vel_y  = vel_y
 args.x      = x
 args.y      = y
 
-args.E_x = 0.01/(2*np.pi) * af.sin(2*np.pi*x)
+args.E_x = -0.1/(2*np.pi) * af.sin(2*np.pi*x[:, :, 0, 0])
 args.E_y = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 args.B_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 args.B_x = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)

@@ -71,12 +71,13 @@ velocity_space = dict(N_vel_x   = 101,
                      )
 
 time = dict(
-            final_time   = 0.5,
+            final_time   = 2.0,
             dt           = 0.005
            )
 
 EM_fields = dict(
-                 charge_particle = 0
+                 charge_particle = -10,
+                 solver          = 'fdtd'
                 )
 
 collisions = dict(
