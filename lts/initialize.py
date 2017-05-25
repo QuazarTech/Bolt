@@ -112,8 +112,14 @@ def dfdv_x_background(config):
   vel_x = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
   dv_x  = vel_x[1] - vel_x[0]
 
-  f_background_local = f_background(config)
+  vel_y_max = config.vel_y_max
+  N_vel_y   = config.N_vel_y
 
+  vel_y = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+  dv_y  = vel_y[1] - vel_y[0]
+
+  normalization      = np.sum(f_background(config)) * dv_x * dv_y
+  f_background_local = f_background(config)/normalization
   dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
   for i in range(f_background_local.shape[0]):
@@ -123,13 +129,20 @@ def dfdv_x_background(config):
 
 def dfdv_y_background(config):
 
+  vel_x_max = config.vel_x_max
+  N_vel_x   = config.N_vel_x
+
+  vel_x = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  dv_x  = vel_x[1] - vel_x[0]
+
   vel_y_max = config.vel_y_max
   N_vel_y   = config.N_vel_y
 
   vel_y = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
   dv_y  = vel_y[1] - vel_y[0]
 
-  f_background_local = f_background(config)
+  normalization      = np.sum(f_background(config)) * dv_x * dv_y
+  f_background_local = f_background(config)/normalization
   dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
   for i in range(f_background_local.shape[1]):
@@ -164,6 +177,5 @@ def init_delta_f_hat(config):
  
   normalization       = np.sum(f_background(config)) * dv_x * dv_y
   delta_f_hat_initial = delta_f_hat_initial/normalization
-  print(normalization)
 
   return delta_f_hat_initial
