@@ -25,18 +25,18 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0 
+                    k_y       = 0 #4*np.pi 
                    ) 
 
-configuration_space = dict(N_x            = 32,
-                           N_ghost_x      = 3,
-                           left_boundary  = 0,
-                           right_boundary = 1.0,
+configuration_space = dict(N_x     = 32,
+                           x_start = 0,
+                           x_end   = 1.0,
 
-                           N_y            = 2,
-                           N_ghost_y      = 3,
-                           bot_boundary   = 0,
-                           top_boundary   = 1.0,
+                           N_y     = 32,
+                           y_start = 0,
+                           y_end   = 1.0,
+
+                           N_ghost = 3
                           )
 
 boundary_conditions = dict(in_x = 'periodic',
@@ -63,23 +63,24 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 401,
-                      vel_x_max = 10.0, 
+velocity_space = dict(N_vel_x   = 101,
+                      vel_x_max = 5.0, 
 
-                      N_vel_y   = 2, 
-                      vel_y_max = 10.0
+                      N_vel_y   = 101, 
+                      vel_y_max = 5.0
                      )
 
 time = dict(
-            final_time   = 1.0,
+            final_time   = 0.5,
             dt           = 0.001
            )
 
 EM_fields = dict(
-                 charge_particle = 0
+                 charge_particle = 0,
+                 fields_solver   = 'fdtd'
                 )
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  0.01
+                  tau                = 0.01 #np.inf
                  )

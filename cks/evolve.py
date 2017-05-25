@@ -6,7 +6,7 @@ from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
                                 calculate_vel_bulk_y, calculate_mom_bulk_x,\
                                 calculate_mom_bulk_y, calculate_temperature
                                 
-def f_MB(args):
+def f_MB(da, args):
 
   config = args.config
   f      = args.f
@@ -38,18 +38,18 @@ def f_MB(args):
              af.exp(-mass_particle*(vel_x-vel_bulk_x)**2/(2*boltzmann_constant*T))
 
 
-  normalization = af.sum(initialize.f_background(config))*dv_x*dv_y/(vel_x.shape[0] * vel_x.shape[1])
+  normalization = af.sum(initialize.f_background(da, config))*dv_x*dv_y/(vel_x.shape[0] * vel_x.shape[1])
   f_MB          = f_MB/normalization
 
   af.eval(f_MB)
   return(f_MB)
 
-def collision_step(args, dt):
+def collision_step(da, args, dt):
 
   tau = args.config.tau
   f   = args.f 
 
-  f0             = f_MB(args)
+  f0             = f_MB(da, args)
   f_intermediate = f - (dt/2)*(f - f0)/tau
   f_final        = f - (dt)*(f_intermediate - f0)/tau
 
@@ -142,7 +142,7 @@ def time_integration(args, time_array):
     args.f = f_interp_2d(args, 0.25*dt)
     args.f = periodic_x(config, args.f)
     args.f = periodic_y(config, args.f)
-    args   = fields_step(args, dt)
+    # args   = fields_step(args, dt)
     args.f = periodic_x(config, args.f)
     args.f = periodic_y(config, args.f)
     args.f = f_interp_2d(args, 0.25*dt)

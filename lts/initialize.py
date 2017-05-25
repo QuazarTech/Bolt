@@ -1,22 +1,13 @@
 import numpy as np 
 
-class config:
-  pass
+class options:
+  def __init__(self):
+    pass
 
 def set(params):
-  """
-  Used to set the parameters that are used in the simulation
 
-  Parameters:
-  -----------
-    params : Name of the file that contains the parameters for the simulation 
-             run is passed to this function. 
+  config = options()
 
-  Output:
-  -------
-    config : Object whose attributes contain all the simulation parameters. 
-             This is passed to the remaining solver functions.
-  """
   config.mode = params.mode
 
   config.mass_particle      = params.constants['mass_particle']
@@ -32,15 +23,15 @@ def set(params):
   config.k_x       = params.perturbation['k_x']
   config.k_y       = params.perturbation['k_y']
 
-  config.N_x            = params.configuration_space['N_x']
-  config.N_ghost_x      = params.configuration_space['N_ghost_x']
-  config.left_boundary  = params.configuration_space['left_boundary']
-  config.right_boundary = params.configuration_space['right_boundary']
+  config.N_x       = params.configuration_space['N_x']
+  config.x_start   = params.configuration_space['x_start']
+  config.x_end     = params.configuration_space['x_end']
   
-  config.N_y          = params.configuration_space['N_y']
-  config.N_ghost_y    = params.configuration_space['N_ghost_y']
-  config.bot_boundary = params.configuration_space['bot_boundary']
-  config.top_boundary = params.configuration_space['top_boundary']
+  config.N_y       = params.configuration_space['N_y']
+  config.y_start   = params.configuration_space['y_start']
+  config.y_end     = params.configuration_space['y_end']
+
+  config.N_ghost = params.configuration_space['N_ghost']
 
   config.N_vel_x   = params.velocity_space['N_vel_x']
   config.vel_x_max = params.velocity_space['vel_x_max']
@@ -82,73 +73,39 @@ def set(params):
 
 
 def f_background(config):
-  """
-  Returns the value of f_background, depending on the parameters set in 
-  the config object
 
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    f_background : Array which contains the values of f_background at different 
-                   values of vel_x.
-  """
-  
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant
 
   rho_background         = config.rho_background
   temperature_background = config.temperature_background
-  
   vel_bulk_x_background  = config.vel_bulk_x_background
+  vel_bulk_y_background  = config.vel_bulk_y_background
 
   vel_x_max = config.vel_x_max
   N_vel_x   = config.N_vel_x
   vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
 
-  vel_bulk_y_background  = config.vel_bulk_y_background
-    
-  vel_y_max    = config.vel_y_max
-  N_vel_y      = config.N_vel_y
-  vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+  vel_y_max = config.vel_y_max
+  N_vel_y   = config.N_vel_y
+  vel_y     = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+
   vel_x, vel_y = np.meshgrid(vel_x, vel_y)
 
-  if(config.mode == '2V'):
-    f_background = rho_background * \
-                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2 \
-                         /(2*boltzmann_constant*temperature_background)
-                         ) * \
-                   np.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2 \
-                          /(2*boltzmann_constant*temperature_background)
-                         )
+  if(config.mode == '2V'):    
+    f_background = rho_background * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+                   np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
+                   np.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/(2*boltzmann_constant*temperature_background))
 
   elif(config.mode == '1V'):
-    f_background = rho_background * \
-                   np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+    f_background = rho_background * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                    np.exp(-mass_particle*vel_x**2/(2*boltzmann_constant*temperature_background))
-
-  else:
-    raise Exception('The mode mentioned in the config file is not supported')
+  
 
   return f_background
 
 def dfdv_x_background(config):
-  """
-  Returns the value of the derivative of f_background w.r.t to vel_x, depending 
-  on the parameters set in the config object.
 
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    dfdv_x_background : Array which contains the values of dfdv_x_background 
-                        at different values of vel_x.
-  """
   vel_x_max = config.vel_x_max
   N_vel_x   = config.N_vel_x
 
@@ -165,19 +122,7 @@ def dfdv_x_background(config):
   return dfdv_x_background
 
 def dfdv_y_background(config):
-  """
-  Returns the value of the derivative of f_background w.r.t to vel_y, depending 
-  on the parameters set in the config object.
 
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    dfdv_y_background : Array which contains the values of dfdv_y_background 
-                        at different values of vel_y.
-  """
   vel_y_max = config.vel_y_max
   N_vel_y   = config.N_vel_y
 
@@ -193,19 +138,6 @@ def dfdv_y_background(config):
   return dfdv_y_background
 
 def time_array(config):
-  """
-  Returns the value of the time_array at which we solve for in the simulation. 
-  The time_array is set depending on the options which have been mention in config.
-
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    time_array : Array that contains the values of time at which the 
-                 simulation evaluates the physical quantities. 
-  """
 
   final_time = config.final_time
   dt         = config.dt
@@ -215,39 +147,23 @@ def time_array(config):
   return time_array
 
 def init_delta_f_hat(config):
-  """
-  Returns the initial value of delta_f_hat which is setup depending on
-  the perturbation parameters set in config. 
-
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    delta_f_hat_initial : Array which contains the values of initial mode 
-                          perturbation in the distribution function.
-
-  """
 
   pert_real = config.pert_real 
   pert_imag = config.pert_imag 
 
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
-
-  vel_y_max    = config.vel_y_max
-  N_vel_y      = config.N_vel_y
-  vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
-  dv_y         = vel_y[1] - vel_y[0]
-
-  normalization = np.sum(f_background(config)) * dv_x * dv_y
-
   delta_f_hat_initial = pert_real*f_background(config) +\
                         pert_imag*f_background(config)*1j 
-
-  delta_f_hat_initial = delta_f_hat_initial/normalization
   
+  vel_x_max = config.vel_x_max
+  N_vel_x   = config.N_vel_x
+  dv_x      = (2*vel_x_max)/(N_vel_x - 1)
+
+  vel_y_max = config.vel_y_max
+  N_vel_y   = config.N_vel_y
+  dv_y      = (2*vel_y_max)/(N_vel_y - 1)
+ 
+  normalization       = np.sum(f_background(config)) * dv_x * dv_y
+  delta_f_hat_initial = delta_f_hat_initial/normalization
+  print(normalization)
+
   return delta_f_hat_initial
