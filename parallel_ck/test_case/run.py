@@ -61,7 +61,12 @@ da = PETSc.DMDA().create([N_y, N_x],\
                          comm = comm
                         ) 
 
+global_vector    = da.createGlobalVec()
+global_vec_value = da.getVecArray()
 
+PETSc.Object.setName(global_vector, 'distribution_function')
+
+viewer = PETSc.Viewer().createHDF5('ck_distribution_funtion.h5', 'w', comm = comm)
 
 if(comm.rank == 0):
   print(af.info())
@@ -93,6 +98,10 @@ args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)
+
+global_vec_value = np.array(af.moddims(f_final, N_x, N_y, N_vel_x * N_vel_y))
+viewer(global_vector)
+
 comm.Reduce(data,\
             global_data,\
             op = MPI.MAX,\
