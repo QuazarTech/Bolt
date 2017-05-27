@@ -49,15 +49,8 @@ def f_interp_vel_2d(args, F_x, F_y, dt):
   vel_x_max = config.vel_x_max
   vel_y_max = config.vel_y_max
 
-  vel_x_new = vel_x - dt * af.tile(F_x, 1, 1,\
-                                   f.shape[2],\
-                                   f.shape[3]
-                                  )
-  
-  vel_y_new = vel_y - dt * af.tile(F_y, 1, 1,\
-                                   f.shape[2],\
-                                   f.shape[3]
-                                  )
+  vel_x_new = vel_x - dt * F_x
+  vel_y_new = vel_y - dt * F_y
 
   dv_x = af.sum(vel_x[0, 0, 0, 1]-vel_x[0, 0, 0, 0])
   dv_y = af.sum(vel_y[0, 0, 1, 0]-vel_y[0, 0, 0, 0])
