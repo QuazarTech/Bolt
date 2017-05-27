@@ -1,3 +1,7 @@
+from mpi4py import MPI
+import petsc4py
+from petsc4py import PETSc 
+
 import cks.initialize as initialize
 import cks.evolve as evolve
 
@@ -7,10 +11,6 @@ import pylab as pl
 
 import arrayfire as af
 import numpy as np
-
-import petsc4py
-from petsc4py import PETSc 
-from mpi4py import MPI
 
 import params
 
