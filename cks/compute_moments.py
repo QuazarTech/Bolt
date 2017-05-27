@@ -69,6 +69,8 @@ def calculate_temperature(args):
   vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, 1, f.shape[2], f.shape[3])
   vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, 1, f.shape[2], f.shape[3])
 
+  # The temperature is calculated depending upon the defined dimensionality in
+  # velocity space:
   if(config.mode == '1V'):
     pressure = af.sum(af.sum(f*(vel_x-vel_bulk_x)**2, 3)*dv_x, 2)*dv_y
     temperature = pressure/calculate_density(args)

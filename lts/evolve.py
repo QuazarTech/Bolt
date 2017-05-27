@@ -21,7 +21,7 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   k_x = config.k_x   
   k_y = config.k_y   
 
-  charge_particle = config.charge_particle
+  charge_electron = config.charge_electron
 
   delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y
   delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y
@@ -29,17 +29,17 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   dfdv_x_background = initialize.dfdv_x_background(config)
   dfdv_y_background = initialize.dfdv_y_background(config)
 
-  delta_J_x_hat, delta_J_y_hat = charge_particle * delta_vel_bulk_x,\
-                                 charge_particle * delta_vel_bulk_y
+  delta_J_x_hat, delta_J_y_hat = charge_electron * delta_vel_bulk_x,\
+                                 charge_electron * delta_vel_bulk_y
   
   ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
   ddelta_E_y_hat_dt = -(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
   ddelta_B_z_hat_dt = -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
 
-  fields_term = (charge_particle / mass_particle) * (delta_E_x_hat + \
+  fields_term = (charge_electron / mass_particle) * (delta_E_x_hat + \
                                                      delta_B_z_hat * vel_y \
                                                     ) * dfdv_x_background  + \
-                (charge_particle / mass_particle) * (delta_E_y_hat - \
+                (charge_electron / mass_particle) * (delta_E_y_hat - \
                                                      delta_B_z_hat * vel_x
                                                     ) * dfdv_y_background
 
@@ -98,10 +98,10 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
   global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
   
-  charge_particle = config.charge_particle
+  charge_electron = config.charge_electron
 
   delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y
-  delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
+  delta_phi_hat = charge_electron * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat = -delta_phi_hat * (1j * k_x)
   delta_E_y_hat = -delta_phi_hat * (1j * k_y)
   delta_B_z_hat = 0 

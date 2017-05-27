@@ -32,10 +32,10 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
-config = initialize.set(params)
+config     = set.configuration_object(params)
+time_array = set.time_array(config)
 
 delta_f_hat_initial = initialize.init_delta_f_hat(config)
-time_array          = initialize.time_array(config)
 
 delta_rho_hat, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
 
