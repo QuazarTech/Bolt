@@ -1,10 +1,14 @@
 from mpi4py import MPI
 import petsc4py
-from petsc4py import PETSc 
+from petsc4py import PETSc
 
+# Importing solver library functions
+import setup
 import cks.initialize as initialize
 import cks.evolve as evolve
 
+# Using Agg backend to allow saving figures without $DISPLAY
+# environment variable 
 import matplotlib as mpl 
 mpl.use('Agg')
 import pylab as pl
@@ -44,8 +48,9 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
-config     = set.configuration_object(params)
-time_array = set.time_array(config)
+# Setting up the configuration object along with the time array
+config     = setup.configuration_object(params)
+time_array = setup.time_array(config)
 
 # Getting the resolutions of position and velocity space:
 N_y     = config.N_y
@@ -56,8 +61,10 @@ N_ghost = config.N_ghost
 
 petsc4py.init()
 
+# Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
 
+# Declaring distributed array object which automates the domain decomposition:
 da = PETSc.DMDA().create([N_y, N_x],\
                          dof = (N_vel_y * N_vel_x),\
                          stencil_width = N_ghost,\
@@ -67,12 +74,17 @@ da = PETSc.DMDA().create([N_y, N_x],\
                          comm = comm
                         ) 
 
+((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
+
+# Declaring global vectors to export the final distribution function:
 global_vector    = da.createGlobalVec()
 global_vec_value = da.getVecArray()
 
+# Changing name of object so that dataset may be read from h5py
 PETSc.Object.setName(global_vector, 'distribution_function')
-viewer = PETSc.Viewer().createHDF5('ck_distribution_funtion.h5', 'w', comm = comm)
+viewer = PETSc.Viewer().createHDF5('ck_distribution_function.h5', 'w', comm = comm)
 
+# Printing only when rank = 0 to avoid multiple outputs:
 if(comm.rank == 0):
   print(af.info())
 
@@ -84,6 +96,7 @@ vel_y = initialize.calculate_vel_y(da, config)
 f_initial = initialize.f_initial(da, config)
 
 class args:
+  def __init__(self):
     pass
 
 args.config = config
@@ -118,7 +131,8 @@ args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)
 
-global_vec_value = np.array(af.moddims(f_final, N_x, N_y, N_vel_x * N_vel_y))
+f_final          = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+global_vec_value = np.array(af.moddims(f_final, N_x_local, N_y_local, N_vel_x * N_vel_y))
 viewer(global_vector)
 
 comm.Reduce(data,\
