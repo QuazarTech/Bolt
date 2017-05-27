@@ -132,7 +132,7 @@ global_data   = np.zeros(time_array.size)
 data, f_final = evolve.time_integration(da, args, time_array)
 
 f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-global_vec_value[:] = np.array(af.moddims(f_final, N_x_local, N_y_local, N_vel_x * N_vel_y))
+global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_x * N_vel_y))
 
 viewer(global_vector)
 

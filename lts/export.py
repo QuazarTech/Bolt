@@ -1,6 +1,8 @@
 import numpy as np 
+import h5py
 
 def export_4D_distribution_function(config, delta_f_hat):
+
   N_x     = config.N_x
   N_vel_x = config.N_vel_x
   k_x     = config.k_x
@@ -24,10 +26,11 @@ def export_4D_distribution_function(config, delta_f_hat):
 
   x, y   = np.meshgrid(x, y)
   f_dist = np.zeros([N_y, N_x, N_vel_y, N_vel_x])
-
+  
   for i in range(N_vel_y):
     for j in range(N_vel_x):
       f_dist[:, :, i, j] = (delta_f_hat[i, j] * np.exp(1j*k_x*x + 1j*k_y*y)).real
 
-  return(f_dist)
-
+  h5f = h5py.File('lt_distribution_function.h5', 'w')
+  h5f.create_dataset('distribution_function', data = f_dist)
+  h5f.close()
