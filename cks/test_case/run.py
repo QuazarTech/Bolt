@@ -78,7 +78,7 @@ da = PETSc.DMDA().create([N_y, N_x],\
 
 # Declaring global vectors to export the final distribution function:
 global_vector    = da.createGlobalVec()
-global_vec_value = da.getVecArray()
+global_vec_value = da.getVecArray(global_vector)
 
 # Changing name of object so that dataset may be read from h5py
 PETSc.Object.setName(global_vector, 'distribution_function')
@@ -131,8 +131,9 @@ args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)
 
-f_final          = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-global_vec_value = np.array(af.moddims(f_final, N_x_local, N_y_local, N_vel_x * N_vel_y))
+f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+global_vec_value[:] = np.array(af.moddims(f_final, N_x_local, N_y_local, N_vel_x * N_vel_y))
+
 viewer(global_vector)
 
 comm.Reduce(data,\
