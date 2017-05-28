@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '1D1V'
+mode = '1V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -25,7 +25,7 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 2*np.pi 
+                    k_y       = 0 #2*np.pi 
                    ) 
 
 configuration_space = dict(N_x            = 32,
@@ -33,7 +33,7 @@ configuration_space = dict(N_x            = 32,
                            left_boundary  = 0,
                            right_boundary = 1.0,
 
-                           N_y            = 32,
+                           N_y            = 3,
                            N_ghost_y      = 3,
                            bot_boundary   = 0,
                            top_boundary   = 1.0,

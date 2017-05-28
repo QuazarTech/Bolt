@@ -131,8 +131,17 @@ args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)
 
-f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_x * N_vel_y))
+vel_x_max = config.vel_x_max
+vel_y_max = config.vel_y_max
+dv_x      = (2*vel_x_max)/(N_vel_x - 1)
+dv_y      = (2*vel_y_max)/(N_vel_y - 1)
+
+f_final       = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+normalization = af.sum(initialize.f_background(da, config)) * dv_x * dv_y/(x.shape[0] * x.shape[1])
+f_background  = initialize.f_background(da, config)/normalization[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+f_perturbed   = f_final - f_background
+
+global_vec_value[:] = np.array(af.moddims(f_perturbed, N_y_local, N_x_local, N_vel_x * N_vel_y))
 
 viewer(global_vector)
 
