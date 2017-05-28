@@ -1,7 +1,30 @@
+"""
+This module contains functions which are used to initialize
+quantities, which will be used in the simulation. These quantities
+are typically set using the parameters which are set in the config
+object. As the name suggests, these functions only need to be 
+called once during the simulation run.
+"""
+
 import numpy as np
 import arrayfire as af 
 
 def calculate_x(da, config):
+  """
+  Returns the 4D array of x which has the variations in x along axis 1
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this filee
+
+  Output:
+  -------
+    x : Array holding the values of x
+  """
 
   N_x       = config.N_x
   N_vel_x   = config.N_vel_x
@@ -29,6 +52,21 @@ def calculate_x(da, config):
   return(x)
 
 def calculate_y(da, config):
+  """
+  Returns the 4D array of y which has the variations in y along axis 0
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this filee
+
+  Output:
+  -------
+    y : Array holding the values of y
+  """
 
   N_y       = config.N_y
   N_vel_x   = config.N_vel_x
@@ -56,6 +94,21 @@ def calculate_y(da, config):
   return(y)
 
 def calculate_vel_x(da, config):
+  """
+  Returns the 4D array of vel_x which has the variations in vel_x along axis 3
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this filee
+
+  Output:
+  -------
+    vel_x : Array holding the values of vel_x
+  """
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
@@ -85,6 +138,21 @@ def calculate_vel_x(da, config):
   return(vel_x)
 
 def calculate_vel_y(da, config):
+  """
+  Returns the 4D array of vel_y which has the variations in vel_y along axis 2
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this filee
+
+  Output:
+  -------
+    vel_y : Array holding the values of vel_y
+  """
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
@@ -114,6 +182,23 @@ def calculate_vel_y(da, config):
   return(vel_y)
 
 def f_background(da, config):
+  """
+  Returns the value of f_background, depending on the parameters set in 
+  the config object
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this filee
+
+  Output:
+  -------
+    f_background : Array which contains the values of f_background at different 
+                   values of (y, x, vel_y, vel_x)
+  """
   
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant
@@ -148,6 +233,23 @@ def f_background(da, config):
   return(f_background)
 
 def f_initial(da, config):
+  """
+  Returns the value of f_initial, depending on the parameters set in 
+  the config object
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+  Output:
+  -------
+    f_initial : Array which contains the values of f_initial at different values
+                of (y, x, vel_y, vel_x)
+  """
 
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant

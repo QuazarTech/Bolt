@@ -1,4 +1,4 @@
-import setup
+import setup_simulation
 import lts.initialize as initialize
 import lts.evolve as evolve
 import lts.export as export
@@ -34,17 +34,16 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
-config     = setup.configuration_object(params)
-time_array = setup.time_array(config)
+config     = setup_simulation.configuration_object(params)
+time_array = setup_simulation.time_array(config)
 
 delta_f_hat_initial = initialize.init_delta_f_hat(config)
 
 delta_rho_hat, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
 
-export.export_4D_distribution_function(config, delta_f_hat_final)
-
-
 pl.plot(time_array, delta_rho_hat)
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
+
+# export.export_4D_distribution_function(config, delta_f_hat_final)

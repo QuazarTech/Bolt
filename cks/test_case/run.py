@@ -3,7 +3,7 @@ import petsc4py
 from petsc4py import PETSc
 
 # Importing solver library functions
-import setup
+import setup_simulation
 import cks.initialize as initialize
 import cks.evolve as evolve
 
@@ -49,8 +49,8 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
 # Setting up the configuration object along with the time array
-config     = setup.configuration_object(params)
-time_array = setup.time_array(config)
+config     = setup_simulation.configuration_object(params)
+time_array = setup_simulation.time_array(config)
 
 # Getting the resolutions of position and velocity space:
 N_y     = config.N_y

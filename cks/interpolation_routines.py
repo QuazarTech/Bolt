@@ -1,6 +1,52 @@
+"""
+In the Cheng-Knorr method, interpolation steps need to be performed
+in the phase space coordinates to solve the system considered. 
+For instance,
+df/dt + v df/dx = 0 has its solution given by:
+f(x, v, t) = f(x - v*t, v, 0)
+This module contains the interpolation routines performed in both
+the phase space coordinates, namely velocity and position in our
+case.
+"""
+
 import arrayfire as af
 
 def f_interp_2d(da, args, dt):
+  """
+  Performs the advection step in position space
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    Object args is also passed to the function of which the following attributes are 
+    utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+
+    x : 4D array that contains the variations in x along the 1st axis
+
+    y : 4D array that contains the variations in y along the 0th axis
+
+    dt : Time step for which the system is evolved forward
+
+  Output:
+  -------
+    f_interp : Returns the distribution function after performing the 
+               interpolation step in position space
+  """
 
   config = args.config
   f      = args.f
@@ -40,7 +86,40 @@ def f_interp_2d(da, args, dt):
   return(f_interp)
 
 def f_interp_vel_2d(args, F_x, F_y, dt):
+  """
+  Performs the interpolation in velocity space. This function is
+  used in solving for the fields contribution in the Boltzmann equation.
 
+  Parameters:
+  -----------
+    Object args is passed to the function of which the following attributes 
+    are utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+
+    F_x   : x-component of the EM force 
+
+    F_y   : y-component of the EM force
+    
+    dt    : Time step for which the system is evolved forward
+
+  Output:
+  -------
+    f_interp : Returns the distribution function after performing the
+               interpolation step in velocity space.
+
+  """
   config = args.config
   f      = args.f
   vel_x  = args.vel_x
@@ -66,6 +145,7 @@ def f_interp_vel_2d(args, F_x, F_y, dt):
                         af.INTERP.BICUBIC_SPLINE
                        )
   
+  # Reordering back to the original convention chosen:
   f_interp = af.reorder(f_interp, 2, 3, 0, 1)
 
   af.eval(f_interp)

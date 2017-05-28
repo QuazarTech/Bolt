@@ -37,7 +37,8 @@ def communicate_distribution_function(da, args, local, glob):
                                    :
                                   ]
 
-  # The following function takes care of the boundary conditions, and interzonal communications:
+  # The following function takes care of the boundary conditions, 
+  # and interzonal communications:
   da.globalToLocal(glob, local)
 
   # Converting back from PETSc.Vec to af.Array:
@@ -73,7 +74,36 @@ def communicate_fields(da, config, local_field, local, glob):
   return(field_updated)
 
 def f_MB(da, args):
+  """
+  Return the local Maxwell Boltzmann distribution function. This distribution 
+  function is Maxwellian while maintaining the bulk parameters of the original 
+  distribution function which was passed to it.
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
 
+    Object args is also passed to the function of which the following attributes are 
+    utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+  
+  Output:
+  -------
+    f_MB : Local Maxwell Boltzmann distribution array.
+  """
   config = args.config
   f      = args.f
   vel_x  = args.vel_x
@@ -111,6 +141,37 @@ def f_MB(da, args):
   return(f_MB)
 
 def collision_step(da, args, dt):
+  """
+  Performs the collision step where df/dt = C[f] is solved for
+  In this function the BGK collision operator is being solved for.
+
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    Object args is also passed to the function of which the following attributes are 
+    utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+
+    dt : Time step for which the system is evolved forward
+
+  Output:
+  -------
+    f_final : Returns the distribution function after performing the collision step
+  """
 
   tau = args.config.tau
   f   = args.f 
@@ -123,7 +184,36 @@ def collision_step(da, args, dt):
   return(f_final)
 
 def fields_step(da, args, dt):
-  
+  """
+  Solves for the field step where df/dt + E df/dv is solved for
+
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    Object args is also passed to the function of which the following attributes are 
+    utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+
+    dt : Time step for which the system is evolved forward
+
+  Output:
+  -------
+    f_fields : Returns the distribution function after performing the fields step.
+  """
   config = args.config
   f      = args.f
   vel_x  = args.vel_x
@@ -189,8 +279,50 @@ def fields_step(da, args, dt):
   return(args)
 
 def time_integration(da, args, time_array):
+  """
+  The main function that evolves the system in time.
+  
+  Parameters:
+  -----------
+    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
+         The da object is used to refer to the local zone of computation
+
+    Object args is also passed to the function of which the following attributes are 
+    utilized:
+
+    config: Object config which is obtained by 
+            setup_simulation.configuration_object() is passed to this file
+
+    f : 4D distribution function that is passed to the function. Moments 
+        will be computed defined by the state of the system which is indicated 
+        by the distribution function
+
+    vel_x : 4D velocity array which has the variations in x-velocity along 
+            axis 3
+
+    vel_y : 4D velocity array which has the variations in y-velocity along
+            axis 2
+
+    x : 4D array that contains the variations in x along the 1st axis
+
+    y : 4D array that contains the variations in y along the 0th axis
+    
+    time_array : Array that contains the values of time at which the 
+                 simulation evaluates the physical quantities.  
+
+  Output:
+  -------
+    data : Contains data about the amplitude of density in the system with progression
+           in time.
+
+    args.f : This array returned is the distribution function that is obtained
+             in the final time step.
+  """
     
   data = np.zeros(time_array.size)
+
+  # Storing the value of density amplitude at t = 0
+  data[0] = af.max(calculate_density(args))
 
   glob  = da.createGlobalVec()
   local = da.createLocalVec()
@@ -205,7 +337,7 @@ def time_integration(da, args, time_array):
 
   from cks.interpolation_routines import f_interp_2d
   
-  for time_index, t0 in enumerate(time_array):
+  for time_index, t0 in enumerate(time_array[1:]):
     if(time_index%10 == 0 and da.getComm().rank == 0):
         print("Computing for Time = ", t0)
 
@@ -226,7 +358,7 @@ def time_integration(da, args, time_array):
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
       
-    data[time_index] = af.max(calculate_density(args))
+    data[time_index + 1] = af.max(calculate_density(args))
 
   return(data, args.f)
 

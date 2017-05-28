@@ -110,7 +110,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
   old_delta_f_hat = delta_f_hat_initial
 
-  for time_index, t0 in enumerate(time_array[:-1]):
+  for time_index, t0 in enumerate(time_array[1:]):
 
     if(time_index%10==0):
       print("Computing for Time = ", t0)

@@ -5,6 +5,20 @@ class options:
     pass
 
 def configuration_object(params):
+  """
+  Used to define an object that contains data about the parameters 
+  that are used in the simulation
+
+  Parameters:
+  -----------
+    params : Name of the file that contains the parameters for the 
+             simulation run is passed to this function. 
+
+  Output:
+  -------
+    config : Object whose attributes contain all the simulation parameters. 
+             This is passed to the remaining solver functions.
+  """
 
   # Declaring an instance of the class:
   config      = options()
@@ -85,10 +99,23 @@ def configuration_object(params):
   return config
 
 def time_array(config):
+  """
+  Returns the value of the time_array at which we solve for in the 
+  simulation. The time_array is set depending on the options which 
+  have been mention in config.
 
+  Parameters:
+  -----------
+    config: Object config which is obtained by 
+            configuration_object() is passed to this file
+  Output:
+  -------
+    time_array : Array that contains the values of time at which 
+                 the simulation evaluates the physical quantities. 
+  """
   final_time = config.final_time
   dt         = config.dt
 
-  time_array = np.arange(dt, final_time + dt, dt)
+  time_array = np.arange(0, final_time + dt, dt)
 
   return(time_array)
