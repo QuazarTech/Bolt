@@ -173,5 +173,5 @@ def test_case():
 
   # assert(abs(poly[0]+2)<0.2)
 
-# run_ck()
+run_ck()
 run_lt()
