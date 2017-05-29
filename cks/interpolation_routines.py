@@ -73,8 +73,8 @@ def f_interp_2d(da, args, dt):
   bot_boundary  = y_start + j_bottom_left*dy
 
   # Adding N_ghost to account for the offset due to ghost zones:
-  x_interpolant = (x_new - left_boundary)/dx + N_ghost
-  y_interpolant = (y_new - bot_boundary )/dy + N_ghost
+  x_interpolant = (x_new - left_boundary)/dx + 0*N_ghost
+  y_interpolant = (y_new - bot_boundary )/dy + 0*N_ghost
 
   f_interp = af.approx2(f,\
                         y_interpolant,\

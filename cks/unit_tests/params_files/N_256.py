@@ -71,7 +71,7 @@ velocity_space = dict(N_vel_x   = 401,
                      )
 
 time = dict(
-            final_time   = 0.001,
+            final_time   = 0,
             dt           = 0.001*(32/position_space['N_x'])
            )
 
@@ -83,5 +83,5 @@ EM_fields = dict(
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                = np.inf
+                  tau                = 0.01
                  )
