@@ -23,3 +23,5 @@ def test_case():
     error[i] = np.sum(abs(f_ck - f_lt))/f_ck.size
 
   print(error)
+
+test_case()
