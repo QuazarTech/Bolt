@@ -127,4 +127,4 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
     old_delta_f_hat = new_delta_f_hat.copy()
 
-  return(density_data, new_delta_f_hat)
+  return(density_data, old_delta_f_hat)
