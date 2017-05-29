@@ -27,9 +27,6 @@ def export_4D_distribution_function(config, delta_f_hat):
   x, y   = np.meshgrid(x, y)
   f_dist = np.zeros([N_y, N_x, N_vel_y, N_vel_x])
   
-  print(x.shape)
-  print(y.shape)
-
   for i in range(N_vel_y):
     for j in range(N_vel_x):
       f_dist[:, :, i, j] = (delta_f_hat[i, j] * np.exp(1j*k_x*x + 1j*k_y*y)).real
