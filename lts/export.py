@@ -31,6 +31,6 @@ def export_4D_distribution_function(config, delta_f_hat):
     for j in range(N_vel_x):
       f_dist[:, :, i, j] = (delta_f_hat[i, j] * np.exp(1j*k_x*x + 1j*k_y*y)).real
 
-  h5f = h5py.File('lt_distribution_function.h5', 'w')
+  h5f = h5py.File('lt_distribution_function_' + str(N_x) + '.h5', 'w')
   h5f.create_dataset('distribution_function', data = f_dist)
   h5f.close()

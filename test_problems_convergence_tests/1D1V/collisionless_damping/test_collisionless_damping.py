@@ -15,6 +15,7 @@ import cks.initialize
 import cks.evolve
 import lts.initialize
 import lts.evolve
+import lts.export
 
 import arrayfire as af
 import numpy as np
@@ -172,5 +173,5 @@ def test_case():
 
   # assert(abs(poly[0]+2)<0.2)
 
-run_ck()
+# run_ck()
 run_lt()
