@@ -123,8 +123,8 @@ def run_ck():
     dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
     f_final       = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-    normalization = af.sum(cks.initialize.f_background(da, config)) * dv_x * dv_y/(x.shape[0] * x.shape[1])
-    f_background  = (cks.initialize.f_background(da, config)/normalization)[N_ghost:-N_ghost,\
+    normalization = af.sum(cks.initialize.f_background(da, config[i])) * dv_x * dv_y/(x.shape[0] * x.shape[1])
+    f_background  = (cks.initialize.f_background(da, config[i])/normalization)[N_ghost:-N_ghost,\
                                                                             N_ghost:-N_ghost, :, :
                                                                            ]
     f_perturbed   = f_final - f_background
@@ -146,6 +146,7 @@ def run_ck():
 def run_lt():
   
   for i in range(len(config)):
+    print("Running LT for N =", config[i].N_x)
     time_array = setup_simulation.time_array(config[i])
     delta_f_hat_initial = lts.initialize.init_delta_f_hat(config[i])
     delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config[i], delta_f_hat_initial, time_array)
@@ -170,3 +171,6 @@ def test_case():
   # poly = np.polyfit(x, np.log10(error), 1)
 
   # assert(abs(poly[0]+2)<0.2)
+
+run_ck()
+run_lt()
