@@ -7,13 +7,13 @@ def test_case():
 
   for i in range(len(N_x)):
     h5f  = h5py.File('distribution_function_data_files/lt/lt_distribution_function_' \
-                      + str(N_x[i]) + '.h5', 'w'
+                      + str(N_x[i]) + '.h5', 'r'
                     )
     f_lt = h5f['distribution_function'][:]
     h5f.close()
 
     h5f  = h5py.File('distribution_function_data_files/ck/ck_distribution_function_' \
-                      + str(N_x[i]) + '.h5', 'w'
+                      + str(N_x[i]) + '.h5', 'r'
                     )
     f_ck = h5f['distribution_function'][:]
     h5f.close()
