@@ -63,7 +63,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 *.mp4
-
+*.h5
 *.png
 
 \.idea/

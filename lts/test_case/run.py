@@ -46,4 +46,4 @@ pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
 
-# export.export_4D_distribution_function(config, delta_f_hat_final)
+export.export_4D_distribution_function(config, delta_f_hat_final)
