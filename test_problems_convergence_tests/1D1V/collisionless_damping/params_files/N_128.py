@@ -71,9 +71,10 @@ velocity_space = dict(N_vel_x   = 201,
                      )
 
 time = dict(
-            final_time   = 0.001,
+            final_time   = 0,
             dt           = 0.001*(32/position_space['N_x'])
            )
+
 
 EM_fields = dict(
                  charge_electron = 0,
