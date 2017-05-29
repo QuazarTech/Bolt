@@ -138,7 +138,7 @@ dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
 f_final       = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
 normalization = af.sum(initialize.f_background(da, config)) * dv_x * dv_y/(x.shape[0] * x.shape[1])
-f_background  = initialize.f_background(da, config)/normalization[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+f_background  = (initialize.f_background(da, config)/normalization)[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
 f_perturbed   = f_final - f_background
 
 global_vec_value[:] = np.array(af.moddims(f_perturbed, N_y_local, N_x_local, N_vel_x * N_vel_y))
