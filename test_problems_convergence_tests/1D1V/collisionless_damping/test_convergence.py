@@ -2,8 +2,9 @@ import h5py
 import numpy as np
 
 def test_case():
-  error = np.zeros(5)
-  N_x   = 2**(np.arange(5, 10))
+  error     = np.zeros(5)
+  error_rho = np.zeros(5)
+  N_x       = 2**(np.arange(5, 10))
 
   for i in range(len(N_x)):
     h5f  = h5py.File('distribution_function_data_files/lt/lt_distribution_function_' \
@@ -20,8 +21,12 @@ def test_case():
 
     f_ck = np.swapaxes(f_ck, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[2], f_lt.shape[3])
 
-    error[i] = np.sum(abs(f_ck - f_lt))/f_ck.size
+    rho_ck = np.sum(np.sum(f_ck, 3), 2)
+    rho_lt = np.sum(np.sum(f_lt, 3), 2)
 
-  print(error)
+    error[i]     = np.sum(abs(f_ck - f_lt))/f_ck.size
+    error_rho[i] = np.sum(abs(rho_ck - rho_lt))/rho_ck.size
+
+  print(error, error_rho)
 
 test_case()

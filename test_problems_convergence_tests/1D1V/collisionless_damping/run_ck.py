@@ -124,14 +124,8 @@ for i in range(len(config)):
   dv_x      = (2*vel_x_max)/(N_vel_x - 1)
   dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
-  f_final       = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-  normalization = af.sum(cks.initialize.f_background(da, config[i])) * dv_x * dv_y/(x.shape[0] * x.shape[1])
-  f_background  = (cks.initialize.f_background(da, config[i])/normalization)[N_ghost:-N_ghost,\
-                                                                             N_ghost:-N_ghost, :, :
-                                                                            ]
-  f_perturbed   = f_final - f_background
-
-  global_vec_value[:] = np.array(af.moddims(f_perturbed, N_y_local, N_x_local, N_vel_y * N_vel_x))
+  f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+  global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_y * N_vel_x))
   viewer(global_vector)
 
   comm.Reduce(data,\
