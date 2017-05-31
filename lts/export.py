@@ -1,4 +1,5 @@
 import numpy as np 
+from lts.initialize import f_background
 
 def export_4D_distribution_function(config, delta_f_hat):
 
@@ -29,5 +30,9 @@ def export_4D_distribution_function(config, delta_f_hat):
   for i in range(N_vel_y):
     for j in range(N_vel_x):
       f_dist[:, :, i, j] = (delta_f_hat[i, j] * np.exp(1j*k_x*x + 1j*k_y*y)).real
+
+  for i in range(N_vel_y):
+    for j in range(N_vel_x):
+      f_dist[:, :, i, j] += (f_background(config)[i, j] * np.exp(1j*0*x + 1j*0*y)).real
 
   return(f_dist)

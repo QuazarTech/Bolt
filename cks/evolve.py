@@ -74,36 +74,7 @@ def communicate_fields(da, config, local_field, local, glob):
   return(field_updated)
 
 def f_MB(da, args):
-  """
-  Return the local Maxwell Boltzmann distribution function. This distribution 
-  function is Maxwellian while maintaining the bulk parameters of the original 
-  distribution function which was passed to it.
-  
-  Parameters:
-  -----------
-    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
-         The da object is used to refer to the local zone of computation
 
-    Object args is also passed to the function of which the following attributes are 
-    utilized:
-
-    config: Object config which is obtained by 
-            setup_simulation.configuration_object() is passed to this file
-
-    f : 4D distribution function that is passed to the function. Moments 
-        will be computed defined by the state of the system which is indicated 
-        by the distribution function
-
-    vel_x : 4D velocity array which has the variations in x-velocity along 
-            axis 3
-
-    vel_y : 4D velocity array which has the variations in y-velocity along
-            axis 2
-  
-  Output:
-  -------
-    f_MB : Local Maxwell Boltzmann distribution array.
-  """
   config = args.config
   f      = args.f
   vel_x  = args.vel_x
@@ -115,10 +86,11 @@ def f_MB(da, args):
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant
 
+  n          = af.tile(calculate_density(args), 1, 1, f.shape[2], f.shape[3])
+  T          = af.tile(calculate_temperature(args), 1, 1, f.shape[2], f.shape[3])
+  vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, 1, f.shape[2], f.shape[3])
+  
   if(config.mode == '2V'):
-    n          = af.tile(calculate_density(args), 1, 1, f.shape[2], f.shape[3])
-    T          = af.tile(calculate_temperature(args), 1, 1, f.shape[2], f.shape[3])
-    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, 1, f.shape[2], f.shape[3])
     vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, 1, f.shape[2], f.shape[3])
     
     f_MB = n * (mass_particle/(2*np.pi*boltzmann_constant*T)) * \
@@ -126,52 +98,17 @@ def f_MB(da, args):
            af.exp(-mass_particle*(vel_y - vel_bulk_y)**2/(2*boltzmann_constant*T))  
   
   else:
-    n          = af.tile(calculate_density(args), 1, 1, f.shape[2], f.shape[3])
-    T          = af.tile(calculate_temperature(args), 1, 1, f.shape[2], f.shape[3])
-    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, 1, f.shape[2], f.shape[3])
-    
     f_MB = n*af.sqrt(mass_particle/(2*np.pi*boltzmann_constant*T))*\
              af.exp(-mass_particle*(vel_x-vel_bulk_x)**2/(2*boltzmann_constant*T))
 
 
-  normalization = af.sum(initialize.f_background(da, config))*dv_x*dv_y/(vel_x.shape[0] * vel_x.shape[1])
+  normalization = af.sum(f_MB)*dv_x*dv_y/(vel_x.shape[0] * vel_x.shape[1])
   f_MB          = f_MB/normalization
 
   af.eval(f_MB)
   return(f_MB)
 
 def collision_step(da, args, dt):
-  """
-  Performs the collision step where df/dt = C[f] is solved for
-  In this function the BGK collision operator is being solved for.
-
-  Parameters:
-  -----------
-    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
-         The da object is used to refer to the local zone of computation
-
-    Object args is also passed to the function of which the following attributes are 
-    utilized:
-
-    config: Object config which is obtained by 
-            setup_simulation.configuration_object() is passed to this file
-
-    f : 4D distribution function that is passed to the function. Moments 
-        will be computed defined by the state of the system which is indicated 
-        by the distribution function
-
-    vel_x : 4D velocity array which has the variations in x-velocity along 
-            axis 3
-
-    vel_y : 4D velocity array which has the variations in y-velocity along
-            axis 2
-
-    dt : Time step for which the system is evolved forward
-
-  Output:
-  -------
-    f_final : Returns the distribution function after performing the collision step
-  """
 
   tau = args.config.tau
   f   = args.f 
@@ -184,36 +121,7 @@ def collision_step(da, args, dt):
   return(f_final)
 
 def fields_step(da, args, dt):
-  """
-  Solves for the field step where df/dt + E df/dv is solved for
 
-  Parameters:
-  -----------
-    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
-         The da object is used to refer to the local zone of computation
-
-    Object args is also passed to the function of which the following attributes are 
-    utilized:
-
-    config: Object config which is obtained by 
-            setup_simulation.configuration_object() is passed to this file
-
-    f : 4D distribution function that is passed to the function. Moments 
-        will be computed defined by the state of the system which is indicated 
-        by the distribution function
-
-    vel_x : 4D velocity array which has the variations in x-velocity along 
-            axis 3
-
-    vel_y : 4D velocity array which has the variations in y-velocity along
-            axis 2
-
-    dt : Time step for which the system is evolved forward
-
-  Output:
-  -------
-    f_fields : Returns the distribution function after performing the fields step.
-  """
   config = args.config
   f      = args.f
   vel_x  = args.vel_x
@@ -279,46 +187,7 @@ def fields_step(da, args, dt):
   return(args)
 
 def time_integration(da, args, time_array):
-  """
-  The main function that evolves the system in time.
-  
-  Parameters:
-  -----------
-    da : This is an object of type PETSc.DMDA and is used in domain decomposition.
-         The da object is used to refer to the local zone of computation
 
-    Object args is also passed to the function of which the following attributes are 
-    utilized:
-
-    config: Object config which is obtained by 
-            setup_simulation.configuration_object() is passed to this file
-
-    f : 4D distribution function that is passed to the function. Moments 
-        will be computed defined by the state of the system which is indicated 
-        by the distribution function
-
-    vel_x : 4D velocity array which has the variations in x-velocity along 
-            axis 3
-
-    vel_y : 4D velocity array which has the variations in y-velocity along
-            axis 2
-
-    x : 4D array that contains the variations in x along the 1st axis
-
-    y : 4D array that contains the variations in y along the 0th axis
-    
-    time_array : Array that contains the values of time at which the 
-                 simulation evaluates the physical quantities.  
-
-  Output:
-  -------
-    data : Contains data about the amplitude of density in the system with progression
-           in time.
-
-    args.f : This array returned is the distribution function that is obtained
-             in the final time step.
-  """
-    
   data = np.zeros(time_array.size)
 
   # Storing the value of density amplitude at t = 0
@@ -338,23 +207,23 @@ def time_integration(da, args, time_array):
   from cks.interpolation_routines import f_interp_2d
   
   for time_index, t0 in enumerate(time_array[1:]):
-    if(time_index%10 == 0 and da.getComm().rank == 0):
+    if(time_index%1 == 0 and da.getComm().rank == 0):
         print("Computing for Time = ", t0)
 
     dt = time_array[1] - time_array[0]
 
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    args.f = collision_step(da, args, 0.5*dt)
-    args.f = communicate_distribution_function(da, args, local, glob)
+    # args.f = collision_step(da, args, 0.5*dt)
+    # args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    args   = fields_step(da_fields, args, dt)
-    args.f = communicate_distribution_function(da, args, local, glob)
+    # args   = fields_step(da_fields, args, dt)
+    # args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    args.f = collision_step(da, args, 0.5*dt)
-    args.f = communicate_distribution_function(da, args, local, glob)
+    # args.f = collision_step(da, args, 0.5*dt)
+    # args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
       

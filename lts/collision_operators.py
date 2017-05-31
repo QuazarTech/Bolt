@@ -41,22 +41,29 @@ def BGK_collision_operator(config, delta_f_hat):
                        delta_T_hat * boltzmann_constant * mass_particle *rho_background
                       )*temperature_background
     
-    C_f = (((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)/(4*np.pi*boltzmann_constant**2*temperature_background**3)*\
-          np.exp(-mass_particle/(2*boltzmann_constant*temperature_background) * (vel_x**2 + vel_y**2)))/normalization - delta_f_hat)/tau
+    C_f = (((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)/\
+            (4*np.pi*boltzmann_constant**2*temperature_background**3)*\
+            np.exp(-mass_particle/(2*boltzmann_constant*temperature_background) * \
+                  (vel_x**2 + vel_y**2)))/normalization - delta_f_hat)/tau
   
   elif(config.mode == '1V'):
     delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y
     delta_v_x_hat = np.sum(delta_f_hat * vel_x) * dv_x * dv_y/rho_background
-    delta_T_hat   = np.sum(delta_f_hat * (vel_x**2 - temperature_background)) * dv_x * dv_y/rho_background
+    delta_T_hat   = np.sum(delta_f_hat * (vel_x**2 - temperature_background)) *\
+                    dv_x * dv_y/rho_background
     
     expr_term_1 = np.sqrt(2 * mass_particle**3) * delta_T_hat * rho_background * vel_x**2
-    expr_term_2 = 2 * np.sqrt(2 * mass_particle) * boltzmann_constant * delta_rho_hat * temperature_background**2
-    expr_term_3 = 2 * np.sqrt(2 * mass_particle**3) * rho_background * delta_v_x_hat * vel_x * temperature_background
-    expr_term_4 = - np.sqrt(2 * mass_particle) * boltzmann_constant * delta_T_hat * rho_background * temperature_background
+    expr_term_2 = 2 * np.sqrt(2 * mass_particle) * boltzmann_constant * delta_rho_hat * \
+                  temperature_background**2
+    expr_term_3 = 2 * np.sqrt(2 * mass_particle**3) * rho_background * delta_v_x_hat * vel_x * \
+                  temperature_background
+    expr_term_4 = - np.sqrt(2 * mass_particle) * boltzmann_constant * delta_T_hat *\
+                    rho_background * temperature_background
     
     C_f = ((((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)*\
            np.exp(-mass_particle * vel_x**2/(2 * boltzmann_constant * temperature_background))/\
-           (4 * np.sqrt(np.pi * temperature_background**5 * boltzmann_constant**3)))/normalization - delta_f_hat
+           (4 * np.sqrt(np.pi * temperature_background**5 * boltzmann_constant**3)))/\
+            normalization - delta_f_hat
            )/tau
           )
 
