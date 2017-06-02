@@ -1,6 +1,5 @@
 import numpy as np
 import arrayfire as af
-import cks.initialize as initialize
 
 from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
                                 calculate_vel_bulk_y, calculate_mom_bulk_x,\
