@@ -25,14 +25,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0 #4*np.pi 
+                    k_y       = 4*np.pi 
                    ) 
 
 position_space = dict(N_x     = 128,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 3,
+                      N_y     = 128,
                       y_start = 0,
                       y_end   = 1.0,
  
