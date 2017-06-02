@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '1V'
+mode = '2V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -69,9 +69,10 @@ velocity_space = dict(N_vel_x   = 51,
                       N_vel_y   = 51, 
                       vel_y_max = 5.0
                      )
+
 time = dict(
-            final_time   = 0,
-            dt           = 0.001*(32/position_space['N_x'])
+            final_time   = 0.01,
+            dt           = 0.01*(32/position_space['N_x'])
            )
 
 EM_fields = dict(

@@ -215,7 +215,7 @@ def time_integration(da, args, time_array):
   da_fields = PETSc.DMDA().create([args.config.N_y, args.config.N_x],\
                                   stencil_width = args.config.N_ghost,\
                                   boundary_type = ('periodic', 'periodic'),\
-                                  proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
+                                  proc_sizes = da.getProcSizes(), \
                                   stencil_type = 1, \
                                   comm = da.getComm()
                                   ) 

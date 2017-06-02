@@ -77,8 +77,12 @@ for i in range(len(config)):
     print(af.info())
 
   x_center = cks.initialize.calculate_x_center(da, config[i])
-  vel_x    = cks.initialize.calculate_vel_x(da, config[i])
   y_center = cks.initialize.calculate_y_center(da, config[i])
+
+  x_left   = cks.initialize.calculate_x_left(da, config[i])
+  y_bottom = cks.initialize.calculate_y_bottom(da, config[i])
+
+  vel_x    = cks.initialize.calculate_vel_x(da, config[i])
   vel_y    = cks.initialize.calculate_vel_y(da, config[i])
 
   f_initial = cks.initialize.f_initial(da, config[i])
@@ -91,6 +95,7 @@ for i in range(len(config)):
   args.f        = f_initial
   args.vel_x    = vel_x
   args.vel_y    = vel_y
+
   args.x_center = x_center
   args.y_center = y_center
 
@@ -102,23 +107,19 @@ for i in range(len(config)):
   charge_electron = config[i].charge_electron
 
   args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
+              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
              )
 
   args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+             (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+              pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
              )
 
   args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
   args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
   args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
   args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-
-  # Transforming to FDTD grid:
-  args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
-  args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
   
   global_data   = np.zeros(time_array.size) 
   data, f_final = cks.evolve.time_integration(da, args, time_array)
