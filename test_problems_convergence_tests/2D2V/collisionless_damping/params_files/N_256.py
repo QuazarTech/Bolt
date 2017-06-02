@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '1V'
+mode = '2V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -25,14 +25,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0 #4*np.pi 
+                    k_y       = 4*np.pi 
                    ) 
 
 position_space = dict(N_x     = 256,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 3,
+                      N_y     = 256,
                       y_start = 0,
                       y_end   = 1.0,
  
@@ -63,10 +63,10 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 201,
-                      vel_x_max = 10.0, 
+velocity_space = dict(N_vel_x   = 51,
+                      vel_x_max = 5.0, 
 
-                      N_vel_y   = 2, 
+                      N_vel_y   = 51, 
                       vel_y_max = 5.0
                      )
 
