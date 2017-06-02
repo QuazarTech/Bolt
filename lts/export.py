@@ -19,20 +19,23 @@ def export_4D_distribution_function(config, delta_f_hat):
   y_end   = config.y_end
   dy      = (y_end - y_start)/N_y
 
-  i = 0.5 + np.arange(0, N_x, 1)
-  x = x_start + i * dx
-  j = 0.5 + np.arange(0, N_y, 1)
-  y = y_start + j * dy
+  i_center = 0.5 + np.arange(0, N_x, 1)
+  x_center = x_start + i_center * dx
+  j_center = 0.5 + np.arange(0, N_y, 1)
+  y_center = y_start + j_center * dy
 
-  x, y   = np.meshgrid(x, y)
-  f_dist = np.zeros([N_y, N_x, N_vel_y, N_vel_x])
+  x_center, y_center = np.meshgrid(x_center, y_center)
+  f_dist             = np.zeros([N_y, N_x, N_vel_y, N_vel_x])
   
   for i in range(N_vel_y):
     for j in range(N_vel_x):
-      f_dist[:, :, i, j] = (delta_f_hat[i, j] * np.exp(1j*k_x*x + 1j*k_y*y)).real
+      f_dist[:, :, i, j] = (delta_f_hat[i, j] * \
+                           np.exp(1j*k_x*x_center + 1j*k_y*y_center)).real
 
+  # Adding the background distribution:
   for i in range(N_vel_y):
     for j in range(N_vel_x):
-      f_dist[:, :, i, j] += ((f_background(config))[i, j] * np.exp(1j*0*x + 1j*0*y)).real
+      f_dist[:, :, i, j] += ((f_background(config))[i, j] * \
+                            np.exp(1j*0*x_center + 1j*0*y_center)).real
 
   return(f_dist)

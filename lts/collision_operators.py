@@ -22,7 +22,7 @@ def BGK_collision_operator(config, delta_f_hat):
   vel_x, vel_y = np.meshgrid(vel_x, vel_y)
   tau          = config.tau
 
-  normalization = np.sum(f_background(config)) * dv_x * dv_y
+  normalization = f_background(config, 1)
 
   if(config.mode == '2V'):
     delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y

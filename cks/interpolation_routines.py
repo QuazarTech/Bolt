@@ -22,10 +22,12 @@ def f_interp_2d(da, args, dt):
   # Obtaining the left-bottom corner coordinates 
   # of the left-bottom corner cell in the local zone considered:
   ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the center coordinates:
+  (j_center, i_center) = (j_bottom + 0.5, i_left + 0.5)
 
   # Obtaining the left, and bottom boundaries for the local zones:
-  left_boundary = x_start + (i_left + 0.5)*dx
-  bot_boundary  = y_start + (j_bottom + 0.5)*dy
+  left_boundary = x_start + i_center*dx
+  bot_boundary  = y_start + j_center*dy
 
   # Adding N_ghost to account for the offset due to ghost zones:
   x_interpolant = (x_center_new[N_ghost:-N_ghost, N_ghost:-N_ghost] - left_boundary)/dx + N_ghost

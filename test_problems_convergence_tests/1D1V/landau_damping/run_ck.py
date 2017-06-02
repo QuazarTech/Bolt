@@ -76,10 +76,10 @@ for i in range(len(config)):
   if(comm.rank == 0):
     print(af.info())
 
-  x     = cks.initialize.calculate_x(da, config[i])
-  vel_x = cks.initialize.calculate_vel_x(da, config[i])
-  y     = cks.initialize.calculate_y(da, config[i])
-  vel_y = cks.initialize.calculate_vel_y(da, config[i])
+  x_center = cks.initialize.calculate_x_center(da, config[i])
+  vel_x    = cks.initialize.calculate_vel_x(da, config[i])
+  y_center = cks.initialize.calculate_y_center(da, config[i])
+  vel_y    = cks.initialize.calculate_vel_y(da, config[i])
 
   f_initial = cks.initialize.f_initial(da, config[i])
 
@@ -87,12 +87,12 @@ for i in range(len(config)):
     def __init__(self):
       pass
 
-  args.config = config[i]
-  args.f      = f_initial
-  args.vel_x  = vel_x
-  args.vel_y  = vel_y
-  args.x      = x
-  args.y      = y
+  args.config   = config[i]
+  args.f        = f_initial
+  args.vel_x    = vel_x
+  args.vel_y    = vel_y
+  args.x_center = x_center
+  args.y_center = y_center
 
   pert_real = config[i].pert_real
   pert_imag = config[i].pert_imag
@@ -102,20 +102,24 @@ for i in range(len(config)):
   charge_electron = config[i].charge_electron
 
   args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0])
+             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
              )
 
   args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0])
+             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
              )
 
-  args.B_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-  args.B_x = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-  args.B_y = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-  args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
+  args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+  args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+  args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+  args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 
+  # Transforming to FDTD grid:
+  args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
+  args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
+  
   global_data   = np.zeros(time_array.size) 
   data, f_final = cks.evolve.time_integration(da, args, time_array)
 
@@ -124,14 +128,8 @@ for i in range(len(config)):
   dv_x      = (2*vel_x_max)/(N_vel_x - 1)
   dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
-  f_final       = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-  normalization = af.sum(cks.initialize.f_background(da, config[i])) * dv_x * dv_y/(x.shape[0] * x.shape[1])
-  f_background  = (cks.initialize.f_background(da, config[i])/normalization)[N_ghost:-N_ghost,\
-                                                                             N_ghost:-N_ghost, :, :
-                                                                            ]
-  f_perturbed   = f_final - f_background
-
-  global_vec_value[:] = np.array(af.moddims(f_perturbed, N_y_local, N_x_local, N_vel_y * N_vel_x))
+  f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+  global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_y * N_vel_x))
   viewer(global_vector)
 
   comm.Reduce(data,\

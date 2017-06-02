@@ -1,6 +1,6 @@
 import numpy as np 
 
-def f_background(config):
+def f_background(config, return_normalization = 0):
 
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant
@@ -37,38 +37,42 @@ def f_background(config):
                    np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
                          (2*boltzmann_constant*temperature_background))
 
-  # normalization = np.sum(f_background) * dv_x * dv_y
-  # print(normalization)
-  # f_background  = f_background #/normalization
-  return f_background
+  normalization = np.sum(f_background) * dv_x * dv_y
+  f_background  = f_background/normalization
 
-# def dfdv_x_background(config):
+  if(return_normalization == 1):
+    return normalization
+  
+  else:
+    return f_background
 
-#   vel_x_max = config.vel_x_max
-#   N_vel_x   = config.N_vel_x
-#   dv_x      = (2*vel_x_max)/(N_vel_x - 1)
+def dfdv_x_background(config):
 
-#   f_background_local = f_background(config)
-#   dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+  vel_x_max = config.vel_x_max
+  N_vel_x   = config.N_vel_x
+  dv_x      = (2*vel_x_max)/(N_vel_x - 1)
 
-#   for i in range(f_background_local.shape[0]):
-#     dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
+  f_background_local = f_background(config)
+  dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
-#   return dfdv_x_background
+  for i in range(f_background_local.shape[0]):
+    dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
 
-# def dfdv_y_background(config):
+  return dfdv_x_background
 
-#   vel_y_max = config.vel_y_max
-#   N_vel_y   = config.N_vel_y
-#   dv_y      = (2*vel_y_max)/(N_vel_y - 1)
+def dfdv_y_background(config):
 
-#   f_background_local = f_background(config)
-#   dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+  vel_y_max = config.vel_y_max
+  N_vel_y   = config.N_vel_y
+  dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
-#   for i in range(f_background_local.shape[1]):
-#     dfdv_y_background[:, i] = np.convolve(f_background_local[:, i], [1, -1], 'same') * (1/dv_y)
+  f_background_local = f_background(config)
+  dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
-#   return dfdv_y_background
+  for i in range(f_background_local.shape[1]):
+    dfdv_y_background[:, i] = np.convolve(f_background_local[:, i], [1, -1], 'same') * (1/dv_y)
+
+  return dfdv_y_background
 
 def init_delta_f_hat(config):
 

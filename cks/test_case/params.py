@@ -64,20 +64,20 @@ boundary_conditions = dict(in_x = 'periodic',
                           )
 
 velocity_space = dict(N_vel_x   = 201,
-                      vel_x_max = 10.0, 
+                      vel_x_max = 5.0, 
 
                       N_vel_y   = 2, 
                       vel_y_max = 5.0
                      )
 
 time = dict(
-            final_time   = 0.5,
+            final_time   = 0.2,
             dt           = 0.005
            )
 
 EM_fields = dict(
-                 charge_electron = 0,
-                 charge_ion      = 0,
+                 charge_electron = -10,
+                 charge_ion      = 10,
                  solver          = 'fdtd'
                 )
 

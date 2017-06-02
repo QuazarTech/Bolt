@@ -283,15 +283,29 @@ def f_initial(da, config):
                 af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
                       (2*boltzmann_constant*temperature_background))
 
+    f_background = rho_background * \
+                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                          (2*boltzmann_constant*temperature_background)) * \
+                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
+                          (2*boltzmann_constant*temperature_background))
+
+
   else:
 
     f_initial = rho *\
                 np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                 af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
                       (2*boltzmann_constant*temperature_background))
+
+    f_background = rho_background * \
+                   np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                         (2*boltzmann_constant*temperature_background))
+
     
-  normalization = af.sum(f_initial) * dv_x * dv_y/(x_center.shape[0] * x_center.shape[1])
-  f_initial     = f_initial #/normalization
+  normalization = af.sum(f_background) * dv_x * dv_y/(x_center.shape[0] * x_center.shape[1])
+  f_initial     = f_initial/normalization
   
   af.eval(f_initial)
   return(f_initial)

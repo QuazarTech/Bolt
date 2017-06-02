@@ -88,10 +88,10 @@ viewer = PETSc.Viewer().createHDF5('ck_distribution_function.h5', 'w', comm = co
 if(comm.rank == 0):
   print(af.info())
 
-x     = initialize.calculate_x(da, config)
-vel_x = initialize.calculate_vel_x(da, config)
-y     = initialize.calculate_y(da, config)
-vel_y = initialize.calculate_vel_y(da, config)
+x_center = initialize.calculate_x_center(da, config)
+vel_x    = initialize.calculate_vel_x(da, config)
+y_center = initialize.calculate_y_center(da, config)
+vel_y    = initialize.calculate_vel_y(da, config)
 
 f_initial = initialize.f_initial(da, config)
 
@@ -99,12 +99,12 @@ class args:
   def __init__(self):
     pass
 
-args.config = config
-args.f      = f_initial
-args.vel_x  = vel_x
-args.vel_y  = vel_y
-args.x      = x
-args.y      = y
+args.config   = config
+args.f        = f_initial
+args.vel_x    = vel_x
+args.vel_y    = vel_y
+args.x_center = x_center
+args.y_center = y_center
 
 pert_real = config.pert_real
 pert_imag = config.pert_imag
@@ -114,19 +114,23 @@ k_y       = config.k_y
 charge_electron = config.charge_electron
 
 args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
-           (pert_real * af.sin(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0]) +\
-            pert_imag * af.cos(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0])
+           (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+            pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
            )
 
 args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
-           (pert_real * af.sin(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0]) +\
-            pert_imag * af.cos(k_x*x[:, :, 0, 0] + k_y*y[:, :, 0, 0])
+           (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+            pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
            )
 
-args.B_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-args.B_x = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-args.B_y = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
-args.E_z = af.constant(0, x.shape[0], x.shape[1], dtype=af.Dtype.f64)
+args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+
+# Transforming to FDTD grid:
+args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
+args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
 
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)

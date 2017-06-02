@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 
 def test_case():
+
   error     = np.zeros(5)
   N_x       = 2**(np.arange(5, 10))
 

@@ -63,18 +63,17 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 401,
-                      vel_x_max = 20.0, 
+velocity_space = dict(N_vel_x   = 201,
+                      vel_x_max = 10.0, 
 
                       N_vel_y   = 2, 
                       vel_y_max = 5.0
                      )
 
 time = dict(
-            final_time   = 0,
-            dt           = 0.001*(32/position_space['N_x'])
+            final_time   = 0.0001,
+            dt           = 0.0001*(32/position_space['N_x'])
            )
-
 
 EM_fields = dict(
                  charge_electron = 0,
