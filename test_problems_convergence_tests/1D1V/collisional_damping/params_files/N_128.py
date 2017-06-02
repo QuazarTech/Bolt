@@ -71,8 +71,8 @@ velocity_space = dict(N_vel_x   = 201,
                      )
 
 time = dict(
-            final_time   = 0.0001,
-            dt           = 0.0001*(32/position_space['N_x'])
+            final_time   = 0.1,
+            dt           = 0.001*(32/position_space['N_x'])
            )
 
 
