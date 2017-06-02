@@ -26,8 +26,8 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y
   delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y
 
-  dfdv_x_background = initialize.dfdv_x_background(config)
-  dfdv_y_background = initialize.dfdv_y_background(config)
+  # dfdv_x_background = initialize.dfdv_x_background(config)
+  # dfdv_y_background = initialize.dfdv_y_background(config)
 
   delta_J_x_hat, delta_J_y_hat = charge_electron * delta_vel_bulk_x,\
                                  charge_electron * delta_vel_bulk_y
@@ -36,14 +36,14 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
   ddelta_E_y_hat_dt = -(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
   ddelta_B_z_hat_dt = -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
 
-  fields_term = (charge_electron / mass_particle) * (delta_E_x_hat + \
-                                                     delta_B_z_hat * vel_y \
-                                                    ) * dfdv_x_background  + \
-                (charge_electron / mass_particle) * (delta_E_y_hat - \
-                                                     delta_B_z_hat * vel_x
-                                                    ) * dfdv_y_background
+  fields_term = 0 #(charge_electron / mass_particle) * (delta_E_x_hat + \
+                #                                      delta_B_z_hat * vel_y \
+                #                                     ) * dfdv_x_background  + \
+                # (charge_electron / mass_particle) * (delta_E_y_hat - \
+                #                                      delta_B_z_hat * vel_x
+                #                                     ) * dfdv_y_background
 
-  C_f = BGK_collision_operator(config, delta_f_hat)
+  C_f = 0 #BGK_collision_operator(config, delta_f_hat)
 
   ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat - fields_term + C_f
   
@@ -70,7 +70,7 @@ def RK4_step(config, delta_f_hat_initial, dt):
                        delta_E_x_hat + k3[1]*dt, delta_E_y_hat + k3[2]*dt,\
                        delta_B_z_hat + k3[3]*dt, config)
 
-  delta_f_hat_new = delta_f_hat_initial + ((k1[0]+2*k2[0]+2*k3[0]+k4[0])/6)*dt
+  delta_f_hat_new = delta_f_hat_initial + ((6*k1[0]+0*2*k2[0]+0*2*k3[0]+0*k4[0])/6)*dt
 
   delta_E_x_hat += ((k1[1]+2*k2[1]+2*k3[1]+k4[1])/6)*dt
   delta_E_y_hat += ((k1[2]+2*k2[2]+2*k3[2]+k4[2])/6)*dt

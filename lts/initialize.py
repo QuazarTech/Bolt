@@ -39,36 +39,36 @@ def f_background(config):
 
   # normalization = np.sum(f_background) * dv_x * dv_y
   # print(normalization)
-  f_background  = f_background #/normalization
+  # f_background  = f_background #/normalization
   return f_background
 
-def dfdv_x_background(config):
+# def dfdv_x_background(config):
 
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  dv_x      = (2*vel_x_max)/(N_vel_x - 1)
+#   vel_x_max = config.vel_x_max
+#   N_vel_x   = config.N_vel_x
+#   dv_x      = (2*vel_x_max)/(N_vel_x - 1)
 
-  f_background_local = f_background(config)
-  dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+#   f_background_local = f_background(config)
+#   dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
-  for i in range(f_background_local.shape[0]):
-    dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
+#   for i in range(f_background_local.shape[0]):
+#     dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
 
-  return dfdv_x_background
+#   return dfdv_x_background
 
-def dfdv_y_background(config):
+# def dfdv_y_background(config):
 
-  vel_y_max = config.vel_y_max
-  N_vel_y   = config.N_vel_y
-  dv_y      = (2*vel_y_max)/(N_vel_y - 1)
+#   vel_y_max = config.vel_y_max
+#   N_vel_y   = config.N_vel_y
+#   dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
-  f_background_local = f_background(config)
-  dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+#   f_background_local = f_background(config)
+#   dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
 
-  for i in range(f_background_local.shape[1]):
-    dfdv_y_background[:, i] = np.convolve(f_background_local[:, i], [1, -1], 'same') * (1/dv_y)
+#   for i in range(f_background_local.shape[1]):
+#     dfdv_y_background[:, i] = np.convolve(f_background_local[:, i], [1, -1], 'same') * (1/dv_y)
 
-  return dfdv_y_background
+#   return dfdv_y_background
 
 def init_delta_f_hat(config):
 

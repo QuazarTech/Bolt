@@ -2,33 +2,34 @@ import arrayfire as af
 
 def f_interp_2d(da, args, dt):
 
-  config = args.config
-  f      = args.f
-  vel_x  = args.vel_x
-  vel_y  = args.vel_y
-  x      = args.x 
-  y      = args.y 
+  config   = args.config
+  f        = args.f
+  vel_x    = args.vel_x
+  vel_y    = args.vel_y
+  x_center = args.x_center 
+  y_center = args.y_center 
 
-  x_new  = x - vel_x*dt
-  y_new  = y - vel_y*dt
+  x_center_new  = x_center - vel_x*dt
+  y_center_new  = y_center - vel_y*dt
 
   x_start = config.x_start
   y_start = config.y_start
   N_ghost = config.N_ghost
 
-  dx = af.sum(x[0, 1, 0, 0]-x[0, 0, 0, 0])
-  dy = af.sum(y[1, 0, 0, 0]-y[0, 0, 0, 0])
+  dx = af.sum(x_center[0, 1, 0, 0]-x_center[0, 0, 0, 0])
+  dy = af.sum(y_center[1, 0, 0, 0]-y_center[0, 0, 0, 0])
   
-  # Obtaining the left corner coordinates for the local zone considered:
-  ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom corner coordinates 
+  # of the left-bottom corner cell in the local zone considered:
+  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
 
   # Obtaining the left, and bottom boundaries for the local zones:
-  left_boundary = x_start + i_bottom_left*dx
-  bot_boundary  = y_start + j_bottom_left*dy
+  left_boundary = x_start + (i_left + 0.5)*dx
+  bot_boundary  = y_start + (j_bottom + 0.5)*dy
 
   # Adding N_ghost to account for the offset due to ghost zones:
-  x_interpolant = (x_new[N_ghost:-N_ghost, N_ghost:-N_ghost] - left_boundary)/dx + N_ghost
-  y_interpolant = (y_new[N_ghost:-N_ghost, N_ghost:-N_ghost] - bot_boundary )/dy + N_ghost
+  x_interpolant = (x_center_new[N_ghost:-N_ghost, N_ghost:-N_ghost] - left_boundary)/dx + N_ghost
+  y_interpolant = (y_center_new[N_ghost:-N_ghost, N_ghost:-N_ghost] - bot_boundary )/dy + N_ghost
 
   f_interp = af.constant(0, f.shape[0],f.shape[1],f.shape[2],f.shape[3], dtype = af.Dtype.f64)
   

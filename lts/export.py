@@ -13,15 +13,15 @@ def export_4D_distribution_function(config, delta_f_hat):
 
   x_start = config.x_start
   x_end   = config.x_end
-  dx      = (x_start - x_end)/(N_x - 1)
+  dx      = (x_end - x_start)/N_x
 
   y_start = config.y_start
   y_end   = config.y_end
-  dy      = (y_start - y_end)/(N_y - 1)
+  dy      = (y_end - y_start)/N_y
 
-  i = np.arange(0, N_x, 1)
+  i = 0.5 + np.arange(0, N_x, 1)
   x = x_start + i * dx
-  j = np.arange(0, N_y, 1)
+  j = 0.5 + np.arange(0, N_y, 1)
   y = y_start + j * dy
 
   x, y   = np.meshgrid(x, y)
@@ -33,6 +33,6 @@ def export_4D_distribution_function(config, delta_f_hat):
 
   for i in range(N_vel_y):
     for j in range(N_vel_x):
-      f_dist[:, :, i, j] += (f_background(config)[i, j] * np.exp(1j*0*x + 1j*0*y)).real
+      f_dist[:, :, i, j] += ((f_background(config))[i, j] * np.exp(1j*0*x + 1j*0*y)).real
 
   return(f_dist)
