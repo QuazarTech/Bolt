@@ -67,6 +67,10 @@ def fdtd(da, config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, J_z, dt):
   B_z = communicate_fields(da, config, B_z, local, glob)
 
   af.eval(E_x, E_y, E_z, B_x, B_y, B_z)
+
+  glob.destroy()
+  local.destroy()
+
   return(E_x, E_y, E_z, B_x, B_y, B_z)
 
 def fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z):
@@ -97,4 +101,8 @@ def fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z):
   E_z = communicate_fields(da, config, E_z, local, glob)
 
   af.eval(E_x, E_y, E_z, B_x, B_y, B_z)
+
+  glob.destroy()
+  local.destroy()
+
   return(E_x, E_y, E_z, B_x, B_y, B_z)

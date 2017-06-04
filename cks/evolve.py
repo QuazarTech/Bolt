@@ -71,6 +71,8 @@ def communicate_fields(da, config, local_field, local, glob):
   da.globalToLocal(glob, local)
 
   field_updated = af.to_array(local_value[:])
+
+  af.eval(field_updated)
   return(field_updated)
 
 def f_MB(da, args):
@@ -183,6 +185,8 @@ def fields_step(da, args, dt):
   args.E_y = E_y
   args.E_z = E_z
 
+  af.eval(args.E_x, args.E_y, args.E_z, args.B_x, args.B_y, args.B_z)
+
   # To account for half-time steps:
   B_x = 0.5 * (B_x + B_x_new)
   B_y = 0.5 * (B_y + B_y_new)
@@ -198,8 +202,12 @@ def fields_step(da, args, dt):
   F_y = charge_electron * (E_y - vel_x * B_z)
 
   args.f = f_interp_vel_2d(args, F_x, F_y, dt)
-    
+
   af.eval(args.f)
+
+  glob.destroy()
+  local.destroy()
+
   return(args)
 
 def time_integration(da, args, time_array):
@@ -244,6 +252,9 @@ def time_integration(da, args, time_array):
     args.f = communicate_distribution_function(da, args, local, glob)
       
     data[time_index + 1] = af.max(calculate_density(args))
+
+  glob.destroy()
+  local.destroy()
 
   return(data, args.f)
 

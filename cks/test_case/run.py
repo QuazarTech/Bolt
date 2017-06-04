@@ -16,6 +16,8 @@ import pylab as pl
 import arrayfire as af
 import numpy as np
 
+import sys
+
 import params
 
 # Setting plot parameters:
@@ -47,6 +49,8 @@ pl.rcParams['ytick.minor.pad']  = 8
 pl.rcParams['ytick.color']      = 'k'     
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
+
+# sys.settrace('exception')
 
 # Setting up the configuration object along with the time array
 config     = setup_simulation.configuration_object(params)
