@@ -31,6 +31,7 @@ config_512 = setup_simulation.configuration_object(N_512)
 config.append(config_512)
 
 for i in range(len(config)):
+  time_start = MPI.Wtime()
   time_array = setup_simulation.time_array(config[i])
 
   # Getting the resolutions of position and velocity space:
@@ -139,3 +140,6 @@ for i in range(len(config)):
     h5f.create_dataset('density_data', data = global_data)
     h5f.create_dataset('time', data = time_array)
     h5f.close()
+
+  time_finish = MPI.Wtime()
+  print("Time taken for resolution", config[i].N_x, "=", time_finish - time_start)
