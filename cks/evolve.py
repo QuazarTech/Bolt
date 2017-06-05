@@ -6,6 +6,8 @@ from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
                                 calculate_mom_bulk_y, calculate_temperature
 
 from petsc4py import PETSc
+from cks.interpolation_routines import f_interp_vel_2d
+import time
 
 def communicate_distribution_function(da, args, local, glob):
 
@@ -147,9 +149,6 @@ def fields_step(da, args, dt):
 
   charge_electron = config.charge_electron
 
-  from cks.interpolation_routines import f_interp_vel_2d
-  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
-
   glob  = da.createGlobalVec()
   local = da.createLocalVec()
 
@@ -171,6 +170,8 @@ def fields_step(da, args, dt):
   J_x = communicate_fields(da, config, J_x, local, glob)
   J_y = communicate_fields(da, config, J_y, local, glob)
 
+  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
+
   E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(da, config,\
                                                   E_x, E_y, E_z,\
                                                   B_x, B_y, B_z,\
@@ -180,17 +181,15 @@ def fields_step(da, args, dt):
 
   args.B_x = B_x_new
   args.B_y = B_y_new
-  args.B_z = B_z_new
+  # args.B_z = B_z_new
   args.E_x = E_x
   args.E_y = E_y
   args.E_z = E_z
 
-  af.eval(args.E_x, args.E_y, args.E_z, args.B_x, args.B_y, args.B_z)
-
   # To account for half-time steps:
   B_x = 0.5 * (B_x + B_x_new)
   B_y = 0.5 * (B_y + B_y_new)
-  B_z = 0.5 * (B_z + B_z_new)
+  # B_z = 0.5 * (B_z + B_z_new)
 
   E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z)
 
@@ -250,7 +249,7 @@ def time_integration(da, args, time_array):
     args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-      
+
     data[time_index + 1] = af.max(calculate_density(args))
 
   glob.destroy()

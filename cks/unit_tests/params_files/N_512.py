@@ -32,7 +32,7 @@ position_space = dict(N_x     = 512,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 3,
+                      N_y     = 512,
                       y_start = 0,
                       y_end   = 1.0,
  

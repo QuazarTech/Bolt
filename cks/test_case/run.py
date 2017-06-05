@@ -16,8 +16,6 @@ import pylab as pl
 import arrayfire as af
 import numpy as np
 
-import sys
-
 import params
 
 # Setting plot parameters:
@@ -131,6 +129,7 @@ args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
            )
 
 args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+
 args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
