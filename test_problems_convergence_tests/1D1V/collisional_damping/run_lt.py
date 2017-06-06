@@ -29,7 +29,7 @@ for i in range(len(config)):
   print() # Insert blank line
   print("Running LT for N =", config[i].N_x)
   print() # Insert blank line
-  
+
   time_array                       = setup_simulation.time_array(config[i])
   delta_f_hat_initial              = lts.initialize.init_delta_f_hat(config[i])
   delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config[i], delta_f_hat_initial, time_array)
