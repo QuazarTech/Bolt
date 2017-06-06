@@ -28,8 +28,8 @@ def fdtd(da, config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, J_z, dt):
   y_start = config.y_start
   y_end   = config.y_end
 
-  dx = (x_end - x_start)/(N_x - 1)
-  dy = (y_end - y_start)/(N_y - 1)
+  dx = (x_end - x_start)/(N_x)
+  dy = (y_end - y_start)/(N_y)
 
   # Creating local and global vectors to take care of boundary conditions:
   glob  = da.createGlobalVec()
@@ -68,6 +68,7 @@ def fdtd(da, config, E_x, E_y, E_z, B_x, B_y, B_z, J_x, J_y, J_z, dt):
 
   af.eval(E_x, E_y, E_z, B_x, B_y, B_z)
 
+  # Destroying the vectors since we are done with their usage for the instance:
   glob.destroy()
   local.destroy()
 
@@ -80,16 +81,16 @@ def fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z):
   local = da.createLocalVec()
 
   # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the CK solver:    
-  E_x = 0.5 * (E_x + af.shift(E_x, -1, 0))
-  B_x = 0.5 * (B_x + af.shift(B_x, 0, -1))
+  E_x = 0.5 * (E_x + af.shift(E_x, -1, 0)) #(i + 1/2, j + 1/2)
+  B_x = 0.5 * (B_x + af.shift(B_x, 0, -1)) #(i + 1/2, j + 1/2)
 
-  E_y = 0.5 * (E_y + af.shift(E_y, 0, -1))
-  B_y = 0.5 * (B_y + af.shift(B_y, -1, 0))
+  E_y = 0.5 * (E_y + af.shift(E_y, 0, -1)) #(i + 1/2, j + 1/2)
+  B_y = 0.5 * (B_y + af.shift(B_y, -1, 0)) #(i + 1/2, j + 1/2)
 
   E_z = 0.25 * (
                 E_z + af.shift(E_z, 0, -1) + \
                 af.shift(E_z, -1, 0) + af.shift(E_z, -1, -1)
-               )
+               ) #(i + 1/2, j + 1/2)
 
   # Applying boundary conditions:
   B_x = communicate_fields(da, config, B_x, local, glob)
@@ -102,6 +103,7 @@ def fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z):
 
   af.eval(E_x, E_y, E_z, B_x, B_y, B_z)
 
+  # Destroying the vectors since we are done with their usage for the instance:
   glob.destroy()
   local.destroy()
 

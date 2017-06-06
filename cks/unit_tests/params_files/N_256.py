@@ -63,7 +63,7 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 401,
+velocity_space = dict(N_vel_x   = 2,
                       vel_x_max = 20.0, 
 
                       N_vel_y   = 2, 

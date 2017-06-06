@@ -7,7 +7,6 @@ from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
 
 from petsc4py import PETSc
 from cks.interpolation_routines import f_interp_vel_2d
-import time
 
 def communicate_distribution_function(da, args, local, glob):
 
@@ -61,17 +60,21 @@ def communicate_fields(da, config, local_field, local, glob):
 
   N_ghost = config.N_ghost
 
-  # Obtaining the left corner coordinates for the local zone considered:
+  # Obtaining the left-bottom corner coordinates 
+  # of the left-bottom corner cell in the local zone considered:
   ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
 
   local_value[:] = np.array(local_field)
   
+  # Global value is non-inclusive of the ghost-zones:
   glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
                                    N_ghost:-N_ghost
                                   ]
 
+  # Takes care of boundary conditions and interzonal communications:
   da.globalToLocal(glob, local)
 
+  # Converting back to af.Array
   field_updated = af.to_array(local_value[:])
 
   af.eval(field_updated)
@@ -133,6 +136,7 @@ def collision_step(da, args, dt):
   tau = args.config.tau
   f   = args.f 
 
+  # Performing the step of df/dt = C[f] = -(f - f_MB)/tau:
   f0             = f_MB(da, args)
   f_intermediate = f - (dt/2)*(f - f0)/tau
   f_final        = f - (dt)  *(f_intermediate - f0)/tau
@@ -149,26 +153,28 @@ def fields_step(da, args, dt):
 
   charge_electron = config.charge_electron
 
+  # Creating local and global vectors for each of the partitioned zones:
   glob  = da.createGlobalVec()
   local = da.createLocalVec()
 
-  E_x = args.E_x
-  E_y = args.E_y
-  E_z = args.E_z
+  # The following fields are defined on the Yee-Grid:
+  E_x = args.E_x #(i + 1/2, j)
+  E_y = args.E_y #(i, j + 1/2)
+  E_z = args.E_z #(i, j)
 
-  B_x = args.B_x
-  B_y = args.B_y
-  B_z = args.B_z
+  B_x = args.B_x #(i, j + 1/2)
+  B_y = args.B_y #(i + 1/2, j)
+  B_z = args.B_z #(i + 1/2, j + 1/2)
 
-  J_x = charge_electron * calculate_mom_bulk_x(args)
-  J_y = charge_electron * calculate_mom_bulk_y(args) 
-  J_z = af.constant(0, J_x.shape[0], J_x.shape[1])
+  J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
+  J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
+  J_z = af.constant(0, J_x.shape[0], J_x.shape[1])   #(i + 1/2, j + 1/2)
 
-  J_x = 0.5 * (J_x + af.shift(J_x, 1, 0))
-  J_y = 0.5 * (J_y + af.shift(J_y, 0, 1))
+  J_x = 0.5 * (J_x + af.shift(J_x, 1, 0)) #(i + 1/2, j)
+  J_y = 0.5 * (J_y + af.shift(J_y, 0, 1)) #(i, j + 1/2)
 
-  J_x = communicate_fields(da, config, J_x, local, glob)
-  J_y = communicate_fields(da, config, J_y, local, glob)
+  J_x = communicate_fields(da, config, J_x, local, glob) #(i + 1/2, j)
+  J_y = communicate_fields(da, config, J_y, local, glob) #(i, j + 1/2)
 
   from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
 
@@ -179,31 +185,35 @@ def fields_step(da, args, dt):
                                                   dt
                                                  )
 
-  args.B_x = B_x_new
-  args.B_y = B_y_new
-  # args.B_z = B_z_new
-  args.E_x = E_x
-  args.E_y = E_y
-  args.E_z = E_z
+  args.B_x = B_x_new #(i, j + 1/2)
+  args.B_y = B_y_new #(i + 1/2, j)
+  args.B_z = B_z_new #(i + 1/2, j + 1/2)
+
+  args.E_x = E_x #(i + 1/2, j)
+  args.E_y = E_y #(i, j + 1/2)
+  args.E_z = E_z #(i, j)
 
   # To account for half-time steps:
   B_x = 0.5 * (B_x + B_x_new)
   B_y = 0.5 * (B_y + B_y_new)
-  # B_z = 0.5 * (B_z + B_z_new)
+  B_z = 0.5 * (B_z + B_z_new)
 
   E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z)
 
-  E_x = af.tile(E_x, 1, 1, f.shape[2], f.shape[3])
-  E_y = af.tile(E_y, 1, 1, f.shape[2], f.shape[3])
-  B_z = af.tile(B_z, 1, 1, f.shape[2], f.shape[3])
-
-  F_x = charge_electron * (E_x + vel_y * B_z)
-  F_y = charge_electron * (E_y - vel_x * B_z)
+  # Tiling such that E_x, E_y and B_z have the same array dimensions as f:
+  # This is required to perform the interpolation in velocity space:
+  E_x = af.tile(E_x, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
+  E_y = af.tile(E_y, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
+  B_z = af.tile(B_z, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
+ 
+  F_x = charge_electron * (E_x + vel_y * B_z) #(i + 1/2, j + 1/2)
+  F_y = charge_electron * (E_y - vel_x * B_z) #(i + 1/2, j + 1/2)
 
   args.f = f_interp_vel_2d(args, F_x, F_y, dt)
 
   af.eval(args.f)
 
+  # Destroying the vectors since we are done with their usage for the time-step:
   glob.destroy()
   local.destroy()
 
@@ -219,6 +229,9 @@ def time_integration(da, args, time_array):
   glob  = da.createGlobalVec()
   local = da.createLocalVec()
 
+  # Creation of distributed-array object which will take care of domain decomposition,
+  # and application of boundary conditions for the field quantities
+
   da_fields = PETSc.DMDA().create([args.config.N_y, args.config.N_x],\
                                   stencil_width = args.config.N_ghost,\
                                   boundary_type = ('periodic', 'periodic'),\
@@ -230,7 +243,10 @@ def time_integration(da, args, time_array):
   from cks.interpolation_routines import f_interp_2d
   
   for time_index, t0 in enumerate(time_array[1:]):
-    if(time_index%1 == 0 and da.getComm().rank == 0):
+    # Printing progress every 10 iterations
+    # Printing only at rank = 0 to avoid multiple outputs:
+    
+    if(time_index%10 == 0 and da.getComm().rank == 0):
         print("Computing for Time = ", t0)
 
     dt = time_array[1] - time_array[0]

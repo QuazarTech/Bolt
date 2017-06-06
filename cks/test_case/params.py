@@ -76,12 +76,12 @@ time = dict(
            )
 
 EM_fields = dict(
-                 charge_electron = -10,
+                 charge_electron = 0,
                  charge_ion      = 0, 
                  solver          = 'fdtd'
                 )
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  np.inf
+                  tau                =  0.01 #np.inf
                  )

@@ -64,7 +64,18 @@ def f_interp_vel_2d(args, F_x, F_y, dt):
   vel_x_interpolant = (vel_x_new + vel_x_max)/dv_x
   vel_y_interpolant = (vel_y_new + vel_y_max)/dv_y
   
-  # Reordering such that the axis of interpolation is made to be axis 0 and 1
+  # Reordering so that the axis which contains variations in velocity is
+  # Shifted to the zeroth axis to perform the interpolations
+  
+  # We have f(y, x, vx, vy). We need f(vx, vy, y, x) in order to use approx2
+  # to evaluate f(vx, vy, y, x) at f(vx_new, vy_new, y, x). Therefore, we reorder:
+  # 
+  # f(y, x, vx, vy)          ->  f_reordered(vx, vy, y, x)
+  #
+  # ...Perform the interpolation...
+  #
+  # f_reordered(vx, vy, y, x) -> f(y, x, vx, vy)
+  
   f_interp = af.approx2(af.reorder(f, 2, 3, 0, 1),\
                         af.reorder(vel_y_interpolant, 2, 3, 0, 1),\
                         af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
