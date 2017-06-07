@@ -17,6 +17,7 @@ import cks.evolve
 import arrayfire as af
 import numpy as np
 import h5py
+af.set_backend("opencl")
 
 # config stores all the config objects for which the simulation is to be run:
 config     = []

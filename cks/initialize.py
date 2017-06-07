@@ -87,7 +87,6 @@ def calculate_x_center(da, config):
   x_center = af.tile(af.reorder(x_center), N_y_local + 2*N_ghost, 1, N_vel_y, N_vel_x)
 
   af.eval(x_center)
-  af.sync()
   return(x_center)
 
 def calculate_y_bottom(da, config):
