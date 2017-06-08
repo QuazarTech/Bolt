@@ -34,10 +34,11 @@ config.append(config_512)
 petsc4py.init()
 comm = PETSc.COMM_WORLD.tompi4py()
 
+af.set_device(comm.rank)
+
 global_time = np.zeros(1)
 
-if(comm.rank == 0):
-  print(af.info())
+print(af.info())
 
 for i in range(len(config)):
   time_start = MPI.Wtime() # Starting the timer
