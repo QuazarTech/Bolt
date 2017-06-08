@@ -25,14 +25,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0 #4*np.pi 
+                    k_y       = 4*np.pi 
                    ) 
 
 position_space = dict(N_x     = 256,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 3,
+                      N_y     = 256,
                       y_start = 0,
                       y_end   = 1.0,
  
@@ -71,7 +71,7 @@ velocity_space = dict(N_vel_x   = 201,
                      )
 
 time = dict(
-            final_time   = 0.1,
+            final_time   = 0.02,
             dt           = 0.001*(32/position_space['N_x'])
            )
 
