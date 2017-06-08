@@ -124,7 +124,6 @@ def f_MB(da, args):
                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
                          (2*boltzmann_constant*temperature_background))
 
-
   normalization = af.sum(f_background)*dv_x*dv_y/(vel_x.shape[0] * vel_x.shape[1])
   f_MB          = f_MB/normalization
 
