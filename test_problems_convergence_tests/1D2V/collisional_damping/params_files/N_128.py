@@ -63,11 +63,11 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 201,
-                      vel_x_max = 10.0, 
+velocity_space = dict(N_vel_x   = 51,
+                      vel_x_max = 5.0, 
 
-                      N_vel_y   = 201, 
-                      vel_y_max = 10.0
+                      N_vel_y   = 51, 
+                      vel_y_max = 5.0
                      )
 time = dict(
             final_time   = 0.001,
