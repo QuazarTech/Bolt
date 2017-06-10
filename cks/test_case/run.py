@@ -48,8 +48,9 @@ if(pylab_found != None):
   pl.rcParams['ytick.direction']  = 'in' 
 
 # Setting up the configuration object along with the time array
-config     = setup_simulation.configuration_object(params)
-time_array = setup_simulation.time_array(config)
+config      = setup_simulation.configuration_object(params)
+time_array  = setup_simulation.time_array(config)
+num_devices = params.num_devices
 
 # Getting the resolutions of position and velocity space:
 N_y     = config.N_y
@@ -62,6 +63,7 @@ petsc4py.init()
 
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
+af.set_device(comm.rank%num_devices)
 
 # Declaring distributed array object which automates the domain decomposition:
 # Additionally, it is also used to take care of the boundary conditions:
