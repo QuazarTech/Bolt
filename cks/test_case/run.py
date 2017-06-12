@@ -76,6 +76,15 @@ da = PETSc.DMDA().create([N_y, N_x],\
                          comm = comm
                         ) 
 
+da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                stencil_width = N_ghost,\
+                                boundary_type = ('periodic', 'periodic'),\
+                                proc_sizes = da.getProcSizes(), \
+                                stencil_type = 1, \
+                                comm = da.getComm()
+                               ) 
+
+
 # Obtaining the left-bottom corner coordinates 
 # of the left-bottom corner cell in the local zone considered:
 ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
@@ -126,7 +135,7 @@ k_y       = config.k_y
 charge_electron = config.charge_electron
 
 # The following quantities are defined on the Yee-Grid:
-args.E_x, args.E_y = initialize.initialize_electric_fields(da, config)
+args.E_x, args.E_y = initialize.initialize_electric_fields(da_fields, config)
 
 args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j + 1/2)
 
