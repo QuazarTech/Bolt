@@ -386,6 +386,12 @@ def initialize_electric_fields(da, config):
 
   electric_potential = af.to_array(np.swapaxes(phi[:].reshape(N_x_local, N_y_local), 0, 1))
 
+  electric_potential = 0.25 * (electric_potential +\
+                               af.shift(electric_potential, 1, 0) +\
+                               af.shift(electric_potential, 0, 1) +\
+                               af.shift(electric_potential, 1, 1)
+                              )
+
   E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx
   E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy
 
