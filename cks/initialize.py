@@ -331,7 +331,7 @@ class Poisson2D(object):
     x, y = i * dx, j * dy
     
     x, y       = np.meshgrid(x, y)
-    rho_val[:] = self.config.charge_particle * np.sin(2*np.pi*x + 4*np.pi*y) * dx * dy
+    rho_val[:] = self.config.charge_electron * np.sin(2*np.pi*x + 4*np.pi*y) * dx * dy
         
   def mult(self, mat, X, Y):
         
