@@ -126,15 +126,7 @@ k_y       = config.k_y
 charge_electron = config.charge_electron
 
 # The following quantities are defined on the Yee-Grid:
-args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
-           (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
-            pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
-           ) #(i + 1/2, j)
-
-args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
-           (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
-            pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
-           ) #(i, j + 1/2)
+args.E_x, args.E_y = initialize.initialize_electric_fields(da, config)
 
 args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j + 1/2)
 

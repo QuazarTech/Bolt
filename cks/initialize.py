@@ -1,5 +1,6 @@
 import numpy as np
 import arrayfire as af 
+from petsc4py import PETSc
 
 def calculate_x_left(da, config):
   N_x     = config.N_x
@@ -309,3 +310,84 @@ def f_initial(da, config):
   
   af.eval(f_initial)
   return(f_initial)
+
+class Poisson2D(object):
+
+  def __init__(self, da, config):
+    assert da.getDim() == 2
+    self.da     = da
+    self.config = config
+    self.localX = da.createLocalVec()
+
+  def formRHS(self, rho):
+    rho_val              = self.da.getVecArray(rho)
+    N_y_local, N_x_local = self.da.getSizes()
+    
+    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
+    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
+
+    # Taking Central Values:
+    i, j = np.arange(N_x_local) + 0.5, np.arange(N_y_local) + 0.5
+    x, y = i * dx, j * dy
+    
+    x, y       = np.meshgrid(x, y)
+    rho_val[:] = self.config.charge_particle * np.sin(2*np.pi*x + 4*np.pi*y) * dx * dy
+        
+  def mult(self, mat, X, Y):
+        
+    self.da.globalToLocal(X, self.localX)
+    
+    x = self.da.getVecArray(self.localX)
+    y = self.da.getVecArray(Y)
+    
+    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
+    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
+    
+    (y_start, y_end), (x_start, x_end) = self.da.getRanges()
+    
+    for j in range(y_start, y_end):
+      for i in range(x_start, x_end):
+        u    = x[j, i]   # center
+        u_w  = x[j, i-1] # west
+        u_e  = x[j, i+1] # east
+        u_s  = x[j-1, i] # south
+        u_n  = x[j+1, i] # north
+        
+        u_xx = (-u_e + 2*u - u_w)*dy/dx
+        u_yy = (-u_n + 2*u - u_s)*dx/dy
+ 
+        y[j, i] = u_xx + u_yy
+
+def initialize_electric_fields(da, config):
+  dx = (config.x_start - config.x_end)/config.N_x
+  dy = (config.y_start - config.y_end)/config.N_y
+  N_y_local, N_x_local = da.getSizes()
+
+  pde = Poisson2D(da, config)
+  phi = da.createGlobalVec()
+  rho = da.createGlobalVec()
+  
+  A   = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm=da.comm)
+  A.setPythonContext(pde)
+  A.setUp()
+
+  ksp = PETSc.KSP().create()
+
+  ksp.setOperators(A)
+  ksp.setType('cg')
+
+  pc = ksp.getPC()
+  pc.setType('none')
+
+  pde.formRHS(rho)
+  ksp.setTolerances(1e-14, 1e-50, 1000, 1000)
+  ksp.setFromOptions()
+  ksp.solve(rho, phi)
+
+  electric_potential = af.to_array(np.swapaxes(phi[:].reshape(N_x_local, N_y_local), 0, 1))
+
+  E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx
+  E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy
+
+  af.eval(E_x, E_y)
+  return(E_x, E_y)
