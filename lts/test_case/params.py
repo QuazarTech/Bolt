@@ -27,8 +27,8 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 4*np.pi,
-                    k_z       = 6*np.pi,
+                    k_y       = 0*np.pi,
+                    k_z       = 0*np.pi,
                    ) 
 
 position_space = dict(N_x     = 32,
@@ -72,17 +72,17 @@ boundary_conditions = dict(in_x = 'periodic',
                           )
 
 velocity_space = dict(N_vel_x   = 51,
-                      vel_x_max = 5.0, 
+                      vel_x_max = 10.0, 
 
                       N_vel_y   = 51, 
-                      vel_y_max = 5.0,
+                      vel_y_max = 10.0,
 
                       N_vel_z   = 51, 
-                      vel_z_max = 5.0,
+                      vel_z_max = 10.0,
                      )
 
 time = dict(
-            final_time   = 1.0,
+            final_time   = 0.5,
             dt           = 0.005
            )
 

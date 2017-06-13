@@ -96,6 +96,5 @@ def BGK_collision_operator(config, delta_f_hat):
             normalization - delta_f_hat
            )/tau
           )
-
   
   return C_f
