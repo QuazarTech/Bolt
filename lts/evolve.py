@@ -4,34 +4,31 @@ from lts.collision_operators import BGK_collision_operator
 
 def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, config):
 
-  mass_particle = config.mass_particle
+  vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
+  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
+  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
+  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
 
-  vel_y_max = config.vel_y_max
-  N_vel_y   = config.N_vel_y
-  vel_y     = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
-  dv_y      = vel_y[1] - vel_y[0]
-
-  vel_x, vel_y = np.meshgrid(vel_x, vel_y)
-  
   k_x = config.k_x   
-  k_y = config.k_y   
+  k_y = config.k_y
+  k_z = config.k_z
 
+  mass_particle   = config.mass_particle
   charge_electron = config.charge_electron
 
-  delta_vel_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x *dv_y
-  delta_vel_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x *dv_y
+  delta_mom_bulk_x = np.sum(vel_x * delta_f_hat) * dv_x * dv_y * dv_z
+  delta_mom_bulk_y = np.sum(vel_y * delta_f_hat) * dv_x * dv_y * dv_z
+  delta_mom_bulk_z = np.sum(vel_z * delta_f_hat) * dv_x * dv_y * dv_z
 
-  dfdv_x_background = initialize.dfdv_x_background(config)
-  dfdv_y_background = initialize.dfdv_y_background(config)
+  dfdv_x_background, dfdv_y_background, dfdv_y_background =\
+  initialize.dfdv_r_background(config)
 
-  delta_J_x_hat, delta_J_y_hat = charge_electron * delta_vel_bulk_x,\
-                                 charge_electron * delta_vel_bulk_y
+  delta_J_x_hat = charge_electron * delta_mom_bulk_x
+  delta_J_y_hat = charge_electron * delta_mom_bulk_y
+  delta_J_z_hat = charge_electron * delta_mom_bulk_z
   
+  # Changes need to be made for 3V:
   ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
   ddelta_E_y_hat_dt = -(delta_B_z_hat * 1j * k_x) - delta_J_y_hat
   ddelta_B_z_hat_dt = -(delta_E_y_hat * 1j * k_x - delta_E_x_hat * 1j * k_y)
@@ -78,27 +75,24 @@ def RK4_step(config, delta_f_hat, dt):
 
 def time_integration(config, delta_f_hat_initial, time_array):
 
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  k_x       = config.k_x 
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
+  vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  vel_y_max = config.vel_y_max
-  N_vel_y   = config.N_vel_y
-  k_y       = config.k_y 
-  vel_y     = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
-  dv_y      = vel_y[1] - vel_y[0]  
-    
-  vel_x, vel_y  = np.meshgrid(vel_x, vel_y)
-  
+  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
+  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
+  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+
+  k_x = config.k_x   
+  k_y = config.k_y
+  k_z = config.k_z 
+
   density_data  = np.zeros(time_array.size)
 
   global delta_E_x_hat, delta_E_y_hat, delta_B_z_hat
   
   charge_electron = config.charge_electron
 
-  delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y
+  # Changes to be made here for 3V:
+  delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y * dv_z
   delta_phi_hat = charge_electron * delta_rho_hat/(k_x**2 + k_y**2)
   delta_E_x_hat = -delta_phi_hat * (1j * k_x)
   delta_E_y_hat = -delta_phi_hat * (1j * k_y)
@@ -117,7 +111,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
     delta_f_hat = RK4_step(config, delta_f_hat, dt)
 
-    delta_rho_hat                = np.sum(delta_f_hat)*dv_x*dv_y
+    delta_rho_hat                = np.sum(delta_f_hat) * dv_x * dv_y * dv_z
     density_data[time_index + 1] = np.abs(delta_rho_hat)
 
 

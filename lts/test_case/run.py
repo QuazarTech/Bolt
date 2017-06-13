@@ -39,6 +39,8 @@ time_array = setup_simulation.time_array(config)
 
 delta_f_hat_initial = initialize.init_delta_f_hat(config)
 
+print(delta_f_hat_initial.shape)
+
 delta_rho_hat, delta_f_hat_final = evolve.time_integration(config, delta_f_hat_initial, time_array)
 
 pl.plot(time_array, delta_rho_hat)
@@ -46,4 +48,4 @@ pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
 
-export.export_4D_distribution_function(config, delta_f_hat_final)
+# export.export_4D_distribution_function(config, delta_f_hat_final)
