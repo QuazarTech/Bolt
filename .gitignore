@@ -61,6 +61,7 @@ Thumbs.db
 build/
 __pycache__/
 .ipynb_checkpoints/
+.cache/
 
 *.mp4
 *.h5

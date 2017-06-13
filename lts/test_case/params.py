@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '2V'
+mode = '3V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -82,7 +82,7 @@ velocity_space = dict(N_vel_x   = 51,
                      )
 
 time = dict(
-            final_time   = 0.2,
+            final_time   = 1.0,
             dt           = 0.005
            )
 
@@ -94,5 +94,5 @@ EM_fields = dict(
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  np.inf
+                  tau                = 0.01 #np.inf
                  )

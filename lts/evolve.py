@@ -42,7 +42,8 @@ def ddelta_f_hat_dt(delta_f_hat, delta_E_x_hat, delta_E_y_hat, delta_B_z_hat, co
 
   C_f = BGK_collision_operator(config, delta_f_hat)
 
-  ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat - fields_term + C_f
+  ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y + k_z * vel_z) * delta_f_hat -\
+                     fields_term + C_f
   
   return(ddelta_f_hat_dt, ddelta_E_x_hat_dt, ddelta_E_y_hat_dt, ddelta_B_z_hat_dt)
 
