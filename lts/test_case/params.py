@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '3V'
+mode = '2V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -35,7 +35,7 @@ position_space = dict(N_x     = 32,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 32,
+                      N_y     = 3,
                       y_start = 0,
                       y_end   = 1.0,
                        
@@ -77,7 +77,7 @@ velocity_space = dict(N_vel_x   = 51,
                       N_vel_y   = 51, 
                       vel_y_max = 10.0,
 
-                      N_vel_z   = 51, 
+                      N_vel_z   = 2, 
                       vel_z_max = 10.0,
                      )
 

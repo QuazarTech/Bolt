@@ -35,7 +35,7 @@ def export_4D_distribution_function(config, delta_f_hat):
   # Adding the background distribution:
   for i in range(N_vel_y):
     for j in range(N_vel_x):
-      f_dist[:, :, i, j] += ((f_background(config)[:, :, 0])[i, j] * \
+      f_dist[:, :, i, j] += ((np.sum(f_background(config), 2)*20)[i, j] * \
                             np.exp(1j*0*x_center + 1j*0*y_center)).real
 
   return(f_dist)
