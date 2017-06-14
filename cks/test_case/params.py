@@ -1,7 +1,7 @@
 import numpy as np
 
 num_devices = 1
-mode        = '2V'
+mode        = '1V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -13,6 +13,7 @@ background_electrons = dict(
                             temperature = 1.0, 
                             vel_bulk_x  = 0,
                             vel_bulk_y  = 0,
+                            vel_bulk_z  = 0,
                            )
 
 background_ions = dict(
@@ -20,28 +21,35 @@ background_ions = dict(
                        temperature = 1.0, 
                        vel_bulk_x  = 0,
                        vel_bulk_y  = 0,
+                       vel_bulk_z  = 0,
                       )
 
 perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 4*np.pi 
+                    k_y       = 0*np.pi,\
+                    k_z       = 0*np.pi,\
                    ) 
 
 position_space = dict(N_x     = 32,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 32,
+                      N_y     = 3,
                       y_start = 0,
                       y_end   = 1.0,
+
+                      N_z     = 3,
+                      z_start = 0,
+                      z_end   = 1.0,
  
                       N_ghost = 3
                      )
 
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
+                           in_z = 'periodic',
 
                            left_temperature = 1.0,
                            left_rho         = 1.0,
@@ -67,8 +75,11 @@ boundary_conditions = dict(in_x = 'periodic',
 velocity_space = dict(N_vel_x   = 51,
                       vel_x_max = 5.0, 
 
-                      N_vel_y   = 51, 
-                      vel_y_max = 5.0
+                      N_vel_y   = 2, 
+                      vel_y_max = 5.0,
+
+                      N_vel_z   = 2, 
+                      vel_z_max = 5.0
                      )
 
 time = dict(

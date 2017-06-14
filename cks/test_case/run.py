@@ -55,8 +55,12 @@ num_devices = params.num_devices
 # Getting the resolutions of position and velocity space:
 N_y     = config.N_y
 N_x     = config.N_x
+N_z     = config.N_z
+
 N_vel_y = config.N_vel_y
 N_vel_x = config.N_vel_x
+N_vel_z = config.N_vel_z
+
 N_ghost = config.N_ghost
 
 petsc4py.init()
@@ -67,27 +71,27 @@ af.set_device(comm.rank%num_devices)
 
 # Declaring distributed array object which automates the domain decomposition:
 # Additionally, it is also used to take care of the boundary conditions:
-da = PETSc.DMDA().create([N_y, N_x],\
-                         dof = (N_vel_y * N_vel_x),\
+da = PETSc.DMDA().create([N_y, N_x, N_z],\
+                         dof = (N_vel_y * N_vel_x * N_vel_z),\
                          stencil_width = N_ghost,\
-                         boundary_type = ('periodic', 'periodic'),\
-                         proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
+                         boundary_type = ('periodic', 'periodic', 'periodic'),\
+                         proc_sizes = (PETSc.DECIDE, PETSc.DECIDE, PETSc.DECIDE), \
                          stencil_type = 1, \
                          comm = comm
                         ) 
 
-da_fields = PETSc.DMDA().create([N_y, N_x],\
+da_fields = PETSc.DMDA().create([N_y, N_x, N_z],\
                                 stencil_width = N_ghost,\
-                                boundary_type = ('periodic', 'periodic'),\
+                                boundary_type = ('periodic', 'periodic', 'periodic'),\
                                 proc_sizes = da.getProcSizes(), \
                                 stencil_type = 1, \
                                 comm = da.getComm()
                                ) 
 
 
-# Obtaining the left-bottom corner coordinates 
-# of the left-bottom corner cell in the local zone considered:
-((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
+# Obtaining the left-bottom-front corner coordinates 
+# of the left-bottom-front corner cell in the local zone considered:
+((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
 # Declaring global vectors to export the final distribution function:
 global_vector    = da.createGlobalVec()

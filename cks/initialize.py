@@ -8,6 +8,7 @@ def calculate_x_left(da, config):
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in x:
   x_start  = config.x_start
@@ -15,9 +16,9 @@ def calculate_x_left(da, config):
   length_x = x_end - x_start
   dx       = length_x/N_x
   
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
   # Constructing x_left using the above data:
   i      = i_left  + np.arange(-N_ghost, N_x_local + N_ghost, 1)
@@ -25,7 +26,9 @@ def calculate_x_left(da, config):
   x_left = af.Array.as_type(af.to_array(x_left), af.Dtype.f64)
 
   # Reordering and tiling such that variation in x is along axis 1:
-  x_left = af.tile(af.reorder(x_left), N_y_local + 2*N_ghost, 1, N_vel_y, N_vel_x)
+  x_left = af.tile(af.reorder(x_left), N_y_local + 2*N_ghost, 1,\
+                   N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                  )
 
   af.eval(x_left)
   return(x_left)
@@ -36,6 +39,7 @@ def calculate_x_right(da, config):
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in x:
   x_start  = config.x_start
@@ -43,9 +47,9 @@ def calculate_x_right(da, config):
   length_x = x_end - x_start
   dx       = length_x/N_x
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
   # Obtaining the right edge x-coordinate of the cell:
   i_right = i_left + 1
 
@@ -55,7 +59,9 @@ def calculate_x_right(da, config):
   x_right = af.Array.as_type(af.to_array(x_right), af.Dtype.f64)
 
   # Reordering and tiling such that variation in x is along axis 1:
-  x_right = af.tile(af.reorder(x_right), N_y_local + 2*N_ghost, 1, N_vel_y, N_vel_x)
+  x_right = af.tile(af.reorder(x_right), N_y_local + 2*N_ghost, 1,\
+                    N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                   )
 
   af.eval(x_right)
   return(x_right)
@@ -66,6 +72,7 @@ def calculate_x_center(da, config):
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in x:
   x_start  = config.x_start
@@ -73,9 +80,9 @@ def calculate_x_center(da, config):
   length_x = x_end - x_start
   dx       = length_x/N_x
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
   # Obtaining the cell-centered x-coordinate of the cell:
   i_center = i_left + 0.5
 
@@ -85,7 +92,9 @@ def calculate_x_center(da, config):
   x_center = af.Array.as_type(af.to_array(x_center), af.Dtype.f64)
   
   # Reordering and tiling such that variation in x is along axis 1:
-  x_center = af.tile(af.reorder(x_center), N_y_local + 2*N_ghost, 1, N_vel_y, N_vel_x)
+  x_center = af.tile(af.reorder(x_center), N_y_local + 2*N_ghost, 1,\
+                     N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                    )
 
   af.eval(x_center)
   return(x_center)
@@ -96,6 +105,7 @@ def calculate_y_bottom(da, config):
   
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in y:
   y_start  = config.y_start
@@ -103,9 +113,9 @@ def calculate_y_bottom(da, config):
   length_y = y_end - y_start
   dy       = length_y/N_y
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
   # Constructing y_bottom using the above data:
   j        = j_bottom + np.arange(-N_ghost, N_y_local + N_ghost, 1)
@@ -113,7 +123,9 @@ def calculate_y_bottom(da, config):
   y_bottom = af.Array.as_type(af.to_array(y_bottom), af.Dtype.f64)
 
   # Tiling such that variation in y is along axis 0:
-  y_bottom = af.tile(y_bottom, 1, N_x_local + 2*N_ghost, N_vel_y, N_vel_x)
+  y_bottom = af.tile(y_bottom, 1, N_x_local + 2*N_ghost,\
+                     N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                    )
 
   af.eval(y_bottom)
   return(y_bottom)
@@ -124,6 +136,7 @@ def calculate_y_top(da, config):
   
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in y:
   y_start  = config.y_start
@@ -131,9 +144,9 @@ def calculate_y_top(da, config):
   length_y = y_end - y_start
   dy       = length_y/N_y
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
   # Obtaining the top edge y-coordinate of the cell:
   j_top = j_bottom + 1
 
@@ -143,7 +156,9 @@ def calculate_y_top(da, config):
   y_top = af.Array.as_type(af.to_array(y_top), af.Dtype.f64)
 
   # Tiling such that variation in y is along axis 0:
-  y_top = af.tile(y_top, 1, N_x_local + 2*N_ghost, N_vel_y, N_vel_x)
+  y_top = af.tile(y_top, 1, N_x_local + 2*N_ghost,\
+                  N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                 )
 
   af.eval(y_top)
   return(y_top)
@@ -154,6 +169,7 @@ def calculate_y_center(da, config):
   
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
 
   # Getting the step-size in y:
   y_start  = config.y_start
@@ -161,9 +177,9 @@ def calculate_y_center(da, config):
   length_y = y_end - y_start
   dy       = length_y/N_y
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
   # Obtaining the cell-centered y-coordinate of the cell:
   j_center = j_bottom + 0.5
 
@@ -173,22 +189,126 @@ def calculate_y_center(da, config):
   y_center = af.Array.as_type(af.to_array(y_center), af.Dtype.f64)
 
   # Tiling such that variation in y is along axis 0:
-  y_center = af.tile(y_center, 1, N_x_local + 2*N_ghost, N_vel_y, N_vel_x)
+  y_center = af.tile(y_center, 1, N_x_local + 2*N_ghost,\
+                     N_z_local + 2*N_ghost, N_vel_x*N_vel_y*N_vel_z
+                    )
 
   af.eval(y_center)
   return(y_center)
+
+def calculate_z_front(da, config):
+  N_z     = config.N_z
+  N_ghost = config.N_ghost
+  
+  N_vel_x = config.N_vel_x
+  N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+
+  # Getting the step-size in y:
+  z_start  = config.z_start
+  z_end    = config.z_end
+  length_z = z_end - z_start
+  dz       = length_z/N_z
+
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
+
+  # Constructing y_bottom using the above data:
+  k       = k_front + np.arange(-N_ghost, N_z_local + N_ghost, 1)
+  z_front = z_start  + k * dz
+  z_front = af.Array.as_type(af.to_array(z_front), af.Dtype.f64)
+
+  # Tiling such that variation in y is along axis 0:
+  z_front = af.tile(af.reorder(z_front, 2, 3, 0, 1),\
+                    N_y_local + 2*N_ghost, N_x_local + 2*N_ghost,\
+                    1, N_vel_x*N_vel_y*N_vel_z
+                   )
+
+  af.eval(z_front)
+  return(z_front)
+
+def calculate_z_back(da, config):
+  N_z     = config.N_z
+  N_ghost = config.N_ghost
+  
+  N_vel_x = config.N_vel_x
+  N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+
+  # Getting the step-size in y:
+  z_start  = config.z_start
+  z_end    = config.z_end
+  length_z = z_end - z_start
+  dz       = length_z/N_z
+
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
+  # Obtaining the back edge z-coordinate of the cell:
+  k_back = k_front + 1
+
+  # Constructing y_bottom using the above data:
+  k      = k_back + np.arange(-N_ghost, N_z_local + N_ghost, 1)
+  z_back = z_start  + k * dz
+  z_back = af.Array.as_type(af.to_array(z_back), af.Dtype.f64)
+
+  # Tiling such that variation in y is along axis 0:
+  z_back = af.tile(af.reorder(z_back, 2, 3, 0, 1),\
+                   N_y_local + 2*N_ghost, N_x_local + 2*N_ghost,\
+                   1, N_vel_x*N_vel_y*N_vel_z
+                  )
+
+  af.eval(z_back)
+  return(z_back)
+
+def calculate_z_center(da, config):
+  N_z     = config.N_z
+  N_ghost = config.N_ghost
+  
+  N_vel_x = config.N_vel_x
+  N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+
+  # Getting the step-size in y:
+  z_start  = config.z_start
+  z_end    = config.z_end
+  length_z = z_end - z_start
+  dz       = length_z/N_z
+
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
+  # Obtaining the back edge z-coordinate of the cell:
+  k_center = k_front + 1
+
+  # Constructing y_bottom using the above data:
+  k        = k_center + np.arange(-N_ghost, N_z_local + N_ghost, 1)
+  z_center = z_start  + k * dz
+  z_center = af.Array.as_type(af.to_array(z_center), af.Dtype.f64)
+
+  # Tiling such that variation in y is along axis 0:
+  z_center = af.tile(af.reorder(z_center, 2, 3, 0, 1),\
+                    N_y_local + 2*N_ghost, N_x_local + 2*N_ghost,\
+                    1, N_vel_x*N_vel_y*N_vel_z
+                   )
+
+  af.eval(z_center)
+  return(z_center)
 
 def calculate_vel_x(da, config):
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+  
   N_ghost = config.N_ghost
 
   vel_x_max = config.vel_x_max
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
   # Constructing vel_x using the above data:
   i_v_x = np.arange(0, N_vel_x, 1)
@@ -196,13 +316,15 @@ def calculate_vel_x(da, config):
   vel_x = -vel_x_max + i_v_x * dv_x
   vel_x = af.Array.as_type(af.to_array(vel_x), af.Dtype.f64)
 
-  # Reordering and tiling such that variation in x-velocity is along axis 3
-  vel_x = af.reorder(vel_x, 3, 2, 1, 0)
+  # Reordering and tiling such that variation in x-velocity is along axis 2
+  vel_x = af.reorder(vel_x, 2, 3, 0, 1)
   vel_x = af.tile(vel_x,\
-                  N_y_local + 2*N_ghost, \
-                  N_x_local + 2*N_ghost, \
+                  (N_x_local + 2 * N_ghost)*\
+                  (N_y_local + 2 * N_ghost)*\
+                  (N_z_local + 2 * N_ghost),\
                   N_vel_y, \
-                  1 
+                  1, \
+                  N_vel_z
                  )
 
   af.eval(vel_x)
@@ -212,31 +334,69 @@ def calculate_vel_y(da, config):
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+  
   N_ghost = config.N_ghost
 
   vel_y_max = config.vel_y_max
 
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
-  # Constructing vel_y using the above data:
+  # Constructing vel_x using the above data:
   i_v_y = np.arange(0, N_vel_y, 1)
   dv_y  = (2*vel_y_max)/(N_vel_y - 1)
   vel_y = -vel_y_max + i_v_y * dv_y
   vel_y = af.Array.as_type(af.to_array(vel_y), af.Dtype.f64)
 
-  # Reordering and tiling such that variation in y-velocity is along axis 2
-  vel_y = af.reorder(vel_y, 3, 2, 0, 1)
+  # Reordering and tiling such that variation in y-velocity is along axis 1
+  vel_y = af.reorder(vel_y, 3, 0, 1, 2)
   vel_y = af.tile(vel_y,\
-                  N_y_local + 2*N_ghost, \
-                  N_x_local + 2*N_ghost, \
+                  (N_x_local + 2 * N_ghost)*\
+                  (N_y_local + 2 * N_ghost)*\
+                  (N_z_local + 2 * N_ghost),\
                   1, \
-                  N_vel_x 
+                  N_vel_x, \
+                  N_vel_z
                  )
 
   af.eval(vel_y)
   return(vel_y)
+
+def calculate_vel_z(da, config):
+
+  N_vel_x = config.N_vel_x
+  N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+  
+  N_ghost = config.N_ghost
+
+  vel_z_max = config.vel_z_max
+
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
+
+  # Constructing vel_x using the above data:
+  i_v_z = np.arange(0, N_vel_z, 1)
+  dv_z  = (2*vel_z_max)/(N_vel_z - 1)
+  vel_z = -vel_z_max + i_v_z * dv_z
+  vel_z = af.Array.as_type(af.to_array(vel_z), af.Dtype.f64)
+
+  # Reordering and tiling such that variation in y-velocity is along axis 3
+  vel_z = af.reorder(vel_z, 1, 2, 3, 0)
+  vel_z = af.tile(vel_z,\
+                  (N_x_local + 2 * N_ghost)*\
+                  (N_y_local + 2 * N_ghost)*\
+                  (N_z_local + 2 * N_ghost),\
+                  N_vel_y, \
+                  N_vel_x, \
+                  1
+                 )
+
+  af.eval(vel_z)
+  return(vel_z)
 
 def f_initial(da, config):
 
@@ -247,36 +407,79 @@ def f_initial(da, config):
   temperature_background = config.temperature_background
   vel_bulk_x_background  = config.vel_bulk_x_background
   vel_bulk_y_background  = config.vel_bulk_y_background
+  vel_bulk_z_background  = config.vel_bulk_z_background
 
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
+  N_vel_z = config.N_vel_z
+
+  N_ghost = config.N_ghost
 
   vel_y_max = config.vel_y_max
   vel_x_max = config.vel_x_max
+  vel_z_max = config.vel_z_max
 
   dv_x = (2*vel_x_max)/(N_vel_x - 1)
   dv_y = (2*vel_y_max)/(N_vel_y - 1)
+  dv_z = (2*vel_z_max)/(N_vel_z - 1)
 
   pert_real = config.pert_real
   pert_imag = config.pert_imag
  
   k_x = config.k_x
   k_y = config.k_y
+  k_z = config.k_z
 
-  # Calculating x_center, y_center,vel_x and vel_y for the local zone:
+  # Calculating x, y, z at centers and vel_x,y,z for the local zone:
   x_center = calculate_x_center(da, config)
-  vel_x    = calculate_vel_x(da, config)
   y_center = calculate_y_center(da, config)
+  z_center = calculate_z_center(da, config)
+
+  vel_x    = calculate_vel_x(da, config)
   vel_y    = calculate_vel_y(da, config)
+  vel_z    = calculate_vel_z(da, config)
+
+  # Obtaining the left-bottom-front corner coordinates 
+  # of the left-bottom-front corner cell in the local zone considered:
+  ((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
 
   # Calculating the perturbed density:
-  rho   = rho_background + (pert_real * af.cos(k_x*x_center + k_y*y_center) -\
-                            pert_imag * af.sin(k_x*x_center + k_y*y_center)
+  rho   = rho_background + (pert_real * af.cos(k_x*x_center + k_y*y_center + k_z*z_center) -\
+                            pert_imag * af.sin(k_x*x_center + k_y*y_center + k_z*z_center)
                            )
+
+  # Modifying the dimensions of rho:
+  rho = af.moddims(rho,                   
+                  (N_x_local + 2 * N_ghost)*\
+                  (N_y_local + 2 * N_ghost)*\
+                  (N_z_local + 2 * N_ghost),\
+                  N_vel_y,\
+                  N_vel_x,\
+                  N_vel_z
+                  )
 
   # Depending on the dimensionality in velocity space, the 
   # distribution function is assigned accordingly:
-  if(config.mode == '2V'):
+  if(config.mode == '3V'):
+    
+    f_initial = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
+                af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                      (2*boltzmann_constant*temperature_background)) * \
+                af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+                      (2*boltzmann_constant*temperature_background)) * \
+                af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
+                      (2*boltzmann_constant*temperature_background))
+
+    f_background = rho_background * \
+                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
+                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+                          (2*boltzmann_constant*temperature_background)) * \
+                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
+                          (2*boltzmann_constant*temperature_background)) * \
+                    af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
+                          (2*boltzmann_constant*temperature_background))
+
+  elif(config.mode == '2V'):
 
     f_initial = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                 af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
@@ -305,9 +508,17 @@ def f_initial(da, config):
                          (2*boltzmann_constant*temperature_background))
 
     
-  normalization = af.sum(f_background) * dv_x * dv_y/(x_center.shape[0] * x_center.shape[1])
+  normalization = af.sum(f_background) * dv_x * dv_y * dv_z/(f_background.shape[0])
   f_initial     = f_initial/normalization
   
+  # Modifying the dimensions again:
+  f_initial = af.moddims(f_initial,                   
+                         (N_y_local + 2 * N_ghost),\
+                         (N_x_local + 2 * N_ghost),\
+                         (N_z_local + 2 * N_ghost),\
+                         N_vel_y*N_vel_x*N_vel_z
+                        )
+
   af.eval(f_initial)
   return(f_initial)
 
