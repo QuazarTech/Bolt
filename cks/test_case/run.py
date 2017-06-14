@@ -55,7 +55,6 @@ num_devices = params.num_devices
 # Getting the resolutions of position and velocity space:
 N_y     = config.N_y
 N_x     = config.N_x
-N_z     = config.N_z
 
 N_vel_y = config.N_vel_y
 N_vel_x = config.N_vel_x
@@ -71,27 +70,27 @@ af.set_device(comm.rank%num_devices)
 
 # Declaring distributed array object which automates the domain decomposition:
 # Additionally, it is also used to take care of the boundary conditions:
-da = PETSc.DMDA().create([N_y, N_x, N_z],\
+da = PETSc.DMDA().create([N_y, N_x],\
                          dof = (N_vel_y * N_vel_x * N_vel_z),\
                          stencil_width = N_ghost,\
-                         boundary_type = ('periodic', 'periodic', 'periodic'),\
-                         proc_sizes = (PETSc.DECIDE, PETSc.DECIDE, PETSc.DECIDE), \
+                         boundary_type = ('periodic', 'periodic'),\
+                         proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
                          stencil_type = 1, \
                          comm = comm
                         ) 
 
-da_fields = PETSc.DMDA().create([N_y, N_x, N_z],\
-                                stencil_width = N_ghost,\
-                                boundary_type = ('periodic', 'periodic', 'periodic'),\
-                                proc_sizes = da.getProcSizes(), \
-                                stencil_type = 1, \
-                                comm = da.getComm()
-                               ) 
+# da_fields = PETSc.DMDA().create([N_y, N_x, N_z],\
+#                                 stencil_width = N_ghost,\
+#                                 boundary_type = ('periodic', 'periodic', 'periodic'),\
+#                                 proc_sizes = da.getProcSizes(), \
+#                                 stencil_type = 1, \
+#                                 comm = da.getComm()
+#                                ) 
 
 
-# Obtaining the left-bottom-front corner coordinates 
-# of the left-bottom-front corner cell in the local zone considered:
-((j_bottom, i_left, k_front), (N_y_local, N_x_local, N_z_local)) = da.getCorners()
+# Obtaining the left-bottom corner coordinates 
+# of the left-bottom corner cell in the local zone considered:
+((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
 
 # Declaring global vectors to export the final distribution function:
 global_vector    = da.createGlobalVec()
@@ -107,15 +106,17 @@ if(comm.rank == 0):
 
 # Obtaining the velocity and position arrays:
 x_center = initialize.calculate_x_center(da, config)
-x_left   = initialize.calculate_x_left(da, config)
-vel_x    = initialize.calculate_vel_x(da, config)
 y_center = initialize.calculate_y_center(da, config)
+
+x_left   = initialize.calculate_x_left(da, config)
 y_bottom = initialize.calculate_y_bottom(da, config)
-vel_y    = initialize.calculate_vel_y(da, config)
+
+vel_x, vel_y, vel_z = initialize.calculate_velocities(da, config) #velocitiesExpanded form
 
 # Initializing the value for distribution function:
 f_initial = initialize.f_initial(da, config)
 
+print(f_initial.shape)
 # We define an object args that holds, the position arrays, 
 # velocity arrays, distribution function and field quantities.
 # By this manner, if we have the args object for any time-step, all
@@ -125,53 +126,59 @@ class args:
     pass
 
 args.config   = config
+
 args.f        = f_initial
-args.vel_x    = vel_x
-args.vel_y    = vel_y
+
+args.vel_x = vel_x
+args.vel_y = vel_y
+args.vel_z = vel_z
+
 args.x_center = x_center
 args.y_center = y_center
 
 pert_real = config.pert_real
 pert_imag = config.pert_imag
-k_x       = config.k_x
-k_y       = config.k_y
+
+# k_x       = config.k_x
+# k_y       = config.k_y
 
 charge_electron = config.charge_electron
 
-# The following quantities are defined on the Yee-Grid:
-args.E_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
-args.E_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
-args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j + 1/2)
-args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
-args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
-args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j)
+# # The following quantities are defined on the Yee-Grid:
+# # args.E_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
+# # args.E_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
+# # args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j + 1/2)
+# # args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
+# # args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
+# # args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j)
 
-args.E_x[N_ghost:-N_ghost, N_ghost:-N_ghost], args.E_y[N_ghost:-N_ghost, N_ghost:-N_ghost] = \
-initialize.initialize_electric_fields(da_fields, config)
+# # args.E_x[N_ghost:-N_ghost, N_ghost:-N_ghost], args.E_y[N_ghost:-N_ghost, N_ghost:-N_ghost] = \
+# # initialize.initialize_electric_fields(da_fields, config)
 
-# Global data holds the information of the density amplitude for the entire physical domain:
+# # Global data holds the information of the density amplitude for the entire physical domain:
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, args, time_array)
 
-vel_x_max = config.vel_x_max
-vel_y_max = config.vel_y_max
-dv_x      = (2*vel_x_max)/(N_vel_x - 1)
-dv_y      = (2*vel_y_max)/(N_vel_y - 1)
+# print(f_final.shape)
+# # vel_x_max = config.vel_x_max
+# # vel_y_max = config.vel_y_max
+# # dv_x      = (2*vel_x_max)/(N_vel_x - 1)
+# # dv_y      = (2*vel_y_max)/(N_vel_y - 1)
 
-# Passing the values non-inclusive of ghost cells:
-f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_x * N_vel_y))
+# # # Passing the values non-inclusive of ghost cells:
+# # f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
+# # global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_x * N_vel_y))
 
-viewer(global_vector)
+# # viewer(global_vector)
 
-# Performing a reduce operation to obtain the global data:
+# # Performing a reduce operation to obtain the global data:
 comm.Reduce(data,\
             global_data,\
             op = MPI.MAX,\
             root = 0
            )
 
-# Plotting/Export of the global-data:
+# # Plotting/Export of the global-data:
 if(comm.rank == 0):
   if(pylab_found != None):
     pl.plot(time_array, global_data)
