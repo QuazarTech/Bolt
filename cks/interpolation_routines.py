@@ -84,26 +84,21 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   dv_z = (2*vel_z_max)/config.N_vel_z
   
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
-  vel_x_interpolant = (vel_x_new + af.sum(vel_x[0, 0, 0, 0]))/dv_x
-  vel_y_interpolant = (vel_y_new + af.sum(vel_y[0, 0, 0, 0]))/dv_y
-  vel_z_interpolant = (vel_z_new + af.sum(vel_z[0, 0, 0, 0]))/dv_z
+  vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/dv_x
+  vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/dv_y
+  vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/dv_z
   
   # Reordering to bring the variation in values along axis 0
-  f = af.approx1(af.reorder(f),\
-                 af.reorder(vel_y_interpolant),\
+  f = af.approx1(af.reorder(f, 2, 3, 0, 1),\
+                 af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
                  af.INTERP.CUBIC_SPLINE
                 )
   
-  f = af.reorder(f)
-  # print(f.shape)
-  # print(vel_x_interpolant.shape)
-  # print(vel_z_interpolant.shape)
-
-  f = af.approx2(af.reorder(f, 2, 3, 0, 1),\
-                 af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
-                 af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-                 af.INTERP.BICUBIC_SPLINE
-                )
+  # f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
+  #                af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+  #                af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
+  #                af.INTERP.BICUBIC_SPLINE
+  #               )
 
   # Reordering back to the original convention(velocitiesExpanded):
   f = af.reorder(f, 2, 3, 0, 1)

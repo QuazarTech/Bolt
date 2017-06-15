@@ -231,6 +231,8 @@ def fields_step(da, args, dt):
                                                   J_x, J_y, J_z,\
                                                   dt
                                                  )
+  
+  # print(af.max(B_z_new))
 
   args.B_x = B_x_new #(i, j + 1/2)
   args.B_y = B_y_new #(i + 1/2, j)

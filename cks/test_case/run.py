@@ -172,7 +172,8 @@ comm.Reduce(data,\
 # # # Plotting/Export of the global-data:
 if(comm.rank == 0):
   if(pylab_found != None):
-    pl.plot(time_array, global_data)
+    print(global_data)
+    pl.plot(time_array, global_data - 1)
     pl.xlabel('Time')
     pl.ylabel(r'$MAX(\delta \rho(x))$')
     pl.savefig('plot.png')
