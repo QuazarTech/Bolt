@@ -83,9 +83,15 @@ def calculate_temperature(args):
   dv_y = (2*args.config.vel_y_max)/args.config.N_vel_y
   dv_z = (2*args.config.vel_z_max)/args.config.N_vel_z
 
-  vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], f.shape[3])
-  vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], f.shape[3])
-  vel_bulk_z = af.tile(calculate_vel_bulk_z(args), 1, f.shape[1], f.shape[2], f.shape[3])
+  if(config.mode == '3V'):
+    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], f.shape[3])
+    vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], f.shape[3])
+    vel_bulk_z = af.tile(calculate_vel_bulk_z(args), 1, f.shape[1], f.shape[2], f.shape[3])
+
+  else:
+    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], 1)
+    vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], 1)
+    vel_bulk_z = af.tile(calculate_vel_bulk_z(args), 1, f.shape[1], f.shape[2], 1)
 
   # The temperature is calculated depending upon the defined dimensionality in
   # velocity space:

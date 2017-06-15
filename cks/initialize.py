@@ -401,17 +401,22 @@ class Poisson2D(object):
 
   def formRHS(self, rho):
     rho_val              = self.da.getVecArray(rho)
-    N_y_local, N_x_local = self.da.getSizes()
-    
+    # Obtaining the left-bottom corner coordinates 
+    # of the left-bottom corner cell in the local zone considered:
+    ((j_bottom, i_left), (N_y_local, N_x_local)) = self.da.getCorners()
+      
     dx = (self.config.x_start - self.config.x_end)/self.config.N_x
     dy = (self.config.y_start - self.config.y_end)/self.config.N_y
 
-    # Taking Central Values:
-    i, j = np.arange(N_x_local) + 0.5, np.arange(N_y_local) + 0.5
-    x, y = i * dx, j * dy
-    
+    # Taking left/bottom Values:
+    i, j = i_left + np.arange(N_x_local), j_bottom + np.arange(N_y_local)
+    x, y = self.config.x_start + i * dx, self.config.x_end + j * dy
+
+    # rho is calculated at (i, j)
     x, y       = np.meshgrid(x, y)
-    rho_val[:] = self.config.charge_electron * np.sin(2*np.pi*x + 4*np.pi*y) * dx * dy
+    rho_val[:] = self.config.charge_electron * np.sin(self.config.k_x*x + \
+                                                      self.config.k_y*y
+                                                     ) * dx * dy
         
   def mult(self, mat, X, Y):
         
@@ -464,16 +469,11 @@ def initialize_electric_fields(da, config):
   ksp.setFromOptions()
   ksp.solve(rho, phi)
 
+  # Since rho was defined at (i, j) electric potential returned will also be at (i, j)
   electric_potential = af.to_array(np.swapaxes(phi[:].reshape(N_x_local, N_y_local), 0, 1))
 
-  electric_potential = 0.25 * (electric_potential +\
-                               af.shift(electric_potential, 1, 0) +\
-                               af.shift(electric_potential, 0, 1) +\
-                               af.shift(electric_potential, 1, 1)
-                              )
-
-  E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx
-  E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy
+  E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx #(i+1/2, j)
+  E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy #(i, j+1/2)
 
   af.eval(E_x, E_y)
   return(E_x, E_y)

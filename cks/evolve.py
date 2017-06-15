@@ -6,7 +6,6 @@ from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
                                 calculate_mom_bulk_x, calculate_mom_bulk_y,\
                                 calculate_mom_bulk_z, calculate_temperature
 
-from petsc4py import PETSc
 from cks.interpolation_routines import f_interp_vel_3d
 
 def communicate_distribution_function(da, args, local, glob):
@@ -43,7 +42,9 @@ def communicate_fields(da, config, local_field, local, glob):
 
   N_ghost = config.N_ghost
 
-  local_value[:] = np.array(local_field)
+  local_value[:] = np.array(local_field).reshape(local_value[:].shape[0],\
+                                                 local_value[:].shape[1]
+                                                )
   
   # Global value is non-inclusive of the ghost-zones:
   glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
@@ -81,11 +82,10 @@ def f_MB(da, args):
   vel_bulk_y_background  = config.vel_bulk_y_background
   vel_bulk_z_background  = config.vel_bulk_z_background
 
-  n          = af.tile(calculate_density(args), 1, f.shape[1], f.shape[2], f.shape[3])
-  T          = af.tile(calculate_temperature(args), 1, f.shape[1], f.shape[2], f.shape[3])
-  vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], f.shape[3])
-  
   if(config.mode == '3V'):
+    n          = af.tile(calculate_density(args), 1, f.shape[1], f.shape[2], f.shape[3])
+    T          = af.tile(calculate_temperature(args), 1, f.shape[1], f.shape[2], f.shape[3])
+    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], f.shape[3])
     vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], f.shape[3])
     vel_bulk_z = af.tile(calculate_vel_bulk_z(args), 1, f.shape[1], f.shape[2], f.shape[3])
     
@@ -104,7 +104,10 @@ def f_MB(da, args):
                           (2*boltzmann_constant*temperature_background))
 
   elif(config.mode == '2V'):
-    vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], f.shape[3])
+    n          = af.tile(calculate_density(args), 1, f.shape[1], f.shape[2], 1)
+    T          = af.tile(calculate_temperature(args), 1, f.shape[1], f.shape[2], 1)
+    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], 1)
+    vel_bulk_y = af.tile(calculate_vel_bulk_y(args), 1, f.shape[1], f.shape[2], 1)
     
     f_MB = n * (mass_particle/(2*np.pi*boltzmann_constant*T)) * \
            af.exp(-mass_particle*(vel_x - vel_bulk_x)**2/(2*boltzmann_constant*T)) * \
@@ -117,6 +120,10 @@ def f_MB(da, args):
                     af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
                           (2*boltzmann_constant*temperature_background))
   else:
+    n          = af.tile(calculate_density(args), 1, f.shape[1], f.shape[2], 1)
+    T          = af.tile(calculate_temperature(args), 1, f.shape[1], f.shape[2], 1)
+    vel_bulk_x = af.tile(calculate_vel_bulk_x(args), 1, f.shape[1], f.shape[2], 1)
+
     f_MB = n*af.sqrt(mass_particle/(2*np.pi*boltzmann_constant*T))*\
              af.exp(-mass_particle*(vel_x-vel_bulk_x)**2/(2*boltzmann_constant*T))
 
@@ -167,85 +174,123 @@ def collision_step(da, args, dt):
   af.eval(args.f)
   return(args.f)
 
-# def fields_step(da, args, dt):
+def fields_step(da, args, dt):
 
-#   config = args.config
-#   f      = args.f
-#   vel_x  = args.vel_x
-#   vel_y  = args.vel_y
+  config = args.config
+  f      = args.f
 
-#   charge_electron = config.charge_electron
+  vel_x  = args.vel_x
+  vel_y  = args.vel_y
+  vel_z  = args.vel_z
 
-#   # Creating local and global vectors for each of the partitioned zones:
-#   glob  = da.createGlobalVec()
-#   local = da.createLocalVec()
+  charge_electron = config.charge_electron
 
-#   # The following fields are defined on the Yee-Grid:
-#   E_x = args.E_x #(i + 1/2, j)
-#   E_y = args.E_y #(i, j + 1/2)
-#   E_z = args.E_z #(i, j)
+  # Creating local and global vectors for each of the partitioned zones:
+  glob  = da.createGlobalVec()
+  local = da.createLocalVec()
 
-#   B_x = args.B_x #(i, j + 1/2)
-#   B_y = args.B_y #(i + 1/2, j)
-#   B_z = args.B_z #(i + 1/2, j + 1/2)
+  # The following fields are defined on the Yee-Grid:
+  E_x = args.E_x #(i + 1/2, j)
+  E_y = args.E_y #(i, j + 1/2)
+  E_z = args.E_z #(i, j)
 
-#   J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
-#   J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
-#   J_z = af.constant(0, J_x.shape[0], J_x.shape[1])   #(i + 1/2, j + 1/2)
+  B_x = args.B_x #(i, j + 1/2)
+  B_y = args.B_y #(i + 1/2, j)
+  B_z = args.B_z #(i + 1/2, j + 1/2)
 
-#   J_x = 0.5 * (J_x + af.shift(J_x, 1, 0)) #(i + 1/2, j)
-#   J_y = 0.5 * (J_y + af.shift(J_y, 0, 1)) #(i, j + 1/2)
+  # Obtaining the left-bottom corner coordinates 
+  # of the left-bottom corner cell in the local zone considered:
+  ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
 
-#   J_x = communicate_fields(da, config, J_x, local, glob) #(i + 1/2, j)
-#   J_y = communicate_fields(da, config, J_y, local, glob) #(i, j + 1/2)
+  # Convert to velocitiesExpanded:
+  args.f = af.moddims(args.f,                   
+                      (N_x_local + 2 * config.N_ghost)*\
+                      (N_y_local + 2 * config.N_ghost),\
+                      config.N_vel_y,\
+                      config.N_vel_x,\
+                      config.N_vel_z
+                     )
 
-#   from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
+  J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
+  J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
+  J_z = charge_electron * calculate_mom_bulk_z(args) #(i + 1/2, j + 1/2)
 
-#   E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(da, config,\
-#                                                   E_x, E_y, E_z,\
-#                                                   B_x, B_y, B_z,\
-#                                                   J_x, J_y, J_z,\
-#                                                   dt
-#                                                  )
+  J_x = 0.5 * (J_x + af.shift(J_x, 1, 0)) #(i + 1/2, j)
+  J_y = 0.5 * (J_y + af.shift(J_y, 0, 1)) #(i, j + 1/2)
+  J_z = 0.25 * (J_z + af.shift(J_z, 1, 0) + af.shift(J_z, 0, 1) + af.shift(J_z, 1, 1)) #(i, j)
 
-#   args.B_x = B_x_new #(i, j + 1/2)
-#   args.B_y = B_y_new #(i + 1/2, j)
-#   args.B_z = B_z_new #(i + 1/2, j + 1/2)
+  J_x = communicate_fields(da, config, J_x, local, glob) #(i + 1/2, j)
+  J_y = communicate_fields(da, config, J_y, local, glob) #(i, j + 1/2)
+  J_z = communicate_fields(da, config, J_z, local, glob) #(i, j)
 
-#   args.E_x = E_x #(i + 1/2, j)
-#   args.E_y = E_y #(i, j + 1/2)
-#   args.E_z = E_z #(i, j)
+  from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
 
-#   # To account for half-time steps:
-#   B_x = 0.5 * (B_x + B_x_new)
-#   B_y = 0.5 * (B_y + B_y_new)
-#   B_z = 0.5 * (B_z + B_z_new)
+  E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(da, config,\
+                                                  E_x, E_y, E_z,\
+                                                  B_x, B_y, B_z,\
+                                                  J_x, J_y, J_z,\
+                                                  dt
+                                                 )
 
-#   E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z)
+  args.B_x = B_x_new #(i, j + 1/2)
+  args.B_y = B_y_new #(i + 1/2, j)
+  args.B_z = B_z_new #(i + 1/2, j + 1/2)
 
-#   # Tiling such that E_x, E_y and B_z have the same array dimensions as f:
-#   # This is required to perform the interpolation in velocity space:
-#   E_x = af.tile(E_x, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
-#   E_y = af.tile(E_y, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
-#   B_z = af.tile(B_z, 1, 1, f.shape[2], f.shape[3]) #(i + 1/2, j + 1/2)
+  args.E_x = E_x #(i + 1/2, j)
+  args.E_y = E_y #(i, j + 1/2)
+  args.E_z = E_z #(i, j)
+
+  # To account for half-time steps:
+  B_x = 0.5 * (B_x + B_x_new)
+  B_y = 0.5 * (B_y + B_y_new)
+  B_z = 0.5 * (B_z + B_z_new)
+
+  E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z)
+
+  # Tiling such that E_x, E_y and B_z have the same array dimensions as f:
+  # This is required to perform the interpolation in velocity space:
+  if(config.mode == '3V'):
+    E_x = af.tile(af.flat(E_x), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
+    E_y = af.tile(af.flat(E_y), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
+    E_z = af.tile(af.flat(B_z), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
+
+    B_x = af.tile(af.flat(B_x), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
+    B_y = af.tile(af.flat(B_y), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
+    B_z = af.tile(af.flat(B_z), 1, vel_x.shape[1], vel_x.shape[2], vel_x.shape[3]) #(i + 1/2, j + 1/2)
  
-#   F_x = charge_electron * (E_x + vel_y * B_z) #(i + 1/2, j + 1/2)
-#   F_y = charge_electron * (E_y - vel_x * B_z) #(i + 1/2, j + 1/2)
+  else:
+    E_x = af.tile(af.flat(E_x), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
+    E_y = af.tile(af.flat(E_y), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
+    E_z = af.tile(af.flat(B_z), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
 
-#   args.f = f_interp_vel_2d(args, F_x, F_y, dt)
+    B_x = af.tile(af.flat(B_x), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
+    B_y = af.tile(af.flat(B_y), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
+    B_z = af.tile(af.flat(B_z), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
 
-#   af.eval(args.f)
+  F_x = charge_electron * (E_x + vel_y * B_z - vel_z * B_y) #(i + 1/2, j + 1/2)
+  F_y = charge_electron * (E_y - vel_x * B_z + vel_z * B_x) #(i + 1/2, j + 1/2)
+  F_z = charge_electron * (E_z - vel_y * B_x + vel_x * B_y) #(i + 1/2, j + 1/2)
 
-#   # Destroying the vectors since we are done with their usage for the time-step:
-#   glob.destroy()
-#   local.destroy()
+  args.f = f_interp_vel_3d(args, F_x, F_y, F_z, dt)
 
-#   return(args)
+  # Convert to positionsExpanded:
+  args.f = af.moddims(args.f,                   
+                      (N_y_local + 2 * config.N_ghost),\
+                      (N_x_local + 2 * config.N_ghost),\
+                      config.N_vel_y*config.N_vel_x*config.N_vel_z,\
+                      1
+                     )
+  af.eval(args.f)
 
-def time_integration(da, args, time_array):
+  # Destroying the vectors since we are done with their usage for the time-step:
+  glob.destroy()
+  local.destroy()
+
+  return(args)
+
+def time_integration(da, da_fields, args, time_array):
 
   data = np.zeros(time_array.size)
-
 
   glob  = da.createGlobalVec()
   local = da.createLocalVec()
@@ -286,32 +331,33 @@ def time_integration(da, args, time_array):
     # Printing progress every 10 iterations
     # Printing only at rank = 0 to avoid multiple outputs:
     
-    if(time_index%1 == 0 and da.getComm().rank == 0):
+    if(time_index%10 == 0 and da.getComm().rank == 0):
         print("Computing for Time =", t0)
 
     dt = time_array[1] - time_array[0]
 
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    # args.f = collision_step(da, args, 0.5*dt)
-    # args.f = communicate_distribution_function(da, args, local, glob)
+    args.f = collision_step(da, args, 0.5*dt)
+    args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    # args   = fields_step(da_fields, args, dt)
-    # args.f = communicate_distribution_function(da, args, local, glob)
+    args   = fields_step(da_fields, args, dt)
+    args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
-    # args.f = collision_step(da, args, 0.5*dt)
-    # args.f = communicate_distribution_function(da, args, local, glob)
+    args.f = collision_step(da, args, 0.5*dt)
+    args.f = communicate_distribution_function(da, args, local, glob)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = communicate_distribution_function(da, args, local, glob)
     
-    # Convert to positionsExpanded:
+    # Convert to velocitiesExpanded:
     args.f = af.moddims(args.f,                   
+                        (N_x_local + 2 * N_ghost)*\
                         (N_y_local + 2 * N_ghost),\
-                        (N_x_local + 2 * N_ghost),\
-                        N_vel_y*N_vel_x*N_vel_z,\
-                        1
+                        N_vel_y,\
+                        N_vel_x,\
+                        N_vel_z
                        )
 
     data[time_index + 1] = af.max(calculate_density(args))
@@ -328,5 +374,3 @@ def time_integration(da, args, time_array):
   local.destroy()
 
   return(data, args.f)
-
-

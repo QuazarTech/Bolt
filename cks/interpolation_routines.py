@@ -6,6 +6,7 @@ def f_interp_2d(da, args, dt):
   f      = args.f
 
   N_ghost = config.N_ghost
+  
   N_vel_x = config.N_vel_x
   N_vel_y = config.N_vel_y
   N_vel_z = config.N_vel_z
@@ -83,15 +84,20 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   dv_z = (2*vel_z_max)/config.N_vel_z
   
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
-  vel_x_interpolant = (vel_x_new + vel_x[0, 0, 0, 0])/dv_x
-  vel_y_interpolant = (vel_y_new + vel_y[0, 0, 0, 0])/dv_y
-  vel_z_interpolant = (vel_z_new + vel_z[0, 0, 0, 0])/dv_z
+  vel_x_interpolant = (vel_x_new + af.sum(vel_x[0, 0, 0, 0]))/dv_x
+  vel_y_interpolant = (vel_y_new + af.sum(vel_y[0, 0, 0, 0]))/dv_y
+  vel_z_interpolant = (vel_z_new + af.sum(vel_z[0, 0, 0, 0]))/dv_z
   
   # Reordering to bring the variation in values along axis 0
   f = af.approx1(af.reorder(f),\
                  af.reorder(vel_y_interpolant),\
                  af.INTERP.CUBIC_SPLINE
                 )
+  
+  f = af.reorder(f)
+  # print(f.shape)
+  # print(vel_x_interpolant.shape)
+  # print(vel_z_interpolant.shape)
 
   f = af.approx2(af.reorder(f, 2, 3, 0, 1),\
                  af.reorder(vel_x_interpolant, 2, 3, 0, 1),\

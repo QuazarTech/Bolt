@@ -29,7 +29,6 @@ perturbation = dict(
                     pert_imag = 0,
                     k_x       = 2*np.pi,
                     k_y       = 0*np.pi,\
-                    k_z       = 0*np.pi,\
                    ) 
 
 position_space = dict(N_x     = 32,
@@ -40,16 +39,11 @@ position_space = dict(N_x     = 32,
                       y_start = 0,
                       y_end   = 1.0,
 
-                      N_z     = 3,
-                      z_start = 0,
-                      z_end   = 1.0,
- 
                       N_ghost = 3
                      )
 
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
-                           in_z = 'periodic',
 
                            left_temperature = 1.0,
                            left_rho         = 1.0,
@@ -73,7 +67,7 @@ boundary_conditions = dict(in_x = 'periodic',
                           )
 
 velocity_space = dict(N_vel_x   = 50,
-                      vel_x_max = 5.0, 
+                      vel_x_max = 10.0, 
 
                       N_vel_y   = 1, 
                       vel_y_max = 5.0,
@@ -83,7 +77,7 @@ velocity_space = dict(N_vel_x   = 50,
                      )
 
 time = dict(
-            final_time   = 1.5,
+            final_time   = 1.0,
             dt           = 0.005
            )
 

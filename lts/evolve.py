@@ -9,13 +9,12 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
 
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
-  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
-  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
 
   k_x = config.k_x   
   k_y = config.k_y
-  k_z = config.k_z
 
   mass_particle   = config.mass_particle
   charge_electron = config.charge_electron
@@ -31,12 +30,12 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
   delta_J_y_hat = charge_electron * delta_mom_bulk_y
   delta_J_z_hat = charge_electron * delta_mom_bulk_z
   
-  ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y - delta_B_y_hat * 1j * k_z) - delta_J_x_hat
-  ddelta_E_y_hat_dt = (delta_B_x_hat * 1j * k_z - delta_B_z_hat * 1j * k_x) - delta_J_y_hat
+  ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
+  ddelta_E_y_hat_dt = (- delta_B_z_hat * 1j * k_x) - delta_J_y_hat
   ddelta_E_z_hat_dt = (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) - delta_J_z_hat
 
-  ddelta_B_x_hat_dt = (delta_E_y_hat * 1j * k_z - delta_E_z_hat * 1j * k_y)
-  ddelta_B_y_hat_dt = (delta_E_z_hat * 1j * k_x - delta_E_x_hat * 1j * k_z)
+  ddelta_B_x_hat_dt = (- delta_E_z_hat * 1j * k_y)
+  ddelta_B_y_hat_dt = (delta_E_z_hat * 1j * k_x)
   ddelta_B_z_hat_dt = (delta_E_x_hat * 1j * k_y - delta_E_y_hat * 1j * k_x)
 
   fields_term = (charge_electron / mass_particle) * (delta_E_x_hat + \
@@ -54,7 +53,7 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
 
   C_f = BGK_collision_operator(config, delta_f_hat)
 
-  ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y + k_z * vel_z) * delta_f_hat -\
+  ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat -\
                      fields_term + C_f
   
   return(ddelta_f_hat_dt,\
@@ -106,15 +105,14 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
-  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
-  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
 
   k_x = config.k_x   
   k_y = config.k_y
-  k_z = config.k_z 
 
-  density_data  = np.zeros(time_array.size)
+  density_data = np.zeros(time_array.size)
 
   global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
   global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
@@ -123,11 +121,11 @@ def time_integration(config, delta_f_hat_initial, time_array):
 
   # Electrostatic Case:
   delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y * dv_z
-  delta_phi_hat = charge_electron * delta_rho_hat/(k_x**2 + k_y**2 + k_z**2)
+  delta_phi_hat = charge_electron * delta_rho_hat/(k_x**2 + k_y**2)
   
   delta_E_x_hat = -delta_phi_hat * (1j * k_x)
   delta_E_y_hat = -delta_phi_hat * (1j * k_y)
-  delta_E_z_hat = -delta_phi_hat * (1j * k_z)
+  delta_E_z_hat = 0
   
   delta_B_x_hat = 0 
   delta_B_y_hat = 0 

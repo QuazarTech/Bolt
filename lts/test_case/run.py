@@ -1,9 +1,8 @@
 import setup_simulation
 import lts.initialize as initialize
 import lts.evolve as evolve
-# import lts.export as export
+import lts.export as export
 import pylab as pl
-import numpy as np
 import params
 
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -47,4 +46,6 @@ pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.savefig('plot.png')
 
-# export.export_4D_distribution_function(config, delta_f_hat_final)
+f_dist = export.export_5D_distribution_function(config, delta_f_hat_final)
+
+print(f_dist.shape)

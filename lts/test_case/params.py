@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '3V'
+mode = '2V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -27,8 +27,7 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0*np.pi,
-                    k_z       = 0*np.pi,
+                    k_y       = 4*np.pi,
                    ) 
 
 position_space = dict(N_x     = 32,
@@ -38,17 +37,12 @@ position_space = dict(N_x     = 32,
                       N_y     = 32,
                       y_start = 0,
                       y_end   = 1.0,
-                       
-                      N_z     = 32,
-                      z_start = 0,
-                      z_end   = 1.0,
-                      
+
                       N_ghost = 3
                      )
 
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
-                           in_z = 'periodic',
 
                            left_temperature = 1.0,
                            left_rho         = 1.0,
@@ -71,19 +65,19 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 51,
+velocity_space = dict(N_vel_x   = 50,
                       vel_x_max = 10.0, 
 
-                      N_vel_y   = 51, 
+                      N_vel_y   = 50, 
                       vel_y_max = 10.0,
 
-                      N_vel_z   = 51, 
+                      N_vel_z   = 1, 
                       vel_z_max = 10.0,
                      )
 
 time = dict(
-            final_time   = 0.5,
-            dt           = 0.005
+            final_time   = 0.2,
+            dt           = 0.001
            )
 
 EM_fields = dict(
@@ -94,5 +88,5 @@ EM_fields = dict(
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                = 0.01 #np.inf
+                  tau                = np.inf
                  )
