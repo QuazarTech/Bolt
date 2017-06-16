@@ -26,14 +26,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 4*np.pi 
+                    k_y       = 0*np.pi 
                    ) 
 
-position_space = dict(N_x     = 32,
+position_space = dict(N_x     = 16,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 32,
+                      N_y     = 16,
                       y_start = 0,
                       y_end   = 1.0,
  
@@ -72,17 +72,17 @@ velocity_space = dict(N_vel_x   = 51,
                      )
 
 time = dict(
-            final_time   = 1.5,
+            final_time   = 0.5,
             dt           = 0.005
            )
 
 EM_fields = dict(
-                 charge_electron = 0,
+                 charge_electron = -10,
                  charge_ion      = 0, 
                  solver          = 'fdtd'
                 )
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  0.01 #np.inf
+                  tau                =  np.inf
                  )

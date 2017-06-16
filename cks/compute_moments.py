@@ -65,16 +65,15 @@ def calculate_temperature(args):
 
   # The temperature is calculated depending upon the defined dimensionality in
   # velocity space:
-  if(config.mode == '1V'):
-    pressure    = af.sum(af.sum(f*(vel_x-vel_bulk_x)**2, 3)*dv_x, 2)*dv_y
-    temperature = pressure/calculate_density(args)
+  # if(config.mode == '1V'):
+  pressure    = af.sum(af.sum(f*(vel_x-vel_bulk_x)**2, 3)*dv_x, 2)*dv_y
     
-  elif(config.mode == '2V'):
+  if(config.mode == '2V'):
     pressure = 0.5 * af.sum(af.sum(f*((vel_x-vel_bulk_x)**2 + \
                                       (vel_y-vel_bulk_y)**2
                                      ), 3)*dv_x, 2)*dv_y
         
-    temperature = pressure/calculate_density(args)
-    
+
+  temperature = pressure/calculate_density(args)
   af.eval(temperature)
   return(temperature)

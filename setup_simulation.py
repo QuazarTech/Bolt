@@ -35,14 +35,14 @@ def configuration_object(params):
   config.temperature_background = params.background_electrons['temperature']
   config.vel_bulk_x_background  = params.background_electrons['vel_bulk_x']
   config.vel_bulk_y_background  = params.background_electrons['vel_bulk_y']
-  config.vel_bulk_z_background  = params.background_electrons['vel_bulk_z']
+  # config.vel_bulk_z_background  = params.background_electrons['vel_bulk_z']
 
   # Defining amplitude and wave number of the perturbation in the domain:
   config.pert_real = params.perturbation['pert_real']
   config.pert_imag = params.perturbation['pert_imag']
   config.k_x       = params.perturbation['k_x']
   config.k_y       = params.perturbation['k_y']
-  config.k_z       = params.perturbation['k_z']
+  # config.k_z       = params.perturbation['k_z']
 
   # Defining the resolution in position space:
   config.N_x     = params.position_space['N_x']
@@ -53,9 +53,9 @@ def configuration_object(params):
   config.y_start = params.position_space['y_start']
   config.y_end   = params.position_space['y_end']
 
-  config.N_z     = params.position_space['N_z']
-  config.z_start = params.position_space['z_start']
-  config.z_end   = params.position_space['z_end']
+  # config.N_z     = params.position_space['N_z']
+  # config.z_start = params.position_space['z_start']
+  # config.z_end   = params.position_space['z_end']
 
   config.N_ghost = params.position_space['N_ghost']
 
@@ -66,13 +66,13 @@ def configuration_object(params):
   config.N_vel_y   = params.velocity_space['N_vel_y']
   config.vel_y_max = params.velocity_space['vel_y_max']
 
-  config.N_vel_z   = params.velocity_space['N_vel_z']
-  config.vel_z_max = params.velocity_space['vel_z_max']
+  # config.N_vel_z   = params.velocity_space['N_vel_z']
+  # config.vel_z_max = params.velocity_space['vel_z_max']
 
   # Defining the boundary condition that is utilized in x and y directions:
   config.bc_in_x = params.boundary_conditions['in_x']
   config.bc_in_y = params.boundary_conditions['in_y']
-  config.bc_in_z = params.boundary_conditions['in_z']
+  # config.bc_in_z = params.boundary_conditions['in_z']
 
   # Defining the quantities at the boundaries for Dirichlet boundary conditions:
   config.left_rho         = params.boundary_conditions['left_rho']  
