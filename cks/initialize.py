@@ -410,13 +410,14 @@ class Poisson2D(object):
 
     # Taking left/bottom Values:
     i, j = i_left + np.arange(N_x_local), j_bottom + np.arange(N_y_local)
-    x, y = self.config.x_start + i * dx, self.config.x_end + j * dy
+    x, y = self.config.x_start + i * dx, self.config.y_start + j * dy
 
     # rho is calculated at (i, j)
     x, y       = np.meshgrid(x, y)
-    rho_val[:] = self.config.charge_electron * np.sin(self.config.k_x*x + \
-                                                      self.config.k_y*y
-                                                     ) * dx * dy
+    rho_val[:] = 0.01 * self.config.charge_electron * np.cos(self.config.k_x*x + \
+                                                             self.config.k_y*y
+                                                            ) * dx * dy
+    # print(rho_val[:])
         
   def mult(self, mat, X, Y):
         
@@ -444,6 +445,7 @@ class Poisson2D(object):
         y[j, i] = u_xx + u_yy
 
 def initialize_electric_fields(da, config):
+  
   dx = (config.x_start - config.x_end)/config.N_x
   dy = (config.y_start - config.y_end)/config.N_y
   N_y_local, N_x_local = da.getSizes()

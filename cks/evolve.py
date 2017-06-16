@@ -7,6 +7,7 @@ from cks.compute_moments import calculate_density, calculate_vel_bulk_x,\
                                 calculate_mom_bulk_z, calculate_temperature
 
 from cks.interpolation_routines import f_interp_vel_3d
+from petsc4py import PETSc
 
 def communicate_distribution_function(da, args, local, glob):
 
@@ -174,10 +175,95 @@ def collision_step(da, args, dt):
   af.eval(args.f)
   return(args.f)
 
+class Poisson2D(object):
+
+  def __init__(self, da, config):
+    assert da.getDim() == 2
+    self.da     = da
+    self.config = config
+    self.localX = da.createLocalVec()
+
+  def formRHS(self, rho, rho_array):
+    rho_val = self.da.getVecArray(rho)
+      
+    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
+    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
+
+    rho_val[:] = rho_array * dx * dy
+    # print(rho_val[:])
+        
+  def mult(self, mat, X, Y):
+        
+    self.da.globalToLocal(X, self.localX)
+    
+    x = self.da.getVecArray(self.localX)
+    y = self.da.getVecArray(Y)
+    
+    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
+    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
+    
+    (y_start, y_end), (x_start, x_end) = self.da.getRanges()
+    
+    for j in range(y_start, y_end):
+      for i in range(x_start, x_end):
+        u    = x[j, i]   # center
+        u_w  = x[j, i-1] # west
+        u_e  = x[j, i+1] # east
+        u_s  = x[j-1, i] # south
+        u_n  = x[j+1, i] # north
+        
+        u_xx = (-u_e + 2*u - u_w)*dy/dx
+        u_yy = (-u_n + 2*u - u_s)*dx/dy
+ 
+        y[j, i] = u_xx + u_yy
+
+def solve_electrostatic_fields(da, config, rho_array):
+  dx = (config.x_start - config.x_end)/config.N_x
+  dy = (config.y_start - config.y_end)/config.N_y
+  N_y_local, N_x_local = da.getSizes()
+
+  pde = Poisson2D(da, config)
+  phi = da.createGlobalVec()
+  rho = da.createGlobalVec()
+
+  A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm = da.comm)
+  A.setPythonContext(pde)
+  A.setUp()
+
+  ksp = PETSc.KSP().create()
+
+  ksp.setOperators(A)
+  ksp.setType('cg')
+
+  pc = ksp.getPC()
+  pc.setType('none')
+
+  pde.formRHS(rho, rho_array)
+  # ksp.setTolerances(1e-14, 1e-50, 1000, 1000)
+  ksp.setFromOptions()
+  ksp.solve(rho, phi)
+
+  # Since rho was defined at (i + 0.5, j + 0.5) 
+  # Electric Potential returned will also be at (i + 0.5, j + 0.5)
+  electric_potential = af.to_array(np.swapaxes(phi[:].reshape(N_x_local, N_y_local), 0, 1))
+  
+  # Interpolating to obtain the values at (i, j):
+  electric_potential = 0.25 * (electric_potential + \
+                               af.shift(electric_potential, 1, 0) + \
+                               af.shift(electric_potential, 0, 1) + \
+                               af.shift(electric_potential, 1, 1)
+                              )
+
+  E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx #(i+1/2, j)
+  E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy #(i, j+1/2)
+
+  af.eval(E_x, E_y)
+  return(E_x, E_y)
+
 def fields_step(da, args, dt):
 
-  config = args.config
-  f      = args.f
+  config  = args.config
+  N_ghost = config.N_ghost
 
   vel_x  = args.vel_x
   vel_y  = args.vel_y
@@ -204,48 +290,84 @@ def fields_step(da, args, dt):
 
   # Convert to velocitiesExpanded:
   args.f = af.moddims(args.f,                   
-                      (N_x_local + 2 * config.N_ghost)*\
-                      (N_y_local + 2 * config.N_ghost),\
+                      (N_x_local + 2 * N_ghost)*\
+                      (N_y_local + 2 * N_ghost),\
                       config.N_vel_y,\
                       config.N_vel_x,\
                       config.N_vel_z
                      )
 
-  J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
-  J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
-  J_z = charge_electron * calculate_mom_bulk_z(args) #(i + 1/2, j + 1/2)
-
-  J_x = 0.5 * (J_x + af.shift(J_x, 1, 0)) #(i + 1/2, j)
-  J_y = 0.5 * (J_y + af.shift(J_y, 0, 1)) #(i, j + 1/2)
-  J_z = 0.25 * (J_z + af.shift(J_z, 1, 0) + af.shift(J_z, 0, 1) + af.shift(J_z, 1, 1)) #(i, j)
-
-  J_x = communicate_fields(da, config, J_x, local, glob) #(i + 1/2, j)
-  J_y = communicate_fields(da, config, J_y, local, glob) #(i, j + 1/2)
-  J_z = communicate_fields(da, config, J_z, local, glob) #(i, j)
-
   from cks.fdtd import fdtd, fdtd_grid_to_ck_grid
 
-  E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(da, config,\
-                                                  E_x, E_y, E_z,\
-                                                  B_x, B_y, B_z,\
-                                                  J_x, J_y, J_z,\
-                                                  dt
-                                                 )
+  if(config.fields_solver == 'electrostatic'):
+    
+    rho_array = charge_electron * (calculate_density(args) - config.rho_background)
+    #(i + 1/2, j + 1/2)
+    
+    rho_array = af.moddims(rho_array,\
+                           N_y_local + 2 * N_ghost,\
+                           N_x_local + 2 * N_ghost
+                          )
+
+    rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+                                    N_ghost:-N_ghost
+                                   ]
+    
+    E_x_local, E_y_local = solve_electrostatic_fields(da, config, rho_array)
+
+    E_x[N_ghost:-N_ghost, N_ghost:-N_ghost] = E_x_local
+    E_y[N_ghost:-N_ghost, N_ghost:-N_ghost] = E_y_local
+
+    E_x = communicate_fields(da, config, E_x, local, glob) #(i + 1/2, j)
+    E_y = communicate_fields(da, config, E_y, local, glob) #(i, j + 1/2)
+
+  else:
+    J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
+    J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
+    J_z = charge_electron * calculate_mom_bulk_z(args) #(i + 1/2, j + 1/2)
+
+    J_x = af.moddims(J_x,\
+                     N_y_local + 2 * N_ghost,\
+                     N_x_local + 2 * N_ghost
+                    )
+    
+    J_y = af.moddims(J_y,\
+                     N_y_local + 2 * N_ghost,\
+                     N_x_local + 2 * N_ghost
+                    )
+
+    J_z = af.moddims(J_z,\
+                     N_y_local + 2 * N_ghost,\
+                     N_x_local + 2 * N_ghost
+                    )
+
+    J_x = 0.5 * (J_x + af.shift(J_x, 1, 0)) #(i + 1/2, j)
+    J_y = 0.5 * (J_y + af.shift(J_y, 0, 1)) #(i, j + 1/2)
+    J_z = 0.25 * (J_z + af.shift(J_z, 1, 0) + af.shift(J_z, 0, 1) + af.shift(J_z, 1, 1)) #(i, j)
+
+    J_x = communicate_fields(da, config, J_x, local, glob) #(i + 1/2, j)
+    J_y = communicate_fields(da, config, J_y, local, glob) #(i, j + 1/2)
+    J_z = communicate_fields(da, config, J_z, local, glob) #(i, j)
+
+    E_x, E_y, E_z, B_x_new, B_y_new, B_z_new = fdtd(da, config,\
+                                                    E_x, E_y, E_z,\
+                                                    B_x, B_y, B_z,\
+                                                    J_x, J_y, J_z,\
+                                                    dt
+                                                   )
   
-  # print(af.max(B_z_new))
+    args.B_x = B_x_new #(i, j + 1/2)
+    args.B_y = B_y_new #(i + 1/2, j)
+    args.B_z = B_z_new #(i + 1/2, j + 1/2)
 
-  args.B_x = B_x_new #(i, j + 1/2)
-  args.B_y = B_y_new #(i + 1/2, j)
-  args.B_z = B_z_new #(i + 1/2, j + 1/2)
+    args.E_x = E_x #(i + 1/2, j)
+    args.E_y = E_y #(i, j + 1/2)
+    args.E_z = E_z #(i, j)
 
-  args.E_x = E_x #(i + 1/2, j)
-  args.E_y = E_y #(i, j + 1/2)
-  args.E_z = E_z #(i, j)
-
-  # To account for half-time steps:
-  B_x = 0.5 * (B_x + B_x_new)
-  B_y = 0.5 * (B_y + B_y_new)
-  B_z = 0.5 * (B_z + B_z_new)
+    # To account for half-time steps:
+    B_x = 0.5 * (B_x + B_x_new)
+    B_y = 0.5 * (B_y + B_y_new)
+    B_z = 0.5 * (B_z + B_z_new)
 
   E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(da, config, E_x, E_y, E_z, B_x, B_y, B_z)
 

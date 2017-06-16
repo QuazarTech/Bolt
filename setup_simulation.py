@@ -96,6 +96,7 @@ def configuration_object(params):
   # Defining the charge of electrons and ions:  
   config.charge_electron = params.EM_fields['charge_electron']
   config.charge_ion      = params.EM_fields['charge_ion']
+  config.fields_solver   = params.EM_fields['solver']
 
   # Defining the collisional time-scale utilized:
   config.collision_operator = params.collisions['collision_operator']

@@ -1,5 +1,5 @@
 from mpi4py import MPI
-import petsc4py
+import petsc4py, sys
 from petsc4py import PETSc
 
 # Importing solver library functions
@@ -63,7 +63,7 @@ N_vel_z = config.N_vel_z
 
 N_ghost = config.N_ghost
 
-petsc4py.init()
+petsc4py.init(sys.argv)
 
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
@@ -142,12 +142,12 @@ k_y       = config.k_y
 charge_electron = config.charge_electron
 
 # The following quantities are defined on the Yee-Grid:
-args.E_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
-args.E_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
-args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j + 1/2)
-args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j + 1/2)
-args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i + 1/2, j)
-args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64) #(i, j)
+args.E_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.E_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 
 args.E_x[N_ghost:-N_ghost, N_ghost:-N_ghost], args.E_y[N_ghost:-N_ghost, N_ghost:-N_ghost] = \
 initialize.initialize_electric_fields(da_fields, config)
@@ -155,8 +155,6 @@ initialize.initialize_electric_fields(da_fields, config)
 # Global data holds the information of the density amplitude for the entire physical domain:
 global_data   = np.zeros(time_array.size) 
 data, f_final = evolve.time_integration(da, da_fields, args, time_array)
-
-print(f_final.shape)
 
 # Passing the values non-inclusive of ghost cells:
 global_vec_value[:] = np.array(f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :])
