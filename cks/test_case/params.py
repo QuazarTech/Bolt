@@ -1,7 +1,7 @@
 import numpy as np
 
 num_devices = 1
-mode        = '1V'
+mode        = '3V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -28,14 +28,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 0*np.pi,\
+                    k_y       = 4*np.pi,\
                    ) 
 
-position_space = dict(N_x     = 64,
+position_space = dict(N_x     = 16,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 3,
+                      N_y     = 16,
                       y_start = 0,
                       y_end   = 1.0,
 
@@ -66,14 +66,14 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 50,
+velocity_space = dict(N_vel_x   = 33,
                       vel_x_max = 10.0, 
 
-                      N_vel_y   = 1, 
-                      vel_y_max = 5.0,
+                      N_vel_y   = 33, 
+                      vel_y_max = 10.0,
 
-                      N_vel_z   = 1, 
-                      vel_z_max = 5.0
+                      N_vel_z   = 33, 
+                      vel_z_max = 10.0
                      )
 
 time = dict(
@@ -84,7 +84,7 @@ time = dict(
 EM_fields = dict(
                  charge_electron = -10,
                  charge_ion      = 10, 
-                 solver          = 'fdtd'
+                 solver          = 'electrostatic'
                 )
 
 collisions = dict(

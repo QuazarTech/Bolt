@@ -88,17 +88,18 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/dv_y
   vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/dv_z
   
+  # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0
-  f = af.approx1(af.reorder(f, 2, 3, 0, 1),\
-                 af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+  f = af.approx1(af.reorder(f),\
+                 af.reorder(vel_y_interpolant),\
                  af.INTERP.CUBIC_SPLINE
                 )
   
-  # f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
-  #                af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
-  #                af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-  #                af.INTERP.BICUBIC_SPLINE
-  #               )
+  f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
+                 af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+                 af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
+                 af.INTERP.BICUBIC_SPLINE
+                )
 
   # Reordering back to the original convention(velocitiesExpanded):
   f = af.reorder(f, 2, 3, 0, 1)

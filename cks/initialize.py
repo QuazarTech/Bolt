@@ -417,7 +417,6 @@ class Poisson2D(object):
     rho_val[:] = 0.01 * self.config.charge_electron * np.cos(self.config.k_x*x + \
                                                              self.config.k_y*y
                                                             ) * dx * dy
-    # print(rho_val[:])
         
   def mult(self, mat, X, Y):
         

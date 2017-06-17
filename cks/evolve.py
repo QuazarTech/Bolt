@@ -43,9 +43,7 @@ def communicate_fields(da, config, local_field, local, glob):
 
   N_ghost = config.N_ghost
 
-  local_value[:] = np.array(local_field).reshape(local_value[:].shape[0],\
-                                                 local_value[:].shape[1]
-                                                )
+  local_value[:] = np.array(local_field)
   
   # Global value is non-inclusive of the ghost-zones:
   glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
@@ -190,7 +188,6 @@ class Poisson2D(object):
     dy = (self.config.y_start - self.config.y_end)/self.config.N_y
 
     rho_val[:] = rho_array * dx * dy
-    # print(rho_val[:])
         
   def mult(self, mat, X, Y):
         
@@ -239,7 +236,6 @@ def solve_electrostatic_fields(da, config, rho_array):
   pc.setType('none')
 
   pde.formRHS(rho, rho_array)
-  # ksp.setTolerances(1e-14, 1e-50, 1000, 1000)
   ksp.setFromOptions()
   ksp.solve(rho, phi)
 
@@ -322,6 +318,7 @@ def fields_step(da, args, dt):
     E_y = communicate_fields(da, config, E_y, local, glob) #(i, j + 1/2)
 
   else:
+
     J_x = charge_electron * calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
     J_y = charge_electron * calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
     J_z = charge_electron * calculate_mom_bulk_z(args) #(i + 1/2, j + 1/2)
@@ -391,9 +388,9 @@ def fields_step(da, args, dt):
     B_y = af.tile(af.flat(B_y), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
     B_z = af.tile(af.flat(B_z), 1, vel_x.shape[1], vel_x.shape[2], 1) #(i + 1/2, j + 1/2)
 
-  F_x = charge_electron * (E_x + vel_y * B_z - vel_z * B_y) #(i + 1/2, j + 1/2)
-  F_y = charge_electron * (E_y - vel_x * B_z + vel_z * B_x) #(i + 1/2, j + 1/2)
-  F_z = charge_electron * (E_z - vel_y * B_x + vel_x * B_y) #(i + 1/2, j + 1/2)
+  F_x = charge_electron * (E_x) #+ vel_y * B_z - vel_z * B_y) #(i + 1/2, j + 1/2)
+  F_y = charge_electron * (E_y) #- vel_x * B_z + vel_z * B_x) #(i + 1/2, j + 1/2)
+  F_z = charge_electron * (E_z) #- vel_y * B_x + vel_x * B_y) #(i + 1/2, j + 1/2)
 
   args.f = f_interp_vel_3d(args, F_x, F_y, F_z, dt)
 
