@@ -38,29 +38,34 @@ def maxwell_boltzmann(config, vel_x, vel_y, vel_z):
   return(f)
 
 def init_velocities(config):
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  # These are the cell centered values in velocity space:
+  i_v_x = 0.5 + np.arange(0, config.N_vel_x, 1)
+  dv_x  = (2*config.vel_x_max)/config.N_vel_x
+  vel_x = -config.vel_x_max + i_v_x * dv_x
 
-  vel_y_max = config.vel_y_max
-  N_vel_y   = config.N_vel_y
-  vel_y     = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+  i_v_y = 0.5 + np.arange(0, config.N_vel_y, 1)
+  dv_y  = (2*config.vel_y_max)/config.N_vel_y
+  vel_y = -config.vel_y_max + i_v_y * dv_y
 
-  vel_z_max = config.vel_z_max
-  N_vel_z   = config.N_vel_z
-  vel_z     = np.linspace(-vel_z_max, vel_z_max, N_vel_z)
+  i_v_z = 0.5 + np.arange(0, config.N_vel_z, 1)
+  dv_z  = (2*config.vel_z_max)/config.N_vel_z
+  vel_z = -config.vel_z_max + i_v_z * dv_z
 
   vel_x, vel_y, vel_z = np.meshgrid(vel_x, vel_y, vel_z)
 
+  vel_x = vel_x.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
+  vel_y = vel_y.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
+  vel_z = vel_z.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
+ 
   return(vel_x, vel_y, vel_z)
 
 def f_background(config, return_normalization = 0):
 
   vel_x, vel_y, vel_z = init_velocities(config)
 
-  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
-  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
-  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
   
   f_background  = maxwell_boltzmann(config, vel_x, vel_y, vel_z)
   normalization = np.sum(f_background) * dv_x * dv_y * dv_z
@@ -75,14 +80,31 @@ def f_background(config, return_normalization = 0):
 def dfdv_r_background(config):
   
   vel_x, vel_y, vel_z = init_velocities(config)
-  dv_x                = vel_x[0, 1, 0] - vel_x[0, 0, 0]
-  dv_y                = vel_y[1, 0, 0] - vel_y[0, 0, 0]
-  dv_z                = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+  
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
 
   f_background_local = f_background(config)
-  dfdv_x_background  = (np.gradient(f_background_local)[1])/dv_x
-  dfdv_y_background  = (np.gradient(f_background_local)[0])/dv_y
-  dfdv_z_background  = (np.gradient(f_background_local)[2])/dv_z
+
+  if(config.N_vel_z == 1 and config.N_vel_y == 1):
+    dfdv_x_background = (np.gradient(f_background_local[0, :, 0])[1])/dv_x
+    dfdv_y_background = np.zeros_like(f_background_local)
+    dfdv_z_background = np.zeros_like(f_background_local)
+
+  elif(config.N_vel_z == 1):
+    dfdv_x_background = (np.gradient(f_background_local[:, :, 0])[1])/dv_x
+    dfdv_y_background = (np.gradient(f_background_local[:, :, 0])[0])/dv_y
+    dfdv_z_background = np.zeros_like(f_background_local)
+  
+  else:
+    dfdv_x_background = (np.gradient(f_background_local)[1])/dv_x
+    dfdv_y_background = (np.gradient(f_background_local)[0])/dv_y
+    dfdv_z_background = (np.gradient(f_background_local)[2])/dv_z
+
+  dfdv_x_background = dfdv_x_background.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
+  dfdv_y_background = dfdv_y_background.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
+  dfdv_z_background = dfdv_z_background.reshape([config.N_vel_y, config.N_vel_x, config.N_vel_z])
 
   return(dfdv_x_background, dfdv_y_background, dfdv_z_background)
 

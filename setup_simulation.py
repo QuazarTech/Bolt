@@ -42,7 +42,6 @@ def configuration_object(params):
   config.pert_imag = params.perturbation['pert_imag']
   config.k_x       = params.perturbation['k_x']
   config.k_y       = params.perturbation['k_y']
-  # config.k_z       = params.perturbation['k_z']
 
   # Defining the resolution in position space:
   config.N_x     = params.position_space['N_x']
@@ -52,10 +51,6 @@ def configuration_object(params):
   config.N_y     = params.position_space['N_y']
   config.y_start = params.position_space['y_start']
   config.y_end   = params.position_space['y_end']
-
-  # config.N_z     = params.position_space['N_z']
-  # config.z_start = params.position_space['z_start']
-  # config.z_end   = params.position_space['z_end']
 
   config.N_ghost = params.position_space['N_ghost']
 
@@ -72,7 +67,6 @@ def configuration_object(params):
   # Defining the boundary condition that is utilized in x and y directions:
   config.bc_in_x = params.boundary_conditions['in_x']
   config.bc_in_y = params.boundary_conditions['in_y']
-  # config.bc_in_z = params.boundary_conditions['in_z']
 
   # Defining the quantities at the boundaries for Dirichlet boundary conditions:
   config.left_rho         = params.boundary_conditions['left_rho']  
@@ -102,6 +96,7 @@ def configuration_object(params):
   # Defining the charge of electrons and ions:  
   config.charge_electron = params.EM_fields['charge_electron']
   config.charge_ion      = params.EM_fields['charge_ion']
+  config.fields_solver   = params.EM_fields['solver']
 
   # Defining the collisional time-scale utilized:
   config.collision_operator = params.collisions['collision_operator']

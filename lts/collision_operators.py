@@ -11,9 +11,9 @@ def BGK_collision_operator(config, delta_f_hat):
   
   vel_x, vel_y, vel_z = init_velocities(config)
 
-  dv_x = vel_x[0, 1, 0] - vel_x[0, 0, 0]
-  dv_y = vel_y[1, 0, 0] - vel_y[0, 0, 0]
-  dv_z = vel_z[0, 0, 1] - vel_z[0, 0, 0]
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
 
   tau           = config.tau
   normalization = f_background(config, 1)
