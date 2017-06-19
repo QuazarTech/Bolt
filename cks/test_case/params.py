@@ -1,7 +1,7 @@
 import numpy as np
 
 num_devices = 1
-mode        = '3V'
+mode        = '1V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -28,14 +28,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 4*np.pi,\
+                    k_y       = 0*np.pi,\
                    ) 
 
-position_space = dict(N_x     = 16,
+position_space = dict(N_x     = 64,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 16,
+                      N_y     = 3,
                       y_start = 0,
                       y_end   = 1.0,
 
@@ -45,6 +45,7 @@ position_space = dict(N_x     = 16,
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
 
+                           # Mention for Dirichlet Below:
                            left_temperature = 1.0,
                            left_rho         = 1.0,
                            left_vel_bulk_x  = 0,
@@ -69,10 +70,10 @@ boundary_conditions = dict(in_x = 'periodic',
 velocity_space = dict(N_vel_x   = 33,
                       vel_x_max = 10.0, 
 
-                      N_vel_y   = 33, 
+                      N_vel_y   = 1, 
                       vel_y_max = 10.0,
 
-                      N_vel_z   = 33, 
+                      N_vel_z   = 1, 
                       vel_z_max = 10.0
                      )
 
@@ -89,5 +90,5 @@ EM_fields = dict(
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                =  np.inf
+                  tau                = np.inf
                  )

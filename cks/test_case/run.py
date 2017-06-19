@@ -20,7 +20,7 @@ if(pylab_found != None):
 
   # Setting plot parameters:
   pl.rcParams['figure.figsize']  = 12, 7.5
-  pl.rcParams['figure.dpi']      = 300
+  pl.rcParams['figure.dpi']      = 100
   pl.rcParams['image.cmap']      = 'jet'
   pl.rcParams['lines.linewidth'] = 1.5
   pl.rcParams['font.family']     = 'serif'
@@ -81,6 +81,7 @@ da = PETSc.DMDA().create([N_y, N_x],\
                         ) 
 
 da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                dof = 6,\
                                 stencil_width = N_ghost,\
                                 boundary_type = da.getBoundaryType(),\
                                 proc_sizes = da.getProcSizes(), \
@@ -88,9 +89,15 @@ da_fields = PETSc.DMDA().create([N_y, N_x],\
                                 comm = da.getComm()
                                )
 
-# Obtaining the left-bottom corner coordinates 
-# of the left-bottom corner cell in the local zone considered:
-((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
+if(config.fields_solver == 'electrostatic'):
+  da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                  dof = 1,\
+                                  stencil_width = N_ghost,\
+                                  boundary_type = da.getBoundaryType(),\
+                                  proc_sizes = da.getProcSizes(), \
+                                  stencil_type = 1, \
+                                  comm = da.getComm()
+                                 )
 
 # Declaring global vectors to export the final distribution function:
 global_vector    = da.createGlobalVec()
@@ -108,6 +115,12 @@ if(comm.rank == 0):
 x_center = initialize.calculate_x_center(da, config)
 y_center = initialize.calculate_y_center(da, config)
 
+x_left   = initialize.calculate_x_left(da, config)
+y_bottom = initialize.calculate_y_bottom(da, config)
+
+x_right = initialize.calculate_x_right(da, config)
+y_top   = initialize.calculate_y_top(da, config)
+
 vel_x, vel_y, vel_z = initialize.calculate_velocities(da, config) #velocitiesExpanded form
 
 # Initializing the value for distribution function:
@@ -124,8 +137,6 @@ class args:
 args.config = config
 args.f      = f_initial
 
-density = cks.compute_moments.calculate_density(args)
-
 args.vel_x = vel_x
 args.vel_y = vel_y
 args.vel_z = vel_z
@@ -136,21 +147,30 @@ args.y_center = y_center
 pert_real = config.pert_real
 pert_imag = config.pert_imag
 
-k_x       = config.k_x
-k_y       = config.k_y
+k_x = config.k_x
+k_y = config.k_y
 
 charge_electron = config.charge_electron
 
 # The following quantities are defined on the Yee-Grid:
-args.E_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-args.E_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
+           (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
+            pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
+           ) #(i + 1/2, j)
+
+args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
+           (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+            pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+           ) #(i, j + 1/2)
+
+args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
 args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 
-args.E_x[N_ghost:-N_ghost, N_ghost:-N_ghost], args.E_y[N_ghost:-N_ghost, N_ghost:-N_ghost] = \
-initialize.initialize_electric_fields(da_fields, config)
+# Obtaining the left-bottom corner coordinates 
+# of the left-bottom corner cell in the local zone considered:
+((j_bottom, i_left), (N_y_local, N_x_local)) = da_fields.getCorners()
 
 # Global data holds the information of the density amplitude for the entire physical domain:
 global_data   = np.zeros(time_array.size) 
@@ -167,10 +187,9 @@ comm.Reduce(data,\
             root = 0
            )
 
-# # # Plotting/Export of the global-data:
+# Plotting/Export of the global-data:
 if(comm.rank == 0):
   if(pylab_found != None):
-    print(global_data)
     pl.plot(time_array, global_data - 1)
     pl.xlabel('Time')
     pl.ylabel(r'$MAX(\delta \rho(x))$')

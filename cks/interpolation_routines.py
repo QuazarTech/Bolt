@@ -1,35 +1,29 @@
+# Since we intend to use this code for a 2D3V simulation run, some manipulations
+# need to be performed to allow us to run the same by making use of 4D array structures
+# For this purpose, we define 2 forms for every array involved in the calculation:
+# positionsExpanded  form : (Ny, Nx, Nvy*Nvx*Nvz, 1)
+# velocitiesExpanded form : (Ny*Nx, Nvy, Nvx, Nvz, 1)
+
 import arrayfire as af
+import cks.convert
 
 def f_interp_2d(da, args, dt):
-  # All the arrays need to be in positionsExpanded form
+  # Since the interpolation function are being performed in position space,
+  # the arrays used in the computation need to be in positionsExpanded form.
+
   config = args.config
   f      = args.f
 
   N_ghost = config.N_ghost
-  
-  N_vel_x = config.N_vel_x
-  N_vel_y = config.N_vel_y
-  N_vel_z = config.N_vel_z
 
   # Obtaining the left-bottom corner coordinates 
   # of the left-bottom corner cell in the local zone considered:
   ((j_bottom, i_left), (N_y_local, N_x_local)) = da.getCorners()
   
-  # We need velocity arrays to be in positionExpanded form:
-  vel_x = af.moddims(args.vel_x,                   
-                     (N_y_local + 2 * N_ghost),\
-                     (N_x_local + 2 * N_ghost),\
-                     N_vel_y*N_vel_x*N_vel_z,\
-                     1
-                    )
+  # We need velocity arrays to be in positionsExpanded form:
+  vel_x = cks.convert.to_positionsExpanded(da, config, args.vel_x)
+  vel_y = cks.convert.to_positionsExpanded(da, config, args.vel_y)
 
-  vel_y = af.moddims(args.vel_y,                   
-                     (N_y_local + 2 * N_ghost),\
-                     (N_x_local + 2 * N_ghost),\
-                     N_vel_y*N_vel_x*N_vel_z,\
-                     1
-                    )
-  
   x_center = args.x_center 
   y_center = args.y_center 
 
@@ -56,32 +50,31 @@ def f_interp_2d(da, args, dt):
   f = af.approx2(f,\
                  y_interpolant,\
                  x_interpolant,\
-                 af.INTERP.BICUBIC_SPLINE
+                 af.INTERP.BILINEAR
                 )
 
   af.eval(f)
   return(f)
 
 def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
-  # All the arrays need to be in velocitiesExpanded form
+  # Since the interpolation function are being performed in velocity space,
+  # the arrays used in the computation need to be in velocitiesExpanded form.
   config = args.config
   f      = args.f
   
+  # args.vel_x,y,z are already in velocitiesExpanded form
   vel_x = args.vel_x
   vel_y = args.vel_y
   vel_z = args.vel_z
   
-  vel_x_max = config.vel_x_max
-  vel_y_max = config.vel_y_max
-  vel_z_max = config.vel_z_max
-
+  # F_x,y,z need to be passed in velocitiesExpanded form
   vel_x_new = vel_x - dt * F_x
   vel_y_new = vel_y - dt * F_y
   vel_z_new = vel_z - dt * F_z
 
-  dv_x = (2*vel_x_max)/config.N_vel_x
-  dv_y = (2*vel_y_max)/config.N_vel_y
-  dv_z = (2*vel_z_max)/config.N_vel_z
+  dv_x = (2*config.vel_x_max)/config.N_vel_x
+  dv_y = (2*config.vel_y_max)/config.N_vel_y
+  dv_z = (2*config.vel_z_max)/config.N_vel_z
   
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
   vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/dv_x
@@ -89,19 +82,26 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/dv_z
   
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
-  # Reordering to bring the variation in values along axis 0
+  # Reordering to bring the variation in values along axis 0 and axis 1
+
+  # Reordering from f(Ny*Nx, vel_y, vel_x, vel_z)     --> f(vel_y, Ny*Nx, vel_x, vel_z)
+  # Reordering from vel_y(Ny*Nx, vel_y, vel_x, vel_z) --> vel_y(vel_y, Ny*Nx, vel_x, vel_z)
   f = af.approx1(af.reorder(f),\
                  af.reorder(vel_y_interpolant),\
-                 af.INTERP.CUBIC_SPLINE
+                 af.INTERP.LINEAR
                 )
   
+  # Reordering from f(vel_y, Ny*Nx, vel_x, vel_z)     --> f(vel_x, vel_z, Ny*Nx, vel_y)
+  # Reordering from vel_x(Ny*Nx, vel_y, vel_x, vel_z) --> vel_x(vel_x, vel_z, Ny*Nx, vel_y)
+  # Reordering from vel_z(Ny*Nx, vel_y, vel_x, vel_z) --> vel_z(vel_x, vel_z, Ny*Nx, vel_y)
   f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
                  af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
                  af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-                 af.INTERP.BICUBIC_SPLINE
+                 af.INTERP.BILINEAR
                 )
 
   # Reordering back to the original convention(velocitiesExpanded):
+  # Reordering from f(vel_x, vel_z, Ny*Nx, vel_y) --> f(Ny*Nx, vel_y, vel_x, vel_z)
   f = af.reorder(f, 2, 3, 0, 1)
 
   af.eval(f)

@@ -1,6 +1,6 @@
 import numpy as np
 import arrayfire as af 
-from petsc4py import PETSc
+import cks.convert
 
 def calculate_x_left(da, config):
   N_x     = config.N_x
@@ -285,8 +285,6 @@ def f_initial(da, config):
   N_vel_y = config.N_vel_y
   N_vel_z = config.N_vel_z
 
-  N_ghost = config.N_ghost
-
   vel_y_max = config.vel_y_max
   vel_x_max = config.vel_x_max
   vel_z_max = config.vel_z_max
@@ -318,13 +316,7 @@ def f_initial(da, config):
 
   # Modifying the dimensions of rho:
   # Converting from positionsExpanded form to velocitiesExpanded form:
-  rho = af.moddims(rho,                   
-                  (N_x_local + 2 * N_ghost)*\
-                  (N_y_local + 2 * N_ghost),\
-                  N_vel_y,\
-                  N_vel_x,\
-                  N_vel_z
-                  )
+  rho = cks.convert.to_velocitiesExpanded(da, config, rho)
 
   # Depending on the dimensionality in velocity space, the 
   # distribution function is assigned accordingly:
@@ -381,100 +373,7 @@ def f_initial(da, config):
   
   # Modifying the dimensions again:
   # Converting from velocitiesExpanded form to positionsExpanded form:
-  f_initial = af.moddims(f_initial,                   
-                         (N_y_local + 2 * N_ghost),\
-                         (N_x_local + 2 * N_ghost),\
-                         N_vel_y*N_vel_x*N_vel_z,\
-                         1
-                        )
+  f_initial = cks.convert.to_positionsExpanded(da, config, f_initial)
 
   af.eval(f_initial)
   return(f_initial)
-
-class Poisson2D(object):
-
-  def __init__(self, da, config):
-    assert da.getDim() == 2
-    self.da     = da
-    self.config = config
-    self.localX = da.createLocalVec()
-
-  def formRHS(self, rho):
-    rho_val              = self.da.getVecArray(rho)
-    # Obtaining the left-bottom corner coordinates 
-    # of the left-bottom corner cell in the local zone considered:
-    ((j_bottom, i_left), (N_y_local, N_x_local)) = self.da.getCorners()
-      
-    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
-    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
-
-    # Taking left/bottom Values:
-    i, j = i_left + np.arange(N_x_local), j_bottom + np.arange(N_y_local)
-    x, y = self.config.x_start + i * dx, self.config.y_start + j * dy
-
-    # rho is calculated at (i, j)
-    x, y       = np.meshgrid(x, y)
-    rho_val[:] = 0.01 * self.config.charge_electron * np.cos(self.config.k_x*x + \
-                                                             self.config.k_y*y
-                                                            ) * dx * dy
-        
-  def mult(self, mat, X, Y):
-        
-    self.da.globalToLocal(X, self.localX)
-    
-    x = self.da.getVecArray(self.localX)
-    y = self.da.getVecArray(Y)
-    
-    dx = (self.config.x_start - self.config.x_end)/self.config.N_x
-    dy = (self.config.y_start - self.config.y_end)/self.config.N_y
-    
-    (y_start, y_end), (x_start, x_end) = self.da.getRanges()
-    
-    for j in range(y_start, y_end):
-      for i in range(x_start, x_end):
-        u    = x[j, i]   # center
-        u_w  = x[j, i-1] # west
-        u_e  = x[j, i+1] # east
-        u_s  = x[j-1, i] # south
-        u_n  = x[j+1, i] # north
-        
-        u_xx = (-u_e + 2*u - u_w)*dy/dx
-        u_yy = (-u_n + 2*u - u_s)*dx/dy
- 
-        y[j, i] = u_xx + u_yy
-
-def initialize_electric_fields(da, config):
-  
-  dx = (config.x_start - config.x_end)/config.N_x
-  dy = (config.y_start - config.y_end)/config.N_y
-  N_y_local, N_x_local = da.getSizes()
-
-  pde = Poisson2D(da, config)
-  phi = da.createGlobalVec()
-  rho = da.createGlobalVec()
-  
-  A   = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm=da.comm)
-  A.setPythonContext(pde)
-  A.setUp()
-
-  ksp = PETSc.KSP().create()
-
-  ksp.setOperators(A)
-  ksp.setType('cg')
-
-  pc = ksp.getPC()
-  pc.setType('none')
-
-  pde.formRHS(rho)
-  ksp.setTolerances(1e-14, 1e-50, 1000, 1000)
-  ksp.setFromOptions()
-  ksp.solve(rho, phi)
-
-  # Since rho was defined at (i, j) electric potential returned will also be at (i, j)
-  electric_potential = af.to_array(np.swapaxes(phi[:].reshape(N_x_local, N_y_local), 0, 1))
-
-  E_x = -(af.shift(electric_potential, 0, -1) - electric_potential)/dx #(i+1/2, j)
-  E_y = -(af.shift(electric_potential, -1, 0) - electric_potential)/dy #(i, j+1/2)
-
-  af.eval(E_x, E_y)
-  return(E_x, E_y)
