@@ -1,6 +1,7 @@
 import numpy as np
 
-mode = '2V'
+num_devices = 1
+mode        = '1V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -27,14 +28,14 @@ perturbation = dict(
                     pert_real = 1e-2, 
                     pert_imag = 0,
                     k_x       = 2*np.pi,
-                    k_y       = 4*np.pi,
+                    k_y       = 4*np.pi,\
                    ) 
 
-position_space = dict(N_x     = 32,
+position_space = dict(N_x     = 64,
                       x_start = 0,
                       x_end   = 1.0,
 
-                      N_y     = 32,
+                      N_y     = 3,
                       y_start = 0,
                       y_end   = 1.0,
 
@@ -44,6 +45,7 @@ position_space = dict(N_x     = 32,
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
 
+                           # Mention for Dirichlet Below:
                            left_temperature = 1.0,
                            left_rho         = 1.0,
                            left_vel_bulk_x  = 0,
@@ -65,28 +67,28 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 50,
+velocity_space = dict(N_vel_x   = 32,
                       vel_x_max = 10.0, 
 
-                      N_vel_y   = 50, 
+                      N_vel_y   = 32, 
                       vel_y_max = 10.0,
 
-                      N_vel_z   = 1, 
-                      vel_z_max = 10.0,
+                      N_vel_z   = 32, 
+                      vel_z_max = 10.0
                      )
 
 time = dict(
-            final_time   = 0.2,
-            dt           = 0.001
+            final_time   = 0.5,
+            dt           = 0.005
            )
 
 EM_fields = dict(
-                 charge_electron = 0,
-                 charge_ion      = 0, 
-                 solver          = 'fdtd'
+                 charge_electron = -10,
+                 charge_ion      = 10, 
+                 solver          = 'electrostatic'
                 )
 
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                = np.inf
+                  tau                = 0.01 #np.inf
                  )
