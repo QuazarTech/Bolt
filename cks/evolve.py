@@ -159,7 +159,7 @@ def time_integration(da, da_fields, args, time_array):
   for time_index, t0 in enumerate(time_array[1:]):
     # Printing progress every 10 iterations
     # Printing only at rank = 0 to avoid multiple outputs:
-    if(time_index%10 == 0 and da.getComm().rank == 0):
+    if(time_index%1 == 0 and da.getComm().rank == 0):
         print("Computing for Time =", t0)
 
     dt = time_array[1] - time_array[0]

@@ -11,7 +11,7 @@ from petsc4py import PETSc
 
 # Importing solver library functions
 import setup_simulation
-import cks.initialize
+import cks.initialize as initialize
 import cks.evolve
 
 import arrayfire as af
@@ -32,12 +32,14 @@ config_512 = setup_simulation.configuration_object(N_512)
 config.append(config_512)
 
 petsc4py.init()
+
+# Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
+af.set_device(comm.rank%N_32.num_devices)
 
 global_time = np.zeros(1)
 
-if(comm.rank == 0):
-  print(af.info())
+print("Device info for rank", comm.rank, af.info())
 
 for i in range(len(config)):
   time_start = MPI.Wtime() # Starting the timer
@@ -48,6 +50,7 @@ for i in range(len(config)):
   N_x     = config[i].N_x
   N_vel_y = config[i].N_vel_y
   N_vel_x = config[i].N_vel_x
+  N_vel_z = config[i].N_vel_z
   N_ghost = config[i].N_ghost
 
   if(comm.rank == 0):
@@ -56,14 +59,34 @@ for i in range(len(config)):
     print() # Insert blank line
 
   # Declaring distributed array object which automates the domain decomposition:
+  # Additionally, it is also used to take care of the boundary conditions:
   da = PETSc.DMDA().create([N_y, N_x],\
-                           dof = (N_vel_y * N_vel_x),\
+                           dof = (N_vel_y * N_vel_x * N_vel_z),\
                            stencil_width = N_ghost,\
                            boundary_type = ('periodic', 'periodic'),\
                            proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
                            stencil_type = 1, \
                            comm = comm
                           ) 
+
+  da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                  dof = 6,\
+                                  stencil_width = N_ghost,\
+                                  boundary_type = da.getBoundaryType(),\
+                                  proc_sizes = da.getProcSizes(), \
+                                  stencil_type = 1, \
+                                  comm = da.getComm()
+                                 )
+
+  if(config[i].fields_solver == 'electrostatic'):
+    da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                    dof = 1,\
+                                    stencil_width = N_ghost,\
+                                    boundary_type = da.getBoundaryType(),\
+                                    proc_sizes = da.getProcSizes(), \
+                                    stencil_type = 1, \
+                                    comm = da.getComm()
+                                   )
 
   ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
 
@@ -78,61 +101,68 @@ for i in range(len(config)):
                                       + str(N_x) + '.h5', 'w', comm = comm
                                     )
 
-  x_center = cks.initialize.calculate_x_center(da, config[i])
-  y_center = cks.initialize.calculate_y_center(da, config[i])
+  # Obtaining the velocity and position arrays:
+  x_center = initialize.calculate_x_center(da, config[i])
+  y_center = initialize.calculate_y_center(da, config[i])
 
-  x_left   = cks.initialize.calculate_x_left(da, config[i])
-  y_bottom = cks.initialize.calculate_y_bottom(da, config[i])
+  x_left   = initialize.calculate_x_left(da, config[i])
+  y_bottom = initialize.calculate_y_bottom(da, config[i])
 
-  vel_x    = cks.initialize.calculate_vel_x(da, config[i])
-  vel_y    = cks.initialize.calculate_vel_y(da, config[i])
+  x_right = initialize.calculate_x_right(da, config[i])
+  y_top   = initialize.calculate_y_top(da, config[i])
 
-  f_initial = cks.initialize.f_initial(da, config[i])
+  vel_x, vel_y, vel_z = initialize.calculate_velocities(da, config[i]) #velocitiesExpanded form
 
+  # Initializing the value for distribution function:
+  f_initial = initialize.f_initial(da, config[i])
+
+  # We define an object args that holds, the position arrays, 
+  # velocity arrays, distribution function and field quantities.
+  # By this manner, if we have the args object for any time-step, all
+  # the information about the system may be retrieved:
   class args:
     def __init__(self):
       pass
 
-  args.config   = config[i]
-  args.f        = f_initial
-  args.vel_x    = vel_x
-  args.vel_y    = vel_y
-  
+  args.config = config[i]
+  args.f      = f_initial
+
+  args.vel_x = vel_x
+  args.vel_y = vel_y
+  args.vel_z = vel_z
+
   args.x_center = x_center
   args.y_center = y_center
 
   pert_real = config[i].pert_real
   pert_imag = config[i].pert_imag
-  k_x       = config[i].k_x
-  k_y       = config[i].k_y
+
+  k_x = config[i].k_x
+  k_y = config[i].k_y
 
   charge_electron = config[i].charge_electron
 
+  # The following quantities are defined on the Yee-Grid:
   args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
              (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
               pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
-             )
+             ) #(i + 1/2, j)
 
   args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
              (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
               pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
-             )
+             ) #(i, j + 1/2)
 
+  args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
+  args.B_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
+  args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
   args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-  args.B_x = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-  args.B_y = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
-  args.E_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 
   global_data   = np.zeros(time_array.size) 
-  data, f_final = cks.evolve.time_integration(da, args, time_array)
+  data, f_final = cks.evolve.time_integration(da, da_fields, args, time_array)
 
-  vel_x_max = config[i].vel_x_max
-  vel_y_max = config[i].vel_y_max
-  dv_x      = (2*vel_x_max)/(N_vel_x - 1)
-  dv_y      = (2*vel_y_max)/(N_vel_y - 1)
-
-  f_final             = f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :, :]
-  global_vec_value[:] = np.array(af.moddims(f_final, N_y_local, N_x_local, N_vel_y * N_vel_x))
+  # Passing the values non-inclusive of ghost cells:
+  global_vec_value[:] = np.array(f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :])
   viewer(global_vector)
 
   comm.Reduce(data,\
