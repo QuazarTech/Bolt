@@ -2,6 +2,8 @@ import numpy as np
 from lts.initialize import f_background, init_velocities
 
 def BGK_collision_operator(config, delta_f_hat):
+  # All the expressions below were obtained from linearizing the BGK collision operator.
+  # The sage worksheet where this is carried out - https://goo.gl/dXarsP 
 
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant

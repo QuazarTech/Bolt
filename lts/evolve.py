@@ -150,7 +150,7 @@ def time_integration(config, delta_f_hat_initial, time_array):
   
   charge_electron = config.charge_electron
 
-  # Electrostatic Case:
+  # Intializing for the electrostatic Case:
   delta_rho_hat = np.sum(delta_f_hat_initial) * dv_x * dv_y * dv_z
   delta_phi_hat = charge_electron * delta_rho_hat/(k_x**2 + k_y**2)
   

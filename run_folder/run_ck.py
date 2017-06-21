@@ -9,46 +9,9 @@ import cks.evolve as evolve
 import cks.compute_moments
 from cks.EM_fields_solver.electrostatic import solve_electrostatic_fields
 
-
-import importlib
-pylab_found = importlib.util.find_spec("pylab")
 import arrayfire as af
 import numpy as np
-
 import params
-
-if(pylab_found != None):
-  import pylab as pl
-
-  # Setting plot parameters:
-  pl.rcParams['figure.figsize']  = 12, 7.5
-  pl.rcParams['figure.dpi']      = 100
-  pl.rcParams['image.cmap']      = 'jet'
-  pl.rcParams['lines.linewidth'] = 1.5
-  pl.rcParams['font.family']     = 'serif'
-  pl.rcParams['font.weight']     = 'bold'
-  pl.rcParams['font.size']       = 20  
-  pl.rcParams['font.sans-serif'] = 'serif'
-  pl.rcParams['text.usetex']     = True
-  pl.rcParams['axes.linewidth']  = 1.5
-  pl.rcParams['axes.titlesize']  = 'medium'
-  pl.rcParams['axes.labelsize']  = 'medium'
-
-  pl.rcParams['xtick.major.size'] = 8     
-  pl.rcParams['xtick.minor.size'] = 4     
-  pl.rcParams['xtick.major.pad']  = 8     
-  pl.rcParams['xtick.minor.pad']  = 8     
-  pl.rcParams['xtick.color']      = 'k'     
-  pl.rcParams['xtick.labelsize']  = 'medium'
-  pl.rcParams['xtick.direction']  = 'in'    
-
-  pl.rcParams['ytick.major.size'] = 8     
-  pl.rcParams['ytick.minor.size'] = 4     
-  pl.rcParams['ytick.major.pad']  = 8     
-  pl.rcParams['ytick.minor.pad']  = 8     
-  pl.rcParams['ytick.color']      = 'k'     
-  pl.rcParams['ytick.labelsize']  = 'medium'
-  pl.rcParams['ytick.direction']  = 'in' 
 
 # Setting up the configuration object along with the time array
 config      = setup_simulation.configuration_object(params)
@@ -210,14 +173,8 @@ comm.Reduce(data,\
 
 # Plotting/Export of the global-data:
 if(comm.rank == 0):
-  if(pylab_found != None):
-    pl.plot(time_array, global_data - 1)
-    pl.xlabel('Time')
-    pl.ylabel(r'$MAX(\delta \rho(x))$')
-    pl.savefig('plot.png')
-  else:
-    import h5py
-    h5f = h5py.File('density_data_ck.h5', 'w')
-    h5f.create_dataset('density_amplitude', data = global_data)
-    h5f.create_dataset('time', data = time_array)
-    h5f.close()
+  import h5py
+  h5f = h5py.File('ck_density_data.h5', 'w')
+  h5f.create_dataset('density_amplitude', data = global_data - config.rho_background)
+  h5f.create_dataset('time', data = time_array)
+  h5f.close()
