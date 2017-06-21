@@ -36,11 +36,15 @@ petsc4py.init()
 
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
+
+# We assume that all the parameter files also have
+# the same number of num_devices mentioned.
 af.set_device(comm.rank%N_32.num_devices)
 
 global_time = np.zeros(1)
 
-print("Device info for rank", comm.rank, af.info())
+print("Device info for rank", comm.rank)
+af.info()
 
 for i in range(len(config)):
   time_start = MPI.Wtime() # Starting the timer

@@ -1,7 +1,7 @@
 import numpy as np
 
 num_devices = 1
-mode = '1V'
+mode        = '1V'
 
 constants = dict(
                   mass_particle      = 1.0,

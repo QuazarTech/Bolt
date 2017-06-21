@@ -33,9 +33,5 @@ def test_case():
 
     error_rho[i] = np.sum(abs(rho_ck - rho_lt))/rho_ck.size
 
-    print(error, error_rho)
-
   poly = np.polyfit(np.log10(N_x), np.log10(error), 1)
-  assert(abs(poly[0]+2)<0.2)
-
-test_case()
+  assert(abs(poly[0]+1)<0.2)

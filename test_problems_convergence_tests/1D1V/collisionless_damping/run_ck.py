@@ -12,6 +12,7 @@ from petsc4py import PETSc
 # Importing solver library functions
 import setup_simulation
 import cks.initialize as initialize
+from cks.EM_fields_solver.electrostatic import solve_electrostatic_fields
 import cks.evolve
 
 import arrayfire as af
@@ -35,11 +36,15 @@ petsc4py.init()
 
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
+
+# We assume that all the parameter files also have
+# the same number of num_devices mentioned.
 af.set_device(comm.rank%N_32.num_devices)
 
 global_time = np.zeros(1)
 
-print("Device info for rank", comm.rank, af.info())
+print("Device info for rank", comm.rank)
+af.info()
 
 for i in range(len(config)):
   time_start = MPI.Wtime() # Starting the timer
@@ -70,25 +75,13 @@ for i in range(len(config)):
                           ) 
 
   da_fields = PETSc.DMDA().create([N_y, N_x],\
-                                  dof = 6,\
+                                  dof = 1,\
                                   stencil_width = N_ghost,\
                                   boundary_type = da.getBoundaryType(),\
                                   proc_sizes = da.getProcSizes(), \
                                   stencil_type = 1, \
                                   comm = da.getComm()
                                  )
-
-  if(config[i].fields_solver == 'electrostatic'):
-    da_fields = PETSc.DMDA().create([N_y, N_x],\
-                                    dof = 1,\
-                                    stencil_width = N_ghost,\
-                                    boundary_type = da.getBoundaryType(),\
-                                    proc_sizes = da.getProcSizes(), \
-                                    stencil_type = 1, \
-                                    comm = da.getComm()
-                                   )
-
-  ((j_bottom_left, i_bottom_left), (N_y_local, N_x_local)) = da.getCorners()
 
   # Declaring global vectors to export the final distribution function:
   global_vector    = da.createGlobalVec()
@@ -141,18 +134,49 @@ for i in range(len(config)):
   k_y = config[i].k_y
 
   charge_electron = config[i].charge_electron
+  
+  args.f    = cks.convert.to_velocitiesExpanded(da, config[i], args.f)
+  rho_array = config[i].charge_electron * (cks.compute_moments.calculate_density(args) - \
+                                           config[i].rho_background
+                                          )
+ 
+  # Obtaining the left-bottom corner coordinates 
+  # of the left-bottom corner cell in the local zone considered:
+  # We also obtain the size of the local zone:
+  ((j_bottom, i_left), (N_y_local, N_x_local)) = da_fields.getCorners()
+
+  rho_array = af.moddims(rho_array,\
+                         N_y_local + 2 * N_ghost,\
+                         N_x_local + 2 * N_ghost
+                        )
+
+  rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+                                  N_ghost:-N_ghost
+                                 ]
+  # This function returns the values of fields at (i + 0.5, j + 0.5)
+  args.E_x, args.E_y =\
+  solve_electrostatic_fields(da_fields, config[i], rho_array)
+
+  # Interpolating to obtain the values at the Yee-Grid
+  args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
+  args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
+
+  # We define da_fields with dof = 6 to allow application of boundary conditions
+  # for all the fields quantities in a single step.
+  if(config[i].fields_solver == 'fdtd'):
+    da_fields.destroy()
+    da_fields = PETSc.DMDA().create([N_y, N_x],\
+                                    dof = 6,\
+                                    stencil_width = N_ghost,\
+                                    boundary_type = da.getBoundaryType(),\
+                                    proc_sizes = da.getProcSizes(), \
+                                    stencil_type = 1, \
+                                    comm = da.getComm()
+                                   )
+
+  args.f = cks.convert.to_positionsExpanded(da, args.config, args.f)
 
   # The following quantities are defined on the Yee-Grid:
-  args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
-             ) #(i + 1/2, j)
-
-  args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
-             (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
-              pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
-             ) #(i, j + 1/2)
-
   args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
   args.B_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
   args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
