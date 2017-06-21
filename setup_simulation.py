@@ -35,7 +35,7 @@ def configuration_object(params):
   config.temperature_background = params.background_electrons['temperature']
   config.vel_bulk_x_background  = params.background_electrons['vel_bulk_x']
   config.vel_bulk_y_background  = params.background_electrons['vel_bulk_y']
-  # config.vel_bulk_z_background  = params.background_electrons['vel_bulk_z']
+  config.vel_bulk_z_background  = params.background_electrons['vel_bulk_z']
 
   # Defining amplitude and wave number of the perturbation in the domain:
   config.pert_real = params.perturbation['pert_real']
@@ -61,33 +61,39 @@ def configuration_object(params):
   config.N_vel_y   = params.velocity_space['N_vel_y']
   config.vel_y_max = params.velocity_space['vel_y_max']
 
-  # config.N_vel_z   = params.velocity_space['N_vel_z']
-  # config.vel_z_max = params.velocity_space['vel_z_max']
+  config.N_vel_z   = params.velocity_space['N_vel_z']
+  config.vel_z_max = params.velocity_space['vel_z_max']
 
   # Defining the boundary condition that is utilized in x and y directions:
   config.bc_in_x = params.boundary_conditions['in_x']
   config.bc_in_y = params.boundary_conditions['in_y']
 
   # Defining the quantities at the boundaries for Dirichlet boundary conditions:
-  config.left_rho         = params.boundary_conditions['left_rho']  
-  config.left_temperature = params.boundary_conditions['left_temperature']
-  config.left_vel_bulk_x  = params.boundary_conditions['left_vel_bulk_x']
-  config.left_vel_bulk_y  = params.boundary_conditions['left_vel_bulk_y']
-  
-  config.right_rho         = params.boundary_conditions['right_rho']  
-  config.right_temperature = params.boundary_conditions['right_temperature']
-  config.right_vel_bulk_x  = params.boundary_conditions['right_vel_bulk_x']
-  config.right_vel_bulk_y  = params.boundary_conditions['right_vel_bulk_y']
+  if(config.bc_in_x == 'dirichlet'):
+    config.left_rho         = params.boundary_conditions['left_rho']  
+    config.left_temperature = params.boundary_conditions['left_temperature']
+    config.left_vel_bulk_x  = params.boundary_conditions['left_vel_bulk_x']
+    config.left_vel_bulk_y  = params.boundary_conditions['left_vel_bulk_y']
+    config.left_vel_bulk_z  = params.boundary_conditions['left_vel_bulk_z']
+    
+    config.right_rho         = params.boundary_conditions['right_rho']  
+    config.right_temperature = params.boundary_conditions['right_temperature']
+    config.right_vel_bulk_x  = params.boundary_conditions['right_vel_bulk_x']
+    config.right_vel_bulk_y  = params.boundary_conditions['right_vel_bulk_y']
+    config.right_vel_bulk_z  = params.boundary_conditions['right_vel_bulk_z']
 
-  config.bot_rho         = params.boundary_conditions['bot_rho']  
-  config.bot_temperature = params.boundary_conditions['bot_temperature']
-  config.bot_vel_bulk_x  = params.boundary_conditions['bot_vel_bulk_x']
-  config.bot_vel_bulk_y  = params.boundary_conditions['bot_vel_bulk_y']
-  
-  config.top_rho         = params.boundary_conditions['top_rho']  
-  config.top_temperature = params.boundary_conditions['top_temperature']
-  config.top_vel_bulk_x  = params.boundary_conditions['top_vel_bulk_x']
-  config.top_vel_bulk_y  = params.boundary_conditions['top_vel_bulk_y']
+  if(config.bc_in_y == 'dirichlet'):
+    config.bot_rho         = params.boundary_conditions['bot_rho']  
+    config.bot_temperature = params.boundary_conditions['bot_temperature']
+    config.bot_vel_bulk_x  = params.boundary_conditions['bot_vel_bulk_x']
+    config.bot_vel_bulk_y  = params.boundary_conditions['bot_vel_bulk_y']
+    config.bot_vel_bulk_z  = params.boundary_conditions['bot_vel_bulk_z']
+    
+    config.top_rho         = params.boundary_conditions['top_rho']  
+    config.top_temperature = params.boundary_conditions['top_temperature']
+    config.top_vel_bulk_x  = params.boundary_conditions['top_vel_bulk_x']
+    config.top_vel_bulk_y  = params.boundary_conditions['top_vel_bulk_y']
+    config.top_vel_bulk_z  = params.boundary_conditions['top_vel_bulk_z']
 
   # Defining the resolution parameters for time:
   config.final_time = params.time['final_time']
