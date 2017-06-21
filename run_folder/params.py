@@ -1,7 +1,7 @@
 import numpy as np
 
 num_devices = 1
-mode        = '1V'
+mode        = '3V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -67,18 +67,18 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-velocity_space = dict(N_vel_x   = 200,
+velocity_space = dict(N_vel_x   = 32,
                       vel_x_max = 10.0, 
 
-                      N_vel_y   = 1, 
+                      N_vel_y   = 32, 
                       vel_y_max = 10.0,
 
-                      N_vel_z   = 1, 
+                      N_vel_z   = 32, 
                       vel_z_max = 10.0
                      )
 
 time = dict(
-            final_time   = 1.0,
+            final_time   = 0.01,
             dt           = 0.005
            )
 
