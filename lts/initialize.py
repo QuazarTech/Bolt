@@ -88,7 +88,7 @@ def dfdv_r_background(config):
   f_background_local = f_background(config)
 
   if(config.N_vel_z == 1 and config.N_vel_y == 1):
-    dfdv_x_background = (np.gradient(f_background_local[0, :, 0])[1])/dv_x
+    dfdv_x_background = (np.gradient(f_background_local[0, :, 0]))/dv_x
     dfdv_y_background = np.zeros_like(f_background_local)
     dfdv_z_background = np.zeros_like(f_background_local)
 

@@ -33,13 +33,9 @@ def export_5D_distribution_function(config, delta_f_hat):
     for j in range(N_vel_x):
       for k in range(N_vel_z):
         f_dist[:, :, i, j, k] = (delta_f_hat[i, j, k] * \
-                                np.exp(1j*k_x*x_center + 1j*k_y*y_center)).real
+                                 np.exp(1j*k_x*x_center + 1j*k_y*y_center)).real
 
-  # Adding the background distribution:
-  for i in range(N_vel_y):
-    for j in range(N_vel_x):
-      for k in range(N_vel_z):
-        f_dist[:, :, i, j, k] += ((f_background(config))[i, j, k] * \
-                                 np.exp(1j*0*x_center + 1j*0*y_center)).real
-
+  # Adding back the background distribution:
+  f_dist += np.tile((f_background(config)).reshape(1, 1, N_vel_y, N_vel_x, N_vel_z), (N_y, N_x, 1, 1, 1)) 
+  
   return(f_dist)

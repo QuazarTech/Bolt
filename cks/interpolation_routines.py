@@ -50,7 +50,7 @@ def f_interp_2d(da, args, dt):
   f = af.approx2(f,\
                  y_interpolant,\
                  x_interpolant,\
-                 af.INTERP.BILINEAR
+                 af.INTERP.BICUBIC_SPLINE
                 )
 
   af.eval(f)
@@ -88,7 +88,7 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   # Reordering from vel_y(Ny*Nx, vel_y, vel_x, vel_z) --> vel_y(vel_y, Ny*Nx, vel_x, vel_z)
   f = af.approx1(af.reorder(f),\
                  af.reorder(vel_y_interpolant),\
-                 af.INTERP.LINEAR
+                 af.INTERP.CUBIC_SPLINE
                 )
   
   # Reordering from f(vel_y, Ny*Nx, vel_x, vel_z)     --> f(vel_x, vel_z, Ny*Nx, vel_y)
@@ -97,7 +97,7 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
                  af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
                  af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-                 af.INTERP.BILINEAR
+                 af.INTERP.BICUBIC_SPLINE
                 )
 
   # Reordering back to the original convention(velocitiesExpanded):

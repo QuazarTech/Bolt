@@ -34,7 +34,7 @@ for i in range(len(config)):
   delta_f_hat_initial              = lts.initialize.init_delta_f_hat(config[i])
   delta_rho_hat, delta_f_hat_final = lts.evolve.time_integration(config[i], delta_f_hat_initial, time_array)
 
-  f_lt = lts.export.export_4D_distribution_function(config[i], delta_f_hat_final)
+  f_lt = lts.export.export_5D_distribution_function(config[i], delta_f_hat_final)
 
   h5f  = h5py.File('distribution_function_data_files/lt/lt_distribution_function_' \
                     + str(config[i].N_x) + '.h5', 'w'
