@@ -106,9 +106,6 @@ for i in range(len(config)):
 
   vel_x, vel_y, vel_z = initialize.calculate_velocities(da, config[i]) #velocitiesExpanded form
 
-  # Initializing the value for distribution function:
-  f_initial = initialize.f_initial(da, config[i])
-
   # We define an object args that holds, the position arrays, 
   # velocity arrays, distribution function and field quantities.
   # By this manner, if we have the args object for any time-step, all
@@ -118,7 +115,6 @@ for i in range(len(config)):
       pass
 
   args.config = config[i]
-  args.f      = f_initial
 
   args.vel_x = vel_x
   args.vel_y = vel_y
@@ -132,6 +128,8 @@ for i in range(len(config)):
 
   k_x = config[i].k_x
   k_y = config[i].k_y
+
+  args = initialize.f_initial(da, args)
 
   charge_electron = config[i].charge_electron
   
