@@ -1,6 +1,6 @@
 import numpy as np
 
-num_devices = 1
+num_devices = 4
 mode        = '1V'
 
 constants = dict(
