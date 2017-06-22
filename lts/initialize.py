@@ -1,6 +1,28 @@
 import numpy as np 
 
 def maxwell_boltzmann(config, vel_x, vel_y, vel_z):
+  """
+  Returns the MB distribution for the parameters that have been set in
+  the config object.
+  
+  Parameters:
+  -----------
+    config : Object config which is obtained by setup_simulation() is passed to this file
+
+    vel_x : 3D velocity array which contains the variation in x-velocity stacked 
+            along axis 1
+    vel_y : 3D velocity array which contains the variation in y-velocity stacked 
+            along axis 0
+    vel_z : 3D velocity array which contains the variation in z-velocity stacked 
+            along axis 2
+  
+  Output:
+  -------
+    f : The Maxwell-Boltzmann distribution function declared with the parameters that have been
+        set for the background quantities in config.
+
+  """
+
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant
 
@@ -38,6 +60,24 @@ def maxwell_boltzmann(config, vel_x, vel_y, vel_z):
   return(f)
 
 def init_velocities(config):
+  """
+  This function is used to initialized the velocity arrays vel_x, vel_y and 
+  vel_z.
+
+  Parameters:
+  -----------
+    config : Object config which is obtained by setup_simulation() is passed to this file
+
+  Output:
+  -------
+    vel_x : 3D velocity array which contains the variation in x-velocity stacked 
+            along axis 1
+    vel_y : 3D velocity array which contains the variation in y-velocity stacked 
+            along axis 0
+    vel_z : 3D velocity array which contains the variation in z-velocity stacked 
+            along axis 2
+
+  """
   # These are the cell centered values in velocity space:
   i_v_x = 0.5 + np.arange(0, config.N_vel_x, 1)
   dv_x  = (2*config.vel_x_max)/config.N_vel_x
@@ -60,7 +100,19 @@ def init_velocities(config):
   return(vel_x, vel_y, vel_z)
 
 def f_background(config, return_normalization = 0):
-
+  """
+  Returns the value of f_background, depending on the parameters set in 
+  the config object
+  
+  Parameters:
+  -----------
+    config : Object config which is obtained by set() is passed to this file
+  
+  Output:
+  -------
+    f_background : Array which contains the values of f_background at different values
+                   of vel_x.
+  """
   vel_x, vel_y, vel_z = init_velocities(config)
 
   dv_x = (2*config.vel_x_max)/config.N_vel_x
@@ -78,6 +130,23 @@ def f_background(config, return_normalization = 0):
     return f_background
 
 def dfdv_r_background(config):
+  """
+  Returns the value of the derivative of f_background w.r.t the vel_x, vel_y 
+  and vel_z 
+
+  Parameters:
+  -----------
+    config : Object config which is obtained by setup_simulation() is passed to this file
+ 
+  Output:
+  -------
+    dfdv_x_background : Array which contains the values of dfdv_x_background at different values
+                        of vel_x stacked along axis 1
+    dfdv_y_background : Array which contains the values of dfdv_y_background at different values
+                        of vel_y stacked along axis 0
+    dfdv_z_background : Array which contains the values of dfdv_z_background at different values
+                        of vel_z stacked along axis 2
+  """
   
   vel_x, vel_y, vel_z = init_velocities(config)
   
@@ -109,7 +178,20 @@ def dfdv_r_background(config):
   return(dfdv_x_background, dfdv_y_background, dfdv_z_background)
 
 def init_delta_f_hat(config):
+  """
+  Returns the initial value of delta_f_hat which is setup depending on
+  the perturbation parameters set in config. 
 
+  Parameters:
+  -----------
+    config : Object config which is obtained by setup_simulation() is passed to 
+             this file
+  
+  Output:
+  -------
+    delta_f_hat_initial : Array which contains the values of initial mode perturbation 
+                          in the distribution function.
+  """
   pert_real = config.pert_real 
   pert_imag = config.pert_imag 
 

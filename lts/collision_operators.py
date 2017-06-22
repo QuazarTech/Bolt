@@ -2,8 +2,20 @@ import numpy as np
 from lts.initialize import f_background, init_velocities
 
 def BGK_collision_operator(config, delta_f_hat):
-  # All the expressions below were obtained from linearizing the BGK collision operator.
-  # The sage worksheet where this is carried out - https://goo.gl/dXarsP 
+  """
+  Returns the array that contains the values of the linearized BGK collision operator.
+  The expression that has been used may be understood more clearly by referring to the
+  Sage worksheet on https://goo.gl/dXarsP
+  Parameters:
+  -----------
+    config      : Object config which is obtained by setup_simulation() is 
+                  passed to this function
+    delta_f_hat : The array of delta_f_hat which is obtained from each step
+                  of the time integration. 
+  Output:
+  -------
+    C_f : Array which contains the values of the linearized collision operator. 
+  """
 
   mass_particle      = config.mass_particle
   boltzmann_constant = config.boltzmann_constant

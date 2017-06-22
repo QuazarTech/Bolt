@@ -6,7 +6,55 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
                     delta_E_x_hat, delta_E_y_hat, delta_E_z_hat,\
                     delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
                    ):
+  """
+  Returns the value of the derivative of the mode perturbation of the distribution 
+  function, and the field quantities with respect to time. This is used to evolve 
+  the system with time.
+  Parameters:
+  -----------
+    config : Object config which is obtained by setup_simulation() is passed to this file
 
+    The following arrays fed to this function are the result of the last time-step's integration.
+    At t=0 the initial mode perturbation of the system is passed to this function:
+
+    delta_f_hat: Mode perturbation of the distribution function is passed to the function.
+
+    delta_E_x_hat: Mode perturbation of the electric field Ex is passed to the function.
+
+    delta_E_y_hat: Mode perturbation of the electric field Ey is passed to the function.
+
+    delta_E_z_hat: Mode perturbation of the electric field Ez is passed to the function.
+
+    delta_B_x_hat: Mode perturbation of the magnetic field Bx is passed to the function..
+
+    delta_B_y_hat: Mode perturbation of the magnetic field By is passed to the function.
+
+    delta_B_y_hat: Mode perturbation of the magnetic field Bz is passed to the function.
+
+  Output:
+  -------
+    ddelta_f_hat_dt : Array which contains the values of the derivative of the mode 
+                      perturbation of the distribution function with respect to time.
+
+    ddelta_E_x_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the E_x with respect to time.
+
+    ddelta_E_y_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the E_y with respect to time.
+
+    ddelta_E_z_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the E_z with respect to time.
+
+    ddelta_B_x_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the B_x with respect to time.
+
+    ddelta_B_y_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the B_y with respect to time.
+
+    ddelta_B_z_hat_dt : Array which contains the values of the derivative of the mode 
+                        perturbation of the B_z with respect to time.
+
+  """
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
   dv_x = (2*config.vel_x_max)/config.N_vel_x
@@ -62,7 +110,26 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
         )
 
 def RK6_step(config, delta_f_hat, dt):
+  """
+  Evolves the various mode perturbation arrays by a single time-step by
+  making use of the RK-6 time-stepping scheme:
   
+  Parameters:
+  -----------   
+    config : Object config which is obtained by setup_simulation() is passed to 
+             this file
+ 
+    delta_f_hat : Array containing the values of the delta_f_hat at the time (t0 - dt).
+                  (where t0 is the value as given by the time-stepping loop) 
+ 
+    dt : Time-step size.
+
+  Output:
+  -------
+    delta_f_hat : Array containing the values of the delta_f_hat at the time (t0).
+                  (where t0 is the value as given by the time-stepping loop). 
+
+  """
   global delta_E_x_hat, delta_E_y_hat, delta_E_z_hat
   global delta_B_x_hat, delta_B_y_hat, delta_B_z_hat
 
@@ -133,7 +200,32 @@ def RK6_step(config, delta_f_hat, dt):
   return(delta_f_hat)
 
 def time_integration(config, delta_f_hat_initial, time_array):
+  """
+  Performs the time integration for the simulation. This is the main function that
+  evolves the system in time. The parameters this function evolves for are dictated
+  by the parameters as has been set in the config object. Final distribution function
+  and the array that shows the evolution of abs(rho_hat) is returned by this function.
+ 
+  Parameters:
+  -----------   
+    config : Object config which is obtained by setup_simulation() is passed to this file
+ 
+    delta_f_hat_initial : Array containing the initial values of the delta_f_hat. The value
+                          for this function is typically obtained from the appropriately named 
+                          function from the initialize submodule.
+ 
+    time_array : Array which consists of all the time points at which we are evolving the system.
+                 Data such as the mode amplitude of the density perturbation is also computed at 
+                 the time points.
+  Output:
+  -------
+    density_data : The value of the amplitude of the mode expansion of the density perturbation 
+                   computed at the various points in time as declared in time_array
+ 
+    new_delta_f_hat : delta_f_hat array at the final time-step. This is then passed to the export 
+                      function to perform comparisons with the Cheng-Knorr code.
 
+  """
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
   dv_x = (2*config.vel_x_max)/config.N_vel_x
