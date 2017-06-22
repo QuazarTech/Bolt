@@ -57,9 +57,9 @@ def ddelta_f_hat_dt(config, delta_f_hat,\
   """
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  dv_x = (2*config.vel_x_max)/config.N_vel_x
-  dv_y = (2*config.vel_y_max)/config.N_vel_y
-  dv_z = (2*config.vel_z_max)/config.N_vel_z
+  dv_x = config.dv_x
+  dv_y = config.dv_y
+  dv_z = config.dv_z
 
   k_x = config.k_x   
   k_y = config.k_y
@@ -228,9 +228,9 @@ def time_integration(config, delta_f_hat_initial, time_array):
   """
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
-  dv_x = (2*config.vel_x_max)/config.N_vel_x
-  dv_y = (2*config.vel_y_max)/config.N_vel_y
-  dv_z = (2*config.vel_z_max)/config.N_vel_z
+  dv_x = config.dv_x
+  dv_y = config.dv_y
+  dv_z = config.dv_z
 
   k_x = config.k_x   
   k_y = config.k_y

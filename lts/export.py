@@ -27,17 +27,12 @@ def export_5D_distribution_function(config, delta_f_hat):
   N_vel_z = config.N_vel_z
 
   x_start = config.x_start
-  x_end   = config.x_end
-  dx      = (x_end - x_start)/N_x
-
   y_start = config.y_start
-  y_end   = config.y_end
-  dy      = (y_end - y_start)/N_y
 
   i_center = 0.5 + np.arange(0, N_x, 1)
-  x_center = x_start + i_center * dx
+  x_center = x_start + i_center * config.dx
   j_center = 0.5 + np.arange(0, N_y, 1)
-  y_center = y_start + j_center * dy
+  y_center = y_start + j_center * config.dy
 
   x_center, y_center = np.meshgrid(x_center, y_center)
   x_center, y_center = x_center.reshape([N_y, N_x, 1, 1, 1]), y_center.reshape([N_y, N_x, 1, 1, 1])

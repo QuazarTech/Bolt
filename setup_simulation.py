@@ -47,22 +47,27 @@ def configuration_object(params):
   config.N_x     = params.position_space['N_x']
   config.x_start = params.position_space['x_start']
   config.x_end   = params.position_space['x_end']
+  config.dx      = (config.x_end - config.x_start)/config.N_x
   
   config.N_y     = params.position_space['N_y']
   config.y_start = params.position_space['y_start']
   config.y_end   = params.position_space['y_end']
+  config.dy      = (config.y_end - config.y_start)/config.N_y
 
   config.N_ghost = params.position_space['N_ghost']
 
   # Defining the resolution in velocity space:
   config.N_vel_x   = params.velocity_space['N_vel_x']
   config.vel_x_max = params.velocity_space['vel_x_max']
+  config.dv_x      = (2*config.vel_x_max)/config.N_vel_x
   
   config.N_vel_y   = params.velocity_space['N_vel_y']
   config.vel_y_max = params.velocity_space['vel_y_max']
+  config.dv_y      = (2*config.vel_y_max)/config.N_vel_y
 
   config.N_vel_z   = params.velocity_space['N_vel_z']
   config.vel_z_max = params.velocity_space['vel_z_max']
+  config.dv_z      = (2*config.vel_z_max)/config.N_vel_z
 
   # Defining the boundary condition that is utilized in x and y directions:
   config.bc_in_x = params.boundary_conditions['in_x']

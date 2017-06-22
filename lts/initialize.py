@@ -80,16 +80,13 @@ def init_velocities(config):
   """
   # These are the cell centered values in velocity space:
   i_v_x = 0.5 + np.arange(0, config.N_vel_x, 1)
-  dv_x  = (2*config.vel_x_max)/config.N_vel_x
-  vel_x = -config.vel_x_max + i_v_x * dv_x
+  vel_x = -config.vel_x_max + i_v_x * config.dv_x
 
   i_v_y = 0.5 + np.arange(0, config.N_vel_y, 1)
-  dv_y  = (2*config.vel_y_max)/config.N_vel_y
-  vel_y = -config.vel_y_max + i_v_y * dv_y
+  vel_y = -config.vel_y_max + i_v_y * config.dv_y
 
   i_v_z = 0.5 + np.arange(0, config.N_vel_z, 1)
-  dv_z  = (2*config.vel_z_max)/config.N_vel_z
-  vel_z = -config.vel_z_max + i_v_z * dv_z
+  vel_z = -config.vel_z_max + i_v_z * config.dv_z
 
   vel_x, vel_y, vel_z = np.meshgrid(vel_x, vel_y, vel_z)
 
@@ -115,12 +112,8 @@ def f_background(config, return_normalization = 0):
   """
   vel_x, vel_y, vel_z = init_velocities(config)
 
-  dv_x = (2*config.vel_x_max)/config.N_vel_x
-  dv_y = (2*config.vel_y_max)/config.N_vel_y
-  dv_z = (2*config.vel_z_max)/config.N_vel_z
-  
   f_background  = maxwell_boltzmann(config, vel_x, vel_y, vel_z)
-  normalization = np.sum(f_background) * dv_x * dv_y * dv_z
+  normalization = np.sum(f_background) * config.dv_x * config.dv_y * config.dv_z
   f_background  = f_background/normalization
 
   if(return_normalization == 1):
@@ -150,9 +143,9 @@ def dfdv_r_background(config):
   
   vel_x, vel_y, vel_z = init_velocities(config)
   
-  dv_x = (2*config.vel_x_max)/config.N_vel_x
-  dv_y = (2*config.vel_y_max)/config.N_vel_y
-  dv_z = (2*config.vel_z_max)/config.N_vel_z
+  dv_x = config.dv_x
+  dv_y = config.dv_y
+  dv_z = config.dv_z
 
   f_background_local = f_background(config)
 
