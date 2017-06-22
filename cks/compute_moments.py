@@ -10,28 +10,22 @@
 import arrayfire as af
 
 def calculate_density(args):
-  f     = args.f
-
-  dv_x  = (2*args.config.vel_x_max)/args.config.N_vel_x
-  dv_y  = (2*args.config.vel_y_max)/args.config.N_vel_y
-  dv_z  = (2*args.config.vel_z_max)/args.config.N_vel_z
+  config = args.config
+  f      = args.f
 
   # n = \int f dv^3
-  density = af.sum(af.sum(af.sum(f, 3)*dv_z, 2)*dv_x, 1)*dv_y
+  density = af.sum(af.sum(af.sum(f, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
   
   af.eval(density)
   return(density)
   
 def calculate_mom_bulk_x(args):
-  f     = args.f
-  vel_x = args.vel_x
-
-  dv_x = (2*args.config.vel_x_max)/args.config.N_vel_x
-  dv_y = (2*args.config.vel_y_max)/args.config.N_vel_y
-  dv_z = (2*args.config.vel_z_max)/args.config.N_vel_z
+  config = args.config
+  f      = args.f
+  vel_x  = args.vel_x
 
   # p_x = n v_bulk_x = \int f v_x dv^3
-  momentum_x = af.sum(af.sum(af.sum(f*vel_x, 3)*dv_z, 2)*dv_x, 1)*dv_y
+  momentum_x = af.sum(af.sum(af.sum(f*vel_x, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
   
   af.eval(momentum_x)
   return(momentum_x)
@@ -44,15 +38,12 @@ def calculate_vel_bulk_x(args):
   return(vel_bulk_x)
 
 def calculate_mom_bulk_y(args):
-  f     = args.f
-  vel_y = args.vel_y
-
-  dv_x = (2*args.config.vel_x_max)/args.config.N_vel_x
-  dv_y = (2*args.config.vel_y_max)/args.config.N_vel_y
-  dv_z = (2*args.config.vel_z_max)/args.config.N_vel_z
+  config = args.config
+  f      = args.f
+  vel_y  = args.vel_y
 
   # p_y = n v_bulk_y = \int f v_y dv^3
-  momentum_y = af.sum(af.sum(af.sum(f*vel_y, 3)*dv_z, 2)*dv_x, 1)*dv_y
+  momentum_y = af.sum(af.sum(af.sum(f*vel_y, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
   
   af.eval(momentum_y)
   return(momentum_y)
@@ -65,15 +56,12 @@ def calculate_vel_bulk_y(args):
   return(vel_bulk_y)
 
 def calculate_mom_bulk_z(args):
-  f     = args.f
-  vel_z = args.vel_z
-
-  dv_x = (2*args.config.vel_x_max)/args.config.N_vel_x
-  dv_y = (2*args.config.vel_y_max)/args.config.N_vel_y
-  dv_z = (2*args.config.vel_z_max)/args.config.N_vel_z
+  config = args.config
+  f      = args.f
+  vel_z  = args.vel_z
 
   # p_z = n v_bulk_z = \int f v_z dv^3
-  momentum_z = af.sum(af.sum(af.sum(f*vel_z, 3)*dv_z, 2)*dv_x, 1)*dv_y
+  momentum_z = af.sum(af.sum(af.sum(f*vel_z, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
   
   af.eval(momentum_z)
   return(momentum_z)
@@ -93,9 +81,9 @@ def calculate_temperature(args):
   vel_y = args.vel_y
   vel_z = args.vel_z
 
-  dv_x = (2*args.config.vel_x_max)/args.config.N_vel_x
-  dv_y = (2*args.config.vel_y_max)/args.config.N_vel_y
-  dv_z = (2*args.config.vel_z_max)/args.config.N_vel_z
+  dv_x = config.dv_x
+  dv_y = config.dv_y
+  dv_z = config.dv_z
 
   # This condition checking is performed due to this:
   # consider an array declared as a = af.randu(10, 1, 10, 1)

@@ -30,22 +30,16 @@ def f_interp_2d(da, args, dt):
   x_center_new = x_center - vel_x*dt
   y_center_new = y_center - vel_y*dt
 
-  x_start = config.x_start
-  y_start = config.y_start
-
-  dx = af.sum(x_center[0, 1, 0, 0]-x_center[0, 0, 0, 0])
-  dy = af.sum(y_center[1, 0, 0, 0]-y_center[0, 0, 0, 0])
-  
   # Obtaining the center coordinates:
   (j_center, i_center) = (j_bottom + 0.5, i_left + 0.5)
 
   # Obtaining the left, and bottom boundaries for the local zones:
-  left_boundary = x_start + i_center*dx
-  bot_boundary  = y_start + j_center*dy
+  left_boundary = config.x_start + i_center*config.dx
+  bot_boundary  = config.y_start + j_center*config.dy
 
   # Adding N_ghost to account for the offset due to ghost zones:
-  x_interpolant = (x_center_new - left_boundary)/dx + N_ghost
-  y_interpolant = (y_center_new - bot_boundary )/dy + N_ghost
+  x_interpolant = (x_center_new - left_boundary)/config.dx + N_ghost
+  y_interpolant = (y_center_new - bot_boundary )/config.dy + N_ghost
 
   f = af.approx2(f,\
                  y_interpolant,\
@@ -72,14 +66,10 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_y_new = vel_y - dt * F_y
   vel_z_new = vel_z - dt * F_z
 
-  dv_x = (2*config.vel_x_max)/config.N_vel_x
-  dv_y = (2*config.vel_y_max)/config.N_vel_y
-  dv_z = (2*config.vel_z_max)/config.N_vel_z
-  
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
-  vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/dv_x
-  vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/dv_y
-  vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/dv_z
+  vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/config.dv_x
+  vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/config.dv_y
+  vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/config.dv_z
   
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1

@@ -36,10 +36,22 @@ af.set_device(comm.rank%num_devices)
 
 # Declaring distributed array object which automates the domain decomposition:
 # Additionally, it is also used to take care of the boundary conditions:
+if(config.bc_in_x == 'dirichlet'):
+  bc_in_x = 'ghosted'
+
+else:
+  bc_in_x = 'periodic'
+
+if(config.bc_in_y == 'dirichlet'):
+  bc_in_y = 'ghosted'
+
+else:
+  bc_in_y = 'periodic'
+
 da = PETSc.DMDA().create([N_y, N_x],\
                          dof = (N_vel_y * N_vel_x * N_vel_z),\
                          stencil_width = N_ghost,\
-                         boundary_type = ('periodic', 'periodic'),\
+                         boundary_type = (bc_in_x, bc_in_y),\
                          proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
                          stencil_type = 1, \
                          comm = comm
@@ -78,9 +90,6 @@ y_top   = initialize.calculate_y_top(da, config)
 
 vel_x, vel_y, vel_z = initialize.calculate_velocities(da, config) #velocitiesExpanded form
 
-# Initializing the value for distribution function:
-f_initial = initialize.f_initial(da, config)
-
 # We define an object args that holds, the position arrays, 
 # velocity arrays, distribution function and field quantities.
 # By this manner, if we have the args object for any time-step, all
@@ -90,7 +99,6 @@ class args:
     pass
 
 args.config = config
-args.f      = f_initial
 
 args.vel_x = vel_x
 args.vel_y = vel_y
@@ -104,6 +112,9 @@ pert_imag = config.pert_imag
 
 k_x = config.k_x
 k_y = config.k_y
+
+# Initializing the value for distribution function:
+args = initialize.f_initial(da, args)
 
 charge_electron = config.charge_electron
 
