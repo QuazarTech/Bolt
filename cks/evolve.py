@@ -91,17 +91,25 @@ def fields_step(da, args, local, glob, dt):
     # Storing the values for the previous half-time step:
     # We do this since the B values on the CK grid are defined at time t = n
     # While the B values on the FDTD grid are defined at t = n - 1/2
-    B_x_old, B_y_old, B_z_old = args.B_x.copy(), args.B_y.copy(), args.B_z.copy()
-    args = fdtd(da, args, local, glob, dt)
+    # B_x_old, B_y_old, B_z_old = args.B_x.copy(), args.B_y.copy(), args.B_z.copy()
+    # args = fdtd(da, args, local, glob, dt)
   
     # To account for half-time steps:
-    B_x = 0.5 * (args.B_x + B_x_old)
-    B_y = 0.5 * (args.B_y + B_y_old)
-    B_z = 0.5 * (args.B_z + B_z_old)
-
-    E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(args.E_x, args.E_y, args.E_z,\
-                                                        B_x, B_y, B_z
-                                                       )
+    # B_x = 0.5 * (args.B_x + B_x_old)
+    # B_y = 0.5 * (args.B_y + B_y_old)
+    # B_z = 0.5 * (args.B_z + B_z_old)
+    
+    # E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(args.E_x, args.E_y, args.E_z,\
+                                                        # B_x, B_y, B_z
+                                                       # )
+    E_x = args.E_x
+    E_y = args.E_y
+    E_z = args.E_z
+    
+    B_x = args.B_x
+    B_y = args.B_y
+    B_z = args.B_z
+                                             
 
   # Tiling such that E_x, E_y and B_z have the same array dimensions as f:
   # This is required to perform the interpolation in velocity space:
@@ -165,24 +173,29 @@ def time_integration(da, da_fields, args, time_array):
     dt = time_array[1] - time_array[0]
 
     # Advection in position space:
+    # args   = fields_step(da_fields, args, local_field, glob_field, dt)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Collision-Step:
     args.f = collision_step_BGK(da, args, 0.5*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
+    # args   = fields_step(da_fields, args, local_field, glob_field, dt)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Fields Step(Advection in velocity space):
     args   = fields_step(da_fields, args, local_field, glob_field, dt)
+    # args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
+    # args   = fields_step(da_fields, args, local_field, glob_field, dt)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Collision-Step:
     args.f = collision_step_BGK(da, args, 0.5*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
+    # args   = fields_step(da_fields, args, local_field, glob_field, dt)
     args.f = f_interp_2d(da, args, 0.25*dt)
     args.f = cks.communicate.communicate_distribution_function(da, args, local, glob)
     

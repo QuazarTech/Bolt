@@ -78,8 +78,8 @@ velocity_space = dict(N_vel_x   = 128,
                      )
 
 time = dict(
-            final_time   = 0.01,
-            dt           = 0.01*(32/position_space['N_x'])
+            final_time   = 0.0001,
+            dt           = 0.0001*(32/position_space['N_x'])
            )
 
 EM_fields = dict(
