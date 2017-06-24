@@ -9,11 +9,9 @@
 
 import arrayfire as af
 
-def calculate_density(args, flag = 1):
+def calculate_density(args):
   config = args.config
   f      = args.f
-  if(flag == 1):
-   f      = args.f_half
 
   # n = \int f dv^3
   density = af.sum(af.sum(af.sum(f, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y

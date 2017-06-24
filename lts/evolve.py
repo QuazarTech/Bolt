@@ -48,13 +48,13 @@ def dY_dt(config, Y0):
   delta_J_y_hat = charge_electron * delta_mom_bulk_y
   delta_J_z_hat = charge_electron * delta_mom_bulk_z
   
-  ddelta_E_x_hat_dt = 0 #(delta_B_z_hat * 1j * k_y) - delta_J_x_hat
-  ddelta_E_y_hat_dt = 0 #(- delta_B_z_hat * 1j * k_x) - delta_J_y_hat
-  ddelta_E_z_hat_dt = 0 #(delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) - delta_J_z_hat
+  ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
+  ddelta_E_y_hat_dt = (- delta_B_z_hat * 1j * k_x) - delta_J_y_hat
+  ddelta_E_z_hat_dt = (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) - delta_J_z_hat
 
-  ddelta_B_x_hat_dt = 0 #(- delta_E_z_hat * 1j * k_y)
-  ddelta_B_y_hat_dt = 0 #(delta_E_z_hat * 1j * k_x)
-  ddelta_B_z_hat_dt = 0 #(delta_E_x_hat * 1j * k_y - delta_E_y_hat * 1j * k_x)
+  ddelta_B_x_hat_dt = (- delta_E_z_hat * 1j * k_y)
+  ddelta_B_y_hat_dt = (delta_E_z_hat * 1j * k_x)
+  ddelta_B_z_hat_dt = (delta_E_x_hat * 1j * k_y - delta_E_y_hat * 1j * k_x)
 
   fields_term = (charge_electron / mass_particle) * (delta_E_x_hat + \
                                                      delta_B_z_hat * vel_y - \
@@ -160,4 +160,4 @@ def time_integration(config, delta_f_hat_initial, time_array):
     Y                            = lts.timestepper.RK6_step(config, dY_dt, Y, dt)
     density_data[time_index + 1] = np.abs(lts.compute_moments.delta_rho_hat(config, Y[0]))
 
-  return(density_data, delta_f_hat)
+  return(density_data, Y[0])
