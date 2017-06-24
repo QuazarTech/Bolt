@@ -90,18 +90,15 @@ def fields_step(da, args, local, glob, dt):
 
     # Storing the values for the previous half-time step:
     # We do this since the B values on the CK grid are defined at time t = n
-    # While the B values on the FDTD grid are defined at t = n - 1/2
+    # While the B values on the FDTD grid are defined at t = n + 1/2
     B_x_old, B_y_old, B_z_old = args.B_x.copy(), args.B_y.copy(), args.B_z.copy()
-    args = fdtd(da, args, local, glob, dt)
-  
-    # To account for half-time steps:
-    B_x = 0.5 * (args.B_x + B_x_old)
-    B_y = 0.5 * (args.B_y + B_y_old)
-    B_z = 0.5 * (args.B_z + B_z_old)
+    
+    args = fdtd(da, args, local, glob, 0.5*dt)
 
     E_x, E_y, E_z, B_x, B_y, B_z = fdtd_grid_to_ck_grid(args.E_x, args.E_y, args.E_z,\
-                                                        B_x, B_y, B_z
+                                                        B_x_old, B_y_old, B_z_old
                                                        )
+    args = fdtd(da, args, local, glob, 0.5*dt)
 
   # Tiling such that E_x, E_y and B_z have the same array dimensions as f:
   # This is required to perform the interpolation in velocity space:
