@@ -1,5 +1,6 @@
 import numpy as np
-from lts.initialize import f_background, init_velocities
+import lts.compute_moments
+import lts.initialize
 
 def BGK_collision_operator(config, delta_f_hat):
   """
@@ -17,98 +18,63 @@ def BGK_collision_operator(config, delta_f_hat):
     C_f : Array which contains the values of the linearized collision operator. 
   """
 
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
+  m = config.mass_particle
+  k = config.boltzmann_constant
 
-  rho_background         = config.rho_background
-  temperature_background = config.temperature_background
+  rho = config.rho_background
+  T   = config.temperature_background
   
-  vel_x, vel_y, vel_z = init_velocities(config)
-
-  dv_x = config.dv_x
-  dv_y = config.dv_y
-  dv_z = config.dv_z
+  vel_x, vel_y, vel_z = config.vel_x, config.vel_y, config.vel_z
 
   tau           = config.tau
-  normalization = f_background(config, 1)
+  normalization = lts.initialize.f_background(config, 1)
 
+  delta_rho_hat = lts.compute_moments.delta_rho_hat(config, delta_f_hat)
+  delta_v_x_hat = lts.compute_moments.delta_vel_bulk_x_hat(config, delta_f_hat)
+  delta_v_y_hat = lts.compute_moments.delta_vel_bulk_y_hat(config, delta_f_hat)
+  delta_v_z_hat = lts.compute_moments.delta_vel_bulk_z_hat(config, delta_f_hat)
+  delta_T_hat   = lts.compute_moments.delta_T_hat(config, delta_f_hat)
+  
   if(config.mode == '3V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y * dv_z
-    delta_v_x_hat = np.sum(delta_f_hat * vel_x) * dv_x * dv_y * dv_z/rho_background
-    delta_v_y_hat = np.sum(delta_f_hat * vel_y) * dv_x * dv_y * dv_z/rho_background
-    delta_v_z_hat = np.sum(delta_f_hat * vel_z) * dv_x * dv_y * dv_z/rho_background
-    delta_T_hat   = np.sum(delta_f_hat * ((vel_x**2 + vel_y**2+vel_z**2)/3 -\
-                                          temperature_background
-                                          )) * dv_x * dv_y * dv_z/rho_background
 
-    expr_term_1 = 2 * np.sqrt(2) * temperature_background * delta_v_x_hat *\
-                      mass_particle**(5/2) * rho_background * vel_x
-    expr_term_2 = np.sqrt(2) * delta_T_hat * mass_particle**(5/2) * rho_background * vel_x**2
-    expr_term_3 = 2 * np.sqrt(2) * temperature_background * delta_v_y_hat *\
-                      mass_particle**2.5 * rho_background * vel_y
-    expr_term_4 = np.sqrt(2) * delta_T_hat * mass_particle**(5/2) * rho_background * vel_y**2
-    expr_term_5 = 2 * np.sqrt(2) * temperature_background * delta_v_z_hat *\
-                      mass_particle**2.5 * rho_background * vel_z
-    expr_term_6 = np.sqrt(2) * delta_T_hat * mass_particle**(5/2) * rho_background * vel_z**2
-    expr_term_7 = 2 * np.sqrt(2) * temperature_background**2 * delta_rho_hat * \
-                      boltzmann_constant * mass_particle**(3/2)
-    expr_term_8 = (2 * np.sqrt(2) * temperature_background -\
-                   3 * np.sqrt(2) * delta_T_hat
-                  ) * temperature_background * boltzmann_constant * \
-                      rho_background * mass_particle**(3/2)
-    expr_term_9 = -2 * np.sqrt(2) * rho_background * boltzmann_constant * \
-                                    temperature_background**2 * mass_particle**(3/2)
+    expr_term_1 = 2 * np.sqrt(2) * T * delta_v_x_hat * m**(5/2) * rho * vel_x
+    expr_term_2 = np.sqrt(2) * delta_T_hat * m**(5/2) * rho * vel_x**2
+    expr_term_3 = 2 * np.sqrt(2) * T * delta_v_y_hat * m**2.5 * rho * vel_y
+    expr_term_4 = np.sqrt(2) * delta_T_hat * m**(5/2) * rho * vel_y**2
+    expr_term_5 = 2 * np.sqrt(2) * T * delta_v_z_hat * m**2.5 * rho * vel_z
+    expr_term_6 = np.sqrt(2) * delta_T_hat * m**(5/2) * rho * vel_z**2
+    expr_term_7 = 2 * np.sqrt(2) * T**2 * delta_rho_hat * k * m**(3/2)
+    expr_term_8 = (2 * np.sqrt(2) * T - 3 * np.sqrt(2) * delta_T_hat) * T * k * rho * m**(3/2)
+    expr_term_9 = -2 * np.sqrt(2) * rho * k * T**2 * m**(3/2)
 
     C_f = ((((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4 +\
-             expr_term_5 + expr_term_6 + expr_term_7 + expr_term_8 + expr_term_9
-            )*np.exp(-mass_particle/(2*boltzmann_constant*temperature_background) * \
-                    (vel_x**2 + vel_y**2 + vel_z**2)))/\
-            (8 * np.pi**1.5 * temperature_background**3.5 *\
-             boltzmann_constant**2.5 * normalization
-            )
-          ) - delta_f_hat)/tau
+              expr_term_5 + expr_term_6 + expr_term_7 + expr_term_8 + expr_term_9
+            )*np.exp(-m/(2*k*T) * (vel_x**2 + vel_y**2 + vel_z**2)))/\
+              (8 * np.pi**1.5 * T**3.5 * k**2.5 * normalization)
+           ) - delta_f_hat)/tau
   
   elif(config.mode == '2V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y * dv_z
-    delta_v_x_hat = np.sum(delta_f_hat * vel_x) * dv_x * dv_y * dv_z/rho_background
-    delta_v_y_hat = np.sum(delta_f_hat * vel_y) * dv_x * dv_y * dv_z/rho_background
-    delta_T_hat   = np.sum(delta_f_hat * (0.5*(vel_x**2 + vel_y**2) -\
-                                          temperature_background
-                                          )) * dv_x * dv_y * dv_z/rho_background
-
   
-    expr_term_1 = delta_T_hat * mass_particle**2 * rho_background * vel_x**2 
-    expr_term_2 = delta_T_hat * mass_particle**2 * rho_background * vel_y**2
-    expr_term_3 = 2 * temperature_background**2 * delta_rho_hat * boltzmann_constant * mass_particle
-    expr_term_4 = 2 * (delta_v_x_hat * mass_particle**2 * rho_background*vel_x +\
-                       delta_v_y_hat * mass_particle**2 * rho_background *vel_y -\
-                       delta_T_hat * boltzmann_constant * mass_particle *rho_background
-                      )*temperature_background
+    expr_term_1 = delta_T_hat * m**2 * rho * vel_x**2 
+    expr_term_2 = delta_T_hat * m**2 * rho * vel_y**2
+    expr_term_3 = 2 * T**2 * delta_rho_hat * k * m
+    expr_term_4 = 2 * (delta_v_x_hat * m**2 * rho*vel_x +\
+                       delta_v_y_hat * m**2 * rho*vel_y -\
+                       delta_T_hat * k * m *rho
+                      )*T
     
-    C_f = (((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)/\
-            (4*np.pi*boltzmann_constant**2*temperature_background**3)*\
-            np.exp(-mass_particle/(2*boltzmann_constant*temperature_background) * \
-                  (vel_x**2 + vel_y**2)))/normalization - delta_f_hat)/tau
+    C_f = (((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)/(4*np.pi*k**2*T**3) * \
+             np.exp(-m/(2*k*T) * (vel_x**2 + vel_y**2)))/normalization - delta_f_hat)/tau
   
   elif(config.mode == '1V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x * dv_y * dv_z
-    delta_v_x_hat = np.sum(delta_f_hat * vel_x) * dv_x * dv_y * dv_z/rho_background
-    delta_T_hat   = np.sum(delta_f_hat * (vel_x**2 - temperature_background)) *\
-                    dv_x * dv_y * dv_z/rho_background
     
-    expr_term_1 = np.sqrt(2 * mass_particle**3) * delta_T_hat * rho_background * vel_x**2
-    expr_term_2 = 2 * np.sqrt(2 * mass_particle) * boltzmann_constant * delta_rho_hat * \
-                  temperature_background**2
-    expr_term_3 = 2 * np.sqrt(2 * mass_particle**3) * rho_background * delta_v_x_hat * vel_x * \
-                  temperature_background
-    expr_term_4 = - np.sqrt(2 * mass_particle) * boltzmann_constant * delta_T_hat *\
-                    rho_background * temperature_background
+    expr_term_1 = np.sqrt(2 * m**3) * delta_T_hat * rho * vel_x**2
+    expr_term_2 = 2 * np.sqrt(2 * m) * k * delta_rho_hat * T**2
+    expr_term_3 = 2 * np.sqrt(2 * m**3) * rho * delta_v_x_hat * vel_x * T
+    expr_term_4 = - np.sqrt(2 * m) * k * delta_T_hat * rho * T
     
-    C_f = ((((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4)*\
-           np.exp(-mass_particle * vel_x**2/(2 * boltzmann_constant * temperature_background))/\
-           (4 * np.sqrt(np.pi * temperature_background**5 * boltzmann_constant**3)))/\
-            normalization - delta_f_hat
-           )/tau
-          )
+    C_f = (((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4) * \
+             np.exp(-m * vel_x**2/(2 * k * T))/(4 * np.sqrt(np.pi * T**5 * k**3)))/normalization - \
+             delta_f_hat)/tau
   
   return C_f
