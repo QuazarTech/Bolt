@@ -134,31 +134,41 @@ for i in range(len(config)):
   charge_electron = config[i].charge_electron
   
   args.f    = cks.convert.to_velocitiesExpanded(da, config[i], args.f)
-  rho_array = config[i].charge_electron * (cks.compute_moments.calculate_density(args) - \
-                                           config[i].rho_background
-                                          )
+  # rho_array = 0 #config[i].charge_electron * (cks.compute_moments.calculate_density(args) - \
+  #                #                          config[i].rho_background
+  #                 #                        )
  
-  # Obtaining the left-bottom corner coordinates 
-  # of the left-bottom corner cell in the local zone considered:
-  # We also obtain the size of the local zone:
-  ((j_bottom, i_left), (N_y_local, N_x_local)) = da_fields.getCorners()
+  # # Obtaining the left-bottom corner coordinates 
+  # # of the left-bottom corner cell in the local zone considered:
+  # # We also obtain the size of the local zone:
+  # ((j_bottom, i_left), (N_y_local, N_x_local)) = da_fields.getCorners()
 
-  rho_array = af.moddims(rho_array,\
-                         N_y_local + 2 * N_ghost,\
-                         N_x_local + 2 * N_ghost
-                        )
+  # rho_array = af.moddims(rho_array,\
+  #                        N_y_local + 2 * N_ghost,\
+  #                        N_x_local + 2 * N_ghost
+  #                       )
 
-  rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
-                                  N_ghost:-N_ghost
-                                 ]
-  # This function returns the values of fields at (i + 0.5, j + 0.5)
-  args.E_x, args.E_y =\
-  solve_electrostatic_fields(da_fields, config[i], rho_array)
+  # rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+  #                                 N_ghost:-N_ghost
+  #                                ]
+  # # This function returns the values of fields at (i + 0.5, j + 0.5)
+  # args.E_x, args.E_y =\
+  # solve_electrostatic_fields(da_fields, config[i], rho_array)
 
   # Interpolating to obtain the values at the Yee-Grid
-  args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
-  args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
+  # args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
+  # args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
+  
+  # args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
+  #            (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+  #             pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+  #            ) #(i + 1/2, j)
 
+  # args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
+  #            (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+  #             pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+  #            )
+  
   # We define da_fields with dof = 6 to allow application of boundary conditions
   # for all the fields quantities in a single step.
   if(config[i].fields_solver == 'fdtd'):

@@ -48,13 +48,13 @@ def dY_dt(config, Y0):
   delta_J_y_hat = charge_electron * delta_mom_bulk_y
   delta_J_z_hat = charge_electron * delta_mom_bulk_z
   
-  ddelta_E_x_hat_dt = (delta_B_z_hat * 1j * k_y) - delta_J_x_hat
-  ddelta_E_y_hat_dt = (- delta_B_z_hat * 1j * k_x) - delta_J_y_hat
-  ddelta_E_z_hat_dt = (delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) - delta_J_z_hat
+  ddelta_E_x_hat_dt = 0 #(delta_B_z_hat * 1j * k_y) - delta_J_x_hat
+  ddelta_E_y_hat_dt = 0 #(- delta_B_z_hat * 1j * k_x) - delta_J_y_hat
+  ddelta_E_z_hat_dt = 0 #(delta_B_y_hat * 1j * k_x - delta_B_x_hat * 1j * k_y) - delta_J_z_hat
 
-  ddelta_B_x_hat_dt = (- delta_E_z_hat * 1j * k_y)
-  ddelta_B_y_hat_dt = (delta_E_z_hat * 1j * k_x)
-  ddelta_B_z_hat_dt = (delta_E_x_hat * 1j * k_y - delta_E_y_hat * 1j * k_x)
+  ddelta_B_x_hat_dt = 0 #(- delta_E_z_hat * 1j * k_y)
+  ddelta_B_y_hat_dt = 0 #(delta_E_z_hat * 1j * k_x)
+  ddelta_B_z_hat_dt = 0 #(delta_E_x_hat * 1j * k_y - delta_E_y_hat * 1j * k_x)
 
   fields_term = (charge_electron / mass_particle) * (delta_E_x_hat + \
                                                      delta_B_z_hat * vel_y - \

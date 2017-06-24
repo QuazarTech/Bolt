@@ -5,7 +5,7 @@
 import numpy as np
 import arrayfire as af
 
-def communicate_distribution_function(da, args, local, glob):
+def communicate_distribution_function(da, args, local, glob, flag = 0):
 
   # Accessing the values of the global and local Vectors
   local_value = da.getVecArray(local)
@@ -18,6 +18,9 @@ def communicate_distribution_function(da, args, local, glob):
 
   # Storing values of af.Array in PETSc.Vec:
   local_value[:] = np.array(args.f)
+
+  if(flag == 1):
+    local_value[:] = np.array(args.f_half)
   
   # Global value is non-inclusive of the ghost-zones:
   glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
