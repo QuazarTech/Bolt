@@ -85,7 +85,7 @@ time = dict(
 EM_fields = dict(
                  charge_electron = -10,
                  charge_ion      = 10,
-                 solver          = 'fdtd'
+                 solver          = 'electrostatic'
                 )
 
 collisions = dict(

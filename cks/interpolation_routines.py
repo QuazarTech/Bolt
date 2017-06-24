@@ -52,12 +52,15 @@ def f_interp_2d(da, args, dt):
   af.eval(f)
   return(f)
 
-def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
+def f_interp_vel_3d(args, F_x, F_y, F_z, dt, flag = 0):
   # Since the interpolation function are being performed in velocity space,
   # the arrays used in the computation need to be in velocitiesExpanded form.
   config = args.config
   f      = args.f
-  
+
+  if(flag == 1):
+    f = args.f_half
+
   # args.vel_x,y,z are already in velocitiesExpanded form
   vel_x = args.vel_x
   vel_y = args.vel_y
