@@ -19,7 +19,8 @@ def maxwell_boltzmann(config, vel_x, vel_y, vel_z):
   Output:
   -------
     f : The Maxwell-Boltzmann distribution function declared with the parameters that have been
-        set for the background quantities in config.
+        set for the background quantities in config. f varies with vel_y along axis 0, vel_x along
+        axis 1, and vel_z along axis 2
 
   """
 
@@ -95,14 +96,18 @@ def f_background(config, return_normalization = 0):
   Parameters:
   -----------
     config : Object config which is obtained by set() is passed to this file
+
+    return_normalization: Set this flag to 1 to make this function only return the
+                          normalization constant used.
   
   Output:
   -------
     f_background : Array which contains the values of f_background at different values
-                   of vel_x.
+                   of vel_x. f_background varies with vel_y along axis 0, vel_x along
+                   axis 1, and vel_z along axis 2
   """
   vel_x, vel_y, vel_z = init_velocities(config)
-
+  
   f_background  = maxwell_boltzmann(config, vel_x, vel_y, vel_z)
   normalization = np.sum(f_background) * config.dv_x * config.dv_y * config.dv_z
   f_background  = f_background/normalization
@@ -138,6 +143,7 @@ def df_dv_background(config):
   dv_y = config.dv_y
   dv_z = config.dv_z
 
+  # Varies along axis (0, 1, 2) as (vel_y, vel_x, vel_z)
   f_background_local = f_background(config)
 
   if(config.N_vel_z == 1 and config.N_vel_y == 1):
@@ -164,7 +170,8 @@ def df_dv_background(config):
 def init_delta_f_hat(config):
   """
   Returns the initial value of delta_f_hat which is setup depending on
-  the perturbation parameters set in config. 
+  the perturbation parameters set in config. This is a perturbation
+  created in density of the system.
 
   Parameters:
   -----------
@@ -174,11 +181,13 @@ def init_delta_f_hat(config):
   Output:
   -------
     delta_f_hat_initial : Array which contains the values of initial mode perturbation 
-                          in the distribution function.
+                          in the distribution function. It varies with vel_y along axis 0,
+                          vel_x along axis 1, and vel_z along axis 2
   """
   pert_real = config.pert_real 
   pert_imag = config.pert_imag 
 
+  # Varies along axis (0, 1, 2) as (vel_y, vel_x, vel_z)
   delta_f_hat_initial = pert_real*f_background(config) +\
                         pert_imag*f_background(config)*1j 
 

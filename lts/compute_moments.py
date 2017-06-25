@@ -1,3 +1,8 @@
+"""
+All the function under this sub-module return the various
+moments of velocity of the perturbed distribution function
+"""
+
 import numpy as np
 
 def delta_rho_hat(config, delta_f_hat):

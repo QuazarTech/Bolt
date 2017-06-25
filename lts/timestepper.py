@@ -7,17 +7,17 @@ def RK6_step(config, dY_dt, Y0, dt):
   -----------   
     config : Object config which is obtained by setup_simulation() is passed to 
              this file
- 
-    delta_f_hat : Array containing the values of the delta_f_hat at the time (t0 - dt).
-                  (where t0 is the value as given by the time-stepping loop) 
+
+    dY_dt: Function that returns the time-derivative of the function of the vector Y0
+           in the same order variables are mentioned in Y0
+
+    Y0: System state which is described by a vector which we intend to evolve in time.
  
     dt : Time-step size.
 
   Output:
   -------
-    delta_f_hat : Array containing the values of the delta_f_hat at the time (t0).
-                  (where t0 is the value as given by the time-stepping loop). 
-
+    Y_new: The new system state after evolving for a single time-step
   """
 
   k1 = dY_dt(config, Y0)
@@ -32,7 +32,26 @@ def RK6_step(config, dY_dt, Y0, dt):
   return(Y_new)
 
 def RK4_step(config, dY_dt, Y0, dt):
+  """
+  Evolves the various mode perturbation arrays by a single time-step by
+  making use of the RK-4 time-stepping scheme:
   
+  Parameters:
+  -----------   
+    config : Object config which is obtained by setup_simulation() is passed to 
+             this file
+
+    dY_dt: Function that returns the time-derivative of the function of the vector Y0
+           in the same order variables are mentioned in Y0
+
+    Y0: System state which is described by a vector which we intend to evolve in time.
+ 
+    dt : Time-step size.
+
+  Output:
+  -------
+    Y_new: The new system state after evolving for a single time-step
+  """
   k1 = dY_dt(config, Y0)
   k2 = dY_dt(config, Y0 + 0.5*k1*dt)
   k3 = dY_dt(config, Y0 + 0.5*k2*dt)

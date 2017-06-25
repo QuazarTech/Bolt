@@ -14,12 +14,23 @@ def dY_dt(config, Y0):
   -----------
     config : Object config which is obtained by setup_simulation() is passed to this file
 
-    The following arrays fed to this function are the result of the last time-step's integration.
-    At t=0 the initial mode perturbation of the system is passed to this function:
+    Y0 : The array Y0 is the state of the system as given by the result of 
+         the last time-step's integration. The elements of Y0, hold the following data:
+   
+         delta_f_hat   = Y0[0]
+         delta_E_x_hat = Y0[1]
+         delta_E_y_hat = Y0[2]
+         delta_E_z_hat = Y0[3]
+         delta_B_x_hat = Y0[4]
+         delta_B_y_hat = Y0[5]
+         delta_B_z_hat = Y0[6]
+   
+         At t = 0 the initial state of the system is passed to this function:
 
   Output:
   -------
 
+  dY_dt : The time-derivatives of all the quantities stored in Y0
   """
   vel_x, vel_y, vel_z = initialize.init_velocities(config)
 
@@ -81,7 +92,27 @@ def dY_dt(config, Y0):
   return(dY_dt)
 
 def compute_electrostatic_fields(config, delta_f_hat):
+  """
+  Computes the electrostatic fields by making use of the Poisson equation:
+  div^2 phi = rho
+ 
+  Parameters:
+  -----------   
+    config : Object config which is obtained by setup_simulation() is passed to this file
+ 
+    delta_f_hat_initial : Array containing the initial values of the delta_f_hat. The value
+                          for this function is typically obtained from the appropriately named 
+                          function from the initialize submodule.
+ 
+  Output:
+  -------
+    density_data : The value of the amplitude of the mode expansion of the density perturbation 
+                   computed at the various points in time as declared in time_array
+ 
+    new_delta_f_hat : delta_f_hat array at the final time-step. This is then passed to the export 
+                      function to perform comparisons with the Cheng-Knorr code.
 
+  """
   # Intializing for the electrostatic Case:
   delta_rho_hat = lts.compute_moments.delta_rho_hat(config, delta_f_hat)
   delta_phi_hat = config.charge_electron * delta_rho_hat/(config.k_x**2 + config.k_y**2)

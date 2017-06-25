@@ -27,6 +27,8 @@ def BGK_collision_operator(config, delta_f_hat):
   vel_x, vel_y, vel_z = config.vel_x, config.vel_y, config.vel_z
 
   tau           = config.tau
+
+  # Obtaining the normalization constant:
   normalization = lts.initialize.f_background(config, 1)
 
   delta_rho_hat = lts.compute_moments.delta_rho_hat(config, delta_f_hat)

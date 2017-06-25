@@ -1,6 +1,7 @@
 import h5py
 import pylab as pl 
 
+# Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
@@ -30,16 +31,19 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in' 
 
+# Importing density evolution as given by the CK code:
 h5f = h5py.File('ck_density_data.h5', 'r')
 amplitude_ck = h5f['density_amplitude'][:]
 time_ck      = h5f['time'][:]
 h5f.close()
 
+# Importing density evolutions as given by the LT code:
 h5f = h5py.File('lt_density_data.h5', 'r')
 amplitude_lt = h5f['density_amplitude'][:]
 time_lt      = h5f['time'][:]
 h5f.close()
 
+# Plotting:
 pl.plot(time_ck, amplitude_ck, label = 'CK')
 pl.plot(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
 pl.xlabel('Time')

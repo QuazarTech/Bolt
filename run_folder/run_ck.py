@@ -1,6 +1,11 @@
+# Importing dependencies:
 from mpi4py import MPI
 import petsc4py, sys
 from petsc4py import PETSc
+
+import arrayfire as af
+import numpy as np
+import params
 
 # Importing solver library functions
 import setup_simulation
@@ -9,11 +14,8 @@ import cks.evolve as evolve
 import cks.compute_moments
 from cks.EM_fields_solver.electrostatic import solve_electrostatic_fields
 
-import arrayfire as af
-import numpy as np
-import params
+# Setting up the configuration object along with the time array.
 
-# Setting up the configuration object along with the time array
 config      = setup_simulation.configuration_object(params)
 time_array  = setup_simulation.time_array(config)
 num_devices = params.num_devices
@@ -34,8 +36,6 @@ petsc4py.init(sys.argv)
 comm = PETSc.COMM_WORLD.tompi4py()
 af.set_device(comm.rank%num_devices)
 
-# Declaring distributed array object which automates the domain decomposition:
-# Additionally, it is also used to take care of the boundary conditions:
 if(config.bc_in_x == 'dirichlet'):
   bc_in_x = 'ghosted'
 
@@ -48,6 +48,8 @@ if(config.bc_in_y == 'dirichlet'):
 else:
   bc_in_y = 'periodic'
 
+# Declaring distributed array object which automates the domain decomposition:
+# Additionally, it is also used to take care of the boundary conditions:
 da = PETSc.DMDA().create([N_y, N_x],\
                          dof = (N_vel_y * N_vel_x * N_vel_z),\
                          stencil_width = N_ghost,\
@@ -182,7 +184,7 @@ comm.Reduce(data,\
             root = 0
            )
 
-# Plotting/Export of the global-data:
+# Export of the global-data:
 if(comm.rank == 0):
   import h5py
   h5f = h5py.File('ck_density_data.h5', 'w')

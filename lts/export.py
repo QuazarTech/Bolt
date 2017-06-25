@@ -14,7 +14,7 @@ def export_5D_distribution_function(config, delta_f_hat):
                   the final time step. 
   Output:
   -------
-    f_dist : 
+    f_dist : 5D distribution function
   """  
   N_x     = config.N_x
   k_x     = config.k_x
