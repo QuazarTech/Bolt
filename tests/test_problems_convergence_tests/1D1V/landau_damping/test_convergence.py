@@ -24,7 +24,7 @@ def test_case():
 
     f_ck = np.swapaxes(f_ck, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[4], f_lt.shape[3], f_lt.shape[2])
     f_ck = np.swapaxes(f_ck, 4, 2)
-
+    
     rho_ck = np.sum(np.sum(np.sum(f_ck, 4), 3), 2)
     rho_lt = np.sum(np.sum(np.sum(f_lt, 4), 3), 2)
      
