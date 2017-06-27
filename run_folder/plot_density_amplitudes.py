@@ -45,7 +45,7 @@ h5f.close()
 
 # Plotting:
 pl.plot(time_ck, amplitude_ck, label = 'CK')
-pl.plot(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
+# pl.semilogy(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
 pl.legend()

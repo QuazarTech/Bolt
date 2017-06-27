@@ -292,11 +292,17 @@ def f_initial(da, args):
 
   else:
 
-    args.f = rho *\
-             np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+    # args.f = rho *\
+    #          np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+    #          af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+    #                (2*boltzmann_constant*temperature_background))
+    
+    n_p = 0.9/np.sqrt(2*np.pi)
+    n_b = 0.2/np.sqrt(2*np.pi)
 
+    args.f = rho *\
+             (n_p * af.exp(-0.5*vel_x**2) + n_b * af.exp(-0.5*((vel_x - 4.5)/0.5)**2))
+    
     f_background = rho_background * \
                    np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\

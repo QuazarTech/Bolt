@@ -190,6 +190,8 @@ def time_integration(da, da_fields, args, time_array):
 
     # Convert to positionsExpanded:
     args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+    print(af.where(args.f<0).elements())
+    print(af.min(args.f))
 
   glob.destroy()
   local.destroy()
