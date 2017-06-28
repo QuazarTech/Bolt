@@ -33,7 +33,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Importing density evolution as given by the CK code:
 h5f = h5py.File('ck_density_data.h5', 'r')
-amplitude_ck = h5f['density_amplitude'][:]
+amplitude_ck = h5f['density_amplitude'][:] + 1
 time_ck      = h5f['time'][:]
 h5f.close()
 

@@ -72,7 +72,7 @@ def f_MB(da, args):
     f_MB = n*af.sqrt(mass_particle/(2*np.pi*boltzmann_constant*T))*\
              af.exp(-mass_particle*(vel_x-vel_bulk_x)**2/(2*boltzmann_constant*T))
 
-  f_MB = f_MB/config.normalization
+  f_MB = af.log(f_MB/config.normalization)
 
   af.eval(f_MB)
   return(f_MB)
@@ -86,8 +86,8 @@ def collision_step_BGK(da, args, dt):
 
   # Performing the step of df/dt = C[f] = -(f - f_MB)/tau:
   f0             = f_MB(da, args)
-  f_intermediate = args.f - (dt/2)*(args.f - f0)/tau
-  args.f         = args.f - (dt)  *(f_intermediate - f0)/tau
+  f_intermediate = args.f + (dt/2)*(af.exp(f0 - args.f) - 1)/tau
+  args.f         = args.f + (dt)  *(af.exp(f0 - f_intermediate) - 1)/tau
 
   # Converting from velocitiesExpanded form to positionsExpanded form:
   args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)

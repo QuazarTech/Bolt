@@ -34,16 +34,16 @@ background_ions = dict(
 # k_x and k_y are the wave numbers of the sinusoidal perturbations
 # in the x and y directions respectively.
 perturbation = dict(
-                    pert_real = 0.04, 
+                    pert_real = 0.01, 
                     pert_imag = 0,
-                    k_x       = 0.5,
+                    k_x       = 2*np.pi,
                     k_y       = 0*np.pi,\
                    ) 
 
 # Resolution in position space:
-position_space = dict(N_x     = 128,
+position_space = dict(N_x     = 32,
                       x_start = 0,
-                      x_end   = 20*np.pi,
+                      x_end   = 1.0,
 
                       N_y     = 3,
                       y_start = 0,
@@ -80,7 +80,7 @@ boundary_conditions = dict(in_x = 'periodic',
                           )
 
 # Resolution in velocity space:
-velocity_space = dict(N_vel_x   = 128,
+velocity_space = dict(N_vel_x   = 64,
                       vel_x_max = 9.0, 
 
                       N_vel_y   = 1, 
@@ -91,8 +91,8 @@ velocity_space = dict(N_vel_x   = 128,
                      )
 
 time = dict(
-            final_time   = 100.0,
-            dt           = 0.1
+            final_time   = 1.0,
+            dt           = 0.001
            )
 
 # charge_ion makes no difference currently(In development)
@@ -105,5 +105,5 @@ EM_fields = dict(
 # Only BGK collision operator has been implemented so far.
 collisions = dict(
                   collision_operator = 'BGK',
-                  tau                = np.inf
+                  tau                = 0.01 #np.inf
                  )

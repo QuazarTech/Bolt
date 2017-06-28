@@ -198,4 +198,4 @@ def time_integration(da, da_fields, args, time_array):
   glob_field.destroy()
   local_field.destroy()
 
-  return(data, args.f)
+  return(data, af.exp(args.f))
