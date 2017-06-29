@@ -219,7 +219,7 @@ def calculate_velocities(da, config):
   # Returns in velocitiesExpanded form(Nx*Ny, Nvx, Nvy, Nvz)
   return(vel_x, vel_y, vel_z)
 
-def f_initial(da, args):
+def log_f_initial(da, args):
 
   config             = args.config
   mass_particle      = config.mass_particle
@@ -257,13 +257,13 @@ def f_initial(da, args):
   # distribution function is assigned accordingly:
   if(config.mode == '3V'):
     
-    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+    f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
+        af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+              (2*boltzmann_constant*temperature_background)) * \
+        af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+              (2*boltzmann_constant*temperature_background)) * \
+        af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
+              (2*boltzmann_constant*temperature_background))
 
     f_background = rho_background * \
                    (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
@@ -276,11 +276,11 @@ def f_initial(da, args):
 
   elif(config.mode == '2V'):
 
-    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+    f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+        af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+              (2*boltzmann_constant*temperature_background)) * \
+        af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+              (2*boltzmann_constant*temperature_background))
 
     f_background = rho_background * \
                    (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
@@ -292,10 +292,10 @@ def f_initial(da, args):
 
   else:
 
-    args.f = rho *\
-             np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+    f = rho *\
+        np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+        af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+              (2*boltzmann_constant*temperature_background))
     
     f_background = rho_background * \
                    np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
@@ -305,13 +305,13 @@ def f_initial(da, args):
     
   args.config.normalization = af.sum(f_background) * config.dv_x * config.dv_y * config.dv_z/\
                               (f_background.shape[0])
-  args.f                    = af.log(args.f/args.config.normalization)
+  args.log_f                = af.log(f/args.config.normalization)
   
   # Modifying the dimensions again:
   # Converting from velocitiesExpanded form to positionsExpanded form:
-  args.f = non_linear_solver.convert.to_positionsExpanded(da, config, args.f)
+  args.log_f = non_linear_solver.convert.to_positionsExpanded(da, config, args.log_f)
 
-  af.eval(args.f)
+  af.eval(args.log_f)
   return(args)
   
 def f_left(da, args):

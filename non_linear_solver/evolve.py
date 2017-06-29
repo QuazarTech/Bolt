@@ -31,7 +31,7 @@ def fields_step(da, args, local, glob, dt):
   vel_z = args.vel_z
 
   # Convert to velocitiesExpanded:
-  args.f = non_linear_solver.convert.to_velocitiesExpanded(da, config, args.f)
+  args.log_f = non_linear_solver.convert.to_velocitiesExpanded(da, config, args.log_f)
 
   if(config.fields_solver == 'electrostatic'):
     E_x = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
@@ -105,33 +105,33 @@ def fields_step(da, args, local, glob, dt):
   # NOTE: Here we are making the assumption that when mode == '2V'/'1V', N_vel_z = 1
   # If otherwise code will break here.
   if(config.mode == '3V'):
-    E_x = af.tile(af.flat(E_x), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
-    E_y = af.tile(af.flat(E_y), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
-    E_z = af.tile(af.flat(E_z), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
+    E_x = af.tile(af.flat(E_x), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
+    E_y = af.tile(af.flat(E_y), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
+    E_z = af.tile(af.flat(E_z), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
 
-    B_x = af.tile(af.flat(B_x), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
-    B_y = af.tile(af.flat(B_y), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
-    B_z = af.tile(af.flat(B_z), 1, args.f.shape[1], args.f.shape[2], args.f.shape[3]) #(i + 1/2, j + 1/2)
+    B_x = af.tile(af.flat(B_x), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
+    B_y = af.tile(af.flat(B_y), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
+    B_z = af.tile(af.flat(B_z), 1, args.log_f.shape[1], args.log_f.shape[2], args.log_f.shape[3]) #(i + 1/2, j + 1/2)
  
   else:
-    E_x = af.tile(af.flat(E_x), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
-    E_y = af.tile(af.flat(E_y), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
-    E_z = af.tile(af.flat(E_z), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
+    E_x = af.tile(af.flat(E_x), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
+    E_y = af.tile(af.flat(E_y), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
+    E_z = af.tile(af.flat(E_z), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
 
-    B_x = af.tile(af.flat(B_x), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
-    B_y = af.tile(af.flat(B_y), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
-    B_z = af.tile(af.flat(B_z), 1, args.f.shape[1], args.f.shape[2], 1) #(i + 1/2, j + 1/2)
+    B_x = af.tile(af.flat(B_x), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
+    B_y = af.tile(af.flat(B_y), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
+    B_z = af.tile(af.flat(B_z), 1, args.log_f.shape[1], args.log_f.shape[2], 1) #(i + 1/2, j + 1/2)
 
   F_x = charge_electron * (E_x + vel_y * B_z - vel_z * B_y) #(i + 1/2, j + 1/2)
   F_y = charge_electron * (E_y - vel_x * B_z + vel_z * B_x) #(i + 1/2, j + 1/2)
   F_z = charge_electron * (E_z - vel_y * B_x + vel_x * B_y) #(i + 1/2, j + 1/2)
 
-  args.f = f_interp_vel_3d(args, F_x, F_y, F_z, dt)
+  args.log_f = f_interp_vel_3d(args, F_x, F_y, F_z, dt)
 
   # Convert to positionsExpanded:
-  args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+  args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
-  af.eval(args.f)
+  af.eval(args.log_f)
   return(args)
 
 def time_integration(da, da_fields, args, time_array):
@@ -145,13 +145,13 @@ def time_integration(da, da_fields, args, time_array):
   local_field = da_fields.createLocalVec()
 
   # Convert to velocitiesExpanded:
-  args.f = non_linear_solver.convert.to_velocitiesExpanded(da, args.config, args.f)
+  args.log_f = non_linear_solver.convert.to_velocitiesExpanded(da, args.config, args.log_f)
 
   # Storing the value of density amplitude at t = 0
   data[0] = af.max(non_linear_solver.compute_moments.calculate_density(args))
 
   # Convert to positionsExpanded:
-  args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+  args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
   for time_index, t0 in enumerate(time_array[1:]):
     # Printing progress every 10 iterations
@@ -162,40 +162,40 @@ def time_integration(da, da_fields, args, time_array):
     dt = time_array[1] - time_array[0]
 
     # Advection in position space:
-    args.f = f_interp_2d(da, args, 0.25*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = f_interp_2d(da, args, 0.25*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Collision-Step:
-    args.f = collision_step_BGK(da, args, 0.5*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = collision_step_BGK(da, args, 0.5*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
-    args.f = f_interp_2d(da, args, 0.25*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = f_interp_2d(da, args, 0.25*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Fields Step(Advection in velocity space):
-    args   = fields_step(da_fields, args, local_field, glob_field, dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args       = fields_step(da_fields, args, local_field, glob_field, dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
-    args.f = f_interp_2d(da, args, 0.25*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = f_interp_2d(da, args, 0.25*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Collision-Step:
-    args.f = collision_step_BGK(da, args, 0.5*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = collision_step_BGK(da, args, 0.5*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     # Advection in position space:
-    args.f = f_interp_2d(da, args, 0.25*dt)
-    args.f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
+    args.log_f = f_interp_2d(da, args, 0.25*dt)
+    args.log_f = non_linear_solver.communicate.communicate_distribution_function(da, args, local, glob)
     
     # Convert to velocitiesExpanded:
-    args.f = non_linear_solver.convert.to_velocitiesExpanded(da, args.config, args.f)
+    args.log_f = non_linear_solver.convert.to_velocitiesExpanded(da, args.config, args.log_f)
 
     data[time_index + 1] = af.max(non_linear_solver.compute_moments.calculate_density(args))
 
     # Convert to positionsExpanded:
-    args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
-    print(af.where(args.f<0).elements())
-    print(af.min(args.f))
+    args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
+    print(af.where(args.log_f<0).elements())
+    print(af.min(args.log_f))
 
   glob.destroy()
   local.destroy()
   glob_field.destroy()
   local_field.destroy()
 
-  return(data, af.exp(args.f))
+  return(data, af.exp(args.log_f))

@@ -11,7 +11,7 @@ import arrayfire as af
 
 def calculate_density(args):
   config = args.config
-  f      = af.exp(args.f)
+  f      = af.exp(args.log_f)
 
   # n = \int f dv^3
   density = af.sum(af.sum(af.sum(f, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
@@ -21,7 +21,7 @@ def calculate_density(args):
   
 def calculate_mom_bulk_x(args):
   config = args.config
-  f      = af.exp(args.f)
+  f      = af.exp(args.log_f)
   vel_x  = args.vel_x
 
   # p_x = n v_bulk_x = \int f v_x dv^3
@@ -39,7 +39,7 @@ def calculate_vel_bulk_x(args):
 
 def calculate_mom_bulk_y(args):
   config = args.config
-  f      = af.exp(args.f)
+  f      = af.exp(args.log_f)
   vel_y  = args.vel_y
 
   # p_y = n v_bulk_y = \int f v_y dv^3
@@ -57,7 +57,7 @@ def calculate_vel_bulk_y(args):
 
 def calculate_mom_bulk_z(args):
   config = args.config
-  f      = af.exp(args.f)
+  f      = af.exp(args.log_f)
   vel_z  = args.vel_z
 
   # p_z = n v_bulk_z = \int f v_z dv^3
@@ -75,7 +75,7 @@ def calculate_vel_bulk_z(args):
 
 def calculate_temperature(args):
   config = args.config
-  f      = af.exp(args.f)
+  f      = af.exp(args.log_f)
 
   vel_x = args.vel_x
   vel_y = args.vel_y

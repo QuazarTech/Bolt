@@ -115,13 +115,13 @@ k_x = config.k_x
 k_y = config.k_y
 
 # Initializing the value for distribution function:
-args = initialize.f_initial(da, args)
+args = initialize.log_f_initial(da, args)
 
 charge_electron = config.charge_electron
 
 # Assigning the initial values for the electric fields:
-args.f    = non_linear_solver.convert.to_velocitiesExpanded(da, config, args.f)
-rho_array = config.charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
+args.log_f = non_linear_solver.convert.to_velocitiesExpanded(da, config, args.log_f)
+rho_array  = config.charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
                                       config.rho_background
                                      )
 
@@ -160,7 +160,7 @@ if(config.fields_solver == 'fdtd'):
                                   comm = da.getComm()
                                  )
 
-args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
 # The following quantities are defined on the Yee-Grid:
 args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)

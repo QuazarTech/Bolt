@@ -13,9 +13,7 @@ def f_interp_2d(da, args, dt):
   # Since the interpolation function are being performed in position space,
   # the arrays used in the computation need to be in positionsExpanded form.
 
-  config = args.config
-  f      = args.f
-
+  config  = args.config
   N_ghost = config.N_ghost
 
   # Obtaining the left-bottom corner coordinates 
@@ -43,20 +41,19 @@ def f_interp_2d(da, args, dt):
   x_interpolant = (x_center_new - left_boundary)/config.dx + N_ghost
   y_interpolant = (y_center_new - bot_boundary )/config.dy + N_ghost
 
-  f = af.approx2(f,\
-                 y_interpolant,\
-                 x_interpolant,\
-                 af.INTERP.BICUBIC_SPLINE
-                )
+  args.log_f = af.approx2(args.log_f,\
+                          y_interpolant,\
+                          x_interpolant,\
+                          af.INTERP.BICUBIC_SPLINE
+                         )
 
-  af.eval(f)
-  return(f)
+  af.eval(args.log_f)
+  return(args.log_f)
 
 def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   # Since the interpolation function are being performed in velocity space,
   # the arrays used in the computation need to be in velocitiesExpanded form.
   config = args.config
-  f      = args.f
   
   # args.vel_x,y,z are already in velocitiesExpanded form
   vel_x = args.vel_x
@@ -73,36 +70,30 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/config.dv_y
   vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/config.dv_z
 
-  vel_x_interpolant = af.select(vel_x_interpolant<0, 0, vel_x_interpolant)
-  vel_x_interpolant = af.select(vel_x_interpolant>config.N_vel_x - 1, 0, vel_x_interpolant)
-
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1
 
   # Reordering from f(Ny*Nx, vel_y, vel_x, vel_z)     --> f(vel_y, Ny*Nx, vel_x, vel_z)
   # Reordering from vel_y(Ny*Nx, vel_y, vel_x, vel_z) --> vel_y(vel_y, Ny*Nx, vel_x, vel_z)
-  for i in range(vel_x.shape[0]):
-      interpolated  = InterpolatedUnivariateSpline(np.array(vel_x[i, 0, :, 0]), np.array(f[i, 0, :, 0]), k = 5)
-      f[i, 0, :, 0] = af.to_array(interpolated(np.array(vel_x_new[i, 0, :, 0])))
-
-
-  # f = af.approx1(af.reorder(f, 2, 3, 0, 1),\
-  #                af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
-  #                af.INTERP.CUBIC_SPLINE,\
-  #               )
+  args.log_f = af.approx1(af.reorder(args.log_f, 2, 3, 0, 1),\
+                          af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+                          af.INTERP.LINEAR,\
+                          off_grid = -46
+                         )
 
   # Reordering from f(vel_y, Ny*Nx, vel_x, vel_z)     --> f(vel_x, vel_z, Ny*Nx, vel_y)
   # Reordering from vel_x(Ny*Nx, vel_y, vel_x, vel_z) --> vel_x(vel_x, vel_z, Ny*Nx, vel_y)
   # Reordering from vel_z(Ny*Nx, vel_y, vel_x, vel_z) --> vel_z(vel_x, vel_z, Ny*Nx, vel_y)
-  # f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
-  #                af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
-  #                af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-  #                af.INTERP.BICUBIC_SPLINE
-  #               )
+  # args.log_f = af.approx2(af.reorder(f, 2, 3, 1, 0),\
+                           #  af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+                           #  af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
+                           #  af.INTERP.BICUBIC_SPLINE,\
+                           #  off_grid = -100
+                           # )
 
   # Reordering back to the original convention(velocitiesExpanded):
   # Reordering from f(vel_x, vel_z, Ny*Nx, vel_y) --> f(Ny*Nx, vel_y, vel_x, vel_z)
-  # f = af.reorder(f, 2, 3, 0, 1)
+  args.log_f = af.reorder(args.log_f, 2, 3, 0, 1)
 
-  af.eval(f)
-  return(f)
+  af.eval(args.log_f)
+  return(args.log_f)

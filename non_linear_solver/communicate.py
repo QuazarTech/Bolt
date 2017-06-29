@@ -14,10 +14,10 @@ def communicate_distribution_function(da, args, local, glob):
   N_ghost = args.config.N_ghost
 
   # Applying the boundary conditions:
-  args.f         = apply_BC_distribution_function(da, args)
+  args.log_f     = apply_BC_distribution_function(da, args)
 
   # Storing values of af.Array in PETSc.Vec:
-  local_value[:] = np.array(args.f)
+  local_value[:] = np.array(args.log_f)
   
   # Global value is non-inclusive of the ghost-zones:
   glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
@@ -30,10 +30,10 @@ def communicate_distribution_function(da, args, local, glob):
   da.globalToLocal(glob, local)
 
   # Converting back from PETSc.Vec to af.Array:
-  f_updated = af.to_array(local_value[:])
+  args.log_f = af.to_array(local_value[:])
 
-  af.eval(f_updated)
-  return(f_updated)
+  af.eval(args.log_f)
+  return(args.log_f)
 
 def apply_BC_distribution_function(da, args):
 
@@ -49,21 +49,21 @@ def apply_BC_distribution_function(da, args):
   if(args.config.bc_in_x == 'dirichlet'):
 
     if(i_left == 0):
-      args.f[:, :N_ghost] = args.f_left
+      args.log_f[:, :N_ghost] = args.log_f_left
 
     if(i_right == config.N_x - 1):
-      args.f[:, -N_ghost:] = args.f_right
+      args.log_f[:, -N_ghost:] = args.log_f_right
 
   if(args.config.bc_in_y == 'dirichlet'):
 
     if(j_bottom == 0):
-      args.f[:N_ghost, :] = args.f_bot
+      args.log_f[:N_ghost, :] = args.log_f_bot
 
     if(j_top == config.N_y - 1):
-      args.f[-N_ghost:, :] = args.f_top
+      args.log_f[-N_ghost:, :] = args.log_f_top
 
-  af.eval(args.f)
-  return(args.f)
+  af.eval(args.log_f)
+  return(args.log_f)
 
 def communicate_fields(da, args, local, glob):
 
@@ -101,4 +101,6 @@ def communicate_fields(da, args, local, glob):
   args.B_y = af.to_array((local_value[:])[:, :, 4])
   args.B_z = af.to_array((local_value[:])[:, :, 5])
 
+  af.eval(args.E_x, args.E_y, args.E_z)
+  af.eval(args.B_x, args.B_y, args.B_z)
   return(args)

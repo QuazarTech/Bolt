@@ -92,7 +92,7 @@ velocity_space = dict(N_vel_x   = 64,
 
 time = dict(
             final_time   = 1.0,
-            dt           = 0.001
+            dt           = 0.01
            )
 
 # charge_ion makes no difference currently(In development)
