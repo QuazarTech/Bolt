@@ -97,8 +97,8 @@ time = dict(
 
 # charge_ion makes no difference currently(In development)
 EM_fields = dict(
-                 charge_electron = -10,
-                 charge_ion      = 10, 
+                 charge_electron = -0,
+                 charge_ion      = 0, 
                  solver          = 'electrostatic'
                 )
 
