@@ -70,6 +70,9 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/config.dv_y
   vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/config.dv_z
 
+  print(af.sum(vel_y_interpolant))
+  print(af.sum(vel_z_interpolant))
+
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1
 

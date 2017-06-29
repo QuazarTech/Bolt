@@ -129,11 +129,11 @@ for i in range(len(config)):
   k_x = config[i].k_x
   k_y = config[i].k_y
 
-  args = initialize.f_initial(da, args)
+  args = initialize.log_f_initial(da, args)
 
   charge_electron = config[i].charge_electron
   
-  args.f    = non_linear_solver.convert.to_velocitiesExpanded(da, config[i], args.f)
+  args.log_f    = non_linear_solver.convert.to_velocitiesExpanded(da, config[i], args.log_f)
   rho_array = config[i].charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
                                            config[i].rho_background
                                           )
@@ -159,6 +159,16 @@ for i in range(len(config)):
   args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0))
   args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1))
 
+
+  # args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
+  #            (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
+  #             pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
+  #            ) #(i + 1/2, j)
+
+  # args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
+  #            (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+  #             pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+  #            ) #(i, j + 1/2)
   # We define da_fields with dof = 6 to allow application of boundary conditions
   # for all the fields quantities in a single step.
   if(config[i].fields_solver == 'fdtd'):
@@ -172,7 +182,7 @@ for i in range(len(config)):
                                     comm = da.getComm()
                                    )
 
-  args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+  args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
   # The following quantities are defined on the Yee-Grid:
   args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)

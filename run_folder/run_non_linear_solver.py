@@ -5,7 +5,9 @@ from petsc4py import PETSc
 
 import arrayfire as af
 import numpy as np
+import pylab as pl
 import params
+
 
 # Importing solver library functions
 import setup_simulation
@@ -147,6 +149,16 @@ solve_electrostatic_fields(da_fields, config, rho_array)
 args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0)) #(i+0.5, j)
 args.E_y = 0.5 * (args.E_y + af.shift(args.E_y, 0, 1)) #(i, j+0.5)
 
+# args.E_x = charge_electron * k_x/(k_x**2 + k_y**2) *\
+#            (pert_real * af.sin(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0]) +\
+#             pert_imag * af.cos(k_x*x_center[:, :, 0, 0] + k_y*y_bottom[:, :, 0, 0])
+#            ) #(i + 1/2, j)
+
+# args.E_y = charge_electron * k_y/(k_x**2 + k_y**2) *\
+#            (pert_real * af.sin(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0]) +\
+#             pert_imag * af.cos(k_x*x_left[:, :, 0, 0] + k_y*y_center[:, :, 0, 0])
+#            ) #(i, j + 1/2)
+           
 # We define da_fields with dof = 6 to allow application of boundary conditions
 # for all the fields quantities in a single step.
 if(config.fields_solver == 'fdtd'):

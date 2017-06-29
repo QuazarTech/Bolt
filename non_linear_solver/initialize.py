@@ -306,10 +306,13 @@ def log_f_initial(da, args):
   args.config.normalization = af.sum(f_background) * config.dv_x * config.dv_y * config.dv_z/\
                               (f_background.shape[0])
   args.log_f                = af.log(f/args.config.normalization)
+  args.f                    = (f/args.config.normalization)
+
   
   # Modifying the dimensions again:
   # Converting from velocitiesExpanded form to positionsExpanded form:
   args.log_f = non_linear_solver.convert.to_positionsExpanded(da, config, args.log_f)
+  # args.f     = non_linear_solver.convert.to_positionsExpanded(da, config, args.f)
 
   af.eval(args.log_f)
   return(args)

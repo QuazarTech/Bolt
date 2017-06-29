@@ -91,14 +91,14 @@ velocity_space = dict(N_vel_x   = 64,
                      )
 
 time = dict(
-            final_time   = 1.0,
+            final_time   = 0.5,
             dt           = 0.01
            )
 
 # charge_ion makes no difference currently(In development)
 EM_fields = dict(
-                 charge_electron = -0,
-                 charge_ion      = 0, 
+                 charge_electron = -10,
+                 charge_ion      = 10, 
                  solver          = 'electrostatic'
                 )
 

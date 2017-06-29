@@ -71,6 +71,7 @@ def solve_electrostatic_fields(da, config, rho_array):
   pc = ksp.getPC()
   pc.setType('none')
 
+  ksp.setTolerances(rtol = 1e-10)
   pde.formRHS(rho, rho_array)
   ksp.solve(rho, phi)
 
