@@ -1,16 +1,16 @@
-# Boltzmann-Equation Solver Package
+# SLaPy - A Python-based Semi-Lagrangian Solver Framework:
 
-The solver package consists of a Cheng-Knorr solver as well as a linear theory solver. The results obtained from both methods are verified against each other. The solvers have been written in terms of library functions which can be called from a separate python file(refer to `run_ck.py` and `run_lt.py` under the `run_folder/`). In both the solver libraries a common configuration file is used to setup the initial conditions and boundary conditions of the simulation along with the simulation run-time parameters.
+This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
-## Getting Started:
+<p align="center"><img alt="\begin{align*}&#10;\frac{\partial f}{\partial t} + T_1 \frac{\partial f}{\partial q_1} + T_2 \frac{\partial f}{\partial q_2} + T_3 \frac{\partial f}{\partial q_3} + T_4 \frac{\partial f}{\partial q_4} + T_5 \frac{\partial f}{\partial q_5} = T_6&#10;\end{align*}" src="https://rawgit.com/QuazarTech/Boltzmann_solver (fetch/RefactoredCode/.svgs/382b10006744bebc4c3584f60d42e784.svg?invert_in_darkmode" align=middle width="385.83104999999995pt" height="36.953894999999996pt"/></p>
 
-Clone the repo to your local machine, and add the folder to your python path. These steps may be performed by:
+Where <img alt="$T_1$" src="https://rawgit.com/QuazarTech/Boltzmann_solver (fetch/RefactoredCode/.svgs/b1aadae6dafc7da339f61626db58e355.svg?invert_in_darkmode" align=middle width="16.098390000000002pt" height="22.381919999999983pt"/> to <img alt="$T_6$" src="https://rawgit.com/QuazarTech/Boltzmann_solver (fetch/RefactoredCode/.svgs/7a05d4075902c41f2194c3e72cc65519.svg?invert_in_darkmode" align=middle width="16.098390000000002pt" height="22.381919999999983pt"/> are terms that need to be coded in by the user.
 
-```bash
-git clone https://github.com/ShyamSS-95/Boltzmann-Solver.git
-cd Boltzmann-Solver
-export PYTHONPATH=$PWD:$PYTHONPATH
-```
+The generalized structure that the framework uses can be found in `lib/`. All the functions have been provided docstrings which are indicative of their usage. Additionally, we have validated the solvers by solving the Boltzmann-Equation:
+
+<p align="center"><img alt="\begin{align*}&#10;\frac{\partial f}{\partial t} + v_x \frac{\partial f}{\partial x} + v_y \frac{\partial f}{\partial y} + q(\vec{E} + \vec{v} \times \vec{B})_x \frac{\partial f}{\partial v_x} + q(\vec{E} + \vec{v} \times \vec{B})_y \frac{\partial f}{\partial v_y} + q(\vec{E} + \vec{v} \times \vec{B})_z \frac{\partial f}{\partial v_z} = C[f] = -\frac{f - f_0}{\tau}&#10;\end{align*}" src="https://rawgit.com/QuazarTech/Boltzmann_solver (fetch/RefactoredCode/.svgs/fb517d5e70e914e4e30148467dd0b571.svg?invert_in_darkmode" align=middle width="735.1954499999999pt" height="38.464304999999996pt"/></p>
+
+`src/` contains the relevant files which were used to make the framework solve for the Boltzmann-Equation.
 
 ## Dependencies:
 
@@ -21,33 +21,7 @@ The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for 
 * matplotlib(used in postprocessing the data-generated)
 * pytest
 
-## Usage:
-
-To get started, look at `run_ck.py` and `run_lt.py` under `run_folder/`. Changes need to be made to `params.py` to indicate the parameters of the system which you intend to evolve for. Commenting has been added appropriately in each of these files to indicate the purpose of each function call. Additionally, docstrings have been provided for all the functions(not all - few in development), which can be viewed easily by typing `function_name?` from an IPython shell. One of the standard case we have been considering thusfar is the evolution of a system with a small density perturbation. Try making changes to the `params.py`, and see the plot for density amplitudes as given by the linear theory code, and the Cheng-Knorr:
-```bash
-ipython run_lt.py
-ipython run_ck.py
-ipython plot_density_amplitudes.py
-```
-
-In addition to the various unit tests, automated convergence tests that check the implementation of the physics have been added. Convergence tests for all the cases can be performed by running `run_all.sh`. Alternatively, to test a particular case, navigate to the appropriate folder, and execute the following set of commands:
-
-```bash
-ipython run_lt.py
-ipython run_ck.py
-py.test
-```
-
 ## Authors
 
 * **Shyam Sankaran** - [GitHub Profile](https://github.com/ShyamSS-95)
 * **Mani Chandra** - [GitHub Profile](https://github.com/mchandra)
-
-## In development:
-
-* Addition of other collision operators(currently only BGK operator has been implemented)
-* Additional unit checks for the Cheng-Knorr solvers 
-* Unit tests for the linear theory code
-* Evolving for multiple species
-* Implementation of a conservative and positivity preserving algorithm.
-* More thorough documentation
