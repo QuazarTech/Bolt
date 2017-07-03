@@ -11,7 +11,7 @@ class physical_system(object):
   An instance of this class contains details of the physical system
   being evolved.
   """
-  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term):
+  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, rhs):
     """
     domain: Object/Input parameter file, that contains the details of the resolutions of the
             variables in which the advections are to be performed.
@@ -24,20 +24,20 @@ class physical_system(object):
                         initial value to the distribution function being evolved. It is also ensured
                         that the I.C's are consistent with the B.C's
 
-    advection_terms: Object whose attributes advection_term.T1, T2... are functions which are 
+    advection_terms: Object whose attributes advection_term.A_p1, A_p2... are functions which are 
                      declared depending upon the system that is being evolved.
     """
     self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_end, domain.q1_end
     self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_end, domain.q2_end
-    self.N_q3, self.q3_start, self.q3_end = domain.N_q3, domain.q3_end, domain.q3_end
-    self.N_q4, self.q4_start, self.q4_end = domain.N_q4, domain.q4_end, domain.q4_end
-    self.N_q5, self.q5_start, self.q5_end = domain.N_q5, domain.q5_end, domain.q5_end
+    self.N_p1, self.p1_start, self.p1_end = domain.N_p1, domain.p1_end, domain.p1_end
+    self.N_p2, self.p2_start, self.p2_end = domain.N_p2, domain.p2_end, domain.p2_end
+    self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_end, domain.p3_end
 
     self.dq1 = (self.q1_start - self.q1_end)/self.N_q1
     self.dq2 = (self.q2_start - self.q2_end)/self.N_q2
-    self.dq3 = (self.q3_start - self.q3_end)/self.N_q3
-    self.dq4 = (self.q4_start - self.q4_end)/self.N_q4
-    self.dq5 = (self.q5_start - self.q5_end)/self.N_q5
+    self.dp1 = (self.p1_start - self.p1_end)/self.N_p1
+    self.dp2 = (self.p2_start - self.p2_end)/self.N_p2
+    self.dp3 = (self.p3_start - self.p3_end)/self.N_p3
 
     self.N_ghost               = domain.N_ghost
     self.bc_in_x, self.bc_in_y = boundary_conditions.in_x, boundary_conditions.in_y
@@ -47,7 +47,7 @@ class physical_system(object):
     self.comm = PETSc.COMM_WORLD.tompi4py()
 
     self.da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
-                                  dof = (self.N_q3 * self.N_q4 * self.N_q5),\
+                                  dof = (self.N_p1 * self.N_p2 * self.N_p3),\
                                   stencil_width = self.N_ghost,\
                                   boundary_type = (self.bc_in_x, self.bc_in_y),\
                                   proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
@@ -57,17 +57,17 @@ class physical_system(object):
 
     self.q1_center = self.calculate_q1_center()
     self.q2_center = self.calculate_q2_center()
-    self.q3_center = self.calculate_q3_center()
-    self.q4_center = self.calculate_q4_center()
-    self.q5_center = self.calculate_q5_center()
+    self.p1_center = self.calculate_p1_center()
+    self.p2_center = self.calculate_p2_center()
+    self.p3_center = self.calculate_p3_center()
 
-    self.f = initial_conditions(self, *args, **kwargs)
-
-    self.T1 = advection_term.T1(self, *args, **kwargs)
-    self.T2 = advection_term.T2(self, *args, **kwargs)
-    self.T3 = advection_term.T3(self, *args, **kwargs)
-    self.T4 = advection_term.T4(self, *args, **kwargs)
-    self.T5 = advection_term.T5(self, *args, **kwargs)
+    self.f    = initial_conditions(self, *args, **kwargs)
+    self.A_q1 = advection_term.A_q1(self, *args, **kwargs)
+    self.A_q2 = advection_term.A_q2(self, *args, **kwargs)
+    self.A_p1 = advection_term.A_p1(self, *args, **kwargs)
+    self.A_p2 = advection_term.A_p2(self, *args, **kwargs)
+    self.A_p3 = advection_term.A_p3(self, *args, **kwargs)
+    self.g    = rhs(self, *args, **kwargs)
 
   def calculate_q1_center(self):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
@@ -79,11 +79,11 @@ class physical_system(object):
 
     # Tiling such that variation in q1 is along axis 0:
     q1_center = af.tile(q1_center, 1, N_q2_local + 2*self.N_ghost,\
-                        self.N_q3 * self.N_q4 * self.N_q5, 1
+                        self.N_p1 * self.N_p2 * self.N_p3, 1
                        )
 
     af.eval(q1_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Nq3*Nq4*Nq5, 1)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(q1_center)
 
   def calculate_q2_center(self):
@@ -96,59 +96,59 @@ class physical_system(object):
 
     # Tiling such that variation in q2 is along axis 1:
     q2_center = af.tile(af.reorder(q2_center), N_q1_local + 2*self.N_ghost, 1,\
-                        self.N_q3 * self.N_q4 * self.N_q5, 1
+                        self.N_p1 * self.N_p2 * self.N_p3, 1
                        )
 
     af.eval(q2_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Nq3*Nq4*Nq5, 1)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(q2_center)
 
-  def calculate_q3_center(self):
+  def calculate_p1_center(self):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
-    q3_center = self.q3_start  + (0.5 + np.arange(0, self.N_q3, 1)) * self.dq3
-    q3_center = af.Array.as_type(af.to_array(q3_center), af.Dtype.f64)
+    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
 
-    # Tiling such that variation in q3 is along axis 1:
-    q3_center = af.tile(af.reorder(q3_center), (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        1, self.N_q4, self.N_q5
+    # Tiling such that variation in p1 is along axis 1:
+    p1_center = af.tile(af.reorder(p1_center), (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
+                        1, self.N_p2, self.N_p3
                        )
 
-    af.eval(q3_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Nq3, Nq4, Nq5)
-    return(q3_center)
+    af.eval(p1_center)
+    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    return(p1_center)
 
-  def calculate_q4_center(self):
+  def calculate_p2_center(self):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
-    q4_center = self.q4_start  + (0.5 + np.arange(0, self.N_q4, 1)) * self.dq4
-    q4_center = af.Array.as_type(af.to_array(q4_center), af.Dtype.f64)
+    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
 
-    # Tiling such that variation in q4 is along axis 2:
-    q4_center = af.tile(af.reorder(q4_center, 2, 3, 0, 1),\
+    # Tiling such that variation in p2 is along axis 2:
+    p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),\
                         (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        self.N_q3, 1, self.N_q5
+                        self.N_p1, 1, self.N_p3
                        )
 
-    af.eval(q4_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Nq3, Nq4, Nq5)
-    return(q4_center)
+    af.eval(p2_center)
+    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    return(p2_center)
 
-  def calculate_q5_center(self):
+  def calculate_p3_center(self):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
-    q5_center = self.q5_start  + (0.5 + np.arange(0, self.N_q5, 1)) * self.dq5
-    q5_center = af.Array.as_type(af.to_array(q5_center), af.Dtype.f64)
+    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+    p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
 
-    # Tiling such that variation in q4 is along axis 2:
-    q5_center = af.tile(af.reorder(q5_center, 1, 2, 3, 0),\
+    # Tiling such that variation in p2 is along axis 2:
+    p3_center = af.tile(af.reorder(p3_center, 1, 2, 3, 0),\
                         (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        self.N_q3, self.N_q4, 1
+                        self.N_p1, self.N_p2, 1
                        )
 
-    af.eval(q5_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Nq3, Nq4, Nq5)
-    return(q5_center)
+    af.eval(p3_center)
+    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    return(p3_center)
 
   def dump(self, file_name, **args):
     h5f = h5py.File(file_name, 'w')
@@ -156,6 +156,8 @@ class physical_system(object):
       h5f.create_dataset(str(variable_name), data = variable_name)
     h5f.close()
 
-  def compute_moments(self, moment):
-    # how to make this work for arbitrary variables
+  def compute_moments(self, moment_variable):
+    moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
+    
+    af.eval(moment)
     return
