@@ -14,7 +14,8 @@ import setup_simulation
 import non_linear_solver.initialize as initialize
 import non_linear_solver.evolve as evolve
 import non_linear_solver.compute_moments
-from non_linear_solver.EM_fields_solver.electrostatic import solve_electrostatic_fields
+import non_linear_solver.communicate
+from non_linear_solver.EM_fields_solver.electrostatic import solve_electrostatic_fields, fft_poisson
 
 # Setting up the configuration object along with the time array.
 config      = setup_simulation.configuration_object(params)
@@ -61,7 +62,7 @@ da = PETSc.DMDA().create([N_y, N_x],\
                         ) 
 
 da_fields = PETSc.DMDA().create([N_y, N_x],\
-                                dof = 1,\
+                                dof = 6,\
                                 stencil_width = N_ghost,\
                                 boundary_type = da.getBoundaryType(),\
                                 proc_sizes = da.getProcSizes(), \
@@ -137,13 +138,34 @@ rho_array = af.moddims(rho_array,\
                        N_x_local + 2 * N_ghost
                       )
 
-rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+rho_array = (rho_array)[N_ghost:-N_ghost,\
                                 N_ghost:-N_ghost
                                ]
 
+args.E_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
+args.E_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
+args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
+args.B_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
+args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
+args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+
 # This function returns the values of fields at (i + 0.5, j + 0.5)
-args.E_x, args.E_y =\
-solve_electrostatic_fields(da_fields, config, rho_array)
+args.E_x[3:-3, 3:-3], args.E_y[3:-3, 3:-3] = fft_poisson(rho_array, config.dx, config.dy)
+
+# pl.contourf(np.array(args.E_x), 100)
+# pl.colorbar()
+# pl.show()
+# pl.clf()
+# pl.contourf(np.array(args.E_y), 100)
+# pl.colorbar()
+# pl.show()
+
+# glob  = da_fields.createGlobalVec()
+# local = da_fields.createLocalVec()
+
+# args = non_linear_solver.communicate.communicate_fields(da_fields, args, local, glob)
+
+# solve_electrostatic_fields(da_fields, config, rho_array)
 
 # Interpolating to obtain the values at the Yee-Grid
 args.E_x = 0.5 * (args.E_x + af.shift(args.E_x, 1, 0)) #(i+0.5, j)
@@ -175,10 +197,7 @@ if(config.fields_solver == 'fdtd'):
 args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
 # The following quantities are defined on the Yee-Grid:
-args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
-args.B_x = af.constant(0, x_left.shape[0], y_center.shape[1], dtype=af.Dtype.f64)
-args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
-args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
+
 
 # Global data holds the information of the density amplitude for the entire physical domain:
 global_data   = np.zeros(time_array.size) 

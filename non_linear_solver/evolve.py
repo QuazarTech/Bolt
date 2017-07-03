@@ -9,7 +9,7 @@ import non_linear_solver.communicate
 from non_linear_solver.interpolation_routines import f_interp_2d, f_interp_vel_3d
 
 # Importing the fields solvers:
-from non_linear_solver.EM_fields_solver.electrostatic import solve_electrostatic_fields
+from non_linear_solver.EM_fields_solver.electrostatic import solve_electrostatic_fields, fft_poisson
 from non_linear_solver.EM_fields_solver.fdtd import fdtd, fdtd_grid_to_ck_grid
 
 # Importing the collision operators:
@@ -52,12 +52,22 @@ def fields_step(da, args, local, glob, dt):
                            N_x_local + 2 * N_ghost
                           )
 
-    rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+    # rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
+    #                                 N_ghost:-N_ghost
+    #                                ]
+    
+    # E_x, E_y =\
+    # solve_electrostatic_fields(da, config, rho_array)
+
+    rho_array = (rho_array)[N_ghost:-N_ghost,\
                                     N_ghost:-N_ghost
                                    ]
-    
-    E_x, E_y =\
-    solve_electrostatic_fields(da, config, rho_array)
+
+    args.E_x[3:-3, 3:-3], args.E_y[3:-3, 3:-3] = fft_poisson(rho_array, config.dx, config.dy)
+    args = non_linear_solver.communicate.communicate_fields(da, args, local, glob)
+
+    E_x = args.E_x 
+    E_y = args.E_y
 
   else:
     # Will returned a flattened array containing the values of J_x,y,z in 2D space:

@@ -66,37 +66,36 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_z_new = vel_z - dt * F_z
 
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
-  vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/config.dv_x
-  vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/config.dv_y
-  vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/config.dv_z
+  # vel_x_interpolant = (vel_x_new - af.sum(vel_x[0, 0, 0, 0]))/config.dv_x
+  # vel_y_interpolant = (vel_y_new - af.sum(vel_y[0, 0, 0, 0]))/config.dv_y
+  # vel_z_interpolant = (vel_z_new - af.sum(vel_z[0, 0, 0, 0]))/config.dv_z
 
-  print(af.sum(vel_y_interpolant))
-  print(af.sum(vel_z_interpolant))
-
+  for i in range(vel_x.shape[0]):
+    args.log_f[i, 0, :, 0] = af.to_array((InterpolatedUnivariateSpline(np.array(vel_x[i, 0, :, 0]), np.array(args.log_f[i, 0, :, 0]), k = 5))(np.array(vel_x_new[i, 0, :, 0])))
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1
 
   # Reordering from f(Ny*Nx, vel_y, vel_x, vel_z)     --> f(vel_y, Ny*Nx, vel_x, vel_z)
   # Reordering from vel_y(Ny*Nx, vel_y, vel_x, vel_z) --> vel_y(vel_y, Ny*Nx, vel_x, vel_z)
-  args.log_f = af.approx1(af.reorder(args.log_f),\
-                          af.reorder(vel_y_interpolant),\
-                          af.INTERP.CUBIC_SPLINE,\
-                          off_grid = -46
-                         )
+  # args.log_f = af.approx1(af.reorder(args.log_f),\
+  #                         af.reorder(vel_y_interpolant),\
+  #                         af.INTERP.CUBIC_SPLINE,\
+  #                         off_grid = -46
+  #                        )
 
   # Reordering from f(vel_y, Ny*Nx, vel_x, vel_z)     --> f(vel_x, vel_z, Ny*Nx, vel_y)
   # Reordering from vel_x(Ny*Nx, vel_y, vel_x, vel_z) --> vel_x(vel_x, vel_z, Ny*Nx, vel_y)
   # Reordering from vel_z(Ny*Nx, vel_y, vel_x, vel_z) --> vel_z(vel_x, vel_z, Ny*Nx, vel_y)
-  args.log_f = af.approx2(af.reorder(args.log_f, 2, 3, 1, 0),\
-                          af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
-                          af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
-                          af.INTERP.BICUBIC_SPLINE,\
-                          off_grid = -46
-                         )
+  # args.log_f = af.approx2(af.reorder(args.log_f, 2, 3, 1, 0),\
+  #                         af.reorder(vel_x_interpolant, 2, 3, 0, 1),\
+  #                         af.reorder(vel_z_interpolant, 2, 3, 0, 1),\
+  #                         af.INTERP.BICUBIC_SPLINE,\
+  #                         off_grid = -46
+  #                        )
 
   # Reordering back to the original convention(velocitiesExpanded):
   # Reordering from f(vel_x, vel_z, Ny*Nx, vel_y) --> f(Ny*Nx, vel_y, vel_x, vel_z)
-  args.log_f = af.reorder(args.log_f, 2, 3, 0, 1)
+  # args.log_f = af.reorder(args.log_f, 2, 3, 0, 1)
 
   af.eval(args.log_f)
   return(args.log_f)

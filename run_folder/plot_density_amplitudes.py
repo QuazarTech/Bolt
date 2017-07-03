@@ -43,26 +43,26 @@ amplitude_lt = h5f['density_amplitude'][:]
 time_lt      = h5f['time'][:]
 h5f.close()
 
-# Plotting:
-h5f  = h5py.File('ck_distribution_function0.h5', 'r')
-f_ck = h5f['distribution_function'][:]
-h5f.close()
+# # Plotting:
+# h5f  = h5py.File('ck_distribution_function0.h5', 'r')
+# f_ck = h5f['distribution_function'][:]
+# h5f.close()
 
-h5f  = h5py.File('ck_distribution_function.h5', 'r')
-f_ck1 = h5f['distribution_function'][:]
-h5f.close()
+# h5f  = h5py.File('ck_distribution_function.h5', 'r')
+# f_ck1 = h5f['distribution_function'][:]
+# h5f.close()
 
-h5f  = h5py.File('lt_distribution_function.h5', 'r')
-f_lt = h5f['distribution_function'][:]
-h5f.close()
+# h5f  = h5py.File('lt_distribution_function.h5', 'r')
+# f_lt = h5f['distribution_function'][:]
+# h5f.close()
 
-f_ck = np.swapaxes(f_ck, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[4], f_lt.shape[3], f_lt.shape[2])
-f_ck = np.swapaxes(f_ck, 4, 2)
-f_ck1 = np.swapaxes(f_ck1, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[4], f_lt.shape[3], f_lt.shape[2])
-f_ck1 = np.swapaxes(f_ck1, 4, 2)
+# f_ck = np.swapaxes(f_ck, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[4], f_lt.shape[3], f_lt.shape[2])
+# f_ck = np.swapaxes(f_ck, 4, 2)
+# f_ck1 = np.swapaxes(f_ck1, 0, 1).reshape(f_lt.shape[0], f_lt.shape[1], f_lt.shape[4], f_lt.shape[3], f_lt.shape[2])
+# f_ck1 = np.swapaxes(f_ck1, 4, 2)
 
-pl.plot(time_ck, amplitude_ck, label = 'CK')
-pl.plot(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
+pl.plot(time_ck[:15], amplitude_ck[:15], label = 'CK')
+# pl.plot(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
 
 # x = (0.5 + np.arange(32))*(1/32)
 # v = -9 + (0.5 + np.arange(64))*(18/64)

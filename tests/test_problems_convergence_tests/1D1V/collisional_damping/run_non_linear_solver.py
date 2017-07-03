@@ -129,12 +129,12 @@ for i in range(len(config)):
   k_x = config[i].k_x
   k_y = config[i].k_y
 
-  args = initialize.f_initial(da, args)
+  args = initialize.log_f_initial(da, args)
 
   charge_electron = config[i].charge_electron
   
-  args.f    = non_linear_solver.convert.to_velocitiesExpanded(da, config[i], args.f)
-  rho_array = config[i].charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
+  args.log_f = non_linear_solver.convert.to_velocitiesExpanded(da, config[i], args.log_f)
+  rho_array  = config[i].charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
                                            config[i].rho_background
                                           )
  
@@ -143,6 +143,8 @@ for i in range(len(config)):
   # We also obtain the size of the local zone:
   ((j_bottom, i_left), (N_y_local, N_x_local)) = da_fields.getCorners()
 
+  print(rho_array.shape)
+  
   rho_array = af.moddims(rho_array,\
                          N_y_local + 2 * N_ghost,\
                          N_x_local + 2 * N_ghost
@@ -172,7 +174,7 @@ for i in range(len(config)):
                                     comm = da.getComm()
                                    )
 
-  args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
+  args.log_f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.log_f)
 
   # The following quantities are defined on the Yee-Grid:
   args.E_z = af.constant(0, x_left.shape[0], y_bottom.shape[1], dtype=af.Dtype.f64)
