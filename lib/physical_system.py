@@ -42,24 +42,29 @@ class physical_system(object):
     self.N_ghost               = domain.N_ghost
     self.bc_in_x, self.bc_in_y = boundary_conditions.in_x, boundary_conditions.in_y
 
-    ## Remaining boundary conditions of values at boundaries to be assigned here.
-    
-    self.comm = PETSc.COMM_WORLD.tompi4py()
+    # Declaring the communicator:
+    self._comm = PETSc.COMM_WORLD.tompi4py()
 
-    self.da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
-                                  dof = (self.N_p1 * self.N_p2 * self.N_p3),\
-                                  stencil_width = self.N_ghost,\
-                                  boundary_type = (self.bc_in_x, self.bc_in_y),\
-                                  proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
-                                  stencil_type = 1, \
-                                  comm = self.comm
-                                 )
+    # The DA structure is used in domain decomposition:
+    # The following DA is used in the communication routines where information 
+    # about the data of the distribution function needs to be communicated 
+    # amongst processes. Additionally this structure automatically
+    # takes care of applying periodic boundary conditions.
+    self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
+                                   dof = (self.N_p1 * self.N_p2 * self.N_p3),\
+                                   stencil_width = self.N_ghost,\
+                                   boundary_type = (self.bc_in_x, self.bc_in_y),\
+                                   proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
+                                   stencil_type = 1, \
+                                   comm = self._comm
+                                  )
 
-    self.q1_center = self.calculate_q1_center()
-    self.q2_center = self.calculate_q2_center()
-    self.p1_center = self.calculate_p1_center()
-    self.p2_center = self.calculate_p2_center()
-    self.p3_center = self.calculate_p3_center()
+    # Obtaining the array values of the cannonical variables: 
+    self.q1_center = self._calculate_q1_center()
+    self.q2_center = self._calculate_q2_center()
+    self.p1_center = self._calculate_p1_center()
+    self.p2_center = self._calculate_p2_center()
+    self.p3_center = self._calculate_p3_center()
 
     self.f    = initial_conditions(self, *args, **kwargs)
     self.A_q1 = advection_term.A_q1(self, *args, **kwargs)
@@ -69,8 +74,12 @@ class physical_system(object):
     self.A_p3 = advection_term.A_p3(self, *args, **kwargs)
     self.g    = rhs(self, *args, **kwargs)
 
-  def calculate_q1_center(self):
+  def _calculate_q1_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
+
     i_center = i_q1_lowest + 0.5
     i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost, 1)
     
@@ -86,8 +95,12 @@ class physical_system(object):
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(q1_center)
 
-  def calculate_q2_center(self):
+  def _calculate_q2_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
+
     i_center = i_q2_lowest + 0.5
     i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost, 1)
     
@@ -103,7 +116,10 @@ class physical_system(object):
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(q2_center)
 
-  def calculate_p1_center(self):
+  def _calculate_p1_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
     p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
@@ -114,11 +130,23 @@ class physical_system(object):
                         1, self.N_p2, self.N_p3
                        )
 
+    p1_center = af.moddims(p1_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
+
     af.eval(p1_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(p1_center)
 
-  def calculate_p2_center(self):
+  def _calculate_p2_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
     p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
@@ -130,28 +158,48 @@ class physical_system(object):
                         self.N_p1, 1, self.N_p3
                        )
 
+    p2_center = af.moddims(p2_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
+
     af.eval(p2_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(p2_center)
 
-  def calculate_p3_center(self):
+  def _calculate_p3_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.da.getCorners()
 
     p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
     p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
 
-    # Tiling such that variation in p2 is along axis 2:
+    # Tiling such that variation in p3 is along axis 3:
     p3_center = af.tile(af.reorder(p3_center, 1, 2, 3, 0),\
                         (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
                         self.N_p1, self.N_p2, 1
                        )
 
+    p3_center = af.moddims(p3_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
     af.eval(p3_center)
-    # Returns in velocitiesExpanded form(Nq1*Nq2, Np1, Np2, Np3)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(p3_center)
 
   def dump(self, file_name, **args):
-    h5f = h5py.File(file_name, 'w')
+    h5f = h5py.File(file_name + '.h5', 'w')
     for variable_name in args:
       h5f.create_dataset(str(variable_name), data = variable_name)
     h5f.close()
@@ -160,4 +208,4 @@ class physical_system(object):
     moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
     
     af.eval(moment)
-    return
+    return(moment)
