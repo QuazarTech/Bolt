@@ -6,7 +6,7 @@ class physical_system(object):
   An instance of this class contains details of the physical system
   being evolved.
   """
-  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, rhs):
+  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, source_or_sink):
     """
     domain: Object/Input parameter file, that contains the details of the resolutions of the
             variables in which the advections are to be performed.
@@ -21,6 +21,10 @@ class physical_system(object):
 
     advection_terms: Object whose attributes advection_term.A_p1, A_p2... are functions which are 
                      declared depending upon the system that is being evolved.
+
+    source_or_sink: Function which provides us the expression that is used on the RHS of the advection 
+                    equation.
+
     """
     self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_end, domain.q1_end
     self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_end, domain.q2_end
@@ -45,4 +49,5 @@ class physical_system(object):
     self.A_p1 = advection_term.A_p1
     self.A_p2 = advection_term.A_p2
     self.A_p3 = advection_term.A_p3
-    self.g    = rhs
+    
+    self.source_or_sink = source_or_sink

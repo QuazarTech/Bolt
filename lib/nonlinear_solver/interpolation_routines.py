@@ -1,4 +1,5 @@
 #!/usr/bin/env python 
+# -*- coding: utf-8 -*-
 
 import arrayfire as af
 
@@ -25,11 +26,11 @@ def f_interp_2d(self, dt):
   q1_interpolant = (q1_center_new - q1_boundary_lower)/self.physical_system.dq1 + self.physical_system.N_ghost
   q2_interpolant = (q2_center_new - q2_boundary_lower)/self.physical_system.dq2 + self.physical_system.N_ghost
 
-  self.log_f = af.approx2(self.log_f,\
-                          q1_interpolant,\
-                          q2_interpolant,\
-                          af.INTERP.BICUBIC_SPLINE
-                         )
+  self.f = af.approx2(self.f,\
+                      q1_interpolant,\
+                      q2_interpolant,\
+                      af.INTERP.BICUBIC_SPLINE
+                     )
 
-  af.eval(self.log_f)
-  return(self.log_f)
+  af.eval(self.f)
+  return(self.f)

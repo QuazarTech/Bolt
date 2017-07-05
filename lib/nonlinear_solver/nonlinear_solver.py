@@ -1,4 +1,5 @@
 #!/usr/bin/env python 
+# -*- coding: utf-8 -*-
 
 import arrayfire as af 
 import numpy as np
@@ -19,21 +20,154 @@ class nonlinear_solver(object):
     # about the data of the distribution function needs to be communicated 
     # amongst processes. Additionally this structure automatically
     # takes care of applying periodic boundary conditions.
-    self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
-                                   dof = (self.N_p1 * self.N_p2 * self.N_p3),\
-                                   stencil_width = self.N_ghost,\
-                                   boundary_type = (self.bc_in_x, self.bc_in_y),\
+    self._da = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
+                                   dof = (physical_system.N_p1 * physical_system.N_p2 * physical_system.N_p3),\
+                                   stencil_width = physical_system.N_ghost,\
+                                   boundary_type = (physical_system.bc_in_x, physical_system.bc_in_y),\
                                    proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
                                    stencil_type = 1, \
                                    comm = self._comm
                                   )
-
+    
+    self._da = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
+                                   dof = (physical_system.N_p1 * physical_system.N_p2 * physical_system.N_p3),\
+                                   stencil_width = physical_system.N_ghost,\
+                                   boundary_type = (physical_system.bc_in_x, physical_system.bc_in_y),\
+                                   proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
+                                   stencil_type = 1, \
+                                   comm = self._comm
+                                  )
+    
     # Obtaining the array values of the cannonical variables: 
     self.q1_center = self._calculate_q1_center()
     self.q2_center = self._calculate_q2_center()
     self.p1_center = self._calculate_p1_center()
     self.p2_center = self._calculate_p2_center()
     self.p3_center = self._calculate_p3_center()
+
+    def _calculate_q1_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+
+    i_center = i_q1_lowest + 0.5
+    i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost, 1)
+    
+    q1_center = self.q1_start  + i * self.dq1
+    q1_center = af.Array.as_type(af.to_array(q1_center), af.Dtype.f64)
+
+    # Tiling such that variation in q1 is along axis 0:
+    q1_center = af.tile(q1_center, 1, N_q2_local + 2*self.N_ghost,\
+                        self.N_p1 * self.N_p2 * self.N_p3, 1
+                       )
+
+    af.eval(q1_center)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    return(q1_center)
+
+  def _calculate_q2_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+
+    i_center = i_q2_lowest + 0.5
+    i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost, 1)
+    
+    q2_center = self.q2_start  + i * self.dq2
+    q2_center = af.Array.as_type(af.to_array(q2_center), af.Dtype.f64)
+
+    # Tiling such that variation in q2 is along axis 1:
+    q2_center = af.tile(af.reorder(q2_center), N_q1_local + 2*self.N_ghost, 1,\
+                        self.N_p1 * self.N_p2 * self.N_p3, 1
+                       )
+
+    af.eval(q2_center)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    return(q2_center)
+
+  def _calculate_p1_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+
+    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
+
+    # Tiling such that variation in p1 is along axis 1:
+    p1_center = af.tile(af.reorder(p1_center), (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
+                        1, self.N_p2, self.N_p3
+                       )
+
+    p1_center = af.moddims(p1_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
+
+    af.eval(p1_center)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    return(p1_center)
+
+  def _calculate_p2_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+
+    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
+
+    # Tiling such that variation in p2 is along axis 2:
+    p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),\
+                        (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
+                        self.N_p1, 1, self.N_p3
+                       )
+
+    p2_center = af.moddims(p2_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
+
+    af.eval(p2_center)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    return(p2_center)
+
+  def _calculate_p3_center(self):
+    # Obtaining the left-bottom corner coordinates
+    # (lowest values of the canonical coordinates in the local zone)
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+
+    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+    p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
+
+    # Tiling such that variation in p3 is along axis 3:
+    p3_center = af.tile(af.reorder(p3_center, 1, 2, 3, 0),\
+                        (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
+                        self.N_p1, self.N_p2, 1
+                       )
+
+    p3_center = af.moddims(p3_center,                   
+                           (N_q1_local + 2 * self.N_ghost),\
+                           (N_q2_local + 2 * self.N_ghost),\
+                           self.N_p1*\
+                           self.N_p2*\
+                           self.N_p3,\
+                           1
+                          )
+    af.eval(p3_center)
+    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    return(p3_center)
 
   def _convert(self, array):
     """
@@ -44,7 +178,7 @@ class nonlinear_solver(object):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.physical_system.da.getCorners()
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.physical_system._da.getCorners()
 
     # Checking if in positionsExpanded form:
     if(array.shape[0] == self.physical_system.N_q1 + 2 * self.physical_system.N_ghost):
