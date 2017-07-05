@@ -11,6 +11,30 @@ class nonlinear_solver(object):
     self.physical_system = physical_system
     self.log_f           = af.log(physical_system.f)
 
+    # Declaring the communicator:
+    self._comm = PETSc.COMM_WORLD.tompi4py()
+
+    # The DA structure is used in domain decomposition:
+    # The following DA is used in the communication routines where information 
+    # about the data of the distribution function needs to be communicated 
+    # amongst processes. Additionally this structure automatically
+    # takes care of applying periodic boundary conditions.
+    self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
+                                   dof = (self.N_p1 * self.N_p2 * self.N_p3),\
+                                   stencil_width = self.N_ghost,\
+                                   boundary_type = (self.bc_in_x, self.bc_in_y),\
+                                   proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
+                                   stencil_type = 1, \
+                                   comm = self._comm
+                                  )
+
+    # Obtaining the array values of the cannonical variables: 
+    self.q1_center = self._calculate_q1_center()
+    self.q2_center = self._calculate_q2_center()
+    self.p1_center = self._calculate_p1_center()
+    self.p2_center = self._calculate_p2_center()
+    self.p3_center = self._calculate_p3_center()
+
   def _convert(self, array):
     """
     This function is used to convert from velocities expanded
@@ -104,3 +128,15 @@ class nonlinear_solver(object):
     self.local.destroy()
 
     return
+
+  def dump(self, file_name, **args):
+    h5f = h5py.File(file_name + '.h5', 'w')
+    for variable_name in args:
+      h5f.create_dataset(str(variable_name), data = variable_name)
+    h5f.close()
+
+  def compute_moments(self, moment_variable):
+    moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
+    
+    af.eval(moment)
+    return(moment)

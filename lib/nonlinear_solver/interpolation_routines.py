@@ -1,3 +1,5 @@
+#!/usr/bin/env python 
+
 import arrayfire as af
 
 def f_interp_2d(self, dt):
