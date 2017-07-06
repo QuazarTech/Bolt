@@ -52,5 +52,6 @@ class physical_system(object):
     self.A_p1 = advection_term.A_p1
     self.A_p2 = advection_term.A_p2
     self.A_p3 = advection_term.A_p3
-    
+
+    # Assigning the function which is used in computing the term on the RHS:    
     self.source_or_sink = source_or_sink
