@@ -26,18 +26,21 @@ class physical_system(object):
                     equation.
 
     """
+    # Getting resolution and size of configuration and velocity space:
     self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_end, domain.q1_end
     self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_end, domain.q2_end
     self.N_p1, self.p1_start, self.p1_end = domain.N_p1, domain.p1_end, domain.p1_end
     self.N_p2, self.p2_start, self.p2_end = domain.N_p2, domain.p2_end, domain.p2_end
     self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_end, domain.p3_end
 
+    # Evaluating step size:
     self.dq1 = (self.q1_start - self.q1_end)/self.N_q1
     self.dq2 = (self.q2_start - self.q2_end)/self.N_q2
     self.dp1 = (self.p1_start - self.p1_end)/self.N_p1
     self.dp2 = (self.p2_start - self.p2_end)/self.N_p2
     self.dp3 = (self.p3_start - self.p3_end)/self.N_p3
 
+    # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost               = domain.N_ghost
     self.bc_in_x, self.bc_in_y = boundary_conditions.in_x, boundary_conditions.in_y
 

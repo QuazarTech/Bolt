@@ -29,14 +29,19 @@ class nonlinear_solver(object):
                                    comm = self._comm
                                   )
     
-    self._da = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
-                                   dof = (physical_system.N_p1 * physical_system.N_p2 * physical_system.N_p3),\
-                                   stencil_width = physical_system.N_ghost,\
-                                   boundary_type = (physical_system.bc_in_x, physical_system.bc_in_y),\
-                                   proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
-                                   stencil_type = 1, \
-                                   comm = self._comm
-                                  )
+    # Additionally, We'll define another DA so that communication of electromagnetic
+    # field quantities may be performed, in addition to applying periodic B.C's
+    # We define this DA with a DOF of 6 so that the communication for all field
+    # quantities(Ex, Ey, Ez, Bx, By, Bz) can be carried out with a single call to
+    # the communication routine
+    self._da_fields = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
+                                           dof = 6,\
+                                           stencil_width = physical_system.N_ghost,\
+                                           boundary_type = self._da.getBoundaryType(),\
+                                           proc_sizes = self._da.getProcSizes(), \
+                                           stencil_type = 1, \
+                                           comm = self._da.getComm()
+                                          )
     
     # Obtaining the array values of the cannonical variables: 
     self.q1_center = self._calculate_q1_center()
@@ -45,7 +50,7 @@ class nonlinear_solver(object):
     self.p2_center = self._calculate_p2_center()
     self.p3_center = self._calculate_p3_center()
 
-    def _calculate_q1_center(self):
+  def _calculate_q1_center(self):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -231,7 +236,10 @@ class nonlinear_solver(object):
     af.eval(self.log_f)
     return
 
-  _f_interp_2d = f_interp_2d
+
+  # Injection of functions into class:
+  _f_interp_2d       = f_interp_2d
+  _solve_source_sink = solve_source_sink
 
   def evolve(self, time_array):
     # time_array needs to be specified including start time and the end time. 
