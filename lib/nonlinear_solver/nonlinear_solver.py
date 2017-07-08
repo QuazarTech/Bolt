@@ -1,16 +1,38 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 
+# Importing dependencies:
 import arrayfire as af 
 import numpy as np
-from interpolation_routines import f_interp_2d 
-
 from petsc4py import PETSc 
+import h5py
+
+# Importing solver functions:
+from interpolation_routines import f_interp_2d
+from solve_source_sink import RK2 
 
 class nonlinear_solver(object):
   def __init__(self, physical_system):
     self.physical_system = physical_system
-    self.log_f           = af.log(physical_system.f)
+
+    # Storing domain information from physical system:
+    # Getting resolution and size of configuration and velocity space:
+    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_end, physical_system.q1_end
+    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_end, physical_system.q2_end
+    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_end, physical_system.p1_end
+    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_end, physical_system.p2_end
+    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_end, physical_system.p3_end
+
+    # Evaluating step size:
+    self.dq1 = physical_system.dq1 
+    self.dq2 = physical_system.dq2
+    self.dp1 = physical_system.dp1
+    self.dp2 = physical_system.dp2
+    self.dp3 = physical_system.dp3
+
+    # Getting number of ghost zones, and the boundary conditions that are utilized
+    self.N_ghost               = physical_system.N_ghost
+    self.bc_in_x, self.bc_in_y = physical_system.in_x, physical_system.in_y 
 
     # Declaring the communicator:
     self._comm = PETSc.COMM_WORLD.tompi4py()
@@ -20,29 +42,19 @@ class nonlinear_solver(object):
     # about the data of the distribution function needs to be communicated 
     # amongst processes. Additionally this structure automatically
     # takes care of applying periodic boundary conditions.
-    self._da = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
-                                   dof = (physical_system.N_p1 * physical_system.N_p2 * physical_system.N_p3),\
-                                   stencil_width = physical_system.N_ghost,\
-                                   boundary_type = (physical_system.bc_in_x, physical_system.bc_in_y),\
+    self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
+                                   dof = (self.N_p1 * self.N_p2 * self.N_p3),\
+                                   stencil_width = self.N_ghost,\
+                                   boundary_type = (self.bc_in_x, self.bc_in_y),\
                                    proc_sizes = (PETSc.DECIDE, PETSc.DECIDE), \
                                    stencil_type = 1, \
                                    comm = self._comm
                                   )
     
-    # Additionally, We'll define another DA so that communication of electromagnetic
-    # field quantities may be performed, in addition to applying periodic B.C's
-    # We define this DA with a DOF of 6 so that the communication for all field
-    # quantities(Ex, Ey, Ez, Bx, By, Bz) can be carried out with a single call to
-    # the communication routine
-    self._da_fields = PETSc.DMDA().create([physical_system.N_q1, physical_system.N_q2],\
-                                           dof = 6,\
-                                           stencil_width = physical_system.N_ghost,\
-                                           boundary_type = self._da.getBoundaryType(),\
-                                           proc_sizes = self._da.getProcSizes(), \
-                                           stencil_type = 1, \
-                                           comm = self._da.getComm()
-                                          )
-    
+    # Creation of the local and global vectors from the DA:
+    self._glob  = self._da.createGlobalVec()
+    self._local = self._da.createLocalVec()
+
     # Obtaining the array values of the cannonical variables: 
     self.q1_center = self._calculate_q1_center()
     self.q2_center = self._calculate_q2_center()
@@ -50,6 +62,17 @@ class nonlinear_solver(object):
     self.p2_center = self._calculate_p2_center()
     self.p3_center = self._calculate_p3_center()
 
+    # Initializing the distribution function(s):
+    self.physical_system.init(*args, **kwargs)
+
+    self._A_q1 = self.physical_system.A_q1(self.p1_center, self.p2_center, self.p3_center)
+    self._A_q2 = self.physical_system.A_q2(self.p1_center, self.p2_center, self.p3_center)
+    self._A_p1 = self.physical_system.A_p1()
+    self._A_p2 = self.physical_system.A_p2()
+    self._A_p3 = self.physical_system.A_p3()
+
+    self._source_or_sink = self.physical_system.source_or_sink
+  
   def _calculate_q1_center(self):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
@@ -212,13 +235,13 @@ class nonlinear_solver(object):
   def _communicate_distribution_function(self):
 
     # Accessing the values of the global and local Vectors
-    local_value = self.physical_system.da.getVecArray(self.local)
-    glob_value  = self.physical_system.da.getVecArray(self.glob)
+    local_value = self.physical_system.da.getVecArray(self._local)
+    glob_value  = self.physical_system.da.getVecArray(self._glob)
 
     N_ghost = self.physical_system.N_ghost
 
     # Storing values of af.Array in PETSc.Vec:
-    local_value[:] = np.array(self.log_f)
+    local_value[:] = np.array(self.f)
     
     # Global value is non-inclusive of the ghost-zones:
     glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
@@ -231,54 +254,83 @@ class nonlinear_solver(object):
     self.physical_system.da.globalToLocal(self.glob, self.local)
 
     # Converting back from PETSc.Vec to af.Array:
-    self.log_f = af.to_array(local_value[:])
+    self.f = af.to_array(local_value[:])
 
-    af.eval(self.log_f)
+    af.eval(self.f)
     return
 
-
-  # Injection of functions into class:
+  # Injection of solver functions into class as methods:
   _f_interp_2d       = f_interp_2d
-  _solve_source_sink = solve_source_sink
+  _solve_source_sink = RK2
 
-  def evolve(self, time_array):
-    # time_array needs to be specified including start time and the end time. 
+  def _time_step(self, dt):
+    # Advection in position space:
+    self._f_interp_2d(self, 0.25*dt)
+    self._communicate_distribution_function()
+    # Advection in position space:
+    self._f_interp_2d(self, 0.25*dt)
+    self._communicate_distribution_function()
+    # Advection in position space:
+    self._f_interp_2d(self, 0.25*dt)
+    self._communicate_distribution_function()
+    # Advection in position space:
+    self._f_interp_2d(self, 0.25*dt)
+    self._communicate_distribution_function()
 
-    # Creation of the local and global vectors from the DA:
-    self.glob  = self.physical_system.da.createGlobalVec()
-    self.local = self.physical_system.da.createLocalVec()
+    af.eval(self.f)
+    return(self.f)
 
-    for time_index, t0 in enumerate(time_array[1:]):
-      PETSc.Sys.Print("Computing for Time =", t0)
+  def compute_moments(self, moment_name):
 
-      dt = time_array[1] - time_array[0]
-
-      # Advection in position space:
-      self.log_f = self._f_interp_2d(self, 0.25*dt)
-      self._communicate_distribution_function()
-      # Advection in position space:
-      self.log_f = self._f_interp_2d(self, 0.25*dt)
-      self._communicate_distribution_function()
-      # Advection in position space:
-      self.log_f = self._f_interp_2d(self, 0.25*dt)
-      self._communicate_distribution_function()
-      # Advection in position space:
-      self.log_f = self._f_interp_2d(self, 0.25*dt)
-      self._communicate_distribution_function()
+    moment_exponents = np.array(self.physical_system.moments[moment_name])
     
-    self.glob.destroy()
-    self.local.destroy()
+    try:
+      moment_variable = 1
+      for i in range(moment_exponents.shape[0]):
+        moment_variable *= self.p1_center**(moment_exponents[i, 0]) + \
+                           self.p2_center**(moment_exponents[i, 1]) + \
+                           self.p3_center**(moment_exponents[i, 2])
+    except:
+      moment_variable  = self.p1_center**(moment_exponents[0]) + \
+                         self.p2_center**(moment_exponents[1]) + \
+                         self.p3_center**(moment_exponents[2])
 
-    return
-
-  def dump(self, file_name, **args):
-    h5f = h5py.File(file_name + '.h5', 'w')
-    for variable_name in args:
-      h5f.create_dataset(str(variable_name), data = variable_name)
-    h5f.close()
-
-  def compute_moments(self, moment_variable):
     moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
     
     af.eval(moment)
     return(moment)
+
+  def evolve(self, time_array, track_moments):
+    # time_array needs to be specified including start time and the end time. 
+    # Evaluating time-step size:
+    dt = time_array[1] - time_array[0]
+
+    if(len(track_moments) != 0):
+      moments_data = np.zeros([time_array.size, len(track_moments)])
+
+    for time_index, t0 in enumerate(time_array[1:]):
+      PETSc.Sys.Print("Computing for Time =", t0)
+      self.f = self._time_step(dt)
+
+      for i in range(len(track_moments)):
+        moments_data[time_index][i] = self.compute_moments(track_moments[i])
+
+    return(moments_data)
+
+  def dump_variables(self, file_name, **args):
+    h5f = h5py.File(file_name + '.h5', 'w')
+    for variable_name in args:
+      h5f.create_dataset(str(variable_name), data = variable_name)
+    h5f.close()
+    return
+
+  def dump_distribution_function(self, file_name):
+    PETSc.Object.setName(self._glob, 'distribution_function')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm = self._comm)
+    
+    global_vec_value    = self._da.getVecArray(self._glob)
+    global_vec_value[:] = np.array(self.f[self.N_ghost:-self.N_ghost,\
+                                          self.N_ghost:-self.N_ghost, :]
+                                  )
+    viewer(self._glob)
+    return

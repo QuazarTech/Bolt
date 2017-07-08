@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
+import types
 
 class physical_system(object):
   """
@@ -26,6 +27,30 @@ class physical_system(object):
                     equation.
 
     """
+    # Checking that domain resolution and size are of the correct data-type:
+    attributes = [a for a in dir(domain) if not a.startswith('__')]
+    for i in range(len(attributes)):
+      if((type(getattr(domain, attributes[i]))==int or type(getattr(domain, attributes[i]))==float)==0):
+        raise TypeError('Expected attributes of domain to be of type int or float')
+
+    # Checking that boundary-conditions mentioned are of correct data-type:
+    if(type(boundary_conditions.in_x)==str and type(boundary_conditions.in_y)==str):
+      raise TypeError('Expected attributes of boundary_conditions to be of type str')
+
+    # Checking for type of initial_conditions:
+    if(isinstance(initial_conditions, types.FunctionType)==False):
+      raise TypeError('Expected initial_conditions to be of type function')
+
+    # Checking for type of source_or_sink:
+    if(isinstance(source_or_sink, types.FunctionType)==False):
+      raise TypeError('Expected source_or_sink to be of type function')
+
+    # Checking for the types of the methods in advection_term:
+    attributes = [a for a in dir(advection_term) if not a.startswith('__')]
+    for i in range(len(attributes)):
+      if(isinstance(getattr(advection_term, attributes[i]), types.FunctionType)==False):
+        raise TypeError('Expected attributes of advection_term to be of type function')
+
     # Getting resolution and size of configuration and velocity space:
     self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_end, domain.q1_end
     self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_end, domain.q2_end
