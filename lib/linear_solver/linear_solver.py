@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy.fftpack import fft2, ifft2, fftfreq
 import h5py
 
+import timestepper
+
 class linear_system(object):
-  def __init__(self, physical_system, f_background, linearized_source_sink_term):
+  def __init__(self, physical_system):
     self.physical_system = physical_system
 
     # Storing domain information from physical system:
@@ -27,10 +30,72 @@ class linear_system(object):
     self.N_ghost               = physical_system.N_ghost
     self.bc_in_x, self.bc_in_y = physical_system.in_x, physical_system.in_y 
 
-    self.p1_center, self.p2_center, self.p3_center = self._calculate_p()
+    if(self.bc_in_x != 'periodic' or self.bc_in_y != 'periodic'):
+      raise Exception('Only systems with periodic boundary conditions can be solved using the linear solver')
 
-    self._source_or_sink = self.linearized_source_sink_term
-  
+    self.q1_center, self.q2_center = self._calculate_q_center()
+    self.k_q1,      self.k_q2      = self._calculate_k()
+    
+    self.p1, self.p2, self.p3      = self._calculate_p()
+
+    # Assigning the function object to a method of nonlinear solver:
+    self.init = self.physical_system.init
+
+    self._A_q1 = self.physical_system.A_q1(self.p1_center, self.p2_center, self.p3_center)
+    self._A_q2 = self.physical_system.A_q2(self.p1_center, self.p2_center, self.p3_center)
+
+    # Assignin the function object to a method of nonlinear sovler
+    self._A_p1 = self.physical_system.A_p1
+    self._A_p2 = self.physical_system.A_p2
+    self._A_p3 = self.physical_system.A_p3
+
+    self._source_or_sink = self.physical_system.source_or_sink
+
+  def _calculate_q_center(self):
+    q1_center = self.q1_start + (0.5 + np.arange(self.N_q1)) * self.dq1
+    q2_center = self.q2_start + (0.5 + np.arange(self.N_q2)) * self.dq2
+
+    q2_center, q1_center = np.meshgrid(q2_center, q1_center)
+    
+    q2_center = q2_center.reshape(self.N_q1, self.N_q2, 1, 1, 1)
+    q1_center = q1_center.reshape(self.N_q1, self.N_q2, 1, 1, 1)
+
+    q2_center = np.tile(q2_center, (1, 1, self.N_p1, self.N_p2, self.N_p3))
+    q1_center = np.tile(q1_center, (1, 1, self.N_p1, self.N_p2, self.N_p3))
+
+    return(q1_center, q2_center)
+
+  def _calculate_k(self):
+    k_q1 = 2 * np.pi * fftfreq(self.N_q1, self.dq1)
+    k_q2 = 2 * np.pi * fftfreq(self.N_q2, self.dq2)
+
+    k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
+
+    k_q2 = k_q2.reshape(self.N_q1, self.N_q2, 1, 1, 1)
+    k_q1 = k_q1.reshape(self.N_q1, self.N_q2, 1, 1, 1)
+
+    k_q2 = np.tile(k_q2, (1, 1, self.N_p1, self.N_p2, self.N_p3))
+    k_q1 = np.tile(k_q1, (1, 1, self.N_p1, self.N_p2, self.N_p3))
+
+    return(k_q1, k_q2)
+
+  def _calculate_p(self):
+    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+
+    p2_center, p1_center, p3_center = np.meshgrid(p2_center, p1_center, p3_center)
+    
+    p1_center = p1_center.reshape(1, 1, self.N_p1, self.N_p2, self.N_p3)
+    p2_center = p2_center.reshape(1, 1, self.N_p1, self.N_p2, self.N_p3)
+    p3_center = p3_center.reshape(1, 1, self.N_p1, self.N_p2, self.N_p3)
+
+    p1_center = np.tile(p1_center, (self.N_q1, self.N_q2, 1, 1, 1))
+    p2_center = np.tile(p2_center, (self.N_q1, self.N_q2, 1, 1, 1))
+    p3_center = np.tile(p3_center, (self.N_q1, self.N_q2, 1, 1, 1))
+
+    return(p1_center, p2_center, p3_center)
+
   def compute_moments(self, moment_name):
     try:
       moment_exponents = np.array(self.physical_system.moments[moment_name])
@@ -51,43 +116,22 @@ class linear_system(object):
     moment = np.sum(np.sum(np.sum(self.f * moment_variable, 2)*self.dp3, 1)*self.dp2, 0)*self.dp1
     return(moment)
 
-  def dump_variables(self, file_name, **args):
+  def dump_variables(self, file_name, *args):
     h5f = h5py.File(file_name + '.h5', 'w')
     for variable_name in args:
       h5f.create_dataset(str(variable_name), data = variable_name)
     h5f.close()
-    
     return
 
-  def dump_distribution_function_5D(self, file_name, params):
+  def dump_distribution_function_5D(self, file_name):
     """
     Used to create the 5D distribution function array from the 3V delta_f_hat
     array. This will be used in comparison with the solution as given by the
     nonlinear method.
     """  
-    q1_center = self.q1_start + (0.5 + np.arange(0, self.N_q1, 1)) * self.dq1
-    q2_center = self.q2_start + (0.5 + np.arange(0, self.N_q2, 1)) * self.dq2
-
-    q2_center, q1_center = np.meshgrid(q2_center, q1_center)
-    
-    q1_center, q2_center = q1_center.reshape([self.N_q1, self.N_q1, 1, 1, 1]),\
-                           q2_center.reshape([self.N_q1, self.N_q1, 1, 1, 1])
-    
-    f_dist = np.zeros([self.N_q1, self.N_q2, self.N_p1, self.N_p2, self.N_p3])
-    
-    # Converting delta_f_hat --> delta_f
-    f_dist = (self.delta_f_hat.reshape([1, 1, self.N_p1, self.N_p2, self.N_p3]) * \
-              np.exp(1j*params.k_q1*q1_center + 1j*params.k_q2*q2_center)).real
-
-    # Adding back the background distribution(delta_f --> delta_f + f_background):
-    f_dist += np.tile(self.f_background.reshape(1, 1, self.N_p1, self.N_p2, self.N_p3),\
-                      (self.N_q1, self.N_q2, 1, 1, 1)
-                     ) 
-    
     h5f = h5py.File(file_name + '.h5', 'w')
-    h5f.create_dataset('distribution_function', data = f_dist)
+    h5f.create_dataset('distribution_function', data = self.f)
     h5f.close()
-    
     return
 
   def dY_dt(self, Y0):
@@ -116,46 +160,40 @@ class linear_system(object):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y0
     """
-    p1, p2, p3 = self.p1_center, self.p2_center, self.p3_center 
-
-    k_x = self.k_x   
-    k_y = self.k_y
-
-    mass_particle   = self.mass_particle
-    charge_electron = self.charge_electron
-
-    delta_f_hat   = Y0[0]
-
-    rhs = self._source_or_sink()
-
-    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + C_f
+    f_hat           = Y0[0]
+    ddelta_f_hat_dt = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * f_hat
     
     dY_dt = np.array([ddelta_f_hat_dt])
-    
     return(dY_dt)
 
-  def _calculate_p(self):
-
-    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
-    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
-
-    p2_center, p1_center, p3_center = np.meshgrid(p2_center, p1_center, p3_center)
-
-    return(p1_center, p2_center, p3_center)
+  _time_step = timestepper.RK4
 
   def evolve(self, time_array, track_moments):
     # time_array needs to be specified including start time and the end time. 
     # Evaluating time-step size:
     dt = time_array[1] - time_array[0]
 
+    self.f_hat = fft2(self.f, axis = (0, 1))
+    self.f_hat = fft2(self.f, axis = (0, 1))
+
+    self.f_background = self.f_hat[0, 0, :, :, :]/(self.N_q1 * self.N_q2)
+    
+    self.normalization_constant = np.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
+    
+    self.f_background = self.f_background/self.normalization_constant
+    self.f_hat        = self.f_hat/self.normalization_constant
+
+    self.Y = np.array([self.f_hat])
+
     if(len(track_moments) != 0):
       moments_data = np.zeros([time_array.size, len(track_moments)])
 
     for time_index, t0 in enumerate(time_array[1:]):
       print("Computing for Time =", t0)
-      self.f = self._time_step(dt)
-
+      
+      self._time_step(dt)
+      self.f = ifft2(self.Y[0], axis = (0, 1))
+      
       for i in range(len(track_moments)):
         moments_data[time_index][i] = self.compute_moments(track_moments[i])
 

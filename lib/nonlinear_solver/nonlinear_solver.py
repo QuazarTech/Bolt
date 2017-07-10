@@ -58,18 +58,19 @@ class nonlinear_solver(object):
     # Obtaining the array values of the cannonical variables: 
     self.q1_center = self._calculate_q1_center()
     self.q2_center = self._calculate_q2_center()
-    self.p1_center = self._calculate_p1_center()
-    self.p2_center = self._calculate_p2_center()
-    self.p3_center = self._calculate_p3_center()
+    
+    self.p1, self.p2, self.p3 = self._calculate_p_center()
 
-    # Initializing the distribution function(s):
-    self.physical_system.init(*args, **kwargs)
+    # Assigning the function object to a method of nonlinear solver:
+    self.init = self.physical_system.init
 
     self._A_q1 = self.physical_system.A_q1(self.p1_center, self.p2_center, self.p3_center)
     self._A_q2 = self.physical_system.A_q2(self.p1_center, self.p2_center, self.p3_center)
-    self._A_p1 = self.physical_system.A_p1()
-    self._A_p2 = self.physical_system.A_p2()
-    self._A_p3 = self.physical_system.A_p3()
+
+    # Assignin the function object to a method of nonlinear sovler
+    self._A_p1 = self.physical_system.A_p1
+    self._A_p2 = self.physical_system.A_p2
+    self._A_p3 = self.physical_system.A_p3
 
     self._source_or_sink = self.physical_system.source_or_sink
   
@@ -115,7 +116,7 @@ class nonlinear_solver(object):
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(q2_center)
 
-  def _calculate_p1_center(self):
+  def _calculate_p_center(self):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -123,79 +124,34 @@ class nonlinear_solver(object):
 
     p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
     p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
+    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
+    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+    p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
 
     # Tiling such that variation in p1 is along axis 1:
     p1_center = af.tile(af.reorder(p1_center), (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
                         1, self.N_p2, self.N_p3
                        )
-
-    p1_center = af.moddims(p1_center,                   
-                           (N_q1_local + 2 * self.N_ghost),\
-                           (N_q2_local + 2 * self.N_ghost),\
-                           self.N_p1*\
-                           self.N_p2*\
-                           self.N_p3,\
-                           1
-                          )
-
-    af.eval(p1_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
-    return(p1_center)
-
-  def _calculate_p2_center(self):
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
-
-    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-    p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
-
     # Tiling such that variation in p2 is along axis 2:
     p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),\
                         (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
                         self.N_p1, 1, self.N_p3
                        )
-
-    p2_center = af.moddims(p2_center,                   
-                           (N_q1_local + 2 * self.N_ghost),\
-                           (N_q2_local + 2 * self.N_ghost),\
-                           self.N_p1*\
-                           self.N_p2*\
-                           self.N_p3,\
-                           1
-                          )
-
-    af.eval(p2_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
-    return(p2_center)
-
-  def _calculate_p3_center(self):
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
-
-    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
-    p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
-
     # Tiling such that variation in p3 is along axis 3:
     p3_center = af.tile(af.reorder(p3_center, 1, 2, 3, 0),\
                         (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
                         self.N_p1, self.N_p2, 1
                        )
 
-    p3_center = af.moddims(p3_center,                   
-                           (N_q1_local + 2 * self.N_ghost),\
-                           (N_q2_local + 2 * self.N_ghost),\
-                           self.N_p1*\
-                           self.N_p2*\
-                           self.N_p3,\
-                           1
-                          )
-    af.eval(p3_center)
+    # Converting from velocitiesExpanded form to positionsExpanded form:
+    p1_center = self._convert(p1_center)
+    p2_center = self._convert(p2_center)
+    p3_center = self._convert(p3_center)
+
+    af.eval(p1_center, p2_center, p3_center)
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
-    return(p3_center)
+    return(p1_center, p2_center, p3_center)
 
   def _convert(self, array):
     """
@@ -206,26 +162,26 @@ class nonlinear_solver(object):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self.physical_system._da.getCorners()
+    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
     # Checking if in positionsExpanded form:
-    if(array.shape[0] == self.physical_system.N_q1 + 2 * self.physical_system.N_ghost):
+    if(array.shape[0] == self.N_q1 + 2 * self.N_ghost):
 
       array  = af.moddims(array,                   
-                          (N_q1_local + 2 * self.physical_system.N_ghost)*\
-                          (N_q2_local + 2 * self.physical_system.N_ghost),\
-                          self.physical_system.N_p1,\
-                          self.physical_system.N_p2,\
-                          self.physical_system.N_p3
+                          (N_q1_local + 2 * self.N_ghost)*\
+                          (N_q2_local + 2 * self.N_ghost),\
+                          self.N_p1,\
+                          self.N_p2,\
+                          self.N_p3
                          ) 
     else:
 
       array  = af.moddims(array,                   
-                          (N_q1_local + 2 * self.physical_system.N_ghost),\
-                          (N_q2_local + 2 * self.physical_system.N_ghost),\
-                          self.physical_system.N_p1*\
-                          self.physical_system.N_p2*\
-                          self.physical_system.N_p3,\
+                          (N_q1_local + 2 * self.N_ghost),\
+                          (N_q2_local + 2 * self.N_ghost),\
+                          self.N_p1*\
+                          self.N_p2*\
+                          self.N_p3,\
                           1
                          )
     

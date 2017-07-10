@@ -1,11 +1,15 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
+
 import types
 
 class physical_system(object):
   """
   An instance of this class contains details of the physical system
-  being evolved.
+  being evolved. User defines this class with the information about
+  the physical system such as domain sizes, and resolutions. The 
+  initial conditions, the advections terms and the source/sink term
+  also needs to be passed as functions  by the user.
   """
   def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, source_or_sink):
     """
