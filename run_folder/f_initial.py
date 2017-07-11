@@ -1,7 +1,7 @@
 import arrayfire as af
 import numpy as np 
 
-def f_maxwell_boltzmann(self, initial_parameters):
+def f_maxwell_boltzmann(q1, q2, p1, p2, p3, params):
 
   m = initial_parameters.mass_particle
   k = initial_parameters.boltzmann_constant

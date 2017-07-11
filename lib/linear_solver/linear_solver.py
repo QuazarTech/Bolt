@@ -3,9 +3,8 @@
 
 import numpy as np
 from scipy.fftpack import fft2, ifft2, fftfreq
-import h5py
 
-import timestepper
+from lib.linear_solver.timestepper import RK6_step
 
 class linear_system(object):
   def __init__(self, physical_system):
@@ -116,25 +115,7 @@ class linear_system(object):
     moment = np.sum(np.sum(np.sum(self.f * moment_variable, 2)*self.dp3, 1)*self.dp2, 0)*self.dp1
     return(moment)
 
-  def dump_variables(self, file_name, *args):
-    h5f = h5py.File(file_name + '.h5', 'w')
-    for variable_name in args:
-      h5f.create_dataset(str(variable_name), data = variable_name)
-    h5f.close()
-    return
-
-  def dump_distribution_function_5D(self, file_name):
-    """
-    Used to create the 5D distribution function array from the 3V delta_f_hat
-    array. This will be used in comparison with the solution as given by the
-    nonlinear method.
-    """  
-    h5f = h5py.File(file_name + '.h5', 'w')
-    h5f.create_dataset('distribution_function', data = self.f)
-    h5f.close()
-    return
-
-  def dY_dt(self, Y0):
+  def _dY_dt(self, Y0):
     """
     Returns the value of the derivative of the mode perturbation of the distribution 
     function, and the field quantities with respect to time. This is used to evolve 
@@ -166,7 +147,7 @@ class linear_system(object):
     dY_dt = np.array([ddelta_f_hat_dt])
     return(dY_dt)
 
-  _time_step = timestepper.RK4
+  time_step = RK4_step
 
   def evolve(self, time_array, track_moments):
     # time_array needs to be specified including start time and the end time. 

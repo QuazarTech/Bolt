@@ -4,7 +4,8 @@
 def RK6_step(self, dt):
   """
   Evolves the various mode perturbation arrays by a single time-step by
-  making use of the RK-6 time-stepping scheme:
+  making use of the RK-6 time-stepping scheme. This scheme is 5th order
+  accurate in time.
   """
   k1 = self.dY_dt(self.Y)
   k2 = self.dY_dt(self.Y + 0.25*k1*dt)
@@ -20,7 +21,8 @@ def RK6_step(self, dt):
 def RK4_step(self, dt):
   """
   Evolves the various mode perturbation arrays by a single time-step by
-  making use of the RK-4 time-stepping scheme:
+  making use of the RK-4 time-stepping scheme. This scheme is 4th order 
+  accurate in time.
   """
   k1 = self.dY_dt(self.Y)
   k2 = self.dY_dt(self.Y + 0.5*k1*dt)
@@ -28,5 +30,18 @@ def RK4_step(self, dt):
   k4 = self.dY_dt(self.Y + k3*dt)
   
   self.Y = self.Y + ((k1+2*k2+2*k3+k4)/6)*dt
+
+  return
+
+def RK2_step(self, dt):
+  """
+  Evolves the various mode perturbation arrays by a single time-step by
+  making use of the RK-2 time-stepping scheme. This scheme is 2nd order 
+  accurate in time.
+  """
+  k1 = self.dY_dt(self.Y)
+  k2 = self.dY_dt(self.Y + 0.5*k1*dt)
+  
+  self.Y = self.Y + k2*dt
 
   return
