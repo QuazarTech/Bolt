@@ -122,11 +122,11 @@ class nonlinear_solver(object):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
-    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p1_center = self.p1_start + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
     p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
-    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p2_center = self.p2_start + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
     p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
-    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+    p3_center = self.p3_start + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
     p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
 
     # Tiling such that variation in p1 is along axis 1:

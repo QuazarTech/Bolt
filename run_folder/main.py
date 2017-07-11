@@ -1,19 +1,27 @@
-import numpy as np
+# import numpy as np
 
 from lib.physical_system import physical_system
-from lib.linear_solver import linear_solver
+from lib.linear_solver.linear_system import linear_system
 
 import domain
 import boundary_conditions
-from f_initial import f_maxwell_boltzmann
+import params
+from initialize import intial_conditions
 import src.nonrelativistic_boltzmann.advection_terms as advection_terms
+import src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 def rhs():
   return 0
 
-system        = physical_system(domain, boundary_conditions, f_maxwell_boltzmann, advection_terms, rhs)
-linear_system = linear_solver(physical_system)
+system = physical_system(domain, boundary_conditions, intial_conditions, advection_terms, rhs, moment_defs)
+ls     = linear_system(system)
 
-time = np.linspace(0, 1, 100)
+ls.init(params)
 
-linear_system.evolve(time)
+import pylab as pl
+print(ls.compute_moments('density'))
+pl.plot(ls.compute_moments('E'))
+pl.show()
+# time = np.linspace(0, 1, 100)
+
+# linear_system.evolve(time)

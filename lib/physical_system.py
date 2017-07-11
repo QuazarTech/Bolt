@@ -11,7 +11,7 @@ class physical_system(object):
   initial conditions, the advections terms and the source/sink term
   also needs to be passed as functions  by the user.
   """
-  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, source_or_sink):
+  def __init__(self, domain, boundary_conditions, initial_conditions, advection_term, source_or_sink, moment_defs):
     """
     domain: Object/Input parameter file, that contains the details of the resolutions of the
             variables in which the advections are to be performed.
@@ -29,6 +29,8 @@ class physical_system(object):
 
     source_or_sink: Function which provides us the expression that is used on the RHS of the advection 
                     equation.
+    
+    moment_defs: File that contains the dictionary holding the moment definitions
 
     """
     # Checking that domain resolution and size are of the correct data-type:
@@ -38,7 +40,7 @@ class physical_system(object):
         raise TypeError('Expected attributes of domain to be of type int or float')
 
     # Checking that boundary-conditions mentioned are of correct data-type:
-    if(type(boundary_conditions.in_x)==str and type(boundary_conditions.in_y)==str):
+    if(type(boundary_conditions.in_x)!=str or type(boundary_conditions.in_y)!=str):
       raise TypeError('Expected attributes of boundary_conditions to be of type str')
 
     # Checking for type of initial_conditions:
@@ -56,11 +58,11 @@ class physical_system(object):
         raise TypeError('Expected attributes of advection_term to be of type function')
 
     # Getting resolution and size of configuration and velocity space:
-    self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_end, domain.q1_end
-    self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_end, domain.q2_end
-    self.N_p1, self.p1_start, self.p1_end = domain.N_p1, domain.p1_end, domain.p1_end
-    self.N_p2, self.p2_start, self.p2_end = domain.N_p2, domain.p2_end, domain.p2_end
-    self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_end, domain.p3_end
+    self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_start, domain.q1_end
+    self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_start, domain.q2_end
+    self.N_p1, self.p1_start, self.p1_end = domain.N_p1, domain.p1_start, domain.p1_end
+    self.N_p2, self.p2_start, self.p2_end = domain.N_p2, domain.p2_start, domain.p2_end
+    self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_start, domain.p3_end
 
     # Evaluating step size:
     self.dq1 = (self.q1_start - self.q1_end)/self.N_q1
@@ -75,7 +77,8 @@ class physical_system(object):
 
     # Placeholder for all the functions:
     # These will later be called in the linear_solver and nonlinear_solver:
-    self.init = initial_conditions
+    self.initial_conditions = initial_conditions
+    
     self.A_q1 = advection_term.A_q1
     self.A_q2 = advection_term.A_q2
     self.A_p1 = advection_term.A_p1
@@ -84,3 +87,6 @@ class physical_system(object):
 
     # Assigning the function which is used in computing the term on the RHS:    
     self.source_or_sink = source_or_sink
+
+    # Assigning the moments dictionary:
+    self.moments = moment_defs.moments
