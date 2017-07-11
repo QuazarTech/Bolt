@@ -12,11 +12,11 @@ class linear_system(object):
 
     # Storing domain information from physical system:
     # Getting resolution and size of configuration and velocity space:
-    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_end, physical_system.q1_end
-    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_end, physical_system.q2_end
-    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_end, physical_system.p1_end
-    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_end, physical_system.p2_end
-    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_end, physical_system.p3_end
+    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_start, physical_system.q1_end
+    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_start, physical_system.q2_end
+    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_start, physical_system.p1_end
+    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_start, physical_system.p2_end
+    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_start, physical_system.p3_end
 
     # Evaluating step size:
     self.dq1 = physical_system.dq1 
@@ -76,6 +76,7 @@ class linear_system(object):
     return(k_q1, k_q2)
 
   def _calculate_p(self):
+
     p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
     p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
     p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
@@ -95,19 +96,24 @@ class linear_system(object):
   def compute_moments(self, moment_name):
     try:
       moment_exponents = np.array(self.physical_system.moments[moment_name])
+      flag             = np.where(moment_exponents == 0, 0, 1)
+
+      if(np.all(flag==0)):
+        flag[0] = 1
+
     except:
       raise KeyError('moment_name not defined under physical system')
 
     try:
       moment_variable = 1
       for i in range(moment_exponents.shape[0]):
-        moment_variable *= self.p1**(moment_exponents[i, 0]) + \
-                           self.p2**(moment_exponents[i, 1]) + \
-                           self.p3**(moment_exponents[i, 2])
+        moment_variable *= flag[i, 0] * self.p1**(moment_exponents[i, 0]) + \
+                           flag[i, 1] * self.p2**(moment_exponents[i, 1]) + \
+                           flag[i, 2] * self.p3**(moment_exponents[i, 2])
     except:
-      moment_variable = self.p1**(moment_exponents[0]) + \
-                        self.p2**(moment_exponents[1]) + \
-                        self.p3**(moment_exponents[2])
+      moment_variable = flag[0] * self.p1**(moment_exponents[0]) + \
+                        flag[1] * self.p2**(moment_exponents[1]) + \
+                        flag[2] * self.p3**(moment_exponents[2])
 
     moment_hat = np.sum(np.sum(np.sum(self.f_hat * moment_variable, 4)*self.dp3, 3)*self.dp2, 2)*self.dp1
     moment     = ifft2(moment_hat).real
@@ -151,12 +157,12 @@ class linear_system(object):
     f          = self.physical_system.initial_conditions(self.q1_center, self.q2_center, self.p1, self.p2, self.p3, params)
     self.f_hat = fft2(f, axes = (0, 1))
 
-    self.f_background           = self.f_hat[0, 0, :, :, :]/(self.N_q1 * self.N_q2)
+    self.f_background           = abs(self.f_hat[0, 0, :, :, :])/(self.N_q1 * self.N_q2)
     self.normalization_constant = np.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
     
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
-
+   
     self.Y = np.array([self.f_hat])
     return
 

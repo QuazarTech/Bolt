@@ -19,8 +19,9 @@ ls     = linear_system(system)
 ls.init(params)
 
 import pylab as pl
-print(ls.compute_moments('density'))
-pl.plot(ls.compute_moments('E'))
+# print(ls.compute_moments('vx_bulk'))
+
+pl.plot(ls.compute_moments('vx_bulk'))
 pl.show()
 # time = np.linspace(0, 1, 100)
 

@@ -65,11 +65,11 @@ class physical_system(object):
     self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_start, domain.p3_end
 
     # Evaluating step size:
-    self.dq1 = (self.q1_start - self.q1_end)/self.N_q1
-    self.dq2 = (self.q2_start - self.q2_end)/self.N_q2
-    self.dp1 = (self.p1_start - self.p1_end)/self.N_p1
-    self.dp2 = (self.p2_start - self.p2_end)/self.N_p2
-    self.dp3 = (self.p3_start - self.p3_end)/self.N_p3
+    self.dq1 = (self.q1_end - self.q1_start)/self.N_q1
+    self.dq2 = (self.q2_end - self.q2_start)/self.N_q2
+    self.dp1 = (self.p1_end - self.p1_start)/self.N_p1
+    self.dp2 = (self.p2_end - self.p2_start)/self.N_p2
+    self.dp3 = (self.p3_end - self.p3_start)/self.N_p3
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost               = domain.N_ghost
