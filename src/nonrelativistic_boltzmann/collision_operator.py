@@ -38,6 +38,7 @@ def BGK(system):
   p2_bulk = system.compute_moments('p2_bulk')/n
   p3_bulk = system.compute_moments('p3_bulk')/n
 
+  # Reshaping to be able to perform batched operations with p1, p2, p3
   if(str(type(system.p1)) =="<class 'numpy.ndarray'>"):
     n = n.reshape(system.N_q1, system.N_q2, 1, 1, 1)
     T = T.reshape(system.N_q1, system.N_q2, 1, 1, 1)
