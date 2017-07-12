@@ -2,7 +2,7 @@ import numpy as np
 import pylab as pl
 
 from lib.physical_system import physical_system
-from lib.linear_solver.linear_system import linear_system
+from lib.linear_solver.linear_solver import linear_solver
 
 import domain
 import boundary_conditions
@@ -46,6 +46,7 @@ pl.rcParams['ytick.direction']  = 'in'
 # Defining the physical system to be solved:
 system = physical_system(domain,\
                          boundary_conditions,\
+                         params,\
                          intial_conditions,\
                          advection_terms,\
                          collision_operator.BGK,\
@@ -53,10 +54,7 @@ system = physical_system(domain,\
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:
-ls = linear_system(system)
-
-# Initializing:
-ls.init(params)
+ls = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001

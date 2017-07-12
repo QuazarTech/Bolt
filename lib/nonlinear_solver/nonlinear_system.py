@@ -17,11 +17,11 @@ class nonlinear_solver(object):
 
     # Storing domain information from physical system:
     # Getting resolution and size of configuration and velocity space:
-    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_end, physical_system.q1_end
-    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_end, physical_system.q2_end
-    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_end, physical_system.p1_end
-    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_end, physical_system.p2_end
-    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_end, physical_system.p3_end
+    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_start, physical_system.q1_end
+    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_start, physical_system.q2_end
+    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_start, physical_system.p1_end
+    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_start, physical_system.p2_end
+    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_start, physical_system.p3_end
 
     # Evaluating step size:
     self.dq1 = physical_system.dq1 

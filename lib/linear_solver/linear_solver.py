@@ -153,7 +153,7 @@ class linear_solver(object):
       Y0 : The array Y is the state of the system as given by the result of 
            the last time-step's integration. The elements of Y, hold the following data:
      
-           delta_f_hat   = Y[0]
+           delta_f_hat = Y[0]
      
            At t = 0 the initial state of the system is passed to this function:
 
@@ -162,8 +162,13 @@ class linear_solver(object):
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
     self.f_hat = Y[0]
+
+    # Scaling Appropriately:
     self.f     = ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat, axes = (0, 1))
-    C_f_hat    = 2 * fft2(self._source_or_sink(self), axes = (0, 1))/(self.N_q2 * self.N_q1)
+    C_f_hat    = 2 * fft2(self._source_or_sink(self.f, self.q1_center, self.q2_center,\
+                                               self.p1, self.p2, self.p3,\
+                                               self.compute_moments, self.physical_system.params
+                                              ),axes = (0, 1))/(self.N_q2 * self.N_q1)
     
     df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + C_f_hat
     
