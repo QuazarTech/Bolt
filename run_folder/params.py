@@ -1,6 +1,6 @@
 import numpy as np
 
-mode = '1V'  
+p_dim = 1  
 
 mass_particle      = 1
 boltzmann_constant = 1
@@ -17,3 +17,5 @@ pert_imag = 0
 
 k_q1 = 2*np.pi
 k_q2 = 0
+
+tau = 0.01 #np.inf

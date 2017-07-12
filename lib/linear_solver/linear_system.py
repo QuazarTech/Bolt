@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.fftpack import fft2, ifft2, fftfreq
 
-from lib.linear_solver.timestepper import RK2_step
+from lib.linear_solver.timestepper import RK6_step
 
 class linear_system(object):
   def __init__(self, physical_system):
@@ -95,11 +95,8 @@ class linear_system(object):
 
   def compute_moments(self, moment_name):
     try:
-      moment_exponents = np.array(self.physical_system.moments[moment_name])
-      flag             = np.where(moment_exponents == 0, 0, 1)
-
-      if(np.all(flag==0)):
-        flag[0] = 1
+      moment_exponents = np.array(self.physical_system.moment_exponents[moment_name])
+      moment_coeffs    = np.array(self.physical_system.moment_coeffs[moment_name])
 
     except:
       raise KeyError('moment_name not defined under physical system')
@@ -107,18 +104,20 @@ class linear_system(object):
     try:
       moment_variable = 1
       for i in range(moment_exponents.shape[0]):
-        moment_variable *= flag[i, 0] * self.p1**(moment_exponents[i, 0]) + \
-                           flag[i, 1] * self.p2**(moment_exponents[i, 1]) + \
-                           flag[i, 2] * self.p3**(moment_exponents[i, 2])
+        moment_variable *= moment_coeffs[i, 0] * self.p1**(moment_exponents[i, 0]) + \
+                           moment_coeffs[i, 1] * self.p2**(moment_exponents[i, 1]) + \
+                           moment_coeffs[i, 2] * self.p3**(moment_exponents[i, 2])
     except:
-      moment_variable = flag[0] * self.p1**(moment_exponents[0]) + \
-                        flag[1] * self.p2**(moment_exponents[1]) + \
-                        flag[2] * self.p3**(moment_exponents[2])
+      moment_variable = moment_coeffs[0] * self.p1**(moment_exponents[0]) + \
+                        moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
+                        moment_coeffs[2] * self.p3**(moment_exponents[2])
 
     moment_hat = np.sum(np.sum(np.sum(self.Y[0] * moment_variable, 4)*self.dp3, 3)*self.dp2, 2)*self.dp1
-    moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-    moment_hat[0, 0] = 2 * moment_hat[0, 0]
-    moment     = ifft2(moment_hat).real
+
+    # Scaling Appropriately:
+    moment_hat       = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+    # moment_hat[0, 0] = 2 * moment_hat[0, 0]
+    moment           = ifft2(moment_hat).real
     return(moment)
 
   def _dY_dt(self, Y):
@@ -147,18 +146,25 @@ class linear_system(object):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
-    delta_f_hat     = Y[0]
-    ddelta_f_hat_dt = -1j * (self.k_q1 * self.p1 + self.k_q2 * self.p2) * delta_f_hat
+    self.f_hat = Y[0]
+    self.f     = ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat, axes = (0, 1))
+
+    C_f_hat    = 2 * fft2(self._source_or_sink(self), axes = (0, 1))/(self.N_q2 * self.N_q1)
     
-    dY_dt = np.array([ddelta_f_hat_dt])
+    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + C_f_hat
+    
+    dY_dt = np.array([df_hat_dt])
 
     return(dY_dt)
 
-  time_step = RK2_step
+  time_step = RK6_step
 
   def init(self, params):
-    f          = self.physical_system.initial_conditions(self.q1_center, self.q2_center, self.p1, self.p2, self.p3, params)
-    self.f_hat = fft2(f, axes = (0, 1))
+    f           = self.physical_system.initial_conditions(self.q1_center, self.q2_center,\
+                                                          self.p1, self.p2, self.p3, params
+                                                         )
+    self.f_hat  = fft2(f, axes = (0, 1))
+    self.params = params
 
     self.f_background           = abs(self.f_hat[0, 0, :, :, :])/(self.N_q1 * self.N_q2)
     self.normalization_constant = np.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
@@ -166,9 +172,9 @@ class linear_system(object):
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
     
-    self.f_hat = 2*self.f_hat/(self.N_q1 * self.N_q2)
-    
-    self.f_hat[0, 0] = 0.5 * self.f_hat[0, 0]  
+    # Scaling Appropriately:
+    self.f_hat       = 2*self.f_hat/(self.N_q1 * self.N_q2)
+    # self.f_hat[0, 0] = 0.5 * self.f_hat[0, 0]  
     
     self.Y = np.array([self.f_hat])
     return

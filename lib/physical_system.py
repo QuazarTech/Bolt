@@ -57,6 +57,10 @@ class physical_system(object):
       if(isinstance(getattr(advection_term, attributes[i]), types.FunctionType)==False):
         raise TypeError('Expected attributes of advection_term to be of type function')
 
+    # Checking for the data-type in moment_defs:
+    if(type(moment_defs.moment_exponents)!=dict or type(moment_defs.moment_coeffs)!=dict):
+      raise TypeError('Expected attributes of boundary_conditions to be of type dict')
+
     # Getting resolution and size of configuration and velocity space:
     self.N_q1, self.q1_start, self.q1_end = domain.N_q1, domain.q1_start, domain.q1_end
     self.N_q2, self.q2_start, self.q2_end = domain.N_q2, domain.q2_start, domain.q2_end
@@ -88,5 +92,6 @@ class physical_system(object):
     # Assigning the function which is used in computing the term on the RHS:    
     self.source_or_sink = source_or_sink
 
-    # Assigning the moments dictionary:
-    self.moments = moment_defs.moments
+    # Assigning the moment dictionaries:
+    self.moment_exponents = moment_defs.moment_exponents
+    self.moment_coeffs    = moment_defs.moment_coeffs

@@ -32,14 +32,14 @@ def intial_conditions(q1, q2, p1, p2, p3, params):
 
   # Depending on the dimensionality in velocity space, the 
   # distribution function is assigned accordingly:
-  if(params.mode == '3V'):
+  if(params.p_dim == 3):
     
     f = rho * (m/(2*np.pi*k*T_b))**(3/2) * \
         be.exp(-m*(p1 - p1_bulk)**2/(2*k*T_b)) * \
         be.exp(-m*(p2 - p2_bulk)**2/(2*k*T_b)) * \
         be.exp(-m*(p3 - p3_bulk)**2/(2*k*T_b))
 
-  elif(params.mode == '2V'):
+  elif(params.p_dim == 2):
 
     f = rho * (m/(2*np.pi*k*T_b)) * \
         be.exp(-m*(p1 - p1_bulk)**2/(2*k*T_b)) * \

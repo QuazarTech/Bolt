@@ -1,10 +1,10 @@
-.. sample documentation master file, created by
-   sphinx-quickstart on Mon Apr 16 21:22:43 2012.
+.. TBD documentation master file, created by
+   sphinx-quickstart on Wed Jul 12 11:29:47 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to sample's documentation!
-==================================
+Welcome to TBD's documentation!
+===============================
 
 Contents:
 
