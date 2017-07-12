@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.fftpack import fft2, ifft2, fftfreq
 
-from lib.linear_solver.timestepper import RK4_step
+from lib.linear_solver.timestepper import RK2_step
 
 class linear_system(object):
   def __init__(self, physical_system):
@@ -115,7 +115,9 @@ class linear_system(object):
                         flag[1] * self.p2**(moment_exponents[1]) + \
                         flag[2] * self.p3**(moment_exponents[2])
 
-    moment_hat = np.sum(np.sum(np.sum(self.f_hat * moment_variable, 4)*self.dp3, 3)*self.dp2, 2)*self.dp1
+    moment_hat = np.sum(np.sum(np.sum(self.Y[0] * moment_variable, 4)*self.dp3, 3)*self.dp2, 2)*self.dp1
+    moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+    moment_hat[0, 0] = 2 * moment_hat[0, 0]
     moment     = ifft2(moment_hat).real
     return(moment)
 
@@ -146,12 +148,13 @@ class linear_system(object):
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
     delta_f_hat     = Y[0]
-    ddelta_f_hat_dt = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * delta_f_hat
+    ddelta_f_hat_dt = -1j * (self.k_q1 * self.p1 + self.k_q2 * self.p2) * delta_f_hat
     
     dY_dt = np.array([ddelta_f_hat_dt])
+
     return(dY_dt)
 
-  time_step = RK4_step
+  time_step = RK2_step
 
   def init(self, params):
     f          = self.physical_system.initial_conditions(self.q1_center, self.q2_center, self.p1, self.p2, self.p3, params)
@@ -162,26 +165,10 @@ class linear_system(object):
     
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
-   
+    
+    self.f_hat = 2*self.f_hat/(self.N_q1 * self.N_q2)
+    
+    self.f_hat[0, 0] = 0.5 * self.f_hat[0, 0]  
+    
     self.Y = np.array([self.f_hat])
     return
-
-  def evolve(self, time_array, track_moments):
-    # time_array needs to be specified including start time and the end time. 
-    # Evaluating time-step size:
-    dt = time_array[1] - time_array[0]
-
-
-    if(len(track_moments) != 0):
-      moments_data = np.zeros([time_array.size, len(track_moments)])
-
-    for time_index, t0 in enumerate(time_array[1:]):
-      print("Computing for Time =", t0)
-      
-      self._time_step(dt)
-      self.f = ifft2(self.Y[0], axis = (0, 1))
-      
-      for i in range(len(track_moments)):
-        moments_data[time_index][i] = self.compute_moments(track_moments[i])
-
-    return(moments_data)
