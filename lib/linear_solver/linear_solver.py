@@ -94,6 +94,29 @@ class linear_solver(object):
 
     return(p1_center, p2_center, p3_center)
 
+  def _df_dv_background(self):
+
+    if(self.physical_system.p_dim == 1):
+      dfdp1_background = np.gradient(self.f_background[:, 0, 0], self.dp1)
+      dfdp2_background = np.zeros_like(self.f_background)
+      dfdp3_background = np.zeros_like(self.f_background)
+
+    elif(self.physical_system.p_dim == 2):
+      dfdp1_background = np.gradient(self.f_background[:, :, 0], self.dp1, self.dp2)[0]
+      dfdp2_background = np.gradient(self.f_background[:, :, 0], self.dp1, self.dp2)[1]
+      dfdp3_background = np.zeros_like(self.f_background)
+    
+    else:
+      dfdp1_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[0]
+      dfdp2_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[1]
+      dfdp3_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[2]
+
+    self.dfdp1_background = dfdp1_background.reshape([1, 1, self.dp1, self.dp2, self.dp3])
+    self.dfdp2_background = dfdp2_background.reshape([1, 1, self.dp1, self.dp2, self.dp3])
+    self.dfdp2_background = dfdp3_background.reshape([1, 1, self.dp1, self.dp2, self.dp3])
+
+    return
+
   def _init(self, params):
     f           = self.physical_system.initial_conditions(self.q1_center, self.q2_center,\
                                                           self.p1, self.p2, self.p3, params
@@ -105,6 +128,9 @@ class linear_solver(object):
     
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
+    
+    self.dfdp1_background, self.dfdp2_background, self.dfdp3_background = \
+    self._df_dv_background()
     
     # Scaling Appropriately:
     self.f_hat = 2*self.f_hat/(self.N_q1 * self.N_q2)
@@ -161,8 +187,14 @@ class linear_solver(object):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
-    self.f_hat = Y[0]
-
+    self.f_hat   = Y[0]
+    self.E_x_hat = Y[1]
+    self.E_y_hat = Y[2]
+    self.E_z_hat = Y[3]
+    self.B_x_hat = Y[4]
+    self.B_y_hat = Y[5]
+    self.B_z_hat = Y[6]
+    
     # Scaling Appropriately:
     self.f     = ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat, axes = (0, 1))
     C_f_hat    = 2 * fft2(self._source_or_sink(self.f, self.q1_center, self.q2_center,\
@@ -170,9 +202,46 @@ class linear_solver(object):
                                                self.compute_moments, self.physical_system.params
                                               ),axes = (0, 1))/(self.N_q2 * self.N_q1)
     
-    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + C_f_hat
+    mom_bulk_p1 = self.compute_moments('mom_p1_bulk')
+    mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
+    mom_bulk_p3 = self.compute_moments('mom_p3_bulk')
+
+    charge_electron = self.physical_system.params.charge_electron
+    mass_particle   = self.physical_system.params.mass_particle 
+
+    J1_hat = self.physical_system.params.charge_electron * mom_bulk_p1
+    J2_hat = self.physical_system.params.charge_electron * mom_bulk_p2
+    J3_hat = self.physical_system.params.charge_electron * mom_bulk_p3
     
-    dY_dt = np.array([df_hat_dt])
+    dE1_hat_dt = (self.B3_hat * 1j * self.k_q2) - J1_hat
+    dE2_hat_dt = (- self.B3_hat * 1j * self.k_q1) - J2_hat
+    dE3_hat_dt = (self.B2_hat * 1j * self.k_q1 - self.B1_hat * 1j * self.k_q2) - J3_hat
+
+    dB1_hat_dt = (- self.E3_hat * 1j * self.k_q2)
+    dB2_hat_dt = (self.E3_hat * 1j * self.k_q1)
+    dB3_hat_dt = (self.E1_hat * 1j * self.k_q2 - self.E1_hat * 1j * self.k_q1)
+
+    fields_term = (charge_electron / mass_particle) * (self.E1_hat + \
+                                                       self.B3_hat * self.p2 - \
+                                                       self.B2_hat * self.p3
+                                                      ) * self.dfdp1_background  + \
+                  (charge_electron / mass_particle) * (self.E1_hat + \
+                                                       self.B1_hat * self.p3 - \
+                                                       self.B3_hat * self.p1
+                                                      ) * self.dfdp2_background  + \
+                  (charge_electron / mass_particle) * (self.E3_hat + \
+                                                       self.B2_hat * self.p1 -\
+                                                       self.B1_hat * self.p2
+                                                      ) * self.dfdp3_background
+
+    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
+                 C_f_hat - fields_term
+    
+    dY_dt = np.array([df_hat_dt,\
+                      dE1_hat_dt, dE2_hat_dt, dE3_hat_dt,\
+                      dB1_hat_dt, dB2_hat_dt, dB3_hat_dt,\
+                     ]
+                    )
 
     return(dY_dt)
 

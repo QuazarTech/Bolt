@@ -64,6 +64,7 @@ time_array   = np.arange(0, t_final + dt, dt)
 density_data = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
+  print('Computing For Time =', t0)
   ls.time_step(dt)
   density_data[time_index] = np.max(ls.compute_moments('density'))
 

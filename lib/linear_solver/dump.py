@@ -1,3 +1,6 @@
+#!/usr/bin/env python 
+# -*- coding: utf-8 -*-
+
 import h5py 
 
 def dump_variables(self, file_name, *args):
