@@ -82,6 +82,14 @@ class physical_system(object):
     self.N_p2, self.p2_start, self.p2_end = domain.N_p2, domain.p2_start, domain.p2_end
     self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_start, domain.p3_end
 
+    # Checking that the given input parameters are physical:
+    if(self.N_q1<0 or self.N_q2<0 or self.N_p1<0 or self.N_p2<0 or self.N_p3<0 or self.N_ghost<0):
+      raise Exception('Grid resolution for the phase space cannot be negative')
+
+    if(self.q1_start>self.q1_end or self.q2_start>self.q2_end or self.p1_start>self.p1_end or\
+       self.p2_start>self.p2_end or self.p3_start>self.p3_end):
+      raise Exception('Start point cannot be placed after the end point')
+
     # Evaluating step size:
     self.dq1 = (self.q1_end - self.q1_start)/self.N_q1
     self.dq2 = (self.q2_end - self.q2_start)/self.N_q2
@@ -98,10 +106,12 @@ class physical_system(object):
     self.params             = params
     self.initial_conditions = initial_conditions
     
+    # The following functions return the advection terms as components of a tuple
     self.A_q = advection_term.A_q
     self.A_p = advection_term.A_p
 
-    # Assigning the function which is used in computing the term on the RHS:    
+    # Assigning the function which is used in computing the term on the RHS:
+    # Usually, this is taken as a relaxation type collision operator    
     self.source_or_sink = source_or_sink
 
     # Assigning the moment dictionaries:
