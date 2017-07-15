@@ -1,14 +1,12 @@
-import arrayfire as af
-
 def A_q(p1, p2, p3, params):
   return(p1, p2)
 
-class additional_terms(object):
+class _additional_terms(object):
   def __init__(self):
     return
   
   def T1(self, q1, q2):
-    return(af.exp(q1*q2))
+    return(q1*q2)
 
 def A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params, additional_terms = None):
   # Additional force terms can be passed through additional_terms:

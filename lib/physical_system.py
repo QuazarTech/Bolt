@@ -7,9 +7,9 @@ class physical_system(object):
   """
   An instance of this class contains details of the physical system
   being evolved. User defines this class with the information about
-  the physical system such as domain sizes, and resolutions. The 
-  initial conditions, the advections terms and the source/sink term
-  also needs to be passed as functions  by the user.
+  the physical system such as domain sizes, resolutions and parameters
+  for the simulation. The initial conditions, the advections terms and 
+  the source/sink term also needs to be passed as functions  by the user.
   """
   def __init__(self, domain, boundary_conditions, params,\
                initial_conditions, advection_term, source_or_sink, moment_defs
@@ -66,7 +66,7 @@ class physical_system(object):
       raise TypeError('Expected source_or_sink to be of type function')
 
     # Checking for the types of the methods in advection_term:
-    attributes = [a for a in dir(advection_term) if not a.startswith('__')]
+    attributes = [a for a in dir(advection_term) if not a.startswith('_')]
     for i in range(len(attributes)):
       if(isinstance(getattr(advection_term, attributes[i]), types.FunctionType)==False):
         raise TypeError('Expected attributes of advection_term to be of type function')
@@ -83,7 +83,7 @@ class physical_system(object):
     self.N_p3, self.p3_start, self.p3_end = domain.N_p3, domain.p3_start, domain.p3_end
 
     # Checking that the given input parameters are physical:
-    if(self.N_q1<0 or self.N_q2<0 or self.N_p1<0 or self.N_p2<0 or self.N_p3<0 or self.N_ghost<0):
+    if(self.N_q1<0 or self.N_q2<0 or self.N_p1<0 or self.N_p2<0 or self.N_p3<0 or domain.N_ghost<0):
       raise Exception('Grid resolution for the phase space cannot be negative')
 
     if(self.q1_start>self.q1_end or self.q2_start>self.q2_end or self.p1_start>self.p1_end or\

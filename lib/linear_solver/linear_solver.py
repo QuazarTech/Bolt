@@ -16,33 +16,33 @@ class linear_solver(object):
   def __init__(self, physical_system):
     self.physical_system = physical_system
 
-    # Storing domain information from physical system:
-    # Getting resolution and size of configuration and velocity space:
-    self.N_q1, self.q1_start, self.q1_end = physical_system.N_q1, physical_system.q1_start, physical_system.q1_end
-    self.N_q2, self.q2_start, self.q2_end = physical_system.N_q2, physical_system.q2_start, physical_system.q2_end
-    self.N_p1, self.p1_start, self.p1_end = physical_system.N_p1, physical_system.p1_start, physical_system.p1_end
-    self.N_p2, self.p2_start, self.p2_end = physical_system.N_p2, physical_system.p2_start, physical_system.p2_end
-    self.N_p3, self.p3_start, self.p3_end = physical_system.N_p3, physical_system.p3_start, physical_system.p3_end
-
-    # Evaluating step size:
-    self.dq1 = physical_system.dq1 
-    self.dq2 = physical_system.dq2
-    self.dp1 = physical_system.dp1
-    self.dp2 = physical_system.dp2
-    self.dp3 = physical_system.dp3
+    self.q1_start, self.q1_end = physical_system.q1_start, physical_system.q1_end
+    self.q2_start, self.q2_end = physical_system.q2_start, physical_system.q2_end
+    self.p1_start, self.p1_end = physical_system.p1_start, physical_system.p1_end
+    self.p2_start, self.p2_end = physical_system.p2_start, physical_system.p2_end
+    self.p3_start, self.p3_end = physical_system.p3_start, physical_system.p3_end
+     
+    self.N_q1, self.dq1 = physical_system.N_q1, physical_system.dq1 
+    self.N_q2, self.dq2 = physical_system.N_q2, physical_system.dq2 
+    self.N_p1, self.dp1 = physical_system.N_p1, physical_system.dp1 
+    self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2 
+    self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3 
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost               = physical_system.N_ghost
     self.bc_in_x, self.bc_in_y = physical_system.bc_in_x, physical_system.bc_in_y 
 
+    # Checking that periodic B.C's are utilized:
     if(self.bc_in_x != 'periodic' or self.bc_in_y != 'periodic'):
       raise Exception('Only systems with periodic boundary conditions can be solved using the linear solver')
 
+    # Intializing position, wavenumber and velocity arrays:
     self.q1_center, self.q2_center = self._calculate_q_center()
     self.k_q1,      self.k_q2      = self._calculate_k()
 
     self.p1, self.p2, self.p3      = self._calculate_p()
 
+    # Assigning the advection terms along q1 and q2
     self._A_q1 = self.physical_system.A_q(self.p1, self.p2, self.p3, physical_system.params)[0]
     self._A_q2 = self.physical_system.A_q(self.p1, self.p2, self.p3, physical_system.params)[1]
 
@@ -107,12 +107,12 @@ class linear_solver(object):
 
     f_background = np.array(af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3))
 
-    if(self.physical_system.p_dim == 1):
-      dfdp1_background = np.gradient(self.f_background[:, 0, 0], self.dp1)
+    if(self.physical_system.params.p_dim == 1):
+      dfdp1_background = np.gradient(f_background, self.dp1)
       dfdp2_background = np.zeros_like(f_background)
       dfdp3_background = np.zeros_like(f_background)
 
-    elif(self.physical_system.p_dim == 2):
+    elif(self.physical_system.params.p_dim == 2):
       dfdp1_background = np.gradient(f_background[:, :, 0], self.dp1, self.dp2)[0]
       dfdp2_background = np.gradient(f_background[:, :, 0], self.dp1, self.dp2)[1]
       dfdp3_background = np.zeros_like(f_background)
@@ -139,22 +139,30 @@ class linear_solver(object):
                                                          )
     self.f_hat  = af.fft2(f)
 
+    # Scaling and Normalizing such that \int f d^3p = 1
     self.f_background           = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
     self.normalization_constant = af.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
     
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
     
-    self.dfdp1_background, self.dfdp2_background, self.dfdp3_background = \
     self._df_dp_background()
     
     # Scaling Appropriately:
     self.f_hat = 2*self.f_hat/(self.N_q1 * self.N_q2)
+    self.Y     = [self.f_hat]
     
-    # Appending the normalization constant to params:
+    # Initializing EM fields using Poisson Equation:
+    if(self.physical_system.params.fields_initialize == 'electrostatic'):
+      compute_electrostatic_fields(self)
+
+    self.Y = [self.f_hat,\
+              self.E1_hat, self.E2_hat, self.E3_hat,\
+              self.B1_hat, self.B2_hat, self.B3_hat,\
+             ]
+    # Appending the normalization constant to params for access in other functions:
     self.physical_system.params.normalization_constant = self.normalization_constant
 
-    self.Y = np.array([self.f_hat])
     return
 
   def compute_moments(self, moment_name):
@@ -216,11 +224,11 @@ class linear_solver(object):
     C_f_hat    = 2 * af.fft2(self._source_or_sink(self.f, self.q1_center, self.q2_center,\
                                                   self.p1, self.p2, self.p3,\
                                                   self.compute_moments, self.physical_system.params
-                                                 ),axes = (0, 1))/(self.N_q2 * self.N_q1)
+                                                 ))/(self.N_q2 * self.N_q1)
     
-    mom_bulk_p1 = self.compute_moments('mom_p1_bulk')
-    mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
-    mom_bulk_p3 = self.compute_moments('mom_p3_bulk')
+    mom_bulk_p1 = af.tile(self.compute_moments('p1_bulk'), 1, 1, self.f.shape[2])
+    mom_bulk_p2 = af.tile(self.compute_moments('p2_bulk'), 1, 1, self.f.shape[2])
+    mom_bulk_p3 = af.tile(self.compute_moments('p3_bulk'), 1, 1, self.f.shape[2])
 
     charge_electron = self.physical_system.params.charge_electron
     mass_particle   = self.physical_system.params.mass_particle 
@@ -253,11 +261,10 @@ class linear_solver(object):
     df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
                  C_f_hat - fields_term
     
-    dY_dt = np.array([df_hat_dt,\
-                      dE1_hat_dt, dE2_hat_dt, dE3_hat_dt,\
-                      dB1_hat_dt, dB2_hat_dt, dB3_hat_dt,\
-                     ]
-                    )
+    dY_dt = [df_hat_dt,\
+             dE1_hat_dt, dE2_hat_dt, dE3_hat_dt,\
+             dB1_hat_dt, dB2_hat_dt, dB3_hat_dt,\
+            ]
 
     return(dY_dt)
 

@@ -8,6 +8,8 @@ def RK6_step(self, dt):
   accurate in time.
   """
   k1 = self._dY_dt(self.Y)
+  print(k1)
+  print(self.Y)
   k2 = self._dY_dt(self.Y + 0.25*k1*dt)
   k3 = self._dY_dt(self.Y + (3/32)*(k1+3*k2)*dt)
   k4 = self._dY_dt(self.Y + (12/2197)*(161*k1-600*k2+608*k3)*dt)
