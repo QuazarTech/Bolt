@@ -149,17 +149,23 @@ class linear_solver(object):
     self._df_dp_background()
     
     # Scaling Appropriately:
-    self.f_hat = 2*self.f_hat/(self.N_q1 * self.N_q2)
-    self.Y     = [self.f_hat]
+    self.f_hat         = 2*self.f_hat/(self.N_q1 * self.N_q2)
+    self.Y             = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
+                                     self.p1.shape[2], 7, dtype = af.Dtype.c64
+                                    )
+    self.Y[:, :, :, 0] = self.f_hat
     
     # Initializing EM fields using Poisson Equation:
     if(self.physical_system.params.fields_initialize == 'electrostatic'):
       compute_electrostatic_fields(self)
 
-    self.Y = [self.f_hat,\
-              self.E1_hat, self.E2_hat, self.E3_hat,\
-              self.B1_hat, self.B2_hat, self.B3_hat,\
-             ]
+    self.Y[:, :, :, 1] = self.E1_hat
+    self.Y[:, :, :, 2] = self.E2_hat
+    self.Y[:, :, :, 3] = self.E3_hat
+    self.Y[:, :, :, 4] = self.B1_hat
+    self.Y[:, :, :, 5] = self.B2_hat
+    self.Y[:, :, :, 6] = self.B3_hat
+
     # Appending the normalization constant to params for access in other functions:
     self.physical_system.params.normalization_constant = self.normalization_constant
 
@@ -184,7 +190,7 @@ class linear_solver(object):
                         moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
                         moment_coeffs[2] * self.p3**(moment_exponents[2])
 
-    moment_hat = af.sum(self.Y[0] * moment_variable, 2)*self.dp3*self.dp2*self.dp1
+    moment_hat = af.sum(self.Y[:, :, :, 0] * moment_variable, 2)*self.dp3*self.dp2*self.dp1
 
     # Scaling Appropriately:
     moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
@@ -211,13 +217,13 @@ class linear_solver(object):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
-    self.f_hat   = Y[0]
-    self.E_x_hat = Y[1]
-    self.E_y_hat = Y[2]
-    self.E_z_hat = Y[3]
-    self.B_x_hat = Y[4]
-    self.B_y_hat = Y[5]
-    self.B_z_hat = Y[6]
+    self.f_hat  = Y[:, :, :, 0]
+    self.E1_hat = Y[:, :, :, 1]
+    self.E2_hat = Y[:, :, :, 2]
+    self.E3_hat = Y[:, :, :, 3]
+    self.B1_hat = Y[:, :, :, 4]
+    self.B2_hat = Y[:, :, :, 5]
+    self.B3_hat = Y[:, :, :, 6]
     
     # Scaling Appropriately:
     self.f     = af.ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat)
@@ -226,16 +232,16 @@ class linear_solver(object):
                                                   self.compute_moments, self.physical_system.params
                                                  ))/(self.N_q2 * self.N_q1)
     
-    mom_bulk_p1 = af.tile(self.compute_moments('p1_bulk'), 1, 1, self.f.shape[2])
-    mom_bulk_p2 = af.tile(self.compute_moments('p2_bulk'), 1, 1, self.f.shape[2])
-    mom_bulk_p3 = af.tile(self.compute_moments('p3_bulk'), 1, 1, self.f.shape[2])
+    mom_bulk_p1 = af.tile(self.compute_moments('mom_p1_bulk'), 1, 1, self.f.shape[2])
+    mom_bulk_p2 = af.tile(self.compute_moments('mom_p2_bulk'), 1, 1, self.f.shape[2])
+    mom_bulk_p3 = af.tile(self.compute_moments('mom_p3_bulk'), 1, 1, self.f.shape[2])
 
     charge_electron = self.physical_system.params.charge_electron
     mass_particle   = self.physical_system.params.mass_particle 
 
-    J1_hat = self.physical_system.params.charge_electron * mom_bulk_p1
-    J2_hat = self.physical_system.params.charge_electron * mom_bulk_p2
-    J3_hat = self.physical_system.params.charge_electron * mom_bulk_p3
+    J1_hat = charge_electron * mom_bulk_p1
+    J2_hat = charge_electron * mom_bulk_p2
+    J3_hat = charge_electron * mom_bulk_p3
     
     dE1_hat_dt = (self.B3_hat * 1j * self.k_q2) - J1_hat
     dE2_hat_dt = (- self.B3_hat * 1j * self.k_q1) - J2_hat
@@ -261,10 +267,19 @@ class linear_solver(object):
     df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
                  C_f_hat - fields_term
     
-    dY_dt = [df_hat_dt,\
-             dE1_hat_dt, dE2_hat_dt, dE3_hat_dt,\
-             dB1_hat_dt, dB2_hat_dt, dB3_hat_dt,\
-            ]
+    dY_dt = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
+                        self.p1.shape[2], 7, dtype = af.Dtype.c64
+                       )
+
+    dY_dt[:, :, :, 0] = df_hat_dt
+    
+    dY_dt[:, :, :, 1] = dE1_hat_dt
+    dY_dt[:, :, :, 2] = dE2_hat_dt
+    dY_dt[:, :, :, 3] = dE3_hat_dt
+    
+    dY_dt[:, :, :, 4] = dB1_hat_dt
+    dY_dt[:, :, :, 5] = dB2_hat_dt
+    dY_dt[:, :, :, 6] = dB3_hat_dt
 
     return(dY_dt)
 

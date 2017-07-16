@@ -29,12 +29,12 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
   n = af.tile(moments('density'), 1, 1, q1.shape[2])
   T = af.tile((1/params.p_dim) * moments('energy'), 1, 1, q1.shape[2])/n
   
-  p1_bulk = af.tile(moments('p1_bulk'), 1, 1, q1.shape[2])/n
-  p2_bulk = af.tile(moments('p2_bulk'), 1, 1, q1.shape[2])/n
-  p3_bulk = af.tile(moments('p3_bulk'), 1, 1, q1.shape[2])/n
+  p1_bulk = af.tile(moments('mom_p1_bulk'), 1, 1, q1.shape[2])/n
+  p2_bulk = af.tile(moments('mom_p2_bulk'), 1, 1, q1.shape[2])/n
+  p3_bulk = af.tile(moments('mom_p3_bulk'), 1, 1, q1.shape[2])/n
 
   C_f = -(f - \
           f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)/params.normalization_constant
-         )/0.01 #params.tau(q1, q2, p1, p2, p3)
+         )/params.tau(q1, q2, p1, p2, p3)
 
   return(C_f)
