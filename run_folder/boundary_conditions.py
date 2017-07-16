@@ -1,2 +1,2 @@
-in_x = 'periodic'
-in_y = 'periodic'
+in_q1 = 'periodic'
+in_q2 = 'periodic'

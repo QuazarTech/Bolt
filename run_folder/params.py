@@ -1,7 +1,8 @@
 import numpy as np
 
 fields_initialize = 'electrostatic'
-timestepper       = 'RK6'
+time_splitting    = 'strang'
+time_stepper      = 'RK6'
 
 p_dim = 1  
 

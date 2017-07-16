@@ -46,14 +46,14 @@ class physical_system(object):
         raise TypeError('Expected attributes of domain to be of type int or float')
 
     # Checking that boundary-conditions mentioned are of correct data-type:
-    if(type(boundary_conditions.in_x)!=str or type(boundary_conditions.in_y)!=str):
+    if(type(boundary_conditions.in_q1)!=str or type(boundary_conditions.in_q2)!=str):
       raise TypeError('Expected attributes of boundary_conditions to be of type str')
 
-    if(boundary_conditions.in_x != 'periodic'):
+    if(boundary_conditions.in_q1 != 'periodic'):
       if(type(boundary_conditions.left)!=dict or type(boundary_conditions.right)!=dict):
         raise TypeError('Expected attributes of left and right boundary conditions to be of type dict')
 
-    if(boundary_conditions.in_y != 'periodic'):
+    if(boundary_conditions.in_q2 != 'periodic'):
       if(type(boundary_conditions.bottom)!=dict or type(boundary_conditions.top)!=dict):
         raise TypeError('Expected attributes of bottom and top boundary conditions to be of type dict')
 
@@ -98,8 +98,8 @@ class physical_system(object):
     self.dp3 = (self.p3_end - self.p3_start)/self.N_p3
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
-    self.N_ghost               = domain.N_ghost
-    self.bc_in_x, self.bc_in_y = boundary_conditions.in_x, boundary_conditions.in_y
+    self.N_ghost                 = domain.N_ghost
+    self.bc_in_q1, self.bc_in_q2 = boundary_conditions.in_q1, boundary_conditions.in_q2
 
     # Placeholder for all the functions:
     # These will later be called in the linear_solver and nonlinear_solver:
