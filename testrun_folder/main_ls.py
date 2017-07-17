@@ -1,5 +1,6 @@
 import numpy as np
 import pylab as pl
+import arrayfire as af
 
 from lib.physical_system import physical_system
 from lib.linear_solver.linear_solver import linear_solver
@@ -7,7 +8,7 @@ from lib.linear_solver.linear_solver import linear_solver
 import domain
 import boundary_conditions
 import params
-from initialize import intial_conditions
+import initialize
 
 import src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import src.nonrelativistic_boltzmann.collision_operator as collision_operator
@@ -47,7 +48,7 @@ pl.rcParams['ytick.direction']  = 'in'
 system = physical_system(domain,\
                          boundary_conditions,\
                          params,\
-                         intial_conditions,\
+                         initialize,\
                          advection_terms,\
                          collision_operator.BGK,\
                          moment_defs
@@ -66,7 +67,7 @@ density_data = np.zeros_like(time_array)
 for time_index, t0 in enumerate(time_array):
   print('Computing For Time =', t0)
   ls.time_step(dt)
-  density_data[time_index] = np.max(ls.compute_moments('density'))
+  density_data[time_index] = af.max(ls.compute_moments('density'))
 
-pl.plot(density_data)
+pl.plot(time_array, density_data)
 pl.savefig('plot.png')

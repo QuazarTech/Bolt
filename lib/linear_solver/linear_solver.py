@@ -11,8 +11,15 @@ from scipy.fftpack import fftfreq
 
 from lib.linear_solver.timestepper import RK2_step, RK4_step, RK6_step
 from lib.linear_solver.EM_fields_solver import compute_electrostatic_fields
+import lib.linear_solver.dump as dump
 
 class linear_solver(object):
+  """
+  An instance of this class' attributes contains methods which are used in evolving
+  the system declared under physical system. The state of the system then may be 
+  determined from the attributes of the system such as the distribution function and
+  electromagnetic fields
+  """
   def __init__(self, physical_system):
     self.physical_system = physical_system
 
@@ -59,6 +66,11 @@ class linear_solver(object):
     self._source_or_sink = self.physical_system.source_or_sink
 
   def _calculate_q_center(self):
+    """
+    Initializes the cannonical variables q1, q2 using a centered
+    formulation. The size, and resolution are the same as declared 
+    under domain of the physical system object.
+    """
     q1_center = self.q1_start + (0.5 + np.arange(self.N_q1)) * self.dq1
     q2_center = self.q2_start + (0.5 + np.arange(self.N_q2)) * self.dq2
 
@@ -71,9 +83,15 @@ class linear_solver(object):
     q1_center = af.tile(q1_center, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
     af.eval(q1_center, q2_center)
+    # returned in positionsExpanded form
+    # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(q1_center, q2_center)
 
   def _calculate_k(self):
+    """
+    Initializes the wave numbers k_q1 and k_q2 which will be used when
+    solving in fourier space.
+    """
     k_q1 = 2 * np.pi * fftfreq(self.N_q1, self.dq1)
     k_q2 = 2 * np.pi * fftfreq(self.N_q2, self.dq2)
 
@@ -86,10 +104,16 @@ class linear_solver(object):
     k_q1 = af.tile(k_q1, 1, 1, self.N_p1*self.N_p2*self.N_p3)
 
     af.eval(k_q1, k_q2)
+    # returned in positionsExpanded form
+    # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(k_q1, k_q2)
 
   def _calculate_p(self):
-
+    """
+    Initializes the cannonical variables p1, p2 and p3 using a centered
+    formulation. The size, and resolution are the same as declared 
+    under domain of the physical system object.
+    """
     p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
     p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
     p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
@@ -105,9 +129,15 @@ class linear_solver(object):
     p3_center = af.tile(af.reorder(p3_center, 2, 3, 0, 1), self.N_q1, self.N_q2, 1, 1)
 
     af.eval(p1_center, p2_center, p3_center)
+    # returned in positionsExpanded form
+    # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(p1_center, p2_center, p3_center)
 
   def _df_dp_background(self):
+    """
+    Calculates the derivative of the background distribution with respect
+    to the variables p1, p2, p3.
+    """
 
     f_background = np.array(af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3))
 
@@ -130,6 +160,8 @@ class linear_solver(object):
     self.dfdp2_background = af.reorder(af.flat(af.to_array(dfdp2_background)), 2, 3, 0, 1)
     self.dfdp3_background = af.reorder(af.flat(af.to_array(dfdp3_background)), 2, 3, 0, 1)
 
+    # positionsExpanded form
+    # (N_q1, N_q2, N_p1*N_p2*N_p3)
     self.dfdp1_background = af.tile(self.dfdp1_background, self.N_q1, self.N_q2, 1)
     self.dfdp2_background = af.tile(self.dfdp2_background, self.N_q1, self.N_q2, 1)
     self.dfdp3_background = af.tile(self.dfdp3_background, self.N_q1, self.N_q2, 1)
@@ -138,12 +170,19 @@ class linear_solver(object):
     return
 
   def _init(self, params):
-    f           = self.physical_system.initial_conditions(self.q1_center, self.q2_center,\
-                                                          self.p1, self.p2, self.p3, params
-                                                         )
+    """
+    Called when the solver object is declared. This function is
+    used to initialize the mode perturbation of the distribution 
+    function f_hat, along with the mode perturbation of the field quantities
+    """
+    f           = self.physical_system.initial_conditions.\
+                  initialize_f(self.q1_center, self.q2_center,\
+                               self.p1, self.p2, self.p3, params
+                              )
+    
     self.f_hat  = af.fft2(f)
 
-    # Scaling and Normalizing such that \int f d^3p = 1
+    # Scaling and Normalizing such that \int f_background d^3p = 1
     self.f_background           = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
     self.normalization_constant = af.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
     
@@ -154,6 +193,8 @@ class linear_solver(object):
     
     # Scaling Appropriately:
     self.f_hat         = 2*self.f_hat/(self.N_q1 * self.N_q2)
+
+    # Using a vector Y to evolve the system:
     self.Y             = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
                                      self.p1.shape[2], 7, dtype = af.Dtype.c64
                                     )
@@ -162,6 +203,19 @@ class linear_solver(object):
     # Initializing EM fields using Poisson Equation:
     if(self.physical_system.params.fields_initialize == 'electrostatic'):
       compute_electrostatic_fields(self)
+
+    # If option is given as user-defined:
+    elif(self.physical_system.params.fields_initialize == 'user-defined'):
+      E1, E2, E3 = self.initial_conditions.initialize_E(self.physical_system.params)
+      B1, B2, B3 = self.initial_conditions.initialize_B(self.physical_system.params)
+
+      # Scaling Appropriately
+      self.E1_hat = 2 * af.fft2(E1)/(self.N_q1 * self.N_q2)
+      self.E2_hat = 2 * af.fft2(E2)/(self.N_q1 * self.N_q2)
+      self.E3_hat = 2 * af.fft2(E3)/(self.N_q1 * self.N_q2)
+      self.B1_hat = 2 * af.fft2(B1)/(self.N_q1 * self.N_q2)
+      self.B2_hat = 2 * af.fft2(B2)/(self.N_q1 * self.N_q2)
+      self.B3_hat = 2 * af.fft2(B3)/(self.N_q1 * self.N_q2)
 
     self.Y[:, :, :, 1] = self.E1_hat
     self.Y[:, :, :, 2] = self.E2_hat
@@ -176,6 +230,19 @@ class linear_solver(object):
     return
 
   def compute_moments(self, moment_name):
+    """
+    Used in computing the moments of the distribution function.
+    The moment definitions which are passed to physical system
+    are used in computing these moment quantities.
+
+    Usage:
+    ------
+    >> solver.compute_moments('density')
+    
+    The above line will lookup the definition for 'density' under the dict
+    moments_exponents, and moments_coefficients and calculate the same 
+    accordingly
+    """
     try:
       moment_exponents = np.array(self.physical_system.moment_exponents[moment_name])
       moment_coeffs    = np.array(self.physical_system.moment_coeffs[moment_name])
@@ -213,7 +280,13 @@ class linear_solver(object):
       Y0 : The array Y is the state of the system as given by the result of 
            the last time-step's integration. The elements of Y, hold the following data:
      
-           delta_f_hat = Y[0]
+           f_hat   = Y[0]
+           E_x_hat = Y[1]
+           E_y_hat = Y[2]
+           E_z_hat = Y[3]
+           B_x_hat = Y[4]
+           B_y_hat = Y[5]
+           B_z_hat = Y[6]
      
            At t = 0 the initial state of the system is passed to this function:
 
@@ -243,12 +316,9 @@ class linear_solver(object):
     mom_bulk_p2 = af.tile(self.compute_moments('mom_p2_bulk'), 1, 1, self.f.shape[2])
     mom_bulk_p3 = af.tile(self.compute_moments('mom_p3_bulk'), 1, 1, self.f.shape[2])
 
-    charge_electron = self.physical_system.params.charge_electron
-    mass_particle   = self.physical_system.params.mass_particle 
-
-    J1_hat = 2 * af.fft2(charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
-    J2_hat = 2 * af.fft2(charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
-    J3_hat = 2 * af.fft2(charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
+    J1_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
+    J2_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
+    J3_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
     
     dE1_hat_dt = (self.B3_hat * 1j * self.k_q2) - J1_hat
     dE2_hat_dt = (- self.B3_hat * 1j * self.k_q1) - J2_hat
@@ -258,18 +328,16 @@ class linear_solver(object):
     dB2_hat_dt = (self.E3_hat * 1j * self.k_q1)
     dB3_hat_dt = (self.E1_hat * 1j * self.k_q2 - self.E1_hat * 1j * self.k_q1)
 
-    fields_term = (charge_electron / mass_particle) * (self.E1_hat + \
-                                                       self.B3_hat * self.p2 - \
-                                                       self.B2_hat * self.p3
-                                                      ) * self.dfdp1_background  + \
-                  (charge_electron / mass_particle) * (self.E2_hat + \
-                                                       self.B1_hat * self.p3 - \
-                                                       self.B3_hat * self.p1
-                                                      ) * self.dfdp2_background  + \
-                  (charge_electron / mass_particle) * (self.E3_hat + \
-                                                       self.B2_hat * self.p1 -\
-                                                       self.B1_hat * self.p2
-                                                      ) * self.dfdp3_background
+    (A_p1, A_p2, A_p3) = self._A_p(self.q1_center, self.q2_center, self.p1, self.p2, self.p3,\
+                                   self.E1_hat, self.E2_hat, self.E3_hat,\
+                                   self.B1_hat, self.B2_hat, self.B3_hat,\
+                                   self.physical_system.params
+                                  )
+
+
+    fields_term = A_p1 * self.dfdp1_background  + \
+                  A_p2 * self.dfdp2_background  + \
+                  A_p3 * self.dfdp3_background
 
     df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
                  C_f_hat - fields_term
@@ -291,6 +359,11 @@ class linear_solver(object):
     return(dY_dt)
 
   def time_step(self, dt):
+    """
+    Evolves the system by a single time-step dt.
+    This function needs to be assembled by the user inside a 
+    time loop to evolve the declared system.
+    """
     if(self.physical_system.params.time_stepper == 'RK2'):
       return(RK2_step(self, dt))
     elif(self.physical_system.params.time_stepper == 'RK4'):
@@ -303,3 +376,6 @@ class linear_solver(object):
                                  params file is invalid/not implemented'
                                )
       return
+
+    dump_distribution_function = dump.dump_distribution_function
+    dump_variables             = dump.dump_variables
