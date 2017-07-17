@@ -139,26 +139,26 @@ class linear_solver(object):
     to the variables p1, p2, p3.
     """
 
-    f_background = np.array(af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3))
+    f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
 
     if(self.physical_system.params.p_dim == 1):
-      dfdp1_background = np.gradient(f_background, self.dp1)
-      dfdp2_background = np.zeros_like(f_background)
-      dfdp3_background = np.zeros_like(f_background)
+      dfdp1_background = (af.shift(f_b, -1) - af.shift(f_b, 1))/(2*self.dp1) 
+      dfdp2_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
+      dfdp3_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
 
     elif(self.physical_system.params.p_dim == 2):
-      dfdp1_background = np.gradient(f_background, self.dp1, self.dp2)[0]
-      dfdp2_background = np.gradient(f_background, self.dp1, self.dp2)[1]
-      dfdp3_background = np.zeros_like(f_background)
+      dfdp1_background = (af.shift(f_b, -1, 0) - af.shift(f_b, 1, 0))/(2*self.dp1)
+      dfdp2_background = (af.shift(f_b, 0, -1) - af.shift(f_b, 0, 1))/(2*self.dp2)
+      dfdp3_background = af.constant(0, f_b.shape[0], f_b.shape[1], 1, dtype = af.Dtype.f64)
     
     else:
-      dfdp1_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[0]
-      dfdp2_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[1]
-      dfdp3_background = np.gradient(self.f_background, self.dp1, self.dp2, self.dp3)[2]
+      dfdp1_background = (af.shift(f_b, -1,  0,  0) - af.shift(f_b, 1, 0, 0))/(2*self.dp1)
+      dfdp2_background = (af.shift(f_b,  0, -1,  0) - af.shift(f_b, 0, 1, 0))/(2*self.dp2)
+      dfdp3_background = (af.shift(f_b,  0,  0, -1) - af.shift(f_b, 0, 0, 1))/(2*self.dp3)
 
-    self.dfdp1_background = af.reorder(af.flat(af.to_array(dfdp1_background)), 2, 3, 0, 1)
-    self.dfdp2_background = af.reorder(af.flat(af.to_array(dfdp2_background)), 2, 3, 0, 1)
-    self.dfdp3_background = af.reorder(af.flat(af.to_array(dfdp3_background)), 2, 3, 0, 1)
+    self.dfdp1_background = af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1)
+    self.dfdp2_background = af.reorder(af.flat(dfdp2_background), 2, 3, 0, 1)
+    self.dfdp3_background = af.reorder(af.flat(dfdp3_background), 2, 3, 0, 1)
 
     # positionsExpanded form
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
@@ -183,7 +183,7 @@ class linear_solver(object):
     self.f_hat  = af.fft2(f)
 
     # Scaling and Normalizing such that \int f_background d^3p = 1
-    self.f_background           = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
+    self.f_background           = af.real(af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2))
     self.normalization_constant = af.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
     
     self.f_background = self.f_background/self.normalization_constant
