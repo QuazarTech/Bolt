@@ -30,7 +30,11 @@ class linear_solver(object):
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost                 = physical_system.N_ghost
-    self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1, physical_system.bc_in_q2 
+    self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1, physical_system.bc_in_q2
+
+    # Assigning constants:
+    self.charge_electron = self.physical_system.params.charge_electron
+    self.mass_particle   = self.physical_system.params.mass_particle
 
     # Checking that periodic B.C's are utilized:
     if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):
@@ -113,8 +117,8 @@ class linear_solver(object):
       dfdp3_background = np.zeros_like(f_background)
 
     elif(self.physical_system.params.p_dim == 2):
-      dfdp1_background = np.gradient(f_background[:, :, 0], self.dp1, self.dp2)[0]
-      dfdp2_background = np.gradient(f_background[:, :, 0], self.dp1, self.dp2)[1]
+      dfdp1_background = np.gradient(f_background, self.dp1, self.dp2)[0]
+      dfdp2_background = np.gradient(f_background, self.dp1, self.dp2)[1]
       dfdp3_background = np.zeros_like(f_background)
     
     else:
@@ -130,7 +134,7 @@ class linear_solver(object):
     self.dfdp2_background = af.tile(self.dfdp2_background, self.N_q1, self.N_q2, 1)
     self.dfdp3_background = af.tile(self.dfdp3_background, self.N_q1, self.N_q2, 1)
 
-    af.eval(self.dfdp1_background, self.dfdp3_background, self.dfdp3_background)
+    af.eval(self.dfdp1_background, self.dfdp2_background, self.dfdp3_background)
     return
 
   def _init(self, params):
@@ -225,7 +229,8 @@ class linear_solver(object):
     self.B2_hat = Y[:, :, :, 5]
     self.B3_hat = Y[:, :, :, 6]
 
-    compute_electrostatic_fields(self)
+    if(self.physical_system.params.fields_solver == 'electrostatic'):
+      compute_electrostatic_fields(self)
 
     # Scaling Appropriately:
     self.f     = af.ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat)
@@ -241,9 +246,9 @@ class linear_solver(object):
     charge_electron = self.physical_system.params.charge_electron
     mass_particle   = self.physical_system.params.mass_particle 
 
-    J1_hat = charge_electron * mom_bulk_p1
-    J2_hat = charge_electron * mom_bulk_p2
-    J3_hat = charge_electron * mom_bulk_p3
+    J1_hat = 2 * af.fft2(charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
+    J2_hat = 2 * af.fft2(charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
+    J3_hat = 2 * af.fft2(charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
     
     dE1_hat_dt = (self.B3_hat * 1j * self.k_q2) - J1_hat
     dE2_hat_dt = (- self.B3_hat * 1j * self.k_q1) - J2_hat
@@ -267,7 +272,7 @@ class linear_solver(object):
                                                       ) * self.dfdp3_background
 
     df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
-                 C_f_hat + fields_term
+                 C_f_hat - fields_term
     
     dY_dt = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
                         self.p1.shape[2], 7, dtype = af.Dtype.c64

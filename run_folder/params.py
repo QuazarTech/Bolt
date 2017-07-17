@@ -6,6 +6,9 @@ import numpy as np
 # Maxwell's constraint equations
 fields_initialize = 'electrostatic'
 
+# Can be defined as 'electrostatic' and 'fdtd'
+fields_solver     = 'fdtd'
+
 # Can be defined as 'strang' and 'lie'
 time_splitting    = 'strang'
 
@@ -20,7 +23,7 @@ mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = -10
 
-# Initial Conditions:
+# Initial Conditions used in initialize:
 rho_background         = 1
 temperature_background = 1
 
@@ -34,6 +37,6 @@ pert_imag = 0
 k_q1 = 2*np.pi
 k_q2 = 0
 
-# Variation of collisionality through phase space:
+# Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
   return(np.inf)
