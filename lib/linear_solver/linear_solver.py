@@ -225,6 +225,8 @@ class linear_solver(object):
     self.B2_hat = Y[:, :, :, 5]
     self.B3_hat = Y[:, :, :, 6]
 
+    compute_electrostatic_fields(self)
+
     # Scaling Appropriately:
     self.f     = af.ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat)
     C_f_hat    = 2 * af.fft2(self._source_or_sink(self.f, self.q1_center, self.q2_center,\
@@ -252,8 +254,8 @@ class linear_solver(object):
     dB3_hat_dt = (self.E1_hat * 1j * self.k_q2 - self.E1_hat * 1j * self.k_q1)
 
     fields_term = (charge_electron / mass_particle) * (self.E1_hat + \
-                                                       0*self.B3_hat * self.p2 - \
-                                                       0*self.B2_hat * self.p3
+                                                       self.B3_hat * self.p2 - \
+                                                       self.B2_hat * self.p3
                                                       ) * self.dfdp1_background  + \
                   (charge_electron / mass_particle) * (self.E2_hat + \
                                                        self.B1_hat * self.p3 - \

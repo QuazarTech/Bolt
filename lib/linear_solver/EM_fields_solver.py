@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+# import pylab as pl
 
 def compute_electrostatic_fields(self):
   """
@@ -22,5 +23,10 @@ def compute_electrostatic_fields(self):
   self.B1_hat = af.constant(0, self.N_q1, self.N_q2, self.N_p1*self.N_p2*self.N_p3, dtype = af.Dtype.c64)
   self.B2_hat = af.constant(0, self.N_q1, self.N_q2, self.N_p1*self.N_p2*self.N_p3, dtype = af.Dtype.c64) 
   self.B3_hat = af.constant(0, self.N_q1, self.N_q2, self.N_p1*self.N_p2*self.N_p3, dtype = af.Dtype.c64)
+
+  # E = 0.5 * self.N_q1 * self.N_q2 * af.ifft2(self.E1_hat)
+
+  # pl.plot(E[:, :, 0])
+  # pl.show()
 
   return
