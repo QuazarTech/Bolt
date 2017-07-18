@@ -12,7 +12,7 @@ class test(object):
     self.charge_electron = -1
     
     self.N_q1 = 32
-    self.N_q2 = 34
+    self.N_q2 = 64
     
     self.N_p1 = 2
     self.N_p2 = 3
