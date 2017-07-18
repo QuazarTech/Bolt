@@ -344,8 +344,12 @@ class linear_solver(object):
     if(self.physical_system.params.charge_electron != 0):
       df_hat_dt -= fields_term
 
-    if(self.physical_system.params.tau != np.inf):
-      df_hat_dt += C_f_hat
+    df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, self.q2_center,\
+                                                           self.p1, self.p2, self.p3
+                                                          ) != np.inf,\
+                           C_f_hat,\
+                           0
+                          )
     
     dY_dt = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
                         self.p1.shape[2], 7, dtype = af.Dtype.c64

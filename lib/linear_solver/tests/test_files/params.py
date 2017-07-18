@@ -1,5 +1,4 @@
 import numpy as np
-import arrayfire as af
 
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -40,4 +39,4 @@ k_q2 = 0
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-  return(af.constant(np.inf, q1.shape[0], q1.shape[1], q1.shape[2], dtype = af.Dtype.f64))
+  return(np.inf)

@@ -1,6 +1,7 @@
 import numpy as np
 import pylab as pl
 import arrayfire as af
+af.info()
 
 from lib.physical_system import physical_system
 from lib.linear_solver.linear_solver import linear_solver
