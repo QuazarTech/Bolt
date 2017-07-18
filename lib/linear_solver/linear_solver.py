@@ -183,7 +183,7 @@ class linear_solver(object):
     self.f_hat  = af.fft2(f)
 
     # Scaling and Normalizing such that \int f_background d^3p = 1
-    self.f_background           = af.real(af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2))
+    self.f_background           = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
     self.normalization_constant = af.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
     
     self.f_background = self.f_background/self.normalization_constant
@@ -339,8 +339,13 @@ class linear_solver(object):
                   A_p2 * self.dfdp2_background  + \
                   A_p3 * self.dfdp3_background
 
-    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat + \
-                 C_f_hat - fields_term
+    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat
+
+    if(self.physical_system.params.charge_electron != 0):
+      df_hat_dt -= fields_term
+
+    if(self.physical_system.params.tau != np.inf):
+      df_hat_dt += C_f_hat
     
     dY_dt = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
                         self.p1.shape[2], 7, dtype = af.Dtype.c64

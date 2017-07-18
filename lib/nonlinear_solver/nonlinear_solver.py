@@ -1,11 +1,10 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # Importing dependencies:
-import arrayfire as af 
+import arrayfire as af
 import numpy as np
-from petsc4py import PETSc 
-
+from petsc4py import PETSc
 
 class nonlinear_solver(object):
   def __init__(self, physical_system):
@@ -16,23 +15,23 @@ class nonlinear_solver(object):
     self.p1_start, self.p1_end = physical_system.p1_start, physical_system.p1_end
     self.p2_start, self.p2_end = physical_system.p2_start, physical_system.p2_end
     self.p3_start, self.p3_end = physical_system.p3_start, physical_system.p3_end
-     
-    self.N_q1, self.dq1 = physical_system.N_q1, physical_system.dq1 
-    self.N_q2, self.dq2 = physical_system.N_q2, physical_system.dq2 
-    self.N_p1, self.dp1 = physical_system.N_p1, physical_system.dp1 
-    self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2 
+
+    self.N_q1, self.dq1 = physical_system.N_q1, physical_system.dq1
+    self.N_q2, self.dq2 = physical_system.N_q2, physical_system.dq2
+    self.N_p1, self.dp1 = physical_system.N_p1, physical_system.dp1
+    self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
     self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost                 = physical_system.N_ghost
-    self.bc_in_q1, self.bc_in_q2 = physical_system.in_q1, physical_system.in_q2 
+    self.bc_in_q1, self.bc_in_q2 = physical_system.in_q1, physical_system.in_q2
 
     # Declaring the communicator:
     self._comm = PETSc.COMM_WORLD.tompi4py()
 
     # The DA structure is used in domain decomposition:
-    # The following DA is used in the communication routines where information 
-    # about the data of the distribution function needs to be communicated 
+    # The following DA is used in the communication routines where information
+    # about the data of the distribution function needs to be communicated
     # amongst processes. Additionally this structure automatically
     # takes care of applying periodic boundary conditions.
     self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],\
@@ -60,10 +59,10 @@ class nonlinear_solver(object):
     self._glob_field  = self._da_fields.createGlobalVec()
     self._local_field = self._da_fields.createLocalVec()
 
-    # Obtaining the array values of the cannonical variables: 
+    # Obtaining the array values of the cannonical variables:
     self.q1_center = self._calculate_q1_center()
     self.q2_center = self._calculate_q2_center()
-    
+
     self.p1, self.p2, self.p3 = self._calculate_p_center()
 
     # Assigning the function object to a method of nonlinear solver:
@@ -83,7 +82,7 @@ class nonlinear_solver(object):
     This function is used to convert from velocities expanded
     form to positions expanded form and vice-versa.
     """
-    
+
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -92,16 +91,16 @@ class nonlinear_solver(object):
     # Checking if in positionsExpanded form:
     if(array.shape[0] == self.N_q1 + 2 * self.N_ghost):
 
-      array  = af.moddims(array,                   
+      array  = af.moddims(array,
                           (N_q1_local + 2 * self.N_ghost)*\
                           (N_q2_local + 2 * self.N_ghost),\
                           self.N_p1,\
                           self.N_p2,\
                           self.N_p3
-                         ) 
+                         )
     else:
 
-      array  = af.moddims(array,                   
+      array  = af.moddims(array,
                           (N_q1_local + 2 * self.N_ghost),\
                           (N_q2_local + 2 * self.N_ghost),\
                           self.N_p1*\
@@ -109,7 +108,7 @@ class nonlinear_solver(object):
                           self.N_p3,\
                           1
                          )
-    
+
     af.eval(array)
     return(array)
 
@@ -121,7 +120,7 @@ class nonlinear_solver(object):
 
     i_center = i_q1_lowest + 0.5
     i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost, 1)
-    
+
     q1_center = self.q1_start  + i * self.dq1
     q1_center = af.Array.as_type(af.to_array(q1_center), af.Dtype.f64)
 
@@ -142,7 +141,7 @@ class nonlinear_solver(object):
 
     i_center = i_q2_lowest + 0.5
     i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost, 1)
-    
+
     q2_center = self.q2_start  + i * self.dq2
     q2_center = af.Array.as_type(af.to_array(q2_center), af.Dtype.f64)
 
@@ -202,14 +201,14 @@ class nonlinear_solver(object):
 
     # Storing values of af.Array in PETSc.Vec:
     local_value[:] = np.array(self.f)
-    
+
     # Global value is non-inclusive of the ghost-zones:
     glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
                                      N_ghost:-N_ghost,\
                                      :
                                     ]
 
-    # The following function takes care of periodic boundary conditions, 
+    # The following function takes care of periodic boundary conditions,
     # and interzonal communications:
     self.physical_system.da.globalToLocal(self.glob, self.local)
 
@@ -232,7 +231,7 @@ class nonlinear_solver(object):
     (local_value[:])[:, :, 0] = np.array(self.E1)
     (local_value[:])[:, :, 1] = np.array(self.E2)
     (local_value[:])[:, :, 2] = np.array(self.E3)
-    
+
     (local_value[:])[:, :, 3] = np.array(self.B1)
     (local_value[:])[:, :, 4] = np.array(self.B2)
     (local_value[:])[:, :, 5] = np.array(self.B3)
@@ -278,7 +277,7 @@ class nonlinear_solver(object):
                         moment_coeffs[2] * self.p3**(moment_exponents[2])
 
     moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
-    
+
     af.eval(moment)
     return(moment)
 
