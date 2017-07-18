@@ -42,7 +42,7 @@ class test():
 
 def test_df_dp_background():
 
-  N       = 8 * np.arange(2, 30)
+  N       = 32 * np.arange(1, 10)
 
   error_1 = np.zeros(N.size)
   error_2 = np.zeros(N.size)

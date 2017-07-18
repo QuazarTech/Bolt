@@ -42,6 +42,7 @@ class linear_solver(object):
     # Assigning constants:
     self.charge_electron = self.physical_system.params.charge_electron
     self.mass_particle   = self.physical_system.params.mass_particle
+    self.p_dim           = self.physical_system.params.p_dim
 
     # Checking that periodic B.C's are utilized:
     if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):
