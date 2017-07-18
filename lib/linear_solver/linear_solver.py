@@ -141,20 +141,32 @@ class linear_solver(object):
 
     f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
 
-    if(self.physical_system.params.p_dim == 1):
-      dfdp1_background = (af.shift(f_b, -1) - af.shift(f_b, 1))/(2*self.dp1) 
+    if(self.p_dim == 1):
+      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
+                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
+                         )/(12*self.dp1) 
       dfdp2_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
       dfdp3_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
 
-    elif(self.physical_system.params.p_dim == 2):
-      dfdp1_background = (af.shift(f_b, -1, 0) - af.shift(f_b, 1, 0))/(2*self.dp1)
-      dfdp2_background = (af.shift(f_b, 0, -1) - af.shift(f_b, 0, 1))/(2*self.dp2)
+    elif(self.p_dim == 2):
+      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
+                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
+                         )/(12*self.dp1) 
+      dfdp2_background = (-af.shift(f_b, 0, -2)  + 8*af.shift(f_b, 0, -1) +\
+                           af.shift(f_b, 0, 2)   - 8*af.shift(f_b, 0,  1)
+                         )/(12*self.dp2)
       dfdp3_background = af.constant(0, f_b.shape[0], f_b.shape[1], 1, dtype = af.Dtype.f64)
     
     else:
-      dfdp1_background = (af.shift(f_b, -1,  0,  0) - af.shift(f_b, 1, 0, 0))/(2*self.dp1)
-      dfdp2_background = (af.shift(f_b,  0, -1,  0) - af.shift(f_b, 0, 1, 0))/(2*self.dp2)
-      dfdp3_background = (af.shift(f_b,  0,  0, -1) - af.shift(f_b, 0, 0, 1))/(2*self.dp3)
+      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
+                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
+                         )/(12*self.dp1) 
+      dfdp2_background = (-af.shift(f_b, 0, -2) + 8*af.shift(f_b, 0, -1) +\
+                           af.shift(f_b, 0,  2) - 8*af.shift(f_b, 0,  1)
+                         )/(12*self.dp2)
+      dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8*af.shift(f_b, 0, 0, -1) +\
+                           af.shift(f_b, 0, 0,  2) - 8*af.shift(f_b, 0, 0,  1)
+                         )/(12*self.dp3)
 
     self.dfdp1_background = af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1)
     self.dfdp2_background = af.reorder(af.flat(dfdp2_background), 2, 3, 0, 1)
@@ -168,7 +180,7 @@ class linear_solver(object):
 
     af.eval(self.dfdp1_background, self.dfdp2_background, self.dfdp3_background)
     return
-
+    
   def _init(self, params):
     """
     Called when the solver object is declared. This function is
