@@ -6,6 +6,8 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 
+from lib.nonlinear_solver.timestepper import time_step
+
 class nonlinear_solver(object):
   def __init__(self, physical_system):
     self.physical_system = physical_system
@@ -24,7 +26,7 @@ class nonlinear_solver(object):
 
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost                 = physical_system.N_ghost
-    self.bc_in_q1, self.bc_in_q2 = physical_system.in_q1, physical_system.in_q2
+    self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1, physical_system.bc_in_q2
 
     # Declaring the communicator:
     self._comm = PETSc.COMM_WORLD.tompi4py()
@@ -82,7 +84,6 @@ class nonlinear_solver(object):
     This function is used to convert from velocities expanded
     form to positions expanded form and vice-versa.
     """
-
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -119,7 +120,7 @@ class nonlinear_solver(object):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
     i_center = i_q1_lowest + 0.5
-    i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost, 1)
+    i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
 
     q1_center = self.q1_start  + i * self.dq1
     q1_center = af.Array.as_type(af.to_array(q1_center), af.Dtype.f64)
@@ -140,7 +141,7 @@ class nonlinear_solver(object):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
     i_center = i_q2_lowest + 0.5
-    i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost, 1)
+    i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
 
     q2_center = self.q2_start  + i * self.dq2
     q2_center = af.Array.as_type(af.to_array(q2_center), af.Dtype.f64)
@@ -160,11 +161,11 @@ class nonlinear_solver(object):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
-    p1_center = self.p1_start + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p1_center = self.p1_start + (0.5 + np.arange(self.N_p1)) * self.dp1
     p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
-    p2_center = self.p2_start + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p2_center = self.p2_start + (0.5 + np.arange(self.N_p2)) * self.dp2
     p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
-    p3_center = self.p3_start + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+    p3_center = self.p3_start + (0.5 + np.arange(self.N_p3)) * self.dp3
     p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
 
     # Tiling such that variation in p1 is along axis 1:
@@ -190,6 +191,18 @@ class nonlinear_solver(object):
     af.eval(p1_center, p2_center, p3_center)
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
     return(p1_center, p2_center, p3_center)
+
+  def _init(self, params):
+    self.f = self.physical_system.initial_conditions.\
+             initialize_f(self.q1_center, self.q2_center,\
+                          self.p1, self.p2, self.p3, params
+                         )
+
+    self.normalization_constant = af.sum(self.f) * self.dp1 * self.dp2 * self.dp3/(self.N_q1 * self.N_q2)
+    self.f                      = self.f/self.normalization_constant
+
+
+    return
 
   def _communicate_distribution_function(self):
 
@@ -276,9 +289,10 @@ class nonlinear_solver(object):
                         moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
                         moment_coeffs[2] * self.p3**(moment_exponents[2])
 
-    moment = af.sum(af.sum(af.sum(self.f * moment_variable, 3)*self.dp3, 2)*self.dp2, 1)*self.dp1
+    moment = af.sum(self.f * moment_variable, 2)*self.dp3*self.dp2*self.dp1
 
     af.eval(moment)
     return(moment)
 
   # Injection of solver functions into class as methods:
+  time_step = time_step

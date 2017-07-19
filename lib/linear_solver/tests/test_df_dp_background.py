@@ -37,12 +37,12 @@ class test():
     self.p1, self.p2, self.p3 = af.to_array(self.p1), af.to_array(self.p2), af.to_array(self.p3)
     self.f_background         = af.exp(-self.p1**2)*af.exp(-self.p2**2)*af.exp(-self.p3**2)
 
-    self.N_q1 = 4
-    self.N_q2 = 4
+    self.N_q1 = 1
+    self.N_q2 = 1
 
 def test_df_dp_background():
 
-  N       = 32 * np.arange(1, 9)
+  N       = 32 * np.arange(1, 10)
 
   error_1 = np.zeros(N.size)
   error_2 = np.zeros(N.size)

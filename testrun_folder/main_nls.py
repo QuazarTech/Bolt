@@ -8,7 +8,7 @@ from lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 import domain
 import boundary_conditions
 import params
-from initialize import intial_conditions
+import initialize
 
 import src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import src.nonrelativistic_boltzmann.collision_operator as collision_operator
@@ -48,7 +48,7 @@ pl.rcParams['ytick.direction']  = 'in'
 system = physical_system(domain,\
                          boundary_conditions,\
                          params,\
-                         intial_conditions,\
+                         initialize,\
                          advection_terms,\
                          collision_operator.BGK,\
                          moment_defs
@@ -69,5 +69,5 @@ for time_index, t0 in enumerate(time_array):
   nls.time_step(dt)
   density_data[time_index] = af.max(nls.compute_moments('density'))
 
-pl.plot(density_data)
+pl.plot(time_array, density_data)
 pl.savefig('plot.png')
