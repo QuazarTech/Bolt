@@ -11,7 +11,7 @@ def fields_step(self, dt):
   ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
   p1 = args.vel_x
-  p1 = args.vel_y
+  p2 = args.vel_y
   vel_z = args.vel_z
 
   # Convert to velocitiesExpanded:
@@ -126,4 +126,4 @@ def fields_step(self, dt):
   args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
 
   af.eval(args.f)
-  return(args)
+  return

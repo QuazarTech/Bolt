@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 
-def fdtd(da, args, local, glob, dt):
+def fdtd(self, dt):
     
   # E's and B's are staggered in time such that
   # B's are defined at (n + 1/2), and E's are defined at n 
@@ -19,14 +19,9 @@ def fdtd(da, args, local, glob, dt):
   # J_y --> (i, j + 1/2)
   # J_z --> (i, j)
 
-  config = args.config
-
-  dx = (config.x_end - config.x_start)/(config.N_x)
-  dy = (config.y_end - config.y_start)/(config.N_y)
-
   # The communicate function transfers the data from the local vectors to the global
   # vectors, in addition to dealing with the boundary conditions:
-  args = non_linear_solver.communicate.communicate_fields(da, args, local, glob)
+  self._communicate_fields()
 
   # dEx/dt = + dBz/dy
   # dEy/dt = - dBz/dx
