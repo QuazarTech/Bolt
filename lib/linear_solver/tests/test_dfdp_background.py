@@ -4,9 +4,7 @@
 import numpy as np
 import arrayfire as af
 
-from lib.linear_solver.linear_solver import linear_solver as linear_solver
-
-df_dp_background = linear_solver._df_dp_background 
+from lib.linear_solver.calculate_dfdp_background import calculate_dfdp_background
 
 class test():
   def __init__(self, N):
@@ -51,7 +49,7 @@ def test_df_dp_background():
   for i in range(N.size):
     obj = test(N[i])
 
-    df_dp_background(obj)
+    calculate_dfdp_background(obj)
 
     dfdp1_expected = -2 * obj.p1 * af.exp(-obj.p1**2)*af.exp(-obj.p2**2)*af.exp(-obj.p3**2)
     dfdp2_expected = -2 * obj.p2 * af.exp(-obj.p1**2)*af.exp(-obj.p2**2)*af.exp(-obj.p3**2)

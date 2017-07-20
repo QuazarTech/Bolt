@@ -9,8 +9,16 @@ import numpy as np
 import arrayfire as af
 from scipy.fftpack import fftfreq
 
-from lib.linear_solver.timestepper import RK2_step, RK4_step, RK6_step
+from lib.linear_solver.dY_dt import dY_dt
+
+from lib.linear_solver.timestepper import RK2_step as RK2_step_imported
+from lib.linear_solver.timestepper import RK4_step as RK4_step_imported
+from lib.linear_solver.timestepper import RK6_step as RK6_step_imported
+
 from lib.linear_solver.EM_fields_solver import compute_electrostatic_fields
+from lib.linear_solver.calculate_dfdp_background import calculate_dfdp_background
+from lib.linear_solver.compute_moments import compute_moments as compute_moments_imported
+
 import lib.linear_solver.dump as dump
 
 class linear_solver(object):
@@ -59,7 +67,7 @@ class linear_solver(object):
     self._A_q2 = self.physical_system.A_q(self.p1, self.p2, self.p3, physical_system.params)[1]
 
     # Initializing f, f_hat and the other EM field quantities:
-    self._init(physical_system.params)
+    self._initialize(physical_system.params)
 
     # Assigning the function objects to methods of the solver:
     self._A_p = self.physical_system.A_p
@@ -134,55 +142,9 @@ class linear_solver(object):
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(p1_center, p2_center, p3_center)
 
-  def _df_dp_background(self):
-    """
-    Calculates the derivative of the background distribution with respect
-    to the variables p1, p2, p3.
-    """
+  _calculate_dfdp_background = calculate_dfdp_background
 
-    f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
-
-    if(self.p_dim == 1):
-      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
-                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
-                         )/(12*self.dp1) 
-      dfdp2_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
-      dfdp3_background = af.constant(0, f_b.shape[0], 1, 1, dtype = af.Dtype.f64)
-
-    elif(self.p_dim == 2):
-      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
-                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
-                         )/(12*self.dp1) 
-      dfdp2_background = (-af.shift(f_b, 0, -2)  + 8*af.shift(f_b, 0, -1) +\
-                           af.shift(f_b, 0, 2)   - 8*af.shift(f_b, 0,  1)
-                         )/(12*self.dp2)
-      dfdp3_background = af.constant(0, f_b.shape[0], f_b.shape[1], 1, dtype = af.Dtype.f64)
-    
-    else:
-      dfdp1_background = (-af.shift(f_b, -2)  + 8*af.shift(f_b, -1) +\
-                           af.shift(f_b,  2)  - 8*af.shift(f_b,  1) 
-                         )/(12*self.dp1) 
-      dfdp2_background = (-af.shift(f_b, 0, -2) + 8*af.shift(f_b, 0, -1) +\
-                           af.shift(f_b, 0,  2) - 8*af.shift(f_b, 0,  1)
-                         )/(12*self.dp2)
-      dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8*af.shift(f_b, 0, 0, -1) +\
-                           af.shift(f_b, 0, 0,  2) - 8*af.shift(f_b, 0, 0,  1)
-                         )/(12*self.dp3)
-
-    self.dfdp1_background = af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1)
-    self.dfdp2_background = af.reorder(af.flat(dfdp2_background), 2, 3, 0, 1)
-    self.dfdp3_background = af.reorder(af.flat(dfdp3_background), 2, 3, 0, 1)
-
-    # positionsExpanded form
-    # (N_q1, N_q2, N_p1*N_p2*N_p3)
-    self.dfdp1_background = af.tile(self.dfdp1_background, self.N_q1, self.N_q2, 1)
-    self.dfdp2_background = af.tile(self.dfdp2_background, self.N_q1, self.N_q2, 1)
-    self.dfdp3_background = af.tile(self.dfdp3_background, self.N_q1, self.N_q2, 1)
-
-    af.eval(self.dfdp1_background, self.dfdp2_background, self.dfdp3_background)
-    return
-    
-  def _init(self, params):
+  def _initialize(self, params):
     """
     Called when the solver object is declared. This function is
     used to initialize the mode perturbation of the distribution 
@@ -202,7 +164,7 @@ class linear_solver(object):
     self.f_background = self.f_background/self.normalization_constant
     self.f_hat        = self.f_hat/self.normalization_constant
     
-    self._df_dp_background()
+    self._calculate_dfdp_background()
     
     # Scaling Appropriately:
     self.f_hat         = 2*self.f_hat/(self.N_q1 * self.N_q2)
@@ -242,162 +204,13 @@ class linear_solver(object):
 
     return
 
-  def compute_moments(self, moment_name):
-    """
-    Used in computing the moments of the distribution function.
-    The moment definitions which are passed to physical system
-    are used in computing these moment quantities.
+  _dY_dt   = dY_dt
 
-    Usage:
-    ------
-    >> solver.compute_moments('density')
-    
-    The above line will lookup the definition for 'density' under the dict
-    moments_exponents, and moments_coefficients and calculate the same 
-    accordingly
-    """
-    try:
-      moment_exponents = np.array(self.physical_system.moment_exponents[moment_name])
-      moment_coeffs    = np.array(self.physical_system.moment_coeffs[moment_name])
+  RK2_step = RK2_step_imported
+  RK4_step = RK4_step_imported
+  RK6_step = RK6_step_imported
 
-    except:
-      raise KeyError('moment_name not defined under physical system')
+  compute_moments            = compute_moments_imported
 
-    try:
-      moment_variable = 1
-      for i in range(moment_exponents.shape[0]):
-        moment_variable *= moment_coeffs[i, 0] * self.p1**(moment_exponents[i, 0]) + \
-                           moment_coeffs[i, 1] * self.p2**(moment_exponents[i, 1]) + \
-                           moment_coeffs[i, 2] * self.p3**(moment_exponents[i, 2])
-    except:
-      moment_variable = moment_coeffs[0] * self.p1**(moment_exponents[0]) + \
-                        moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
-                        moment_coeffs[2] * self.p3**(moment_exponents[2])
-
-    moment_hat = af.sum(self.Y[:, :, :, 0] * moment_variable, 2)*self.dp3*self.dp2*self.dp1
-
-    # Scaling Appropriately:
-    moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-    moment     = af.real(af.ifft2(moment_hat))
-    return(moment)
-
-  def _dY_dt(self, Y):
-    """
-    Returns the value of the derivative of the mode perturbation of the distribution 
-    function, and the field quantities with respect to time. This is used to evolve 
-    the system with time.
-
-    Input:
-    ------
-
-      Y0 : The array Y is the state of the system as given by the result of 
-           the last time-step's integration. The elements of Y, hold the following data:
-     
-           f_hat   = Y[0]
-           E_x_hat = Y[1]
-           E_y_hat = Y[2]
-           E_z_hat = Y[3]
-           B_x_hat = Y[4]
-           B_y_hat = Y[5]
-           B_z_hat = Y[6]
-     
-           At t = 0 the initial state of the system is passed to this function:
-
-    Output:
-    -------
-    dY_dt : The time-derivatives of all the quantities stored in Y
-    """
-    self.f_hat  = Y[:, :, :, 0]
-    self.E1_hat = Y[:, :, :, 1]
-    self.E2_hat = Y[:, :, :, 2]
-    self.E3_hat = Y[:, :, :, 3]
-    self.B1_hat = Y[:, :, :, 4]
-    self.B2_hat = Y[:, :, :, 5]
-    self.B3_hat = Y[:, :, :, 6]
-
-    if(self.physical_system.params.fields_solver == 'electrostatic'):
-      compute_electrostatic_fields(self)
-
-    # Scaling Appropriately:
-    self.f     = af.ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat)
-    C_f_hat    = 2 * af.fft2(self._source_or_sink(self.f, self.q1_center, self.q2_center,\
-                                                  self.p1, self.p2, self.p3,\
-                                                  self.compute_moments, self.physical_system.params
-                                                 ))/(self.N_q2 * self.N_q1)
-    
-    mom_bulk_p1 = af.tile(self.compute_moments('mom_p1_bulk'), 1, 1, self.f.shape[2])
-    mom_bulk_p2 = af.tile(self.compute_moments('mom_p2_bulk'), 1, 1, self.f.shape[2])
-    mom_bulk_p3 = af.tile(self.compute_moments('mom_p3_bulk'), 1, 1, self.f.shape[2])
-
-    J1_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
-    J2_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
-    J3_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
-    
-    dE1_hat_dt = (self.B3_hat * 1j * self.k_q2) - J1_hat
-    dE2_hat_dt = (- self.B3_hat * 1j * self.k_q1) - J2_hat
-    dE3_hat_dt = (self.B2_hat * 1j * self.k_q1 - self.B1_hat * 1j * self.k_q2) - J3_hat
-
-    dB1_hat_dt = (- self.E3_hat * 1j * self.k_q2)
-    dB2_hat_dt = (self.E3_hat * 1j * self.k_q1)
-    dB3_hat_dt = (self.E1_hat * 1j * self.k_q2 - self.E1_hat * 1j * self.k_q1)
-
-    (A_p1, A_p2, A_p3) = self._A_p(self.q1_center, self.q2_center, self.p1, self.p2, self.p3,\
-                                   self.E1_hat, self.E2_hat, self.E3_hat,\
-                                   self.B1_hat, self.B2_hat, self.B3_hat,\
-                                   self.physical_system.params
-                                  )
-
-
-    fields_term = A_p1 * self.dfdp1_background  + \
-                  A_p2 * self.dfdp2_background  + \
-                  A_p3 * self.dfdp3_background
-
-    df_hat_dt  = -1j * (self.k_q1 * self._A_q1 + self.k_q2 * self._A_q2) * self.f_hat
-
-    if(self.physical_system.params.charge_electron != 0):
-      df_hat_dt -= fields_term
-
-    df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, self.q2_center,\
-                                                           self.p1, self.p2, self.p3
-                                                          ) != np.inf,\
-                           C_f_hat,\
-                           0
-                          )
-    
-    dY_dt = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
-                        self.p1.shape[2], 7, dtype = af.Dtype.c64
-                       )
-
-    dY_dt[:, :, :, 0] = df_hat_dt
-    
-    dY_dt[:, :, :, 1] = dE1_hat_dt
-    dY_dt[:, :, :, 2] = dE2_hat_dt
-    dY_dt[:, :, :, 3] = dE3_hat_dt
-    
-    dY_dt[:, :, :, 4] = dB1_hat_dt
-    dY_dt[:, :, :, 5] = dB2_hat_dt
-    dY_dt[:, :, :, 6] = dB3_hat_dt
-
-    return(dY_dt)
-
-  def time_step(self, dt):
-    """
-    Evolves the system by a single time-step dt.
-    This function needs to be assembled by the user inside a 
-    time loop to evolve the declared system.
-    """
-    if(self.physical_system.params.time_stepper == 'RK2'):
-      return(RK2_step(self, dt))
-    elif(self.physical_system.params.time_stepper == 'RK4'):
-      return(RK4_step(self, dt))
-    elif(self.physical_system.params.time_stepper == 'RK6'):
-      return(RK6_step(self, dt))
-  
-    else:
-      raise NotImplementedError('The specified time-stepper provided in the \
-                                 params file is invalid/not implemented'
-                               )
-      return
-
-    dump_distribution_function = dump.dump_distribution_function
-    dump_variables             = dump.dump_variables
+  dump_distribution_function = dump.dump_distribution_function
+  dump_variables             = dump.dump_variables

@@ -65,11 +65,9 @@ t_final = 0.5
 time_array   = np.arange(0, t_final + dt, dt)
 density_data = np.zeros_like(time_array)
 
-print(1 - af.sum(ls.compute_moments('density'))/96)
-
 for time_index, t0 in enumerate(time_array):
   print('Computing For Time =', t0)
-  ls.time_step(dt)
+  ls.RK6_step(dt)
   density_data[time_index] = af.max(ls.compute_moments('density'))
 
 pl.plot(time_array, density_data)
