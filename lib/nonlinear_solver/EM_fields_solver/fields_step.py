@@ -1,5 +1,7 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
+import arrayfire as af
+from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
 
 def fields_step(self, dt):
 
@@ -8,79 +10,27 @@ def fields_step(self, dt):
   # Obtaining the left-bottom corner coordinates
   # (lowest values of the canonical coordinates in the local zone)
   # Additionally, we also obtain the size of the local zone
-  ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+  ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
 
-  p1 = args.vel_x
-  p2 = args.vel_y
-  vel_z = args.vel_z
+  if(self.physical_system.params.fields_solver == 'electrostatic'):
+    self._communicate_fields()
 
-  # Convert to velocitiesExpanded:
-  args.f = non_linear_solver.convert.to_velocitiesExpanded(da, config, args.f)
-
-  if(config.fields_solver == 'electrostatic'):
-    E_x = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
-    E_y = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
-    E_z = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
+    self.E1 = compute
+    self.E2
     
-    B_x = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
-    B_y = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
-    B_z = af.constant(0, N_y_local + 2*N_ghost, N_x_local + 2*N_ghost, dtype = af.Dtype.f64)
-
-    rho_array = charge_electron * (non_linear_solver.compute_moments.calculate_density(args) - \
-                                   config.rho_background
-                                  )#(i + 1/2, j + 1/2)
-    
-    # Passing the values non-inclusive of the ghost zones:
-    rho_array = af.moddims(rho_array,\
-                           N_y_local + 2 * N_ghost,\
-                           N_x_local + 2 * N_ghost
-                          )
-
-    # rho_array = np.array(rho_array)[N_ghost:-N_ghost,\
-    #                                 N_ghost:-N_ghost
-    #                                ]
-    
-    # E_x, E_y =\
-    # solve_electrostatic_fields(da, config, rho_array)
-
-    rho_array = (rho_array)[N_ghost:-N_ghost,\
-                                    N_ghost:-N_ghost
-                                   ]
-
-    args.E_x[3:-3, 3:-3], args.E_y[3:-3, 3:-3] = fft_poisson(rho_array, config.dx, config.dy)
-
-    args = non_linear_solver.communicate.communicate_fields(da, args, local, glob)
-
-    E_x = args.E_x 
-    E_y = args.E_y
   else:
     # Will returned a flattened array containing the values of J_x,y,z in 2D space:
-    args.J_x = charge_electron * non_linear_solver.compute_moments.calculate_mom_bulk_x(args) #(i + 1/2, j + 1/2)
-    args.J_y = charge_electron * non_linear_solver.compute_moments.calculate_mom_bulk_y(args) #(i + 1/2, j + 1/2)
-    args.J_z = charge_electron * non_linear_solver.compute_moments.calculate_mom_bulk_z(args) #(i + 1/2, j + 1/2)
-
-    # We'll convert these back to 2D arrays to be able to perform FDTD:
-    args.J_x = af.moddims(args.J_x,\
-                          N_y_local + 2 * N_ghost,\
-                          N_x_local + 2 * N_ghost
-                         )
-    
-    args.J_y = af.moddims(args.J_y,\
-                          N_y_local + 2 * N_ghost,\
-                          N_x_local + 2 * N_ghost
-                         )
-
-    args.J_z = af.moddims(args.J_z,\
-                          N_y_local + 2 * N_ghost,\
-                          N_x_local + 2 * N_ghost
-                         )
+    self.J1 = self.physical_system.params.charge_electron * self.compute_moments('J1_bulk') #(i + 1/2, j + 1/2)
+    self.J2 = self.physical_system.params.charge_electron * self.compute_moments('J2_bulk') #(i + 1/2, j + 1/2)
+    self.J3 = self.physical_system.params.charge_electron * self.compute_moments('J3_bulk') #(i + 1/2, j + 1/2)
 
     # Obtaining the values for current density on the Yee-Grid:
-    args.J_x = 0.5 * (args.J_x + af.shift(args.J_x, 1, 0)) #(i + 1/2, j)
-    args.J_y = 0.5 * (args.J_y + af.shift(args.J_y, 0, 1)) #(i, j + 1/2)
-    args.J_z = 0.25 * (args.J_z + af.shift(args.J_z, 1, 0) +\
-                       af.shift(args.J_z, 0, 1) + af.shift(args.J_z, 1, 1)
-                      ) #(i, j)
+    self.J1 = 0.5 *  (self.J1 + af.shift(self.J2, 0, 1)) #(i + 1/2, j)
+    self.J2 = 0.5 *  (self.J2 + af.shift(self.J2, 1, 0)) #(i, j + 1/2)
+   
+    self.J3 = 0.25 * (args.J_z + af.shift(args.J_z, 1, 0) +\
+                      af.shift(args.J_z, 0, 1) + af.shift(args.J_z, 1, 1)
+                     ) #(i, j)
 
     # Storing the values for the previous half-time step:
     # We do this since the B values on the CK grid are defined at time t = n

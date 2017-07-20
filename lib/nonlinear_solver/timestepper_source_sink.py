@@ -3,16 +3,20 @@
 
 import arrayfire as af
 
-def RK2(self, dt):
+def RK2_step(self, dt):
   
   f_initial = self.f.copy() # Storing the value at the start
-  self.f    = self.f    + self._source_or_sink() * (dt/2) # Obtaining value at midpoint(dt/2)
-  self.f    = f_initial + self._source_or_sink() * dt
+  args      = (self.f, self.q1_center, self.q2_center,\
+               self.p1, self.p2, self.p3,\
+               self.compute_moments, self.physical_system.params
+              )
+  self.f    = self.f    + self._source_or_sink(*args) * (dt/2) # Obtaining value at midpoint(dt/2)
+  self.f    = f_initial + self._source_or_sink(*args) * dt
 
   af.eval(self.f)
   return
 
-def RK4(self, dt):
+def RK4_step(self, dt):
   
   f_initial = self.f.copy() # Storing the value at the start
 
@@ -29,7 +33,7 @@ def RK4(self, dt):
   af.eval(self.f)
   return
 
-def RK6(self, dt):
+def RK6_step(self, dt):
   
   f_initial = self.f.copy() # Storing the value at the start
 

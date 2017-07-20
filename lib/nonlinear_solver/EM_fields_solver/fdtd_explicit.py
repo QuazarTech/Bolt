@@ -1,66 +1,56 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
+import arrayfire as af
 
 def fdtd(self, dt):
     
   # E's and B's are staggered in time such that
   # B's are defined at (n + 1/2), and E's are defined at n 
-  
-  # Positions of grid point where field quantities are defined:
-  # B_x --> (i, j + 1/2)
-  # B_y --> (i + 1/2, j)
-  # B_z --> (i + 1/2, j + 1/2)
-  
-  # E_x --> (i + 1/2, j)
-  # E_y --> (i, j + 1/2)
-  # E_z --> (i, j)
-  
-  # J_x --> (i + 1/2, j)
-  # J_y --> (i, j + 1/2)
-  # J_z --> (i, j)
 
   # The communicate function transfers the data from the local vectors to the global
   # vectors, in addition to dealing with the boundary conditions:
   self._communicate_fields()
 
-  # dEx/dt = + dBz/dy
-  # dEy/dt = - dBz/dx
-  # dEz/dt = dBy/dx - dBx/dy
-  args.E_x +=   (dt/dy) * (args.B_z - af.shift(args.B_z, 1, 0)) - args.J_x * dt
-  args.E_y +=  -(dt/dx) * (args.B_z - af.shift(args.B_z, 0, 1)) - args.J_y * dt
-  args.E_z +=   (dt/dx) * (args.B_y - af.shift(args.B_y, 0, 1)) \
-              - (dt/dy) * (args.B_x - af.shift(args.B_x, 1, 0)) \
-              - dt * args.J_z
+  # dE1/dt = + dB3/dq2
+  # dE2/dt = - dB3/dq1
+  # dE3/dt = dB2/dq1 - dB1/dq2
+
+  dq1 = self.dq1
+  dq2 = self.dq2
+
+  self.E1 +=  (dt/dq2) * (self.B3 - af.shift(self.B3, 0, 1)) - self.J1 * dt
+  self.E2 += -(dt/dq1) * (self.B3 - af.shift(self.B3, 1, 0)) - self.J2 * dt
+  self.E3 +=  (dt/dq1) * (self.B2 - af.shift(self.B2, 1, 0)) \
+             -(dt/dq2) * (self.B1 - af.shift(self.B1, 0, 1)) \
+             - dt * self.J3
           
-  # Applying boundary conditions:
-  args = non_linear_solver.communicate.communicate_fields(da, args, local, glob)
+  self._communicate_fields()
 
-  # dBx/dt = -dEz/dy
-  # dBy/dt = +dEz/dx
-  # dBz/dt = - ( dEy/dx - dEx/dy )
-  args.B_x +=  -(dt/dy) * (af.shift(args.E_z, -1, 0) - args.E_z)
-  args.B_y +=   (dt/dx) * (af.shift(args.E_z, 0, -1) - args.E_z)
-  args.B_z += - (dt/dx) * (af.shift(args.E_y, 0, -1) - args.E_y) \
-              + (dt/dy) * (af.shift(args.E_x, -1, 0) - args.E_x)
+  # dB1/dt = - dE3/dq2
+  # dB2/dt = + dE3/dq1
+  # dB3/dt = - (dE2/dq1 - dE1/dq2)
 
-  # Applying boundary conditions:
-  args = non_linear_solver.communicate.communicate_fields(da, args, local, glob)
+  self.B1 +=  -(dt/dq2) * (af.shift(self.E3,  0, -1) - self.E3)
+  self.B2 +=   (dt/dq1) * (af.shift(self.E3, -1,  0) - self.E3)
+  self.B3 += - (dt/dq1) * (af.shift(self.E2, -1,  0) - self.E2) \
+             + (dt/dq2) * (af.shift(self.E1,  0, -1) - self.E1)
 
-  return(args)
+  af.eval(self.E1, self.E2, self.E3,self.B1, self.B2, self.B3)
+  return
 
-def fdtd_grid_to_ck_grid(E_x, E_y, E_z, B_x, B_y, B_z):
+def fdtd_grid_to_ck_grid(self):
 
-  # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the CK solver:    
-  E_x = 0.5 * (E_x + af.shift(E_x, -1, 0)) #(i + 1/2, j + 1/2)
-  B_x = 0.5 * (B_x + af.shift(B_x, 0, -1)) #(i + 1/2, j + 1/2)
+  # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the nonlinear solver:    
+  self.E1 = 0.5 * (self.E1 + af.shift(self.E1,  0, -1)) #(i + 1/2, j + 1/2)
+  self.B1 = 0.5 * (self.B1 + af.shift(self.B1, -1,  0)) #(i + 1/2, j + 1/2)
 
-  E_y = 0.5 * (E_y + af.shift(E_y, 0, -1)) #(i + 1/2, j + 1/2)
-  B_y = 0.5 * (B_y + af.shift(B_y, -1, 0)) #(i + 1/2, j + 1/2)
+  self.E2 = 0.5 * (self.E2 + af.shift(self.E2, -1,  0)) #(i + 1/2, j + 1/2)
+  self.B2 = 0.5 * (self.B2 + af.shift(self.B2,  0, -1)) #(i + 1/2, j + 1/2)
 
-  E_z = 0.25 * (
-                E_z + af.shift(E_z, 0, -1) + \
-                af.shift(E_z, -1, 0) + af.shift(E_z, -1, -1)
-               ) #(i + 1/2, j + 1/2)
+  self.E3 = 0.25 * (
+                    self.E3                  + af.shift(self.E3,  0, -1) + \
+                    af.shift(self.E3, -1, 0) + af.shift(self.E3, -1, -1)
+                   ) #(i + 1/2, j + 1/2)
 
-  af.eval(E_x, E_y, E_z, B_x, B_y, B_z)
-  return(E_x, E_y, E_z, B_x, B_y, B_z)
+  af.eval(self.E1, self.E2, self.E3,self.B1, self.B2)
+  return

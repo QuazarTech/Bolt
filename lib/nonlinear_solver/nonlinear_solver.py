@@ -6,7 +6,11 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 
-from lib.nonlinear_solver.timestepper import time_step
+from lib.nonlinear_solver.communicate import communicate_distribution_function, communicate_fields
+
+from lib.nonlinear_solver.timestepper import strang_step, lie_step
+from lib.nonlinear_solver.compute_moments import compute_moments as compute_moments_imported
+from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
 
 class nonlinear_solver(object):
   def __init__(self, physical_system):
@@ -58,17 +62,16 @@ class nonlinear_solver(object):
     self._glob  = self._da.createGlobalVec()
     self._local = self._da.createLocalVec()
 
-    self._glob_field  = self._da_fields.createGlobalVec()
-    self._local_field = self._da_fields.createLocalVec()
+    self._glob_fields  = self._da_fields.createGlobalVec()
+    self._local_fields = self._da_fields.createLocalVec()
 
     # Obtaining the array values of the cannonical variables:
-    self.q1_center = self._calculate_q1_center()
-    self.q2_center = self._calculate_q2_center()
+    self.q1_center, self.q2_center = self._calculate_q_center()
 
     self.p1, self.p2, self.p3 = self._calculate_p_center()
 
     # Assigning the function object to a method of nonlinear solver:
-    self._init(physical_system.params)
+    self._initialize(physical_system.params)
 
     # Assigning the advection terms along q1 and q2
     self._A_q1 = self.physical_system.A_q(self.p1, self.p2, self.p3, physical_system.params)[0]
@@ -78,7 +81,7 @@ class nonlinear_solver(object):
     self._A_p = self.physical_system.A_p
 
     self._source_or_sink = self.physical_system.source_or_sink
-
+  
   def _convert(self, array):
     """
     This function is used to convert from velocities expanded
@@ -113,47 +116,35 @@ class nonlinear_solver(object):
     af.eval(array)
     return(array)
 
-  def _calculate_q1_center(self):
+  def _calculate_q_center(self):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
-    i_center = i_q1_lowest + 0.5
-    i        = i_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
+    i_q1_center = i_q1_lowest + 0.5
+    i_q2_center = i_q2_lowest + 0.5
 
-    q1_center = self.q1_start  + i * self.dq1
-    q1_center = af.Array.as_type(af.to_array(q1_center), af.Dtype.f64)
+    i_q1 = i_q1_center + np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
+    i_q2 = i_q2_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
+
+    q1_center = af.to_array(self.q1_start  + i_q1 * self.dq1)
+    q2_center = af.to_array(self.q2_start  + i_q2 * self.dq2)
 
     # Tiling such that variation in q1 is along axis 0:
     q1_center = af.tile(q1_center, 1, N_q2_local + 2*self.N_ghost,\
-                        self.N_p1 * self.N_p2 * self.N_p3, 1
+                        self.N_p1 * self.N_p2 * self.N_p3
                        )
-
-    af.eval(q1_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
-    return(q1_center)
-
-  def _calculate_q2_center(self):
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
-
-    i_center = i_q2_lowest + 0.5
-    i        = i_center + np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
-
-    q2_center = self.q2_start  + i * self.dq2
-    q2_center = af.Array.as_type(af.to_array(q2_center), af.Dtype.f64)
 
     # Tiling such that variation in q2 is along axis 1:
     q2_center = af.tile(af.reorder(q2_center), N_q1_local + 2*self.N_ghost, 1,\
                         self.N_p1 * self.N_p2 * self.N_p3, 1
                        )
 
-    af.eval(q2_center)
+    af.eval(q1_center, q2_center)
+
     # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
-    return(q2_center)
+    return(q1_center, q2_center)
 
   def _calculate_p_center(self):
     # Obtaining the left-bottom corner coordinates
@@ -161,138 +152,69 @@ class nonlinear_solver(object):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
-    p1_center = self.p1_start + (0.5 + np.arange(self.N_p1)) * self.dp1
-    p1_center = af.Array.as_type(af.to_array(p1_center), af.Dtype.f64)
-    p2_center = self.p2_start + (0.5 + np.arange(self.N_p2)) * self.dp2
-    p2_center = af.Array.as_type(af.to_array(p2_center), af.Dtype.f64)
-    p3_center = self.p3_start + (0.5 + np.arange(self.N_p3)) * self.dp3
-    p3_center = af.Array.as_type(af.to_array(p3_center), af.Dtype.f64)
+    N_ghost = self.N_ghost
 
-    # Tiling such that variation in p1 is along axis 1:
-    p1_center = af.tile(af.reorder(p1_center), (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        1, self.N_p2, self.N_p3
+    p1_center = self.p1_start  + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+    p2_center = self.p2_start  + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+    p3_center = self.p3_start  + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+
+    p2_center, p1_center, p3_center = np.meshgrid(p2_center, p1_center, p3_center)
+    
+    p1_center = af.flat(af.to_array(p1_center))
+    p2_center = af.flat(af.to_array(p2_center))
+    p3_center = af.flat(af.to_array(p3_center))
+
+    p1_center = af.tile(af.reorder(p1_center, 2, 3, 0, 1),\
+                        N_q1_local + 2 * N_ghost, N_q2_local + 2 * N_ghost,\
+                        1, 1
                        )
-    # Tiling such that variation in p2 is along axis 2:
+
     p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),\
-                        (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        self.N_p1, 1, self.N_p3
+                        N_q1_local + 2 * N_ghost, N_q2_local + 2 * N_ghost,\
+                        1, 1
                        )
-    # Tiling such that variation in p3 is along axis 3:
-    p3_center = af.tile(af.reorder(p3_center, 1, 2, 3, 0),\
-                        (N_q1_local + 2*self.N_ghost)*(N_q2_local + 2*self.N_ghost),\
-                        self.N_p1, self.N_p2, 1
+    
+    p3_center = af.tile(af.reorder(p3_center, 2, 3, 0, 1),\
+                        N_q1_local + 2 * N_ghost, N_q2_local + 2 * N_ghost,\
+                        1, 1
                        )
-
-    # Converting from velocitiesExpanded form to positionsExpanded form:
-    p1_center = self._convert(p1_center)
-    p2_center = self._convert(p2_center)
-    p3_center = self._convert(p3_center)
 
     af.eval(p1_center, p2_center, p3_center)
-    # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
+    # returned in positionsExpanded form
+    # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(p1_center, p2_center, p3_center)
 
-  def _init(self, params):
+  def _initialize(self, params):
     self.f = self.physical_system.initial_conditions.\
              initialize_f(self.q1_center, self.q2_center,\
                           self.p1, self.p2, self.p3, params
                          )
+    
+    N_g = self.N_ghost
 
-    self.normalization_constant = af.sum(self.f) * self.dp1 * self.dp2 * self.dp3/(self.N_q1 * self.N_q2)
+    self.normalization_constant = af.sum(self.f[N_g:-N_g, N_g:-N_g]) * \
+                                  self.dp1 * self.dp2 * self.dp3/\
+                                  (self.N_q1 * self.N_q2)
     self.f                      = self.f/self.normalization_constant
 
-
+    self.physical_system.params.normalization_constant = self.normalization_constant
     return
 
-  def _communicate_distribution_function(self):
+    if(self.physical_system.params.fields_initialize == 'electrostatic'):
+      fft_poisson(self)
 
-    # Accessing the values of the global and local Vectors
-    local_value = self.physical_system.da.getVecArray(self._local)
-    glob_value  = self.physical_system.da.getVecArray(self._glob)
-
-    N_ghost = self.physical_system.N_ghost
-
-    # Storing values of af.Array in PETSc.Vec:
-    local_value[:] = np.array(self.f)
-
-    # Global value is non-inclusive of the ghost-zones:
-    glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
-                                     N_ghost:-N_ghost,\
-                                     :
-                                    ]
-
-    # The following function takes care of periodic boundary conditions,
-    # and interzonal communications:
-    self.physical_system.da.globalToLocal(self.glob, self.local)
-
-    # Converting back from PETSc.Vec to af.Array:
-    self.f = af.to_array(local_value[:])
-
-    af.eval(self.f)
-    return
-
-  def _communicate_fields(self):
-
-    # Accessing the values of the global and local Vectors
-    local_value = self._da.getVecArray(self._local_field)
-    glob_value  = self._da.getVecArray(self._glob_field)
-
-    N_ghost = self.N_ghost
-
-    # Assigning the values of the af.Array fields quantities
-    # to the PETSc.Vec:
-    (local_value[:])[:, :, 0] = np.array(self.E1)
-    (local_value[:])[:, :, 1] = np.array(self.E2)
-    (local_value[:])[:, :, 2] = np.array(self.E3)
-
-    (local_value[:])[:, :, 3] = np.array(self.B1)
-    (local_value[:])[:, :, 4] = np.array(self.B2)
-    (local_value[:])[:, :, 5] = np.array(self.B3)
-
-    # Global value is non-inclusive of the ghost-zones:
-    glob_value[:] = (local_value[:])[N_ghost:-N_ghost,\
-                                     N_ghost:-N_ghost,\
-                                     :
-                                    ]
-
-    # Takes care of boundary conditions and interzonal communications:
-    self._da.globalToLocal(self._glob_field, self._local_field)
-
-    # Converting back to af.Array
-    self.E1 = af.to_array((local_value[:])[:, :, 0])
-    self.E2 = af.to_array((local_value[:])[:, :, 1])
-    self.E3 = af.to_array((local_value[:])[:, :, 2])
-
-    self.B1 = af.to_array((local_value[:])[:, :, 3])
-    self.B2 = af.to_array((local_value[:])[:, :, 4])
-    self.B3 = af.to_array((local_value[:])[:, :, 5])
-
-    return
-
-  def compute_moments(self, moment_name):
-
-    try:
-      moment_exponents = np.array(self.physical_system.moment_exponents[moment_name])
-      moment_coeffs    = np.array(self.physical_system.moment_coeffs[moment_name])
-
-    except:
-      raise KeyError('moment_name not defined under physical system')
-
-    try:
-      moment_variable = 1
-      for i in range(moment_exponents.shape[0]):
-        moment_variable *= moment_coeffs[i, 0] * self.p1**(moment_exponents[i, 0]) + \
-                           moment_coeffs[i, 1] * self.p2**(moment_exponents[i, 1]) + \
-                           moment_coeffs[i, 2] * self.p3**(moment_exponents[i, 2])
-    except:
-      moment_variable = moment_coeffs[0] * self.p1**(moment_exponents[0]) + \
-                        moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
-                        moment_coeffs[2] * self.p3**(moment_exponents[2])
-
-    moment = af.sum(self.f * moment_variable, 2)*self.dp3*self.dp2*self.dp1
-
-    af.eval(moment)
-    return(moment)
+      self.E1 = af.constant(0, self.E1.shape[0], self.E1.shape[1], dtype = af.Dtype.f64)
+      
+      self.B1 = af.constant(0, self.E1.shape[0], self.E1.shape[1], dtype = af.Dtype.f64)
+      self.B2 = af.constant(0, self.E1.shape[0], self.E1.shape[1], dtype = af.Dtype.f64)
+      self.B3 = af.constant(0, self.E1.shape[0], self.E1.shape[1], dtype = af.Dtype.f64)
 
   # Injection of solver functions into class as methods:
-  time_step = time_step
+  _communicate_distribution_function = communicate_distribution_function
+  _communicate_fields = communicate_fields
+
+
+  strang_timestep = strang_step
+  lie_timestep    = lie_step
+
+  compute_moments = compute_moments_imported

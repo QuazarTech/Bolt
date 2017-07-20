@@ -48,12 +48,13 @@ def f_interp_vel_3d(self, dt):
   q1 = self._convert(self.q1_center)
   q2 = self._convert(self.q2_center)
 
-  E1 = self._convert(self.E1)
-  E2 = self._convert(self.E2)
-  E3 = self._convert(self.E3)
-  B1 = self._convert(self.B1)
-  B2 = self._convert(self.B2)
-  B3 = self._convert(self.B3)
+  E1 = self._convert(af.tile(self.E1, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
+  E2 = self._convert(af.tile(self.E2, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
+  E3 = self._convert(af.tile(self.E3, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
+  
+  B1 = self._convert(af.tile(self.B1, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
+  B2 = self._convert(af.tile(self.B2, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
+  B3 = self._convert(af.tile(self.B3, 1, 1, self.N_p1 * self.N_p2 * self.N_p3))
 
   params = self.physical_system.params
 
@@ -84,7 +85,7 @@ def f_interp_vel_3d(self, dt):
                       af.INTERP.BICUBIC_SPLINE
                     )
 
-  self.f = af.approx1(af.reorder(self.f, 3, 2, 1, 0),\
+  self.f = af.approx1(af.reorder(self.f, 2, 3, 0, 1),\
                       af.reorder(p1_interpolant),\
                       af.INTERP.CUBIC_SPLINE
                      )

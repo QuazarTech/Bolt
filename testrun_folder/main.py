@@ -2,8 +2,11 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 
+af.info()
+
 from lib.physical_system import physical_system
 from lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from lib.linear_solver.linear_solver import linear_solver
 
 import domain
 import boundary_conditions
@@ -56,21 +59,26 @@ system = physical_system(domain,\
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
+ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
 t_final = 0.5
 
-time_array   = np.arange(0, t_final + dt, dt)
-density_data = np.zeros_like(time_array)
-
-pl.plot(nls.compute_moments('density'))
-pl.show()
+time_array       = np.arange(0, t_final + dt, dt)
+density_data_ls  = np.zeros_like(time_array)
+density_data_nls = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
   print('Computing For Time =', t0)
-  nls.time_step(dt)
-  density_data[time_index] = af.max(nls.compute_moments('density'))
+  nls.strang_timestep(dt)
+  ls.RK6_step(dt)
+  density_data_nls[time_index] = af.max(nls.compute_moments('density'))
+  density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
 
-pl.plot(time_array, density_data)
+pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, density_data_nls, label = 'Nonlinear Solver')
+pl.ylabel(r'$\rho$')
+pl.xlabel('Time')
+pl.legend()
 pl.savefig('plot.png')
