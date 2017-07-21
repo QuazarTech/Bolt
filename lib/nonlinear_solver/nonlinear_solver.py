@@ -93,7 +93,7 @@ class nonlinear_solver(object):
     ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
 
     # Checking if in positionsExpanded form:
-    if(array.shape[0] == self.N_q1 + 2 * self.N_ghost):
+    if(array.shape[0] == N_q1_local + 2 * self.N_ghost):
 
       array  = af.moddims(array,
                           (N_q1_local + 2 * self.N_ghost)*\
@@ -212,7 +212,6 @@ class nonlinear_solver(object):
   # Injection of solver functions into class as methods:
   _communicate_distribution_function = communicate_distribution_function
   _communicate_fields = communicate_fields
-
 
   strang_timestep = strang_step
   lie_timestep    = lie_step

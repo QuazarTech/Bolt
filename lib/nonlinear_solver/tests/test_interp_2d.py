@@ -21,8 +21,8 @@ class test(object):
 
     self.N_ghost = N_ghost
 
-    self.A_q1 = 1
-    self.A_q2 = 1
+    self._A_q1 = 1
+    self._A_q2 = 1
 
     self.q1_start  = self.q2_start = 0
     self.q1_center = af.to_array((-N_ghost + np.arange(N_q1 + 2 * N_ghost) + 0.5) * (1/N_q1))
@@ -34,13 +34,13 @@ class test(object):
 def test_f_interp_2d():
   N = 2**np.arange(5, 10)
   error = np.zeros(N.size)
+
   for i in range(N.size):
     test_obj = test(int(N[i]), int(N[i]), 3)
     f_interp_2d(test_obj, 0.00001)
     f_analytic = af.sin(2*np.pi*(test_obj.q1_center - 0.00001) + 4*np.pi*(test_obj.q2_center - 0.00001))
-    error[i] = af.sum(af.abs(test_obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))
-  print(error)
-  poly = np.polyfit(np.log10(N), np.log10(error), 1)
-  print(poly)
+    error[i] = af.sum(af.abs(test_obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))/f_analytic[3:-3, 3:-3].elements()
 
-test_f_interp_2d()
+  poly = np.polyfit(np.log10(N), np.log10(error), 1)
+
+  assert(abs(poly[0] + 2)<0.2)
