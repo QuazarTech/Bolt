@@ -3,21 +3,21 @@ import arrayfire as af
 
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
-# Ensure that the initial conditions specified satisfy 
+# Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
 fields_initialize = 'electrostatic'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver     = 'electrostatic'
+fields_solver = 'electrostatic'
 
 # Can be defined as 'strang' and 'lie'
-time_splitting    = 'strang'
+time_splitting = 'strang'
 
 # Can be defined as 'RK2', 'RK4' and 'RK6'
-time_stepper      = 'RK6'
+time_stepper = 'RK6'
 
 # Dimensionality considered in velocity space:
-p_dim = 1  
+p_dim = 1
 
 # Constants:
 mass_particle      = 1
