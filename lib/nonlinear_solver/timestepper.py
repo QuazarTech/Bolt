@@ -33,19 +33,19 @@ def strang_step(self, dt):
   self._communicate_distribution_function()
 
   af.eval(self.f)
-  return(self.f)
+  return
 
 def lie_step(self, dt):
   # Advection in position space:
   f_interp_2d(self, dt)
 
   # Solving the source/sink terms:
-  # RK2(self, dt)
-  # self._communicate_distribution_function()
+  RK2_step(self, 0.5*dt)
+  self._communicate_distribution_function()
 
   # Advection in velocity space:
-  # fields_step(self, dt)
-  # self._communicate_distribution_function()
+  fields_step(self, dt)
+  self._communicate_distribution_function()
 
   af.eval(self.f)
-  return(self.f)
+  return

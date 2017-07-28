@@ -6,9 +6,14 @@ import arrayfire as af
 import numpy as np
 from scipy.fftpack import fftfreq
 
-# This user class is an application context for the problem at hand; 
-# It contains some parametes and frames the matrix system depending on the system state
 class Poisson2D(object):
+  """
+  This user class is an application context for the problem at hand; 
+  It contains some parametes and frames the matrix system depending on 
+  the system state. The Poisson2D object is used by the 
+  compute_electrostatic_fields function in computing the electrostatic fields
+  using the PETSc's KSP solver methods
+  """
 
   def __init__(self, obj):
     assert obj._da.getDim() == 2
@@ -42,7 +47,7 @@ class Poisson2D(object):
  
         y[j, i] = u_q1q1 + u_q2q2
 
-def solve_electrostatic_fields(self):
+def compute_electrostatic_fields(self):
   # Obtaining the left-bottom corner coordinates
   # (lowest values of the canonical coordinates in the local zone)
   # Additionally, we also obtain the size of the local zone
@@ -52,7 +57,7 @@ def solve_electrostatic_fields(self):
   phi = self._da_fields.createGlobalVec()
   rho = self._da_fields.createGlobalVec()
 
-  phi_local = self._da.createLocalVec()
+  phi_local = self._da_fields.createLocalVec()
 
   A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm = self._da_fields.comm)
   A.setPythonContext(pde)
@@ -91,11 +96,12 @@ def solve_electrostatic_fields(self):
 
 def fft_poisson(self):
 
-  if(self._da.getSize()!=1):
+  if(self._comm.size != 1):
     raise Exception('FFT solver can only be used when run in serial')
 
   else:
-    rho  = self.compute_moments('density')
+    N_g  = self.N_ghost
+    rho  = self.compute_moments('density')[N_g:-N_g, N_g:-N_g]
     k_q1 = af.to_array(fftfreq(rho.shape[0], self.dq1))
     k_q2 = af.to_array(fftfreq(rho.shape[1], self.dq2))
 
@@ -110,8 +116,10 @@ def fft_poisson(self):
     E1_hat = -1j * 2 * np.pi * (k_q1) * potential_hat
     E2_hat = -1j * 2 * np.pi * (k_q2) * potential_hat
 
-    self.E1 = af.real(af.ifft2(E1_hat))
-    self.E2 = af.real(af.ifft2(E2_hat))
+    self.E1[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E1_hat))
+    self.E2[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E2_hat))
 
+    # Applying Periodic B.C's:
+    self._communicate_fields()
     af.eval(self.E1, self.E2)
     return

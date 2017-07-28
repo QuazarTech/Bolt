@@ -34,7 +34,7 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
   p3_bulk = af.tile(moments('mom_p3_bulk'), 1, 1, q1.shape[2])/n
 
   C_f = -(f - \
-          f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)/params.normalization_constant
+          f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
          )/params.tau(q1, q2, p1, p2, p3)
 
   return(C_f)

@@ -155,14 +155,8 @@ class linear_solver(object):
                                self.p1, self.p2, self.p3, params
                               )
     
-    self.f_hat  = af.fft2(f)
-
-    # Scaling and Normalizing such that \int f_background d^3p = 1
-    self.f_background           = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
-    self.normalization_constant = af.sum(self.f_background) * self.dp1 * self.dp2 * self.dp3
-    
-    self.f_background = self.f_background/self.normalization_constant
-    self.f_hat        = self.f_hat/self.normalization_constant
+    self.f_hat        = af.fft2(f)
+    self.f_background = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
     
     self._calculate_dfdp_background()
     
@@ -198,9 +192,6 @@ class linear_solver(object):
     self.Y[:, :, :, 4] = self.B1_hat
     self.Y[:, :, :, 5] = self.B2_hat
     self.Y[:, :, :, 6] = self.B3_hat
-
-    # Appending the normalization constant to params for access in other functions:
-    self.physical_system.params.normalization_constant = self.normalization_constant
 
     return
 

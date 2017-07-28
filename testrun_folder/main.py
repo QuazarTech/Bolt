@@ -72,7 +72,7 @@ density_data_nls = np.zeros_like(time_array)
 for time_index, t0 in enumerate(time_array):
   print('Computing For Time =', t0)
   nls.strang_timestep(dt)
-  ls.RK6_step(dt)
+  ls.RK2_step(dt)
   density_data_nls[time_index] = af.max(nls.compute_moments('density'))
   density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
 

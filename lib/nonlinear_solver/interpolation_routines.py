@@ -74,6 +74,8 @@ def f_interp_vel_3d(self, dt):
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1
 
+  self.f = self._convert(self.f)
+
   self.f = af.approx1(af.reorder(self.f),\
                       af.reorder(p1_interpolant),\
                       af.INTERP.CUBIC_SPLINE
@@ -85,12 +87,13 @@ def f_interp_vel_3d(self, dt):
                       af.INTERP.BICUBIC_SPLINE
                     )
 
-  self.f = af.approx1(af.reorder(self.f, 2, 3, 0, 1),\
+  self.f = af.approx1(af.reorder(self.f, 3, 2, 1, 0),\
                       af.reorder(p1_interpolant),\
                       af.INTERP.CUBIC_SPLINE
                      )
 
   self.f = af.reorder(self.f)
+  self.f = self._convert(self.f)
 
   af.eval(self.f)
   return

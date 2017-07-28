@@ -5,6 +5,13 @@ import arrayfire as af
 import numpy as np
 
 def communicate_distribution_function(self):
+  """
+  Used in communicating the values at the boundary zones
+  for each of the local vectors among all procs.
+  This routine is called to take care of communication
+  (and periodic B.C's) procedures for the distribution
+  function array.
+  """
 
   # Accessing the values of the global and local Vectors
   local_value = self._da.getVecArray(self._local)
@@ -29,6 +36,13 @@ def communicate_distribution_function(self):
   return
 
 def communicate_fields(self):
+  """
+  Used in communicating the values at the boundary zones
+  for each of the local vectors among all procs.
+  This routine is called to take care of communication
+  (and periodic B.C's) procedures for the EM field
+  arrays.
+  """
 
   # Accessing the values of the global and local Vectors
   local_value = self._da_fields.getVecArray(self._local_fields)
@@ -53,8 +67,8 @@ def communicate_fields(self):
                                   ]
 
   # Takes care of boundary conditions and interzonal communications:
-  self._da.globalToLocal(self._glob_fields, self._local_fields)
-
+  self._da_fields.globalToLocal(self._glob_fields, self._local_fields)
+  
   # Converting back to af.Array
   self.E1 = af.to_array((local_value[:])[:, :, 0])
   self.E2 = af.to_array((local_value[:])[:, :, 1])

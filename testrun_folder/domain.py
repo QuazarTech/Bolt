@@ -10,12 +10,12 @@ p1_start = -10
 p1_end   = 10
 N_p1     = 32
 
-p2_start = -10
-p2_end   = 10
+p2_start = -0.5
+p2_end   = 0.5
 N_p2     = 1
 
-p3_start = -10
-p3_end   = 10
+p3_start = -0.5
+p3_end   = 0.5
 N_p3     = 1
 
 N_ghost = 3
