@@ -16,14 +16,13 @@ class Poisson2D(object):
   """
 
   def __init__(self, obj):
-    assert obj._da_ksp.getDim() == 2
     self.da     = obj._da_ksp
     self.obj    = obj
     self.localX = self.da.createLocalVec()
 
   def formRHS(self, rho, rho_array):
     rho_val    = self.da.getVecArray(rho)
-    rho_val[:] = rho_array * self.obj.dq1 * self.obj.dq2
+    rho_val[:] = rho_array
 
   def mult(self, mat, X, Y):
         
@@ -31,21 +30,22 @@ class Poisson2D(object):
     
     x = self.da.getVecArray(self.localX)
     y = self.da.getVecArray(Y)
+   
+    (q1_start, q1_end), (q2_start, q2_end) = self.da.getRanges()
 
-    (i_q1_start, i_q1_end), (i_q2_start, i_q2_end) = self.da.getRanges()
+    for j in range(q1_start, q1_end):
+        for i in range(q2_start, q2_end):
+            u   = x[j, i]   # center
 
-    for i in range(i_q1_start, i_q1_end):
-      for j in range(i_q2_start, i_q2_end):
-        u      = x[i, j]  
-        u_q1_r = x[i+1, j] 
-        u_q1_l = x[i-1, j] 
-        u_q2_t = x[i, j+1] 
-        u_q2_b = x[i, j-1] 
-        
-        u_q1q1 = (-u_q1_r + 2*u - u_q1_l)*self.dq2/self.dq1
-        u_q2q2 = (-u_q2_t + 2*u - u_q2_b)*self.dq1/self.dq2
- 
-        y[j, i] = u_q1q1 + u_q2q2
+            u_w  = x[j, i-1] # west
+            u_e  = x[j, i+1] # east
+            u_s  = x[j-1, i] # south
+            u_n  = x[j+1, i] # north
+            
+            u_xx = (-u_e + 2*u - u_w)/self.obj.dq2**2
+            u_yy = (-u_n + 2*u - u_s)/self.obj.dq1**2
+     
+            y[j, i] = u_xx + u_yy
 
 def compute_electrostatic_fields(self):
   # Obtaining the left-bottom corner coordinates
@@ -89,12 +89,14 @@ def compute_electrostatic_fields(self):
                                               )
                                   )
 
-  self.E1 = -(af.shift(electric_potential, -1)    - electric_potential)/self.dq1 #(i+1/2, j)
-  self.E2 = -(af.shift(electric_potential, 0, -1) - electric_potential)/self.dq2 #(i, j+1/2)
-
   # Obtaining the values at (i+0.5, j+0.5):
-  self.E1 = 0.5 * (self.E1 + af.shift(self.E1, -1))
-  self.E2 = 0.5 * (self.E2 + af.shift(self.E2, 0, -1))
+  self.E1 = -(af.shift(electric_potential, -1) - \
+              af.shift(electric_potential,  1)
+             )/(2*self.dq1)
+
+  self.E2 = -(af.shift(electric_potential, 0, -1) - \
+              af.shift(electric_potential, 0, 1) 
+             )/(2*self.dq2)
 
   af.eval(self.E1, self.E2)
   return
