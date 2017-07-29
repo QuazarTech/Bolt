@@ -36,6 +36,7 @@ class test(object):
     self.E1 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
     self.E2 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
     self.E3 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
+    
     self.B1 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
     self.B2 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
     self.B3 = af.constant(0, self.q1.shape[0], self.q1.shape[1], dtype = af.Dtype.f64)
@@ -53,7 +54,7 @@ class test(object):
     self._local_fields = self._da_fields.createLocalVec() 
   
   def compute_moments(self, *args):
-    return(af.sin(2*np.pi*self.q1 + 2*np.pi*self.q2))
+    return(af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
 
   _communicate_fields = communicate_fields
 
@@ -61,15 +62,10 @@ def test_fft_poisson():
   obj = test()
   fft_poisson(obj)
 
-  E1_expected = (0.25/np.pi) * af.sin(2*np.pi*obj.q1 + 2*np.pi*obj.q2) 
-  E2_expected = (0.25/np.pi) * af.sin(2*np.pi*obj.q1 + 2*np.pi*obj.q2) 
+  E1_expected = -(0.1/np.pi) * af.cos(2*np.pi*obj.q1 + 4*np.pi*obj.q2) 
+  E2_expected = -(0.2/np.pi) * af.cos(2*np.pi*obj.q1 + 4*np.pi*obj.q2) 
   
-  import pylab as pl 
-  pl.contourf(np.array(obj.E1))
-  pl.colorbar()
-  pl.show()
-  pl.contourf(np.array(E1_expected))
-  pl.colorbar()
-  pl.show()
+  error_E1 = af.sum(af.abs(obj.E1 - E1_expected))/(obj.E1.elements())
+  error_E2 = af.sum(af.abs(obj.E2 - E2_expected))/(obj.E1.elements())
 
-test_fft_poisson()
+  assert(error_E1<1e-14 and error_E2<1e-14)

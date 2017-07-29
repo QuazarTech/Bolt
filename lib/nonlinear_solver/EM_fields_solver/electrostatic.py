@@ -102,15 +102,18 @@ def fft_poisson(self):
   else:
     N_g  = self.N_ghost
     rho  = self.compute_moments('density')[N_g:-N_g, N_g:-N_g]
-    k_q1 = af.to_array(fftfreq(rho.shape[0], self.dq1))
-    k_q2 = af.to_array(fftfreq(rho.shape[1], self.dq2))
 
-    k_q1 = af.tile(k_q1, 1, rho.shape[1])
-    k_q2 = af.tile(af.reorder(k_q2), rho.shape[0], 1)
+    k_q1 = fftfreq(rho.shape[0], self.dq1)
+    k_q2 = fftfreq(rho.shape[1], self.dq2)
 
-    rho_hat       = af.fft2(rho)
+    k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
+
+    k_q1 = af.to_array(k_q1)
+    k_q2 = af.to_array(k_q2)
+
+    rho_hat = af.fft2(rho)
     
-    potential_hat       = (1/(4 * np.pi**2 * (k_q1**2 + k_q2**2))) * rho_hat
+    potential_hat       = rho_hat/(4 * np.pi**2 * (k_q1**2 + k_q2**2))
     potential_hat[0, 0] = 0
     
     E1_hat = -1j * 2 * np.pi * (k_q1) * potential_hat
