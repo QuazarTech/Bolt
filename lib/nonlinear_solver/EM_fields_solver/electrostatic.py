@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from petsc4py import PETSc
@@ -16,8 +16,8 @@ class Poisson2D(object):
   """
 
   def __init__(self, obj):
-    assert obj._da.getDim() == 2
-    self.da     = obj._da_fields
+    assert obj._da_ksp.getDim() == 2
+    self.da     = obj._da_ksp
     self.obj    = obj
     self.localX = self.da.createLocalVec()
 
@@ -31,19 +31,19 @@ class Poisson2D(object):
     
     x = self.da.getVecArray(self.localX)
     y = self.da.getVecArray(Y)
-    
+
     (i_q1_start, i_q1_end), (i_q2_start, i_q2_end) = self.da.getRanges()
-    
-    for j in range(i_q1_start, i_q1_end):
-      for i in range(i_q2_start, i_q2_end):
-        u   = x[j, i]   # center
-        u_w = x[j, i-1] # west
-        u_e = x[j, i+1] # east
-        u_s = x[j-1, i] # south
-        u_n = x[j+1, i] # north
+
+    for i in range(i_q1_start, i_q1_end):
+      for j in range(i_q2_start, i_q2_end):
+        u      = x[i, j]  
+        u_q1_r = x[i+1, j] 
+        u_q1_l = x[i-1, j] 
+        u_q2_t = x[i, j+1] 
+        u_q2_b = x[i, j-1] 
         
-        u_q1q1 = (-u_e + 2*u - u_w)*self.dq1/self.dq2
-        u_q2q2 = (-u_n + 2*u - u_s)*self.dq1/self.dq2
+        u_q1q1 = (-u_q1_r + 2*u - u_q1_l)*self.dq2/self.dq1
+        u_q2q2 = (-u_q2_t + 2*u - u_q2_b)*self.dq1/self.dq2
  
         y[j, i] = u_q1q1 + u_q2q2
 
@@ -51,15 +51,15 @@ def compute_electrostatic_fields(self):
   # Obtaining the left-bottom corner coordinates
   # (lowest values of the canonical coordinates in the local zone)
   # Additionally, we also obtain the size of the local zone
-  ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da.getCorners()
+  ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da_ksp.getCorners()
 
   pde = Poisson2D(self)
-  phi = self._da_fields.createGlobalVec()
-  rho = self._da_fields.createGlobalVec()
+  phi = self._da_ksp.createGlobalVec()
+  rho = self._da_ksp.createGlobalVec()
 
-  phi_local = self._da_fields.createLocalVec()
+  phi_local = self._da_ksp.createLocalVec()
 
-  A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm = self._da_fields.comm)
+  A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()], comm = self._da_ksp.comm)
   A.setPythonContext(pde)
   A.setUp()
 
@@ -70,11 +70,16 @@ def compute_electrostatic_fields(self):
 
   pc = ksp.getPC()
   pc.setType('none')
-
-  pde.formRHS(rho, np.array(self.compute_moments('density')))
+  
+  N_g = self.N_ghost
+  ksp.setTolerances(atol = 1e-5)
+  pde.formRHS(rho, np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g]))
   ksp.solve(rho, phi)
 
-  self._da_fields.globalToLocal(phi, phi_local)
+  if(ksp.converged != True):
+    raise Exception('KSP solver diverging!')
+
+  self._da_ksp.globalToLocal(phi, phi_local)
 
   # Since rho was defined at (i + 0.5, j + 0.5) 
   # Electric Potential returned will also be at (i + 0.5, j + 0.5)

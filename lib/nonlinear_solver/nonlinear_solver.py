@@ -77,6 +77,17 @@ class nonlinear_solver(object):
                                            comm          = self._comm
                                           )
 
+    # Additionally, a DA object also needs to be created for the KSP solver with a DOF of 1:
+    self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],\
+                                        stencil_width = self.N_ghost,\
+                                        boundary_type = (self.bc_in_q1, self.bc_in_q2),\
+                                        proc_sizes    = (PETSc.DECIDE, PETSc.DECIDE), \
+                                        stencil_type  = 1, \
+                                        comm          = self._comm
+                                      )
+
+
+
     # Creation of the local and global vectors from the DA:
     # This is for the distribution function
     self._glob  = self._da.createGlobalVec()

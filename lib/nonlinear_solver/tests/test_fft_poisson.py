@@ -16,19 +16,16 @@ class test(object):
     self.q1_end = 1
     self.q2_end = 1
 
-    self.N_q1 = 32
-    self.N_q2 = 32
+    self.N_q1 = np.random.randint(24, 48)
+    self.N_q2 = np.random.randint(24, 58)
 
     self.dq1 = (self.q1_end - self.q1_start)/self.N_q1
     self.dq2 = (self.q2_end - self.q2_start)/self.N_q2
 
-    self.N_ghost = 3 #np.random.randint(3, 5)
+    self.N_ghost = np.random.randint(3, 5)
 
     self.q1 = self.q1_start + (0.5 + np.arange(-self.N_ghost, self.N_q1 + self.N_ghost)) * self.dq1
     self.q2 = self.q2_start + (0.5 + np.arange(-self.N_ghost, self.N_q2 + self.N_ghost)) * self.dq2
-
-    print(self.q1)
-    print(self.q2)
 
     self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
     self.q2, self.q1 = af.to_array(self.q2), af.to_array(self.q1)
