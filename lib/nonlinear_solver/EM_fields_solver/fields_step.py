@@ -3,11 +3,11 @@
 
 import numpy as np
 import arrayfire as af
+
 from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson, compute_electrostatic_fields
 from lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd, fdtd_grid_to_ck_grid
 from lib.nonlinear_solver.interpolation_routines import f_interp_vel_3d
 
-import pylab as pl 
 def fields_step(self, dt):
 
   # Obtaining the left-bottom corner coordinates
@@ -17,15 +17,6 @@ def fields_step(self, dt):
 
   if(self.physical_system.params.fields_solver == 'electrostatic'):
     fft_poisson(self)
-
-    pl.contourf(np.array(self.E1 + af.cos(2*np.pi*self.q1_center[:, :, 0])/(2*np.pi)))
-    pl.colorbar()
-    pl.show()
-
-    pl.contourf(np.array(self.E2))
-    pl.colorbar()
-    pl.show()
-    
     self._communicate_fields()
     
   else:
@@ -53,18 +44,6 @@ def fields_step(self, dt):
                                                   B1_old, B2_old, B3_old
                                                  )
     fdtd(self, 0.5*dt)
-
-  # E1 = af.tile(af.flat(self.E1), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-  # E2 = af.tile(af.flat(self.E2), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-  # E3 = af.tile(af.flat(self.E3), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-
-  # B1 = af.tile(af.flat(self.B1), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-  # B2 = af.tile(af.flat(self.B2), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-  # B3 = af.tile(af.flat(self.B3), 1, self.N_p1, self.N_p2, self.N_p3) #(i + 1/2, j + 1/2)
-
-  # F1 = charge_electron * (E1 + self.p2 * B3 - self.p3 * B2) #(i + 1/2, j + 1/2)
-  # F2 = charge_electron * (E2 - self.p1 * B3 + self.p3 * B1) #(i + 1/2, j + 1/2)
-  # F3 = charge_electron * (E3 - self.p2 * B1 + self.p1 * B2) #(i + 1/2, j + 1/2)
 
   f_interp_vel_3d(self, dt)
 

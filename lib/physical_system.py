@@ -66,10 +66,10 @@ class physical_system(object):
       raise TypeError('Expected source_or_sink to be of type function')
 
     # Checking for the types of the methods in advection_term:
-    attributes = [a for a in dir(advection_term) if not a.startswith('_')]
-    for i in range(len(attributes)):
-      if(isinstance(getattr(advection_term, attributes[i]), types.FunctionType)==False):
-        raise TypeError('Expected attributes of advection_term to be of type function')
+    # attributes = [a for a in dir(advection_term) if not a.startswith('_')]
+    # for i in range(len(attributes)):
+    #   if(isinstance(getattr(advection_term, attributes[i]), types.FunctionType)==False):
+    #     raise TypeError('Expected attributes of advection_term to be of type function')
 
     # Checking for the data-type in moment_defs:
     if(type(moment_defs.moment_exponents)!=dict or type(moment_defs.moment_coeffs)!=dict):
