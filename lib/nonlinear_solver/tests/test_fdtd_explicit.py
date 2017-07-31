@@ -97,14 +97,68 @@ def test_fdtd_mode1():
                                 E3_initial[N_g:-N_g, N_g:-N_g]))/\
                                 (E3_initial.elements())
 
-  print(error_B1, error_B2, error_E3)
 
   poly_B1 = np.polyfit(np.log10(N), np.log10(error_B1), 1)
   poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
   poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
 
-  print(poly_B1)
-  print(poly_B2)
-  print(poly_E3)
+  assert(abs(poly_B1[0]+3)<0.4 and\
+         abs(poly_B2[0]+3)<0.4 and\
+         abs(poly_E3[0]+2)<0.4
+        )
+
+def test_fdtd_mode2():
+
+  error_E1 = np.zeros(3)
+  error_E2 = np.zeros(3)
+  error_B3 = np.zeros(3)
   
-test_fdtd_mode1()
+  N = 2**np.arange(5, 8)
+  
+  for i in range(N.size):   
+
+    obj = test(N[i])
+    N_g = obj.N_ghost
+
+    obj.E1[N_g:-N_g, N_g:-N_g] =\
+    gauss1D(obj.q2[N_g:-N_g, N_g:-N_g], 0.1)
+
+    obj.E2[N_g:-N_g, N_g:-N_g] =\
+    gauss1D(obj.q1[N_g:-N_g, N_g:-N_g], 0.1)
+
+    dt   = obj.dq1/2
+    time = np.arange(dt, 1 + dt, dt)
+
+    B3_initial = obj.B3.copy()
+    E1_initial = obj.E1.copy()
+    E2_initial = obj.E2.copy()
+
+    obj.J1, obj.J2, obj.J3 = 0, 0, 0
+
+    for time_index, t0 in enumerate(time):
+      fdtd(obj, dt)
+
+    error_E1[i] = af.sum(af.abs(obj.E1[N_g:-N_g, N_g:-N_g] -\
+                                E1_initial[N_g:-N_g, N_g:-N_g]))/\
+                                (E1_initial.elements())
+
+    error_E2[i] = af.sum(af.abs(obj.E2[N_g:-N_g, N_g:-N_g] -\
+                                E2_initial[N_g:-N_g, N_g:-N_g]))/\
+                                (E2_initial.elements())
+
+    error_B3[i] = af.sum(af.abs(obj.B3[N_g:-N_g, N_g:-N_g] -\
+                                B3_initial[N_g:-N_g, N_g:-N_g]))/\
+                                (B3_initial.elements())
+
+  poly_E1 = np.polyfit(np.log10(N), np.log10(error_E1), 1)
+  poly_E2 = np.polyfit(np.log10(N), np.log10(error_E2), 1)
+  poly_B3 = np.polyfit(np.log10(N), np.log10(error_B3), 1)
+
+  print(poly_E1)
+  print(poly_E2)
+  print(poly_B3)
+
+  assert(abs(poly_E1[0]+3)<0.4 and\
+         abs(poly_E2[0]+3)<0.4 and\
+         abs(poly_B3[0]+2)<0.4
+        )
