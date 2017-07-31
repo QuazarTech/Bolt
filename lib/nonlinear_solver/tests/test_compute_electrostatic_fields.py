@@ -4,7 +4,6 @@
 import numpy as np
 import arrayfire as af
 from petsc4py import PETSc
-import pylab as pl
 
 from lib.nonlinear_solver.EM_fields_solver.electrostatic import compute_electrostatic_fields
 
@@ -79,5 +78,3 @@ def test_compute_electrostatic_fields():
   poly_E2  = np.polyfit(np.log10(N), np.log10(error_E2), 1)
 
   assert(abs(poly_E1[0]+2)<0.2 and abs(poly_E2[0]+2)<0.2)
-
-test_compute_electrostatic_fields()

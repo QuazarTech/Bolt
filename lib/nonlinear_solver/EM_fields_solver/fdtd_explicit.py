@@ -7,6 +7,19 @@ def fdtd(self, dt):
   # E's and B's are staggered in time such that
   # B's are defined at (n + 1/2), and E's are defined at n 
 
+  # Positions of grid point where field quantities are defined:
+  # B1 --> (i, j + 1/2)
+  # B2 --> (i + 1/2, j)
+  # B3 --> (i + 1/2, j + 1/2)
+  
+  # E1 --> (i + 1/2, j)
+  # E2 --> (i, j + 1/2)
+  # E3 --> (i, j)
+  
+  # J1 --> (i + 1/2, j)
+  # J2 --> (i, j + 1/2)
+  # J3 --> (i, j)
+
   # The communicate function transfers the data from the local vectors to the global
   # vectors, in addition to dealing with the boundary conditions:
   self._communicate_fields()

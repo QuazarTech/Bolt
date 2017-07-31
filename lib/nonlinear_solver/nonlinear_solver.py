@@ -224,6 +224,15 @@ class nonlinear_solver(object):
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(p1_center, p2_center, p3_center)
 
+  # Injection of solver functions into class as methods:
+  _communicate_distribution_function = communicate_distribution_function
+  _communicate_fields                = communicate_fields
+
+  strang_timestep = strang_step
+  lie_timestep    = lie_step
+
+  compute_moments = compute_moments_imported
+
   def _initialize(self, params):
     """
     Used to initialize the distribution function, and the
@@ -255,12 +264,3 @@ class nonlinear_solver(object):
                                   initialize_B(self.q1_center, self.q2_center,\
                                                params
                                               )
-
-  # Injection of solver functions into class as methods:
-  _communicate_distribution_function = communicate_distribution_function
-  _communicate_fields                = communicate_fields
-
-  strang_timestep = strang_step
-  lie_timestep    = lie_step
-
-  compute_moments = compute_moments_imported

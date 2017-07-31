@@ -37,8 +37,8 @@ class Poisson2D(object):
         for i in range(q2_start, q2_end):
             u   = x[j, i]   # center
 
-            u_w  = x[j, i-1] # west
-            u_e  = x[j, i+1] # east
+            u_w = x[j, i-1] # west
+            u_e = x[j, i+1] # east
             u_s  = x[j-1, i] # south
             u_n  = x[j+1, i] # north
             
@@ -72,8 +72,8 @@ def compute_electrostatic_fields(self):
   pc.setType('none')
   
   N_g = self.N_ghost
-  ksp.setTolerances(atol = 1e-5)
-  pde.formRHS(rho, np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g]))
+  ksp.setTolerances(atol = 1e-3)
+  pde.formRHS(rho, np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g] - 1))
   ksp.solve(rho, phi)
 
   if(ksp.converged != True):

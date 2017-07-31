@@ -1,11 +1,13 @@
 #!/usr/bin/env python 
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import arrayfire as af
 from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson, compute_electrostatic_fields
 from lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd, fdtd_grid_to_ck_grid
 from lib.nonlinear_solver.interpolation_routines import f_interp_vel_3d
 
+import pylab as pl 
 def fields_step(self, dt):
 
   # Obtaining the left-bottom corner coordinates
@@ -14,7 +16,16 @@ def fields_step(self, dt):
   ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
 
   if(self.physical_system.params.fields_solver == 'electrostatic'):
-    compute_electrostatic_fields(self)
+    fft_poisson(self)
+
+    pl.contourf(np.array(self.E1 + af.cos(2*np.pi*self.q1_center[:, :, 0])/(2*np.pi)))
+    pl.colorbar()
+    pl.show()
+
+    pl.contourf(np.array(self.E2))
+    pl.colorbar()
+    pl.show()
+    
     self._communicate_fields()
     
   else:
