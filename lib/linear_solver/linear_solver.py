@@ -1,14 +1,16 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
 # In this code, we shall default to using the positionsExpanded form thoroughout.
 # This means that the arrays defined in the system will be of the form:
 # (N_q1, N_q2, N_p1*N_p2*N_p3)
 
+# Importing dependencies:
 import numpy as np
 import arrayfire as af
 from scipy.fftpack import fftfreq
 
+# Importing solver functions:
 from lib.linear_solver.dY_dt import dY_dt
 
 from lib.linear_solver.timestepper import RK2_step as RK2_step_imported
@@ -29,14 +31,21 @@ class linear_solver(object):
   electromagnetic fields
   """
   def __init__(self, physical_system):
+    """
+    Constructor for the linear_solver object. It takes the physical 
+    system object as an argument and uses it in intialization and 
+    evolution of the system in consideration.
+    """
     self.physical_system = physical_system
 
+    # Storing Domain Information:
     self.q1_start, self.q1_end = physical_system.q1_start, physical_system.q1_end
     self.q2_start, self.q2_end = physical_system.q2_start, physical_system.q2_end
     self.p1_start, self.p1_end = physical_system.p1_start, physical_system.p1_end
     self.p2_start, self.p2_end = physical_system.p2_start, physical_system.p2_end
     self.p3_start, self.p3_end = physical_system.p3_start, physical_system.p3_end
      
+    # Getting Domain Resolution
     self.N_q1, self.dq1 = physical_system.N_q1, physical_system.dq1 
     self.N_q2, self.dq2 = physical_system.N_q2, physical_system.dq2 
     self.N_p1, self.dp1 = physical_system.N_p1, physical_system.dp1 
@@ -46,11 +55,6 @@ class linear_solver(object):
     # Getting number of ghost zones, and the boundary conditions that are utilized
     self.N_ghost                 = physical_system.N_ghost
     self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1, physical_system.bc_in_q2
-
-    # Assigning constants:
-    self.charge_electron = self.physical_system.params.charge_electron
-    self.mass_particle   = self.physical_system.params.mass_particle
-    self.p_dim           = self.physical_system.params.p_dim
 
     # Checking that periodic B.C's are utilized:
     if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):
@@ -92,6 +96,7 @@ class linear_solver(object):
     q1_center = af.tile(q1_center, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
     af.eval(q1_center, q2_center)
+    
     # returned in positionsExpanded form
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(q1_center, q2_center)
@@ -113,6 +118,7 @@ class linear_solver(object):
     k_q1 = af.tile(k_q1, 1, 1, self.N_p1*self.N_p2*self.N_p3)
 
     af.eval(k_q1, k_q2)
+    
     # returned in positionsExpanded form
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(k_q1, k_q2)
@@ -142,6 +148,8 @@ class linear_solver(object):
     # (N_q1, N_q2, N_p1*N_p2*N_p3)
     return(p1_center, p2_center, p3_center)
 
+  # Assigning function that is used in computiong the derivatives
+  # of the background distribution function:
   _calculate_dfdp_background = calculate_dfdp_background
 
   def _initialize(self, params):
@@ -156,8 +164,11 @@ class linear_solver(object):
                               )
     
     self.f_hat        = af.fft2(f)
+
+    # Since (k_q1, k_q2) = (0, 0) will give the background distribution:
     self.f_background = af.abs(self.f_hat[0, 0, :])/(self.N_q1 * self.N_q2)
     
+    # Calculating derivatives of the background distribution function:
     self._calculate_dfdp_background()
     
     # Scaling Appropriately:
@@ -167,6 +178,7 @@ class linear_solver(object):
     self.Y             = af.constant(0, self.p1.shape[0], self.p1.shape[1],\
                                      self.p1.shape[2], 7, dtype = af.Dtype.c64
                                     )
+    
     self.Y[:, :, :, 0] = self.f_hat
     
     # Initializing EM fields using Poisson Equation:
@@ -195,6 +207,7 @@ class linear_solver(object):
 
     return
 
+  # Injection of solver methods from other files:
   _dY_dt   = dY_dt
 
   RK2_step = RK2_step_imported

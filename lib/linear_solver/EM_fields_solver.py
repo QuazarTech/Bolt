@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
@@ -14,6 +14,7 @@ def compute_electrostatic_fields(self):
   
   phi_hat[0, 0, :] = 0
 
+  # All field quantities apart from E1 and E2 are taken as zero:
   self.E1_hat = -phi_hat * (1j * self.k_q1)
   self.E2_hat = -phi_hat * (1j * self.k_q2)
   self.E3_hat = af.constant(0, self.N_q1, self.N_q2, self.N_p1*self.N_p2*self.N_p3, dtype = af.Dtype.c64)
