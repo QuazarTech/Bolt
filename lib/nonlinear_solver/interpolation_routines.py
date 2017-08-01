@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
-import numpy as np
-import pylab as pl
 
 def f_interp_2d(self, dt):
   # Since the interpolation function are being performed in position space,
@@ -38,7 +36,7 @@ def f_interp_2d(self, dt):
   return
 
 
-def f_interp_vel_3d(self, dt):
+def f_interp_p_3d(self, dt):
   # Since the interpolation function are being performed in velocity space,
   # the arrays used in the computation need to be in velocitiesExpanded form.
   # Hence we will need to convert the same:
@@ -50,10 +48,6 @@ def f_interp_vel_3d(self, dt):
   q1 = self._convert(self.q1_center)
   q2 = self._convert(self.q2_center)
 
-  # pl.contourf(np.array(self.E1))
-  # pl.colorbar()
-  # pl.show()
-
   E1 = af.tile(af.flat(self.E1), 1, self.N_p1, self.N_p2, self.N_p3)
   E2 = af.tile(af.flat(self.E2), 1, self.N_p1, self.N_p2, self.N_p3)
   E3 = af.tile(af.flat(self.E3), 1, self.N_p1, self.N_p2, self.N_p3)
@@ -64,31 +58,18 @@ def f_interp_vel_3d(self, dt):
 
   params = self.physical_system.params
 
-  p1_new = p1.copy() - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[0]
-  # p2_new = p2 - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[1]
-  # p3_new = p3 - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[2]
+  p1_new = p1.copy() - 0.5 * dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[0]
+  p2_new = p2.copy() - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[1]
+  p3_new = p3.copy() - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3, B1, B2, B3, params)[2]
 
   # Transforming interpolant to go from [0, N_p - 1]:
   p1_lower_boundary = self.p1_start + 0.5 * self.dp1
-  # p2_lower_boundary = self.p2_start + 0.5 * self.dp2
-  # p3_lower_boundary = self.p3_start + 0.5 * self.dp3
+  p2_lower_boundary = self.p2_start + 0.5 * self.dp2
+  p3_lower_boundary = self.p3_start + 0.5 * self.dp3
 
   p1_interpolant = (p1_new.copy() - p1_lower_boundary)/self.dp1
-
-  # print(p1[0, :, 0, 0])
-  # print(p1_new[0, :, 0, 0] / 2)
-  # print(p1_interpolant[0, :, 0, 0])
-
-  # print(af.sum(p1_interpolant==0)/p1_interpolant.elements())
-
-  # print(p1_lower_boundary)
-  # print(p1[0, 0, 0, 0])
-  # print(self.dp1)
-
-  # a = input('Wait!')
-  
-  # p2_interpolant = (p2_new - p2_lower_boundary)/self.dp2
-  # p3_interpolant = (p3_new - p3_lower_boundary)/self.dp3
+  p2_interpolant = (p2_new.copy() - p2_lower_boundary)/self.dp2
+  p3_interpolant = (p3_new.copy() - p3_lower_boundary)/self.dp3
 
   # We perform the 3d interpolation by performing individual 1d + 2d interpolations:
   # Reordering to bring the variation in values along axis 0 and axis 1
@@ -100,18 +81,19 @@ def f_interp_vel_3d(self, dt):
                       af.INTERP.CUBIC_SPLINE
                      )
 
-  # self.f = af.approx2(af.reorder(self.f, 2, 3, 1, 0),\
-  #                     af.reorder(p2_interpolant, 2, 3, 0, 1),\
-  #                     af.reorder(p3_interpolant, 2, 3, 0, 1),\
-  #                     af.INTERP.BICUBIC_SPLINE
-  #                   )
+  self.f = af.approx2(af.reorder(self.f, 2, 3, 1, 0),\
+                      af.reorder(p2_interpolant, 2, 3, 0, 1),\
+                      af.reorder(p3_interpolant, 2, 3, 0, 1),\
+                      af.INTERP.BICUBIC_SPLINE
+                    )
 
-  # self.f = af.approx1(af.reorder(self.f, 3, 2, 1, 0),\
-  #                     af.reorder(p1_interpolant),\
-  #                     af.INTERP.CUBIC_SPLINE
-  #                    )
+  self.f = af.approx1(af.reorder(self.f, 3, 2, 0, 1),\
+                      af.reorder(p1_interpolant),\
+                      af.INTERP.CUBIC_SPLINE
+                     )
 
   self.f = af.reorder(self.f)
+
   self.f = self._convert(self.f)
 
   af.eval(self.f)

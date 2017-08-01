@@ -29,6 +29,7 @@ class test(object):
     self.q2_center = af.to_array((-N_ghost + np.arange(N_q2 + 2 * N_ghost) + 0.5) * (1/N_q2))
     self.q1_center = af.tile(self.q1_center, 1, N_q2 + 2 * N_ghost)
     self.q2_center = af.tile(af.reorder(self.q2_center), N_q1 + 2 * N_ghost, 1)
+
     self.f         = af.sin(2*np.pi*self.q1_center + 4*np.pi*self.q2_center)
 
 def test_f_interp_2d():

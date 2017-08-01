@@ -6,7 +6,7 @@ import arrayfire as af
 
 from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson, compute_electrostatic_fields
 from lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd, fdtd_grid_to_ck_grid
-from lib.nonlinear_solver.interpolation_routines import f_interp_vel_3d
+from lib.nonlinear_solver.interpolation_routines import f_interp_p_3d
 
 def fields_step(self, dt):
 
@@ -45,6 +45,6 @@ def fields_step(self, dt):
                                                  )
     fdtd(self, 0.5*dt)
 
-  f_interp_vel_3d(self, dt)
+  f_interp_p_3d(self, dt)
 
   return
