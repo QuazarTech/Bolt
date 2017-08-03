@@ -1,12 +1,19 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
+# Importing dependencies:
 import numpy as np
 import arrayfire as af
 from scipy.fftpack import fftfreq 
 
+# Importing solver functions:
 from lib.linear_solver.EM_fields_solver import compute_electrostatic_fields
 
+# This test ensures that the fields solver works correctly.
+# The solution as yielded by the fields solver is checked against the 
+# analytical solution, and checked that the error is around
+# machine precision.
+ 
 class test(object):
   def __init__(self):
     self.charge_electron = -1

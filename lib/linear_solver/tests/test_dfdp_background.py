@@ -1,10 +1,15 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
+# Importing dependencies:
 import numpy as np
 import arrayfire as af
 
+# Importing solver functions:
 from lib.linear_solver.calculate_dfdp_background import calculate_dfdp_background
+
+# This test ensures that the function that returns the derivative of f w.r.t 
+# p1, p2, p3 is 4th order accurate.
 
 class test():
   def __init__(self, N):

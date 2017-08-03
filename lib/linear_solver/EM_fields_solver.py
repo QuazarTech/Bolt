@@ -10,7 +10,7 @@ def compute_electrostatic_fields(self):
   """
   rho_hat = 2 * af.fft2(self.compute_moments('density'))/(self.N_q1 * self.N_q2) # Scaling Appropriately
   rho_hat = af.tile(rho_hat, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-  phi_hat = self.charge_electron * rho_hat/(self.k_q1**2 + self.k_q2**2)
+  phi_hat = self.physical_system.params.charge_electron * rho_hat/(self.k_q1**2 + self.k_q2**2)
   
   phi_hat[0, 0, :] = 0
 

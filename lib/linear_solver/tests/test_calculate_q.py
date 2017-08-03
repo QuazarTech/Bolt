@@ -1,12 +1,19 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
+# Importing dependencies:
 import numpy as np
 import arrayfire as af
 
+# Importing solver functions:
 from lib.linear_solver.linear_solver import linear_solver as linear_solver
 
 calculate_q_center = linear_solver._calculate_q_center 
+
+# In this test, we ensure that the value returned by the function calculate_q_center() in
+# linear_solver is consistent with our expected results. Although both the values checked
+# against and the generated values are essentially the same formulation, the failure of this
+# test may indicate any accidental changes that may have been introduced.
 
 class test():
   def __init__(self):
