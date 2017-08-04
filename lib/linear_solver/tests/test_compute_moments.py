@@ -4,6 +4,7 @@
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
+import pylab as pl
 
 # Importing solver functions:
 from lib.linear_solver.compute_moments import compute_moments
@@ -76,7 +77,7 @@ class test(object):
     self.q2 = af.tile(af.to_array(self.q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
     rho  = (1 + 0.01 * af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
-    T    = 1 #(1 + 0.01 * af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
+    T    = (1 + 0.01 * af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
     
     p1_b = (1 + 0.01 * af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
     p2_b = (1 + 0.01 * af.sin(2*np.pi*self.q1 + 4*np.pi*self.q2))
@@ -97,10 +98,39 @@ def test_compute_moments():
                                                          )
                     )))/rho_calc.elements()
 
-  E_calc  = compute_moments(obj, 'energy')
-  error_E = af.sum(af.abs(E_calc - (1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
-                                                      4*np.pi*obj.q2[:, :, 0]
-                                                     )
-                  )))/rho_calc.elements()
+  E_calc = compute_moments(obj, 'energy')
 
-  print(error_rho, error_E)
+  error_E = af.sum(af.abs(E_calc - 3*(1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
+                                                        4*np.pi*obj.q2[:, :, 0]
+                                                       )
+                                     )**2 \
+
+                                 - 3*(1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
+                                                        4*np.pi*obj.q2[:, :, 0]
+                                                       )
+                                     )**3
+
+                         )
+                   )/rho_calc.elements()
+
+  mom_p1_calc = compute_moments(obj, 'mom_p1_bulk')
+  mom_p2_calc = compute_moments(obj, 'mom_p2_bulk')
+  mom_p3_calc = compute_moments(obj, 'mom_p3_bulk')
+
+  error_p1 = af.sum(af.abs(mom_p1_calc - (1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
+                                                            4*np.pi*obj.q2[:, :, 0]
+                                                           )
+                   ))**2)/rho_calc.elements()
+
+  error_p2 = af.sum(af.abs(mom_p2_calc - (1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
+                                                            4*np.pi*obj.q2[:, :, 0]
+                                                           )
+                   ))**2)/rho_calc.elements()
+  
+  error_p3 = af.sum(af.abs(mom_p3_calc - (1 + 0.01 * af.sin(2*np.pi*obj.q1[:, :, 0] + \
+                                                            4*np.pi*obj.q2[:, :, 0]
+                                                           )
+                   ))**2)/rho_calc.elements()
+
+  assert(error_rho<1e-13)
+  assert(error_E<1e-13)

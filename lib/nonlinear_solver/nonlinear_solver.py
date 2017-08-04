@@ -10,7 +10,7 @@ from lib.nonlinear_solver.communicate import communicate_distribution_function, 
 
 from lib.nonlinear_solver.timestepper import strang_step, lie_step
 from lib.nonlinear_solver.compute_moments import compute_moments as compute_moments_imported
-from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
+from lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson, compute_electrostatic_fields
 
 class nonlinear_solver(object):
   """
@@ -250,9 +250,20 @@ class nonlinear_solver(object):
     self.B1 = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
     self.B2 = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
     self.B3 = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+
+    self.E1_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+    self.E2_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+    self.E3_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
     
-    if(self.physical_system.params.fields_initialize == 'electrostatic'):
+    self.B1_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+    self.B2_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+    self.B3_fdtd = af.constant(0, self.f.shape[0], self.f.shape[1], dtype = af.Dtype.f64)
+    
+    if(self.physical_system.params.fields_initialize == 'fft'):
       fft_poisson(self)
+
+    elif(self.physical_system.params.fields_initialize == 'electrostatic'):
+      compute_electrostatic_fields(self)
 
     elif(self.physical_system.params.fields_initialize == 'user-defined'):
       self.E1, self.E2, self.E3 = self.physical_system.initial_conditions.\
@@ -264,3 +275,12 @@ class nonlinear_solver(object):
                                   initialize_B(self.q1_center, self.q2_center,\
                                                params
                                               )
+
+    else:
+      raise NotImplementedError('Method not valid/not implemented')
+
+    # Getting the values at the FDTD grid points:
+    self.E1_fdtd = 0.5 *  (self.E1 + af.shift(self.E1, 0, 1)) #(i + 1/2, j)
+    self.E2_fdtd = 0.5 *  (self.E2 + af.shift(self.E2, 1, 0)) #(i, j + 1/2)
+  
+    return

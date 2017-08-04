@@ -5,10 +5,10 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'electrostatic'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'electrostatic'
+fields_solver = 'fdtd'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'

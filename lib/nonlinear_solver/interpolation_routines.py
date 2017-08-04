@@ -35,7 +35,6 @@ def f_interp_2d(self, dt):
   af.eval(self.f)
   return
 
-
 def f_interp_p_3d(self, dt):
   # Since the interpolation function are being performed in velocity space,
   # the arrays used in the computation need to be in velocitiesExpanded form.

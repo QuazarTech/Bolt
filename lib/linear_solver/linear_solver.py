@@ -182,7 +182,9 @@ class linear_solver(object):
     self.Y[:, :, :, 0] = self.f_hat
     
     # Initializing EM fields using Poisson Equation:
-    if(self.physical_system.params.fields_initialize == 'electrostatic'):
+    if(self.physical_system.params.fields_initialize == 'electrostatic' or \
+       self.physical_system.params.fields_initialize == 'fft'
+      ):
       compute_electrostatic_fields(self)
 
     # If option is given as user-defined:
@@ -197,6 +199,9 @@ class linear_solver(object):
       self.B1_hat = 2 * af.fft2(B1)/(self.N_q1 * self.N_q2)
       self.B2_hat = 2 * af.fft2(B2)/(self.N_q1 * self.N_q2)
       self.B3_hat = 2 * af.fft2(B3)/(self.N_q1 * self.N_q2)
+
+    else:
+      raise NotImplementedError('Method invalid/not-implemented')
 
     self.Y[:, :, :, 1] = self.E1_hat
     self.Y[:, :, :, 2] = self.E2_hat

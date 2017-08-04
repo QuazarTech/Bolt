@@ -43,7 +43,9 @@ def dY_dt(self, Y):
 
   # If the system being solver for is an electrostatic case, the Poisson equation
   # can be solved for to obtain the mode perturbation of the field quantities:
-  if(self.physical_system.params.fields_solver == 'electrostatic'):
+  if(self.physical_system.params.fields_solver == 'electrostatic' or \
+     self.physical_system.params.fields_solver == 'fft'
+    ):
     compute_electrostatic_fields(self)
 
   # Scaling Appropriately:
@@ -58,9 +60,9 @@ def dY_dt(self, Y):
   mom_bulk_p3 = af.tile(self.compute_moments('mom_p3_bulk'), 1, 1, self.f.shape[2])
 
   # Scaling Appropriately:
-  J1_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
-  J2_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
-  J3_hat = 2 * af.fft2(self.charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
+  J1_hat = 2 * af.fft2(self.physical_system.params.charge_electron * mom_bulk_p1)/(self.N_q1 * self.N_q2)
+  J2_hat = 2 * af.fft2(self.physical_system.params.charge_electron * mom_bulk_p2)/(self.N_q1 * self.N_q2)
+  J3_hat = 2 * af.fft2(self.physical_system.params.charge_electron * mom_bulk_p3)/(self.N_q1 * self.N_q2)
   
   # Solving the EM equations:
 

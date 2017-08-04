@@ -72,8 +72,11 @@ def compute_electrostatic_fields(self):
   pc.setType('none')
   
   N_g = self.N_ghost
-  ksp.setTolerances(atol = 1e-3)
-  pde.formRHS(rho, np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g] - 1))
+  ksp.setTolerances(atol = 1e-5)
+  pde.formRHS(rho, self.physical_system.params.charge_electron *\
+                   np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g] - 1)
+             )
+
   ksp.solve(rho, phi)
 
   if(ksp.converged != True):

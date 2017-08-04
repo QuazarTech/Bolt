@@ -62,8 +62,8 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
-t_final = 0.5
+dt      = 0.0005
+t_final = 0.1
 
 time_array       = np.arange(0, t_final + dt, dt)
 density_data_ls  = np.zeros_like(time_array)
@@ -71,7 +71,7 @@ density_data_nls = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
   print('Computing For Time =', t0)
-  # nls.strang_timestep(dt)
+  nls.strang_timestep(dt)
   ls.RK2_step(dt)
   density_data_nls[time_index] = af.max(nls.compute_moments('density'))
   density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
