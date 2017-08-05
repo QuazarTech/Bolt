@@ -2,6 +2,9 @@ pytest
 arrayfire
 mpi4py
 petsc4py
+scipy
 numpy
 matplotlib
 h5py
+sphinx
+sphinx-autobuild

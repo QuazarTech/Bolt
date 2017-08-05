@@ -10,7 +10,10 @@ Welcome to TBD's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   home
+   theory
+   user_guide
+   developer_guide
 
 Indices and tables
 ==================

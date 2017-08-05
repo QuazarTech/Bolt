@@ -21,14 +21,25 @@ The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for 
 * h5py(used in file writing/reading)
 * matplotlib(used in postprocessing the data-generated)
 * pytest
+* mpi4py
+* sphinx
 
 ## Getting Started:
 
-A good place to start is to look at the example problems that have been solved using the framework, and extrapolating the concept to your system of interest. At the moment, most of the example problems are still under construction. Please refer to `example_problems/nonrelativistic_boltzmann/testrun_folder` to understand the general approach to defining a system. Commenting has been added appropriately. In order to evolve the Boltzmann system, make changes to `params.py` and `domain.py`, and execute:
+A good place to start is to look at the example problems that have been solved using the framework, and extrapolating the concept to your system of interest. At the moment, most of the example problems are still under construction. Please refer to `example_problems/nonrelativistic_boltzmann/testing_folder` to understand the general approach to defining a system. Commenting has been added appropriately. In order to evolve the Boltzmann system, make changes to `params.py` and `domain.py`, and execute:
 
 ```bash
 ipython main.py
 ```  
+
+## Viewing the Documentation:
+
+The documentation build is carried using sphinx, and is built by running:
+```bash
+cd docs/
+make html
+```
+the build files can then be viewed under `build/`
 
 ## Authors
 
