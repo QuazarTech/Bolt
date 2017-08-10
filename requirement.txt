@@ -1,0 +1,7 @@
+pytest
+arrayfire
+mpi4py
+petsc4py
+numpy
+matplotlib
+h5py
