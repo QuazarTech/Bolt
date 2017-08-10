@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3 
 # -*- coding: utf-8 -*-
 
 # This test ensures that the convergence for the interpolation routine
@@ -52,7 +52,7 @@ class test(object):
                       1, 1
                      )
 
-    self.q1_start  = self.q2_start = 0
+    self.q1_start = self.q2_start = 0
     
     q1_center = af.to_array((-N_ghost + np.arange(32 + 2 * N_ghost) + 0.5) * (1/32))
     q2_center = af.to_array((-N_ghost + np.arange(32 + 2 * N_ghost) + 0.5) * (1/32))
@@ -93,16 +93,18 @@ class test(object):
   _convert = convert_imported
 
 def test_f_interp_p_3d():
-  N     = 2**np.arange(5, 8)
-  error = np.zeros(N.size)
+  N     = 32
+  # error = np.zeros(1) #N.size)
 
-  for i in range(N.size):
-    obj = test(int(N[i]))
-    f_interp_p_3d(obj, 0.00001)
-    f_analytic = af.sin(2*np.pi*(obj.p1 - 0.00001) + 4*np.pi*(obj.p2 - 0.00001) + 6*np.pi*(obj.p3 - 0.00001))
-    error[i] = af.sum(af.abs(obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))/f_analytic[3:-3, 3:-3].elements()
+  # for i in range(N.size):
+  obj = test(N)
+  f_interp_p_3d(obj, 0.00001)
+  f_analytic = af.sin(2*np.pi*(obj.p1 - 0.00001) + 4*np.pi*(obj.p2 - 0.00001) + 6*np.pi*(obj.p3 - 0.00001))
+  error = af.sum(af.abs(obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))/f_analytic[3:-3, 3:-3].elements()
 
-  poly = np.polyfit(np.log10(N), np.log10(error), 1)
-  print(poly)
+  # poly = np.polyfit(np.log10(N), np.log10(error), 1)
+  # print(poly)
+  print(error)
   # assert(abs(poly[0] + 2)<0.2)
+
 test_f_interp_p_3d()
