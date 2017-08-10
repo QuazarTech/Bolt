@@ -5,9 +5,10 @@ Home
 Overview
 ========
 
-What is NameTBD?
+What is Bolt?
 -------------
-NameTBD is an open-source Python based framework for solving
+
+Bolt is an open-source Python based framework for solving
 advection type problems with sources/sinks uptil 5-dimensional phase space 
 on a range of devices using the Semi-Lagrangian approach of Cheng&Knorr. The 
 framework is designed to solve a range of physical systems where the domain of 

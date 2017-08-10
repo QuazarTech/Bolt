@@ -5,18 +5,18 @@ User Guide
 Getting Started
 ===============
 
-Downloading the Source
-----------------------
+Downloading the Source:
+-----------------------
 
-NameTBD can be obtained `here <https://github.com/QuazarTech/Boltzmann_solver>`_.
+Bolt can be obtained `here <https://github.com/QuazarTech/Bolt>`_.
 
-Dependencies
-------------
+Dependencies:
+-------------
 
-Overview
-^^^^^^^^
+Overview:
+^^^^^^^^^
 
-NameTBD has a hard dependency on Python 3+ and the following
+Bolt has a hard dependency on Python 3+ and the following
 Python packages:
 
 1. `mpi4py <http://mpi4py.scipy.org/>`_ 
@@ -31,39 +31,39 @@ Python packages:
 Before installing the above python packages, the following libraries need to be installed
 so that their python wrappers can function: 
 
-Building ArrayFire
-^^^^^^^^^^^^^^^^^^
+Building ArrayFire:
+^^^^^^^^^^^^^^^^^^^
 
 - Clone the `arrayfire <https://github.com/arrayfire/arrayfire>`_ repository
 - Build using the instructions that have been provided `here <https://github.com/arrayfire/arrayfire/wiki/Build-Instructions-for-Linux>`_ 
 
-Building PETSc
-^^^^^^^^^^^^^^
+Building PETSc:
+^^^^^^^^^^^^^^^
 
 - Clone the `petsc <https://bitbucket.org/petsc/petsc>`_ repository
 - Build for production(without debugging) or developement(debugging enabled) following the instructions `here <http://www.mcs.anl.gov/petsc/documentation/installation.html>`_
 
-Installation
-------------
+Installation:
+-------------
 
-Before running NameTBD it is first necessary to either install
+Before running Bolt it is first necessary to either install
 the software using the provided ``setup.py`` installer(TODO) or add 
 the root directory to ``PYTHONPATH`` using::
 
-    user@computer ~/NameTBD$ export PYTHONPATH=.:$PYTHONPATH
+    user@computer ~/Bolt$ export PYTHONPATH=.:$PYTHONPATH
 
 Once the build of ArrayFire and PETSc is completed install the python dependencies
 using::
 
-    user@computer ~/NameTBD$ pip install -r requirements.txt
+    user@computer ~/Bolt$ pip install -r requirements.txt
 
-Running NameTBD
-===============
+Running Bolt
+============
 
 Overview:
---------
+---------
 
-NameTBD is organized such that a system is defined by making use of the 
+Bolt is organized such that a system is defined by making use of the 
 ``physical_system`` class. The object created by ``physical_system`` is then
 passed as an argument to the solver objects.
 
@@ -109,6 +109,6 @@ The data about the evolved system can be dumped to file by making use of the met
 Running in Parallel
 ^^^^^^^^^^^^^^^^^^^
 
-NameTBD can be run in parallel across multiple node. To do so prefix the python command being executed with
+Bolt can be run in parallel across multiple node. To do so prefix the python command being executed with
 ``mpirun -n <nodes/devices>``.(NOTE: The parallelization has only been implemented for
 the nonlinear solver. The linear solver can only take advantage of shared memory parallelism)
