@@ -38,32 +38,32 @@ class test(object):
     p3_center = af.flat(af.to_array(p3_center))
 
     self.p1 = af.tile(af.reorder(p1_center, 2, 3, 0, 1),\
-                      32 + 2 * N_ghost, 32 + 2 * N_ghost,\
+                      8 + 2 * N_ghost, 8 + 2 * N_ghost,\
                       1, 1
                      )
 
     self.p2 = af.tile(af.reorder(p2_center, 2, 3, 0, 1),\
-                      32 + 2 * N_ghost, 32 + 2 * N_ghost,\
+                      8 + 2 * N_ghost, 8 + 2 * N_ghost,\
                       1, 1
                      )
     
     self.p3 = af.tile(af.reorder(p3_center, 2, 3, 0, 1),\
-                      32 + 2 * N_ghost, 32 + 2 * N_ghost,\
+                      8 + 2 * N_ghost, 8 + 2 * N_ghost,\
                       1, 1
                      )
 
     self.q1_start = self.q2_start = 0
     
-    q1_center = af.to_array((-N_ghost + np.arange(32 + 2 * N_ghost) + 0.5) * (1/32))
-    q2_center = af.to_array((-N_ghost + np.arange(32 + 2 * N_ghost) + 0.5) * (1/32))
+    q1_center = af.to_array((-N_ghost + np.arange(8 + 2 * N_ghost) + 0.5) * (1/8))
+    q2_center = af.to_array((-N_ghost + np.arange(8 + 2 * N_ghost) + 0.5) * (1/8))
     
     # Tiling such that variation in q1 is along axis 0:
-    q1_center = af.tile(q1_center, 1, 32 + 2*self.N_ghost,\
+    q1_center = af.tile(q1_center, 1, 8 + 2*self.N_ghost,\
                         self.N_p1 * self.N_p2 * self.N_p3
                        )
 
     # Tiling such that variation in q2 is along axis 1:
-    q2_center = af.tile(af.reorder(q2_center), 32 + 2*self.N_ghost, 1,\
+    q2_center = af.tile(af.reorder(q2_center), 8 + 2*self.N_ghost, 1,\
                         self.N_p1 * self.N_p2 * self.N_p3, 1
                        )
 
@@ -82,7 +82,7 @@ class test(object):
 
     self.physical_system = type('obj', (object,), {'params' : 'placeHolder'})
 
-    self._da = PETSc.DMDA().create([32, 32],\
+    self._da = PETSc.DMDA().create([8, 8],\
                                    dof = (self.N_p1 * self.N_p2 * self.N_p3),\
                                    stencil_width = N_ghost
                                   )
@@ -93,17 +93,17 @@ class test(object):
   _convert = convert_imported
 
 def test_f_interp_p_3d():
-  N     = 32
-  # error = np.zeros(1) #N.size)
+  N     = np.array([16, 24, 32, 48, 64, 96, 128])
+  error = np.zeros(N.size)
 
-  # for i in range(N.size):
-  obj = test(N)
-  f_interp_p_3d(obj, 0.00001)
-  f_analytic = af.sin(2*np.pi*(obj.p1 - 0.00001) + 4*np.pi*(obj.p2 - 0.00001) + 6*np.pi*(obj.p3 - 0.00001))
-  error = af.sum(af.abs(obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))/f_analytic[3:-3, 3:-3].elements()
+  for i in range(N.size):
+    obj = test(int(N[i]))
+    f_interp_p_3d(obj, 0.00001)
+    f_analytic = af.sin(2*np.pi*(obj.p1 - 0.00001) + 4*np.pi*(obj.p2 - 0.00001) + 6*np.pi*(obj.p3 - 0.00001))
+    error[i]   = af.sum(af.abs(obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3]))/f_analytic[3:-3, 3:-3].elements()
 
-  # poly = np.polyfit(np.log10(N), np.log10(error), 1)
-  # print(poly)
+  poly = np.polyfit(np.log10(N), np.log10(error), 1)
+  print(poly)
   print(error)
   # assert(abs(poly[0] + 2)<0.2)
 
