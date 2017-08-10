@@ -1,4 +1,4 @@
-# A Python-based Semi-Lagrangian Solver Framework:
+# Bolt - A Fast Semi-Lagrangian Solver Framework For Kinetic Theories:
 
 This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
@@ -10,36 +10,22 @@ The generalized structure that the framework uses can be found in `lib/`. All th
 
 <p align="center"><img src="https://rawgit.com/ShyamSS-95/Boltzmann_solver/refactor_library/.svgs/6012d33f73b29a6e67bdfd25286152d3.svg?invert_in_darkmode" align=middle width=766.6296pt height=38.464304999999996pt/></p>
 
-The functions that have been used for solving the above equation may be referred to from `src/nonrelativistic_boltzmann`.
+The functions that have been used for solving the above equation may be referred to from `src/nonrelativistic_boltzmann`. The documentation for the project can be viewed [here](bolt.readthedocs.io/en/latest/)
 
 ## Dependencies:
 
 The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for shared memory parallelism, and [PETSc](https://bitbucket.org/petsc/petsc)(Built with HDF5 file writing support) for distributed memory parallelism and require those packages to be built and installed on the system of usage in addition to their python interfaces([arrayfire-python](https://github.com/arrayfire/arrayfire-python) and [petsc4py](https://bitbucket.org/petsc/petsc4py)). Additionally, following python libraries are also necessary:
 
 * numpy
-* scipy
-* h5py(used in file writing/reading)
-* matplotlib(used in postprocessing the data-generated)
+* h5py
+* matplotlib
 * pytest
 * mpi4py
+
+The documentation is built using sphinx, and requires the following dependencies to be built locally:
 * sphinx
-
-## Getting Started:
-
-A good place to start is to look at the example problems that have been solved using the framework, and extrapolating the concept to your system of interest. At the moment, most of the example problems are still under construction. Please refer to `example_problems/nonrelativistic_boltzmann/testing_folder` to understand the general approach to defining a system. Commenting has been added appropriately. In order to evolve the Boltzmann system, make changes to `params.py` and `domain.py`, and execute:
-
-```bash
-ipython main.py
-```  
-
-## Viewing the Documentation:
-
-The documentation build is carried using sphinx, and is built by running:
-```bash
-cd docs/
-make html
-```
-the build files can then be viewed under `build/`
+* sphinx_rtd_theme
+* sphinx-autobuild
 
 ## Authors
 
