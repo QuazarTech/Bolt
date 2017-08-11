@@ -6,8 +6,8 @@ python:
     - "3.5"
 
 env:
-    - AF_PATH="$HOME/arrayfire-3"
-    - LD_LIBRARY_PATH="$AF_PATH/lib:$LD_LIBRARY_PATH"
+    - AF_PATH=arrayfire-3
+    - LD_LIBRARY_PATH="$AF_PATH/lib"
     - PYTHON_PATH="$HOME/Bolt/:$PYTHON_PATH"
 
 # command to install dependencies
