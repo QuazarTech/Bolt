@@ -24,4 +24,4 @@ install:
     - pip install -r requirement.txt
 
 # command to run tests
-script: py.test Bolt/lib/linear_solver/tests
+script: py.test lib/linear_solver/tests
