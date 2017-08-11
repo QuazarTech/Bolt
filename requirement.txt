@@ -1,6 +1,7 @@
 pytest
 arrayfire
 mpi4py
+petsc
 petsc4py
 numpy
 matplotlib

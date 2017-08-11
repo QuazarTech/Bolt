@@ -16,7 +16,7 @@ before_install:
     - sudo apt-get install -qq build-essential git cmake libfreeimage-dev cmake-curses-gui
     - sudo apt-get install -qq libopenblas-dev libfftw3-dev liblapacke-dev libboost-all-dev
     - wget http://arrayfire.s3.amazonaws.com/3.5.0/ArrayFire-v3.5.0_Linux_x86_64.sh
-    - bash ArrayFire-v3.5.0_Linux_x86_64.sh
+    - yes | bash ArrayFire-v3.5.0_Linux_x86_64.sh
 
 install:
     - pip install -r requirements.txt
