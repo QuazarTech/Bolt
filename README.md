@@ -3,6 +3,9 @@
 [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
 [![Code Health](https://landscape.io/github/ShyamSS-95/Bolt/master/landscape.svg?style=flat)](https://landscape.io/github/ShyamSS-95/Bolt/master)
 
+[![Build Status](https://travis-ci.org/ShyamSS-95/Bolt.svg?branch=master)](https://travis-ci.org/ShyamSS-95/Bolt)
+[![Coverage Status](https://coveralls.io/repos/github/ShyamSS-95/Bolt/badge.svg?branch=master)](https://coveralls.io/github/ShyamSS-95/Bolt?branch=master)
+
 This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
 <p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/372221e63638d7fbbb468a0b9029d7a9.svg?invert_in_darkmode" align=middle width=450.2223pt height=36.953894999999996pt/></p>
