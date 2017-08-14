@@ -16,7 +16,7 @@ import numpy as np
 import arrayfire as af
 
 # Importing solver functions:
-from lib.linear_solver.compute_moments import compute_moments
+from lib.nonlinear_solver.compute_moments import compute_moments
 
 
 moment_exponents = dict(density=[0, 0, 0],
@@ -104,8 +104,6 @@ class test(object):
                  af.exp(-1 * (self.p1 - p1_b)**2 / (2 * T)) * \
                  af.exp(-1 * (self.p2 - p2_b)**2 / (2 * T)) * \
                  af.exp(-1 * (self.p3 - p3_b)**2 / (2 * T))
-
-        self.Y = 2 * af.fft2(self.f) / (self.N_q1 * self.N_q2)
 
 
 def test_compute_moments():

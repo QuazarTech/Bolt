@@ -4,7 +4,7 @@
 from petsc4py import PETSc
 import arrayfire as af
 import numpy as np
-from scipy.fftpack import fftfreq
+from numpy.fft import fftfreq
 
 
 class Poisson2D(object):
@@ -62,8 +62,8 @@ def compute_electrostatic_fields(self):
 
     phi_local = self._da_ksp.createLocalVec()
 
-    A = PETSc.Mat().createPython(
-        [phi.getSizes(), rho.getSizes()], comm=self._da_ksp.comm)
+    A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()],
+                                 comm=self._da_ksp.comm)
     A.setPythonContext(pde)
     A.setUp()
 
@@ -77,37 +77,48 @@ def compute_electrostatic_fields(self):
 
     N_g = self.N_ghost
     ksp.setTolerances(atol=1e-5)
-    pde.formRHS(
-        rho,
-        self.physical_system.params.charge_electron *
-        np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g] - 1))
+    pde.formRHS(rho,
+                self.physical_system.params.charge_electron *
+                np.array(self.compute_moments('density')[N_g:-N_g, N_g:-N_g] -
+                         1))
 
     ksp.solve(rho, phi)
 
-    if (ksp.converged != True):
+    if(ksp.converged is not True):
         raise Exception('KSP solver diverging!')
 
     self._da_ksp.globalToLocal(phi, phi_local)
 
     # Since rho was defined at (i + 0.5, j + 0.5)
     # Electric Potential returned will also be at (i + 0.5, j + 0.5)
-    electric_potential = af.to_array(
-        np.swapaxes(phi_local[:].reshape(N_q2_local + 2 * self.N_ghost,
-                                         N_q1_local + 2 * self.N_ghost), 0, 1))
+    electric_potential = af.to_array(np.swapaxes(phi_local[:].
+                                                 reshape(N_q2_local +
+                                                         2 * self.N_ghost,
+                                                         N_q1_local +
+                                                         2 * self.N_ghost),
+                                                 0, 1))
 
     # Obtaining the values at (i+0.5, j+0.5):
-    self.E1 = -(
-        af.shift(electric_potential, -1) - af.shift(electric_potential, 1)) / (
-            2 * self.dq1)
+    self.E1 = -(af.shift(electric_potential, -1) -
+                af.shift(electric_potential, 1)) /\
+                 (2 * self.dq1)
 
-    self.E2 = -(af.shift(electric_potential, 0, -1) - af.shift(
-        electric_potential, 0, 1)) / (2 * self.dq2)
+    self.E2 = -(af.shift(electric_potential, 0, -1) -
+                af.shift(electric_potential, 0, 1)) /\
+                  (2 * self.dq2)
 
     af.eval(self.E1, self.E2)
     return
 
 
 def fft_poisson(self):
+    """
+    Solves the Poisson Equation using the FFTs:
+
+    Used as a backup solver in case of low resolution runs
+    (ie. used on a single node) with periodic boundary
+    conditions.
+    """
 
     if (self._comm.size != 1):
         raise Exception('FFT solver can only be used when run in serial')
@@ -115,7 +126,7 @@ def fft_poisson(self):
     else:
         N_g = self.N_ghost
         rho = self.physical_system.params.charge_electron * \
-            self.compute_moments('density')[N_g:-N_g, N_g:-N_g]
+              self.compute_moments('density')[N_g:-N_g, N_g:-N_g]
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)
         k_q2 = fftfreq(rho.shape[1], self.dq2)
@@ -138,5 +149,6 @@ def fft_poisson(self):
 
         # Applying Periodic B.C's:
         self._communicate_fields()
+
         af.eval(self.E1, self.E2)
         return

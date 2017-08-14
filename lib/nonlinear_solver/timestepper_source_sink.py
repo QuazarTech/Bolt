@@ -5,6 +5,11 @@ import arrayfire as af
 
 
 def RK2_step(self, dt, testing=0):
+    """
+    Evolves the source/sink term specified by the user
+    df/dt = source_sink_term
+    using RK2 time stepping.
+    """
 
     f_initial = self.f.copy()  # Storing the value at the start
 
@@ -24,7 +29,11 @@ def RK2_step(self, dt, testing=0):
 
 
 def RK4_step(self, dt, testing=0):
-
+    """
+    Evolves the source/sink term specified by the user
+    df/dt = source_sink_term
+    using RK4 time stepping.
+    """
     f_initial = self.f.copy()  # Storing the value at the start
 
     if (testing == 0):
@@ -49,7 +58,11 @@ def RK4_step(self, dt, testing=0):
 
 
 def RK6_step(self, dt, testing=0):
-
+    """
+    Evolves the source/sink term specified by the user
+    df/dt = source_sink_term
+    using RK6 time stepping.
+    """
     f_initial = self.f.copy()  # Storing the value at the start
 
     if (testing == 0):

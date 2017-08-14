@@ -135,7 +135,7 @@ class nonlinear_solver(object):
         # Source/Sink term(Restrict to relaxation type collision operators):
         self._source_or_sink = physical_system.source_or_sink
 
-    def _convert_to_qExpand(self, array):
+    def _convert_to_qExpanded(self, array):
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
@@ -149,7 +149,7 @@ class nonlinear_solver(object):
         af.eval(array)
         return (array)
 
-    def _convert_to_pExpand(self, array):
+    def _convert_to_pExpanded(self, array):
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This test ensures that the RK2,4,6 implementation is 2nd, 4th, 5th
+order in time. For this, we consider the test problem df/dt = f.
+We integrate till t = 1 and compare the results with the expected
+analytic solution f = Ae^t
+"""
+
 import numpy as np
 from lib.linear_solver.timestepper import RK2_step, RK4_step, RK6_step
-
-# This test ensures that the RK2,4,6 implementation is 2nd, 4th, 5h order in time
-# For this, we consider the test problem df/dt = f
-# We integrate till t = 1 and compare the results with the expected
-# analytic solution f = Ae^t
 
 
 class test(object):

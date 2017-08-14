@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# This test ensures that the convergence for the interpolation routine
-# falls off with N^{-2}, where N is the number of divisions chosen.
+"""
+This test ensures that the convergence for the interpolation routine
+falls off with N^{-2}, where N is the number of divisions chosen.
+"""
 
 import arrayfire as af
 import numpy as np

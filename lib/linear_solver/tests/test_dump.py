@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# This file contains the unit tests to ensure proper functioning of the
-# function under lib/linear_solver/dump.py. A test file test_file.h5 is
-# created in the process. It is ensured that the read and write processes
-# are carried out as expected.
+"""
+This file contains the unit tests to ensure proper functioning of the
+function under lib/linear_solver/dump.py. A test file test_file.h5 is
+created in the process. It is ensured that the read and write processes
+are carried out as expected.
+"""
 
 # Importing dependencies:
 import numpy as np

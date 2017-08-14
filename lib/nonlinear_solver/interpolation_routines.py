@@ -44,12 +44,12 @@ def f_interp_p_3d(self, dt):
     Hence we will need to convert the same:
     """
 
-    p1 = self._convert(self.p1)
-    p2 = self._convert(self.p2)
-    p3 = self._convert(self.p3)
+    p1 = self._convert_to_pExpanded(self.p1)
+    p2 = self._convert_to_pExpanded(self.p2)
+    p3 = self._convert_to_pExpanded(self.p3)
 
-    q1 = self._convert(self.q1_center)
-    q2 = self._convert(self.q2_center)
+    q1 = self._convert_to_pExpanded(self.q1_center)
+    q2 = self._convert_to_pExpanded(self.q2_center)
 
     E1 = af.tile(af.flat(self.E1), 1, self.N_p1, self.N_p2, self.N_p3)
     E2 = af.tile(af.flat(self.E2), 1, self.N_p1, self.N_p2, self.N_p3)
@@ -82,7 +82,7 @@ def f_interp_p_3d(self, dt):
     # individual 1d + 2d interpolations. Reordering to bring the
     # variation in values along axis 0 and axis 1
 
-    self.f = self._convert(self.f)
+    self.f = self._convert_to_pExpanded(self.f)
 
     self.f = af.approx1(af.reorder(self.f),
                         af.reorder(p1_interpolant),
@@ -98,7 +98,7 @@ def f_interp_p_3d(self, dt):
                         af.INTERP.CUBIC_SPLINE)
 
     self.f = af.reorder(self.f)
-    self.f = self._convert(self.f)
+    self.f = self._convert_to_qExpanded(self.f)
 
     af.eval(self.f)
     return

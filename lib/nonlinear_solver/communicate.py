@@ -34,7 +34,7 @@ def communicate_distribution_function(self):
     return
 
 
-def communicate_fields(self):
+def communicate_fields(self, on_fdtd_grid=False):
     """
     Used in communicating the values at the boundary zones
     for each of the local vectors among all procs.
@@ -51,13 +51,24 @@ def communicate_fields(self):
 
     # Assigning the values of the af.Array fields quantities
     # to the PETSc.Vec:
-    (local_value[:])[:, :, 0] = np.array(self.E1)
-    (local_value[:])[:, :, 1] = np.array(self.E2)
-    (local_value[:])[:, :, 2] = np.array(self.E3)
 
-    (local_value[:])[:, :, 3] = np.array(self.B1)
-    (local_value[:])[:, :, 4] = np.array(self.B2)
-    (local_value[:])[:, :, 5] = np.array(self.B3)
+    if(on_fdtd_grid is True):
+        (local_value[:])[:, :, 0] = np.array(self.E1_fdtd)
+        (local_value[:])[:, :, 1] = np.array(self.E2_fdtd)
+        (local_value[:])[:, :, 2] = np.array(self.E3_fdtd)
+
+        (local_value[:])[:, :, 3] = np.array(self.B1_fdtd)
+        (local_value[:])[:, :, 4] = np.array(self.B2_fdtd)
+        (local_value[:])[:, :, 5] = np.array(self.B3_fdtd)
+
+    else:
+        (local_value[:])[:, :, 0] = np.array(self.E1)
+        (local_value[:])[:, :, 1] = np.array(self.E2)
+        (local_value[:])[:, :, 2] = np.array(self.E3)
+
+        (local_value[:])[:, :, 3] = np.array(self.B1)
+        (local_value[:])[:, :, 4] = np.array(self.B2)
+        (local_value[:])[:, :, 5] = np.array(self.B3)
 
     # Global value is non-inclusive of the ghost-zones:
     glob_value[:] = (local_value[:])[N_ghost:-N_ghost, N_ghost:-N_ghost, :]
@@ -66,12 +77,22 @@ def communicate_fields(self):
     self._da_fields.globalToLocal(self._glob_fields, self._local_fields)
 
     # Converting back to af.Array
-    self.E1 = af.to_array((local_value[:])[:, :, 0])
-    self.E2 = af.to_array((local_value[:])[:, :, 1])
-    self.E3 = af.to_array((local_value[:])[:, :, 2])
+    if(on_fdtd_grid is True):
+        self.E1_fdtd = af.to_array((local_value[:])[:, :, 0])
+        self.E2_fdtd = af.to_array((local_value[:])[:, :, 1])
+        self.E3_fdtd = af.to_array((local_value[:])[:, :, 2])
 
-    self.B1 = af.to_array((local_value[:])[:, :, 3])
-    self.B2 = af.to_array((local_value[:])[:, :, 4])
-    self.B3 = af.to_array((local_value[:])[:, :, 5])
+        self.B1_fdtd = af.to_array((local_value[:])[:, :, 3])
+        self.B2_fdtd = af.to_array((local_value[:])[:, :, 4])
+        self.B3_fdtd = af.to_array((local_value[:])[:, :, 5])
+
+    else:
+        self.E1 = af.to_array((local_value[:])[:, :, 0])
+        self.E2 = af.to_array((local_value[:])[:, :, 1])
+        self.E3 = af.to_array((local_value[:])[:, :, 2])
+
+        self.B1 = af.to_array((local_value[:])[:, :, 3])
+        self.B2 = af.to_array((local_value[:])[:, :, 4])
+        self.B3 = af.to_array((local_value[:])[:, :, 5])
 
     return

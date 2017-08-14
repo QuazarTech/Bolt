@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+In this test, we ensure that the value returned by the function calculate_p()
+in linear_solver is consistent with our expected results. Although both the
+values checked against and the generated values are essentially the same
+formulation, the failure of this test may indicate any accidental changes
+that may have been introduced.
+"""
+
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
@@ -9,11 +17,6 @@ import arrayfire as af
 from lib.linear_solver.linear_solver import linear_solver
 
 calculate_p = linear_solver._calculate_p
-
-# In this test, we ensure that the value returned by the function calculate_p() in
-# linear_solver is consistent with our expected results. Although both the values checked
-# against and the generated values are essentially the same formulation, the failure of this
-# test may indicate any accidental changes that may have been introduced.
 
 
 class test():
@@ -47,45 +50,21 @@ def test_calculate_p():
     p2_expected = obj.p2_start + (0.5 + np.arange(obj.N_p2)) * obj.dp2
     p3_expected = obj.p3_start + (0.5 + np.arange(obj.N_p3)) * obj.dp3
 
-    p2_expected, p1_expected, p3_expected = np.meshgrid(
-        p2_expected, p1_expected, p3_expected)
+    p2_expected, p1_expected, p3_expected = np.meshgrid(p2_expected,
+                                                        p1_expected,
+                                                        p3_expected)
 
-    p1_expected = af.tile(
-        af.reorder(
-            af.flat(
-                af.to_array(p1_expected)),
-            2,
-            3,
-            0,
-            1),
-        obj.N_q1,
-        obj.N_q2,
-        1,
-        1)
-    p2_expected = af.tile(
-        af.reorder(
-            af.flat(
-                af.to_array(p2_expected)),
-            2,
-            3,
-            0,
-            1),
-        obj.N_q1,
-        obj.N_q2,
-        1,
-        1)
-    p3_expected = af.tile(
-        af.reorder(
-            af.flat(
-                af.to_array(p3_expected)),
-            2,
-            3,
-            0,
-            1),
-        obj.N_q1,
-        obj.N_q2,
-        1,
-        1)
+    p1_expected = af.tile(af.reorder(af.flat(af.to_array(p1_expected)),
+                                     2, 3, 0, 1),
+                          obj.N_q1, obj.N_q2, 1, 1)
+
+    p2_expected = af.tile(af.reorder(af.flat(af.to_array(p2_expected)),
+                                     2, 3, 0, 1),
+                          obj.N_q1, obj.N_q2, 1, 1)
+
+    p3_expected = af.tile(af.reorder(af.flat(af.to_array(p3_expected)),
+                                     2, 3, 0, 1),
+                          obj.N_q1, obj.N_q2, 1, 1)
 
     assert(af.sum(af.abs(p1_expected - p1)) == 0 and
            af.sum(af.abs(p2_expected - p2)) == 0 and

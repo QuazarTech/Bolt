@@ -51,7 +51,8 @@ class physical_system(object):
                         on the RHS of the advection equation.
 
         moment_defs: File that contains the dictionary holding the moment
-                     definitions
+                     definitions in terms of the moment exponents and moment
+                     coefficients.
 
         """
         # Checking that domain resolution and size are of the correct
@@ -120,13 +121,14 @@ class physical_system(object):
         if(self.N_q1 < 0 or self.N_q2 < 0 or
            self.N_p1 < 0 or self.N_p2 < 0 or self.N_p3 < 0 or
            domain.N_ghost < 0):
-            raise Exception(
-                'Grid resolution for the phase space cannot be negative')
+            raise Exception('Grid resolution for the phase \
+                             space cannot be negative')
 
         if(self.q1_start > self.q1_end or self.q2_start > self.q2_end or
            self.p1_start > self.p1_end or self.p2_start > self.p2_end or
            self.p3_start > self.p3_end):
-            raise Exception('Start point cannot be placed after the end point')
+            raise Exception('Start point cannot be placed \
+                             after the end point')
 
         # Evaluating step size:
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1

@@ -1,14 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# This test ensures that the implementation of time-steppers is accurate
-# For this, we consider the test problem df/dt = f
-# We integrate till t = 1 and compare the results with the expected
-# analytic solution f = e^t
+"""
+This test ensures that the implementation of time-steppers is accurate
+For this, we consider the test problem df/dt = f
+We integrate till t = 1 and compare the results with the expected
+analytic solution f = e^t
+"""
 
-from lib.nonlinear_solver.timestepper_source_sink import RK2_step, RK4_step, RK6_step
 import numpy as np
 import arrayfire as af
+
+from lib.nonlinear_solver.timestepper_source_sink \
+    import RK2_step, RK4_step, RK6_step
 
 
 class test(object):
@@ -20,8 +24,6 @@ class test(object):
 
 
 # This test ensures that the RK2 implementation is 2nd order in time
-
-
 def test_RK2():
     number_of_time_step = 10**np.arange(5)
     time_step_sizes = 1 / number_of_time_step
@@ -56,8 +58,6 @@ def test_RK4():
 
 
 # This test ensures that the RK6 implementation is 5th order in time
-
-
 def test_RK6():
     number_of_time_step = 10**np.arange(3)
     time_step_sizes = 1 / number_of_time_step
