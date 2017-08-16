@@ -5,17 +5,17 @@ import arrayfire as af
 
 
 def f_interp_2d(self, dt):
-    # Since the interpolation function are being performed in position space,
-    # the arrays used in the computation need to be in positionsExpanded form.
-
+    af.device_gc() # Clearing memory which is out of scope
+    
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local,
                                   N_q2_local)) = self._da.getCorners()
 
-    q1_center_new = self.q1_center - self._A_q1 * dt
-    q2_center_new = self.q2_center - self._A_q2 * dt
+    addition = lambda a,b:a + b
+    q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
+    q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
     # Obtaining the center coordinates:
     (i_q1_center, i_q2_center) = (i_q1_lowest + 0.5, i_q2_lowest + 0.5)
@@ -43,40 +43,34 @@ def f_interp_p_3d(self, dt):
     the arrays used in the computation need to be in velocitiesExpanded form.
     Hence we will need to convert the same:
     """
-
-    p1 = self._convert_to_pExpanded(self.p1)
-    p2 = self._convert_to_pExpanded(self.p2)
-    p3 = self._convert_to_pExpanded(self.p3)
-
-    q1 = self._convert_to_pExpanded(self.q1_center)
-    q2 = self._convert_to_pExpanded(self.q2_center)
-
-    E1 = af.tile(af.flat(self.E1), 1, self.N_p1, self.N_p2, self.N_p3)
-    E2 = af.tile(af.flat(self.E2), 1, self.N_p1, self.N_p2, self.N_p3)
-    E3 = af.tile(af.flat(self.E3), 1, self.N_p1, self.N_p2, self.N_p3)
-
-    B1 = af.tile(af.flat(self.B1), 1, self.N_p1, self.N_p2, self.N_p3)
-    B2 = af.tile(af.flat(self.B2), 1, self.N_p1, self.N_p2, self.N_p3)
-    B3 = af.tile(af.flat(self.B3), 1, self.N_p1, self.N_p2, self.N_p3)
-
-    params = self.physical_system.params
-
+    af.device_gc() # Clearing out of scope memory
+    
     # Following Lie Splitting:
-    p1_new = p1.copy() - 0.5 * dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3,
-                                              B1, B2, B3, params)[0]
-    p2_new = p2.copy() - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3,
-                                        B1, B2, B3, params)[1]
-    p3_new = p3.copy() - dt * self._A_p(q1, q2, p1, p2, p3, E1, E2, E3,
-                                        B1, B2, B3, params)[2]
+    (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
+                                      self.p1, self.p2, self.p3,
+                                      self.E1, self.E2, self.E3,
+                                      self.B1, self.B2, self.B3,
+                                      self.physical_system.params
+                                     )
+    
+    addition = lambda a,b:a + b
+    
+    p1_new = af.broadcast(addition, self.p1, - 0.5 * dt * A_p1)
+    p2_new = af.broadcast(addition, self.p2, - dt * A_p2)
+    p3_new = af.broadcast(addition, self.p3, - dt * A_p3)
+
+    p1_new = self._convert_to_pExpanded(p1_new)
+    p2_new = self._convert_to_pExpanded(p2_new)
+    p3_new = self._convert_to_pExpanded(p3_new)
 
     # Transforming interpolant to go from [0, N_p - 1]:
     p1_lower_boundary = self.p1_start + 0.5 * self.dp1
     p2_lower_boundary = self.p2_start + 0.5 * self.dp2
     p3_lower_boundary = self.p3_start + 0.5 * self.dp3
 
-    p1_interpolant = (p1_new.copy() - p1_lower_boundary) / self.dp1
-    p2_interpolant = (p2_new.copy() - p2_lower_boundary) / self.dp2
-    p3_interpolant = (p3_new.copy() - p3_lower_boundary) / self.dp3
+    p1_interpolant = (p1_new - p1_lower_boundary) / self.dp1
+    p2_interpolant = (p2_new - p2_lower_boundary) / self.dp2
+    p3_interpolant = (p3_new - p3_lower_boundary) / self.dp3
 
     # We perform the 3d interpolation by performing
     # individual 1d + 2d interpolations. Reordering to bring the

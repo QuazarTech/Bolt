@@ -23,22 +23,5 @@ def compute_electrostatic_fields(self):
     self.E1_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q1))
     self.E2_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q2))
     
-    self.E3_hat = af.constant(0, self.N_q1, self.N_q2,\
-                              self.N_p1 * self.N_p2 * self.N_p3, 
-                              dtype = af.Dtype.c64)
-    
-    self.B1_hat = af.constant(0, self.N_q1, self.N_q2,\
-                              self.N_p1 * self.N_p2 * self.N_p3,
-                              dtype = af.Dtype.c64)
-    
-    self.B2_hat = af.constant(0, self.N_q1, self.N_q2,\
-                              self.N_p1 * self.N_p2 * self.N_p3,
-                              dtype = af.Dtype.c64) 
-    
-    self.B3_hat = af.constant(0, self.N_q1, self.N_q2,\
-                              self.N_p1 * self.N_p2 * self.N_p3,
-                              dtype = af.Dtype.c64)
-
-    af.eval(self.E1_hat, self.E2_hat, self.E3_hat,
-            self.B1_hat, self.B2_hat, self.B3_hat)
+    af.eval(self.E1_hat, self.E2_hat)
     return

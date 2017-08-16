@@ -191,6 +191,23 @@ class linear_solver(object):
                                         )
 
         self.Y[:, :, :, 0] = f_hat
+
+        # Initializing:
+        self.E3_hat = af.constant(0, self.N_q1, self.N_q2,\
+                                  self.N_p1 * self.N_p2 * self.N_p3, 
+                                  dtype = af.Dtype.c64)
+    
+        self.B1_hat = af.constant(0, self.N_q1, self.N_q2,\
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  dtype = af.Dtype.c64)
+        
+        self.B2_hat = af.constant(0, self.N_q1, self.N_q2,\
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  dtype = af.Dtype.c64) 
+        
+        self.B3_hat = af.constant(0, self.N_q1, self.N_q2,\
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  dtype = af.Dtype.c64)
         
         # Initializing EM fields using Poisson Equation:
         if(self.physical_system.params.fields_initialize == 'electrostatic' or

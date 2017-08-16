@@ -181,34 +181,19 @@ class nonlinear_solver(object):
         i_q2 = i_q2_center + \
                np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
 
-        q1_center = af.to_array(self.q1_start + i_q1 * self.dq1)
-        q2_center = af.to_array(self.q2_start + i_q2 * self.dq2)
+        q1_center = self.q1_start + i_q1 * self.dq1
+        q2_center = self.q2_start + i_q2 * self.dq2
 
-        # Tiling such that variation in q1 is along axis 0:
-        q1_center = af.tile(q1_center, 1, N_q2_local + 2 * self.N_ghost,
-                            self.N_p1 * self.N_p2 * self.N_p3)
-
-        # Tiling such that variation in q2 is along axis 1:
-        q2_center = af.tile(af.reorder(q2_center),
-                            N_q1_local + 2 * self.N_ghost, 1,
-                            self.N_p1 * self.N_p2 * self.N_p3, 1)
+        q2_center, q1_center = np.meshgrid(q2_center, q1_center)
+        q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
 
         af.eval(q1_center, q2_center)
-        # Returns in positionsExpanded form(Nq1, Nq2, Np1*Np2*Np3, 1)
         return (q1_center, q2_center)
 
     def _calculate_p_center(self):
         """
         Used in initializing the cannonical variables p1, p2, p3
         """
-        # Obtaining the left-bottom corner coordinates
-        # (lowest values of the canonical coordinates in the local zone)
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),
-         (N_q1_local, N_q2_local)) = self._da.getCorners()
-
-        N_ghost = self.N_ghost
-
         p1_center = self.p1_start + \
                     (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
         p2_center = self.p2_start + \
@@ -224,21 +209,11 @@ class nonlinear_solver(object):
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
 
-        p1_center = af.tile(af.reorder(p1_center, 2, 3, 0, 1),
-                            N_q1_local + 2 * N_ghost,
-                            N_q2_local + 2 * N_ghost, 1, 1)
-
-        p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),
-                            N_q1_local + 2 * N_ghost,
-                            N_q2_local + 2 * N_ghost, 1, 1)
-
-        p3_center = af.tile(af.reorder(p3_center, 2, 3, 0, 1),
-                            N_q1_local + 2 * N_ghost,
-                            N_q2_local + 2 * N_ghost, 1, 1)
+        p1_center = af.reorder(p1_center, 2, 3, 0, 1)
+        p2_center = af.reorder(p2_center, 2, 3, 0, 1)
+        p3_center = af.reorder(p3_center, 2, 3, 0, 1)
 
         af.eval(p1_center, p2_center, p3_center)
-        # returned in positionsExpanded form
-        # (N_q1, N_q2, N_p1*N_p2*N_p3)
         return (p1_center, p2_center, p3_center)
 
     # Injection of solver functions into class as methods:
@@ -255,13 +230,14 @@ class nonlinear_solver(object):
         Used to initialize the distribution function, and the
         EM field quantities
         """
-        self.f = self.physical_system.initial_conditions.\
-            initialize_f(self.q1_center, self.q2_center,
-                         self.p1, self.p2, self.p3, params
-                         )
+        self.f = af.broadcast(self.physical_system.initial_conditions.\
+                              initialize_f, self.q1_center, self.q2_center,
+                              self.p1, self.p2, self.p3, params
+                              )
 
         self.E1 = af.constant(0, self.f.shape[0],
                               self.f.shape[1], dtype=af.Dtype.f64)
+
         self.E2 = self.E1.copy()
         self.E3 = self.E1.copy()
 

@@ -8,7 +8,7 @@ import arrayfire as af
 fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
