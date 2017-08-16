@@ -8,10 +8,10 @@
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-from numpy.fft import fftfreq
+from scipy.fftpack import fftfreq
 
 # Importing solver functions:
-from bolt.lib.linear_solver.dY_dt import dY_dt
+from bolt.lib.linear_solver.time_derivative_functions import df_dt, dY_dt
 
 from bolt.lib.linear_solver.timestepper import RK2_step as RK2_step_imported
 from bolt.lib.linear_solver.timestepper import RK4_step as RK4_step_imported
@@ -160,6 +160,7 @@ class linear_solver(object):
     # of the background distribution function:
     _calculate_dfdp_background = calculate_dfdp_background
 
+    @af.broadcast
     def _initialize(self, params):
         """
         Called when the solver object is declared. This function is
@@ -167,48 +168,26 @@ class linear_solver(object):
         function f_hat, along with the mode perturbation of the field
         quantities
         """
-        f = af.broadcast(self.physical_system.initial_conditions.\
-                         initialize_f, self.q1_center, self.q2_center,
+        f = self.physical_system.initial_conditions.\
+            initialize_f(self.q1_center, self.q2_center,
                          self.p1, self.p2, self.p3, params
                          )
 
-        f_hat = af.fft2(f)
+        self.f_hat = af.fft2(f)
 
         # Since (k_q1, k_q2) = (0, 0) will give the background distribution:
-        self.f_background = af.abs(f_hat[0, 0, :]) \
+        self.f_background = af.abs(self.f_hat[0, 0, :]) \
                             / (self.N_q1 * self.N_q2)
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
 
         # Scaling Appropriately:
-        f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
+        self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2)
 
-        # Using a vector Y to evolve the system:
-        self.Y             = af.constant(0, self.N_q1, self.N_q2,\
-                                         self.N_p1 * self.N_p2 * self.N_p3,
-                                         7, dtype = af.Dtype.c64
-                                        )
+        # Using a vector Y to evolve the EM fields of the ssystem:
+        self.Y = af.constant(0, self.N_q1, self.N_q2, 6, dtype=af.Dtype.c64)
 
-        self.Y[:, :, :, 0] = f_hat
-
-        # Initializing:
-        self.E3_hat = af.constant(0, self.N_q1, self.N_q2,\
-                                  self.N_p1 * self.N_p2 * self.N_p3, 
-                                  dtype = af.Dtype.c64)
-    
-        self.B1_hat = af.constant(0, self.N_q1, self.N_q2,\
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64)
-        
-        self.B2_hat = af.constant(0, self.N_q1, self.N_q2,\
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64) 
-        
-        self.B3_hat = af.constant(0, self.N_q1, self.N_q2,\
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64)
-        
         # Initializing EM fields using Poisson Equation:
         if(self.physical_system.params.fields_initialize == 'electrostatic' or
            self.physical_system.params.fields_initialize == 'fft'
@@ -233,17 +212,18 @@ class linear_solver(object):
         else:
             raise NotImplementedError('Method invalid/not-implemented')
 
-        self.Y[:, :, :, 1] = self.E1_hat
-        self.Y[:, :, :, 2] = self.E2_hat
-        self.Y[:, :, :, 3] = self.E3_hat
-        self.Y[:, :, :, 4] = self.B1_hat
-        self.Y[:, :, :, 5] = self.B2_hat
-        self.Y[:, :, :, 6] = self.B3_hat
+        self.Y[:, :, 0] = self.E1_hat
+        self.Y[:, :, 1] = self.E2_hat
+        self.Y[:, :, 2] = self.E3_hat
+        self.Y[:, :, 3] = self.B1_hat
+        self.Y[:, :, 4] = self.B2_hat
+        self.Y[:, :, 5] = self.B3_hat
 
         return
 
     # Injection of solver methods from other files:
     _dY_dt = dY_dt
+    _df_dt = df_dt
 
     RK2_step = RK2_step_imported
     RK4_step = RK4_step_imported

@@ -80,7 +80,7 @@ def dump_distribution_function(self, file_name):
     N_q1, N_q2, N_p1, N_p2, N_p3 = self.N_q1, self.N_q2,\
                                    self.N_p1, self.N_p2, self.N_p3
 
-    f = 0.5 * self.N_q2 * self.N_q1 * af.real(af.ifft(self.Y[:, :, :, 0]))
+    f = 0.5 * self.N_q2 * self.N_q1 * af.real(af.ifft(self.f_hat))
     h5f.create_dataset('distribution_function',
                         data=np.array(f).reshape(N_q1, N_q2,
                                                  N_p1, N_p2, N_p3))

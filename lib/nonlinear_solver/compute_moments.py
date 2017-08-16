@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-@af.broadcast
+
 def compute_moments(self, moment_name):
     """
     Used in computing the moments of the distribution function.
@@ -19,8 +19,6 @@ def compute_moments(self, moment_name):
     moments_exponents, and moments_coefficients and calculate the same
     accordingly
     """
-
-    # Checking that the moment-name is defined by the user:
     try:
         moment_exponents = np.array(
             self.physical_system.moment_exponents[moment_name])
@@ -30,9 +28,6 @@ def compute_moments(self, moment_name):
     except BaseException:
         raise KeyError('moment_name not defined under physical system')
 
-    # This checks that the moment definition is of the form
-    # [[a, b, c], [d, e, f]...]. Alternatively if it isn't it checks
-    # whether the definition is of the form [a, b, c]
     try:
         moment_variable = 1
         for i in range(moment_exponents.shape[0]):
@@ -42,21 +37,14 @@ def compute_moments(self, moment_name):
                                self.p2**(moment_exponents[i, 1]) + \
                                moment_coeffs[i, 2] * \
                                self.p3**(moment_exponents[i, 2])
+
     except BaseException:
         moment_variable = moment_coeffs[0] * self.p1**(moment_exponents[0]) + \
                           moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
                           moment_coeffs[2] * self.p3**(moment_exponents[2])
 
-    moment_hat = af.sum(self.f_hat * moment_variable, 2) * \
-                 self.dp3 * self.dp2 * self.dp1
-
-    # Scaling Appropriately:
-    moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-    moment     = af.real(af.ifft2(moment_hat))
+    moment = af.sum(self.f * moment_variable, 2) * \
+             self.dp3 * self.dp2 * self.dp1
 
     af.eval(moment)
-
-    # Deleting unnecessary variables:
-    del moment_hat; af.device_gc()
-    
-    return(moment)
+    return (moment)
