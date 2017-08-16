@@ -4,7 +4,8 @@
 import arrayfire as af
 import numpy as np
 
-from bolt.lib.linear_solver.EM_fields_solver import compute_electrostatic_fields
+from bolt.lib.linear_solver.EM_fields_solver \
+    import compute_electrostatic_fields
 
 def dY_dt(self, Y):
     """
@@ -33,7 +34,10 @@ def dY_dt(self, Y):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
-    self.f_hat  = Y[:, :, :, 0]
+    af.device_gc() # Clearing memory which is out of scope
+
+    f_hat = Y[:, :, :, 0]
+    
     self.E1_hat = Y[:, :, :, 1]
     self.E2_hat = Y[:, :, :, 2]
     self.E3_hat = Y[:, :, :, 3]
@@ -42,16 +46,15 @@ def dY_dt(self, Y):
     self.B3_hat = Y[:, :, :, 6]
 
     if(self.physical_system.params.fields_solver == 'electrostatic'):
-      compute_electrostatic_fields(self)
+        compute_electrostatic_fields(self)
 
     # Scaling Appropriately:
-    self.f     = af.ifft2(0.5 * self.N_q2 * self.N_q1 * self.f_hat)
-    C_f_hat    = 2 * af.fft2(self._source_or_sink(self.f, self.q1_center, 
-                                                  self.q2_center, self.p1,
-                                                  self.p2, self.p3,
-                                                  self.compute_moments, 
-                                                  self.physical_system.params
-                                                 ))/(self.N_q2 * self.N_q1)
+    f       = af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat)
+    C_f_hat = 2 * af.fft2(self._source_or_sink(f, self.q1_center, self.q2_center,
+                                               self.p1, self.p2, self.p3,
+                                               self.compute_moments, 
+                                               self.physical_system.params
+                                              ))/(self.N_q2 * self.N_q1)
 
     mom_bulk_p1 = self.compute_moments('mom_p1_bulk')
     mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
@@ -67,15 +70,23 @@ def dY_dt(self, Y):
     multiply = lambda a,b:a * b
     addition = lambda a,b:a + b
     
-    dE1_hat_dt = af.broadcast(addition, af.broadcast(multiply, self.B3_hat, 1j * self.k_q2), - J1_hat)
-    dE2_hat_dt = af.broadcast(addition, af.broadcast(multiply,-self.B3_hat, 1j * self.k_q1), - J2_hat)
-    dE3_hat_dt = af.broadcast(addition, af.broadcast(multiply, self.B2_hat, 1j * self.k_q1) \
-                              - af.broadcast(multiply, self.B1_hat, 1j * self.k_q2), - J3_hat)
+    dE1_hat_dt = af.broadcast(addition, 
+                              af.broadcast(multiply, self.B3_hat, 1j * self.k_q2),
+                              - J1_hat)
+
+    dE2_hat_dt = af.broadcast(addition,
+                              af.broadcast(multiply,-self.B3_hat, 1j * self.k_q1),
+                              - J2_hat)
+
+    dE3_hat_dt = af.broadcast(addition, 
+                              af.broadcast(multiply, self.B2_hat, 1j * self.k_q1) -
+                              af.broadcast(multiply, self.B1_hat, 1j * self.k_q2), 
+                              - J3_hat)
 
     dB1_hat_dt = af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
     dB2_hat_dt = af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
     dB3_hat_dt = af.broadcast(multiply, self.E1_hat, 1j * self.k_q2) - \
-                 af.broadcast(multiply, self.E1_hat, 1j * self.k_q1)
+                 af.broadcast(multiply, self.E2_hat, 1j * self.k_q1)
 
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
@@ -91,12 +102,13 @@ def dY_dt(self, Y):
 
     df_hat_dt  = -1j * (af.broadcast(multiply, self.k_q1, self._A_q1) + 
                         af.broadcast(multiply, self.k_q2, self._A_q2)) \
-                * self.f_hat
+                * f_hat
 
     if(self.physical_system.params.charge_electron != 0):
-      df_hat_dt -= fields_term
+        df_hat_dt -= fields_term
 
-    df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, self.q2_center,\
+    df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, 
+                                                           self.q2_center,
                                                            self.p1, self.p2, self.p3
                                                           ) != np.inf,\
                            C_f_hat,\
@@ -104,7 +116,8 @@ def dY_dt(self, Y):
                           )
     
     dY_dt = af.constant(0, self.N_q1, self.N_q2,\
-                        self.p1.shape[2], 7, dtype = af.Dtype.c64
+                        self.N_p1 * self.N_p2 * self.N_p3,
+                        7, dtype = af.Dtype.c64
                        )
 
     dY_dt[:, :, :, 0] = df_hat_dt
@@ -117,4 +130,5 @@ def dY_dt(self, Y):
     dY_dt[:, :, :, 5] = dB2_hat_dt
     dY_dt[:, :, :, 6] = dB3_hat_dt
 
+    af.eval(dY_dt)
     return(dY_dt)

@@ -18,6 +18,7 @@ def compute_moments(self, moment_name):
     moments_exponents, and moments_coefficients and calculate the same
     accordingly
     """
+    af.device_gc() # Clearing memory which is out of scope
 
     # Checking that the moment-name is defined by the user:
     try:
@@ -54,8 +55,4 @@ def compute_moments(self, moment_name):
     moment     = af.real(af.ifft2(moment_hat))
 
     af.eval(moment)
-
-    # Deleting unnecessary variables:
-    del moment_hat; af.device_gc()
-    
     return(moment)

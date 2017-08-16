@@ -172,17 +172,17 @@ class linear_solver(object):
                          self.p1, self.p2, self.p3, params
                          )
 
-        self.f_hat = af.fft2(f)
+        f_hat = af.fft2(f)
 
         # Since (k_q1, k_q2) = (0, 0) will give the background distribution:
-        self.f_background = af.abs(self.f_hat[0, 0, :]) \
+        self.f_background = af.abs(f_hat[0, 0, :]) \
                             / (self.N_q1 * self.N_q2)
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
 
         # Scaling Appropriately:
-        self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2)
+        f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
         # Using a vector Y to evolve the system:
         self.Y             = af.constant(0, self.N_q1, self.N_q2,\
@@ -190,7 +190,7 @@ class linear_solver(object):
                                          7, dtype = af.Dtype.c64
                                         )
 
-        self.Y[:, :, :, 0] = self.f_hat
+        self.Y[:, :, :, 0] = f_hat
         
         # Initializing EM fields using Poisson Equation:
         if(self.physical_system.params.fields_initialize == 'electrostatic' or
