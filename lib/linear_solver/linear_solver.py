@@ -8,25 +8,24 @@
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-from scipy.fftpack import fftfreq
+from numpy.fft import fftfreq
 
 # Importing solver functions:
-from bolt.lib.linear_solver.time_derivative_functions import df_dt, dY_dt
+from lib.linear_solver.dY_dt import dY_dt
 
-from bolt.lib.linear_solver.timestepper import RK2_step as RK2_step_imported
-from bolt.lib.linear_solver.timestepper import RK4_step as RK4_step_imported
-from bolt.lib.linear_solver.timestepper import RK6_step as RK6_step_imported
+from lib.linear_solver.timestepper import RK2_step as RK2_step_imported
+from lib.linear_solver.timestepper import RK4_step as RK4_step_imported
+from lib.linear_solver.timestepper import RK6_step as RK6_step_imported
 
-from bolt.lib.linear_solver.EM_fields_solver \
-    import compute_electrostatic_fields
+from lib.linear_solver.EM_fields_solver import compute_electrostatic_fields
 
-from bolt.lib.linear_solver.calculate_dfdp_background \
+from lib.linear_solver.calculate_dfdp_background \
     import calculate_dfdp_background
 
-from bolt.lib.linear_solver.compute_moments \
+from lib.linear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 
-import bolt.lib.linear_solver.dump as dump
+import lib.linear_solver.dump as dump
 
 
 class linear_solver(object):
@@ -109,7 +108,13 @@ class linear_solver(object):
         q2_center = af.to_array(q2_center)
         q1_center = af.to_array(q1_center)
 
+        q2_center = af.tile(q2_center, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+        q1_center = af.tile(q1_center, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+
         af.eval(q1_center, q2_center)
+
+        # returned in positionsExpanded form
+        # (N_q1, N_q2, N_p1*N_p2*N_p3)
         return(q1_center, q2_center)
 
     def _calculate_k(self):
@@ -125,7 +130,13 @@ class linear_solver(object):
         k_q2 = af.to_array(k_q2)
         k_q1 = af.to_array(k_q1)
 
+        k_q2 = af.tile(k_q2, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+        k_q1 = af.tile(k_q1, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+
         af.eval(k_q1, k_q2)
+
+        # returned in positionsExpanded form
+        # (N_q1, N_q2, N_p1*N_p2*N_p3)
         return(k_q1, k_q2)
 
     def _calculate_p(self):
@@ -141,26 +152,38 @@ class linear_solver(object):
         p3_center = self.p3_start + \
             (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
 
-        p2_center, p1_center, p3_center = np.meshgrid(p2_center,
-                                                      p1_center,
-                                                      p3_center)
+        p2_center, p1_center, p3_center = np.meshgrid(
+            p2_center, p1_center, p3_center)
 
         p1_center = af.flat(af.to_array(p1_center))
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
 
-        p1_center = af.reorder(p1_center, 2, 3, 0, 1)
-        p2_center = af.reorder(p2_center, 2, 3, 0, 1)
-        p3_center = af.reorder(p3_center, 2, 3, 0, 1)
+        p1_center = af.tile(af.reorder(p1_center, 2, 3, 0, 1),
+                            self.N_q1,
+                            self.N_q2,
+                            1,
+                            1)
+        p2_center = af.tile(af.reorder(p2_center, 2, 3, 0, 1),
+                            self.N_q1,
+                            self.N_q2,
+                            1,
+                            1)
+        p3_center = af.tile(af.reorder(p3_center, 2, 3, 0, 1),
+                            self.N_q1,
+                            self.N_q2,
+                            1,
+                            1)
 
         af.eval(p1_center, p2_center, p3_center)
+        # returned in positionsExpanded form
+        # (N_q1, N_q2, N_p1*N_p2*N_p3)
         return(p1_center, p2_center, p3_center)
 
-    # Assigning function that is used in computing the derivatives
+    # Assigning function that is used in computiong the derivatives
     # of the background distribution function:
     _calculate_dfdp_background = calculate_dfdp_background
 
-    @af.broadcast
     def _initialize(self, params):
         """
         Called when the solver object is declared. This function is
@@ -185,8 +208,12 @@ class linear_solver(object):
         # Scaling Appropriately:
         self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2)
 
-        # Using a vector Y to evolve the EM fields of the ssystem:
-        self.Y = af.constant(0, self.N_q1, self.N_q2, 6, dtype=af.Dtype.c64)
+        # Using a vector Y to evolve the system:
+        self.Y = af.constant(0, self.p1.shape[0], self.p1.shape[1],
+                             self.p1.shape[2], 7, dtype=af.Dtype.c64
+                             )
+
+        self.Y[:, :, :, 0] = self.f_hat
 
         # Initializing EM fields using Poisson Equation:
         if(self.physical_system.params.fields_initialize == 'electrostatic' or
@@ -212,18 +239,17 @@ class linear_solver(object):
         else:
             raise NotImplementedError('Method invalid/not-implemented')
 
-        self.Y[:, :, 0] = self.E1_hat
-        self.Y[:, :, 1] = self.E2_hat
-        self.Y[:, :, 2] = self.E3_hat
-        self.Y[:, :, 3] = self.B1_hat
-        self.Y[:, :, 4] = self.B2_hat
-        self.Y[:, :, 5] = self.B3_hat
+        self.Y[:, :, :, 1] = self.E1_hat
+        self.Y[:, :, :, 2] = self.E2_hat
+        self.Y[:, :, :, 3] = self.E3_hat
+        self.Y[:, :, :, 4] = self.B1_hat
+        self.Y[:, :, :, 5] = self.B2_hat
+        self.Y[:, :, :, 6] = self.B3_hat
 
         return
 
     # Injection of solver methods from other files:
     _dY_dt = dY_dt
-    _df_dt = df_dt
 
     RK2_step = RK2_step_imported
     RK4_step = RK4_step_imported
