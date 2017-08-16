@@ -186,7 +186,8 @@ class linear_solver(object):
 
         # Using a vector Y to evolve the system:
         self.Y             = af.constant(0, self.N_q1, self.N_q2,\
-                                         self.p1.shape[2], 7, dtype = af.Dtype.c64
+                                         self.N_p1 * self.N_p2 * self.N_p3,
+                                         7, dtype = af.Dtype.c64
                                         )
 
         self.Y[:, :, :, 0] = self.f_hat
@@ -195,7 +196,6 @@ class linear_solver(object):
         if(self.physical_system.params.fields_initialize == 'electrostatic' or
            self.physical_system.params.fields_initialize == 'fft'
            ):
-            print('hereiam')
             compute_electrostatic_fields(self)
 
         # If option is given as user-defined:
@@ -216,17 +216,12 @@ class linear_solver(object):
         else:
             raise NotImplementedError('Method invalid/not-implemented')
 
-        print('there')
-
-
-        self.Y[:, :, 0] = self.E1_hat
-        self.Y[:, :, 1] = self.E2_hat
-        self.Y[:, :, 2] = self.E3_hat
-        self.Y[:, :, 3] = self.B1_hat
-        self.Y[:, :, 4] = self.B2_hat
-        self.Y[:, :, 5] = self.B3_hat
-
-        print('there')
+        self.Y[:, :, :, 1] = self.E1_hat
+        self.Y[:, :, :, 2] = self.E2_hat
+        self.Y[:, :, :, 3] = self.E3_hat
+        self.Y[:, :, :, 4] = self.B1_hat
+        self.Y[:, :, :, 5] = self.B2_hat
+        self.Y[:, :, :, 6] = self.B3_hat
 
         return
 

@@ -4,16 +4,6 @@
 import arrayfire as af
 import numpy as np
 
-@af.broadcast
-def multiply(*args):
-    result = 1
-    for arg in args:
-        result *= arg
-
-    af.eval(result)
-    return(result)
-
-
 def compute_moments(self, moment_name):
     """
     Used in computing the moments of the distribution function.
@@ -56,7 +46,7 @@ def compute_moments(self, moment_name):
                           moment_coeffs[1] * self.p2**(moment_exponents[1]) + \
                           moment_coeffs[2] * self.p3**(moment_exponents[2])
 
-    moment_hat = af.sum(multiply(self.f_hat, moment_variable), 2) * \
+    moment_hat = af.sum(af.broadcast(lambda a, b:a*b, self.Y[:, :, :, 0], moment_variable), 2) * \
                  self.dp3 * self.dp2 * self.dp1
 
     # Scaling Appropriately:
