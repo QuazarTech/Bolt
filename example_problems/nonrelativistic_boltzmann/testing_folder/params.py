@@ -8,7 +8,7 @@ import arrayfire as af
 fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
@@ -20,12 +20,12 @@ time_stepper = 'RK6'
 p_dim = 1
 
 # Constants:
-mass_particle      = 1
+mass_particle = 1
 boltzmann_constant = 1
-charge_electron    = -10
+charge_electron = -10
 
 # Initial Conditions used in initialize:
-rho_background         = 1
+rho_background = 1
 temperature_background = 1
 
 p1_bulk_background = 0
@@ -35,9 +35,11 @@ p3_bulk_background = 0
 pert_real = 0.01
 pert_imag = 0
 
-k_q1 = 2*np.pi
+k_q1 = 2 * np.pi
 k_q2 = 0
+
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-  return(af.constant(0.01, q1.shape[0], q1.shape[1], q1.shape[2], dtype = af.Dtype.f64))
+    return (af.constant(
+        0.01, q1.shape[0], q1.shape[1], p1.shape[2], dtype=af.Dtype.f64))
