@@ -34,8 +34,6 @@ def dY_dt(self, Y):
     -------
     dY_dt : The time-derivatives of all the quantities stored in Y
     """
-    af.device_gc() # Clearing memory which is out of scope
-
     f_hat = Y[:, :, :, 0]
     
     self.E1_hat = Y[:, :, :, 1]
@@ -115,20 +113,8 @@ def dY_dt(self, Y):
                            0
                           )
     
-    dY_dt = af.constant(0, self.N_q1, self.N_q2,\
-                        self.N_p1 * self.N_p2 * self.N_p3,
-                        7, dtype = af.Dtype.c64
-                       )
-
-    dY_dt[:, :, :, 0] = df_hat_dt
-    
-    dY_dt[:, :, :, 1] = dE1_hat_dt
-    dY_dt[:, :, :, 2] = dE2_hat_dt
-    dY_dt[:, :, :, 3] = dE3_hat_dt
-    
-    dY_dt[:, :, :, 4] = dB1_hat_dt
-    dY_dt[:, :, :, 5] = dB2_hat_dt
-    dY_dt[:, :, :, 6] = dB3_hat_dt
+    dY_dt = af.join(3, af.join(3, df_hat_dt, dE1_hat_dt, dE2_hat_dt, dE3_hat_dt),
+                    dB1_hat_dt, dB2_hat_dt, dB3_hat_dt)
 
     af.eval(dY_dt)
     return(dY_dt)

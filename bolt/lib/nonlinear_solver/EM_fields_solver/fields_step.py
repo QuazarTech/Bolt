@@ -12,13 +12,8 @@ from bolt.lib.nonlinear_solver.interpolation_routines \
 
 
 def fields_step(self, dt):
-
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local,
-                                  N_q2_local)) = self._da_fields.getCorners()
-
+    af.device_gc() # Clearing out of scope memory
+    
     if (self.physical_system.params.fields_solver == 'fft'):
         fft_poisson(self)
         self._communicate_fields()

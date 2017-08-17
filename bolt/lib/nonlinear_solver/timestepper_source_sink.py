@@ -10,7 +10,6 @@ def RK2_step(self, dt, testing=0):
     df/dt = source_sink_term
     using RK2 time stepping.
     """
-
     f_initial = self.f.copy()  # Storing the value at the start
 
     if (testing == 0):

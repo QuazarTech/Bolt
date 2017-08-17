@@ -18,8 +18,6 @@ def compute_moments(self, moment_name):
     moments_exponents, and moments_coefficients and calculate the same
     accordingly
     """
-    af.device_gc() # Clearing memory which is out of scope
-
     # Checking that the moment-name is defined by the user:
     try:
         moment_exponents = np.array(

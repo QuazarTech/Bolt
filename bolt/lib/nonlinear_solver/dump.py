@@ -89,16 +89,16 @@ def dump_distribution_function(self, file_name):
     # rewrite to overcome this:
     # need to add this in the post processing file?
 
-    h5f = h5py.File('file_name' + '.h5', 'r')
-    f = h5f['distribution_function'][:]
-    h5f.close()
+    # h5f = h5py.File('file_name' + '.h5', 'r')
+    # f = h5f['distribution_function'][:]
+    # h5f.close()
 
-    f = np.swapaxes(f, 0, 1).reshape(self.N_q1, self.N_q2,
-                                     self.N_p3, self.N_p2, self.N_p1)
-    f = np.swapaxes(f, 4, 2)
+    # f = np.swapaxes(f, 0, 1).reshape(self.N_q1, self.N_q2,
+    #                                  self.N_p3, self.N_p2, self.N_p1)
+    # f = np.swapaxes(f, 4, 2)
 
-    h5f = h5py.File('file_name' + '.h5', 'r')
-    h5f.create_dataset('distribution_function', data=f)
-    h5f.close()
+    # h5f = h5py.File('file_name' + '.h5', 'r')
+    # h5f.create_dataset('distribution_function', data=f)
+    # h5f.close()
 
     return

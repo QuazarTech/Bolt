@@ -10,7 +10,7 @@ from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear_solver.nonlinear_solver \
     import nonlinear_solver
 
-# from bolt.lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.linear_solver.linear_solver import linear_solver
 
 import domain
 import boundary_conditions
@@ -66,7 +66,7 @@ system = physical_system(domain,\
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-# ls  = linear_solver(system)
+ls  = linear_solver(system)
 
 # Time parameters:
 dt = 0.001
@@ -75,7 +75,7 @@ t_final = 0.5
 time_array = np.arange(0, t_final + dt, dt)
 
 # Initializing Arrays used in storing the data:
-# density_data_ls  = np.zeros_like(time_array)
+density_data_ls  = np.zeros_like(time_array)
 density_data_nls = np.zeros_like(time_array)
 
 def time_evolution():
@@ -83,17 +83,18 @@ def time_evolution():
     for time_index, t0 in enumerate(time_array):
 
         print('Computing For Time =', t0)
+        
         nls.strang_timestep(dt)
-        # ls.RK2_step(dt)
+        ls.RK2_step(dt)
 
         density_data_nls[time_index] = af.max(nls.compute_moments('density'))
-        # density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
+        density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
+        
         print(af.print_mem_info())
-
 
 time_evolution()
 
-# pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, density_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'$\rho$')
 pl.xlabel('Time')

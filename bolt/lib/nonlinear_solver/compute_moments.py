@@ -19,8 +19,6 @@ def compute_moments(self, moment_name):
     moments_exponents, and moments_coefficients and calculate the same
     accordingly
     """
-    af.device_gc() # Clearing memory which is out of scope
-
     try:
         moment_exponents = np.array(
             self.physical_system.moment_exponents[moment_name])

@@ -36,17 +36,6 @@ class test(object):
         self.dp2 = (self.p2_end - self.p2_start) / self.N_p2
         self.dp3 = (self.p3_end - self.p3_start) / self.N_p3
 
-        self.N_q1 = np.random.randint(16, 32)
-        self.N_q2 = np.random.randint(16, 32)
-
-        self.N_ghost = np.random.randint(1, 5)
-
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                        dof=(self.N_p1 *
-                                             self.N_p2 *
-                                             self.N_p3),
-                                        stencil_width=self.N_ghost)
-
 
 def test_calculate_p():
     obj = test()
@@ -60,21 +49,15 @@ def test_calculate_p():
     p2_expected, p1_expected, p3_expected = \
         np.meshgrid(p2_expected, p1_expected, p3_expected)
 
-    p1_expected = af.tile(af.reorder(af.flat(af.to_array(p1_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1 + 2 * obj.N_ghost,
-                          obj.N_q2 + 2 * obj.N_ghost, 1, 1)
+    p1_expected = af.reorder(af.flat(af.to_array(p1_expected)),
+                             2, 3, 0, 1)
 
-    p2_expected = af.tile(af.reorder(af.flat(af.to_array(p2_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1 + 2 * obj.N_ghost,
-                          obj.N_q2 + 2 * obj.N_ghost, 1, 1)
+    p2_expected = af.reorder(af.flat(af.to_array(p2_expected)),
+                             2, 3, 0, 1)
 
-    p3_expected = af.tile(af.reorder(af.flat(af.to_array(p3_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1 + 2 * obj.N_ghost,
-                          obj.N_q2 + 2 * obj.N_ghost, 1, 1)
-
+    p3_expected = af.reorder(af.flat(af.to_array(p3_expected)),
+                             2, 3, 0, 1)
+    
     assert (af.sum(af.abs(p1_expected - p1)) +
             af.sum(af.abs(p2_expected - p2)) +
             af.sum(af.abs(p3_expected - p3)) == 0)

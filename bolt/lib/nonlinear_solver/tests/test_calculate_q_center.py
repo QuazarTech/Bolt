@@ -34,14 +34,8 @@ class test(object):
 
         self.N_ghost = np.random.randint(1, 5)
 
-        self.N_p1 = np.random.randint(16, 32)
-        self.N_p2 = np.random.randint(16, 32)
-        self.N_p3 = np.random.randint(16, 32)
-
         self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                        dof=(self.N_p1 *
-                                             self.N_p2 *
-                                             self.N_p3),
+                                        dof = 1,
                                         stencil_width=self.N_ghost)
 
 
@@ -56,11 +50,11 @@ def test_calculate_q():
 
     q1_expected = af.tile(af.to_array(q1_expected), 1,
                           obj.N_q2 + 2 * obj.N_ghost,
-                          obj.N_p1 * obj.N_p2 * obj.N_p3)
+                          )
 
     q2_expected = af.tile(af.reorder(af.to_array(q2_expected)),
                           obj.N_q1 + 2 * obj.N_ghost, 1,
-                          obj.N_p1 * obj.N_p2 * obj.N_p3)
+                          )
 
     assert (af.sum(af.abs(q1_expected - q1)) +
             af.sum(af.abs(q2_expected - q2)) == 0)

@@ -185,10 +185,10 @@ class linear_solver(object):
         f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
         # Using a vector Y to evolve the system:
-        self.Y             = af.constant(0, self.N_q1, self.N_q2,\
-                                         self.N_p1 * self.N_p2 * self.N_p3,
-                                         7, dtype = af.Dtype.c64
-                                        )
+        self.Y = af.constant(0, self.N_q1, self.N_q2,\
+                             self.N_p1 * self.N_p2 * self.N_p3,
+                             7, dtype = af.Dtype.c64
+                             )
 
         self.Y[:, :, :, 0] = f_hat
 
@@ -240,6 +240,7 @@ class linear_solver(object):
         self.Y[:, :, :, 5] = self.B2_hat
         self.Y[:, :, :, 6] = self.B3_hat
 
+        af.eval(self.Y)
         return
 
     # Injection of solver methods from other files:

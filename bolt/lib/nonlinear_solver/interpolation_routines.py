@@ -14,6 +14,7 @@ def f_interp_2d(self, dt):
                                   N_q2_local)) = self._da.getCorners()
 
     addition = lambda a,b:a + b
+    
     q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 

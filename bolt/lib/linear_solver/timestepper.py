@@ -9,8 +9,6 @@ def RK6_step(self, dt):
     making use of the RK-6 time-stepping scheme. This scheme is 5th order
     accurate in time.
     """
-    af.device_gc() # Clearing memory which is out of scope
-
     k1 = self._dY_dt(self.Y)
     k2 = self._dY_dt(self.Y + 0.25*k1*dt)
     k3 = self._dY_dt(self.Y + (3/32)*(k1+3*k2)*dt)
