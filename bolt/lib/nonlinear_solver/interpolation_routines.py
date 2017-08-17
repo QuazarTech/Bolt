@@ -5,8 +5,6 @@ import arrayfire as af
 
 
 def f_interp_2d(self, dt):
-    af.device_gc() # Clearing memory which is out of scope
-    
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -44,8 +42,6 @@ def f_interp_p_3d(self, dt):
     the arrays used in the computation need to be in velocitiesExpanded form.
     Hence we will need to convert the same:
     """
-    af.device_gc() # Clearing out of scope memory
-    
     # Following Lie Splitting:
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
