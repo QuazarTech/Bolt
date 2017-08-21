@@ -115,6 +115,14 @@ class nonlinear_solver(object):
         self._glob_fields = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
 
+        # Accessing the values of the global and local Vectors:
+
+        self.local_value_f = self._da.getVecArray(self._local)
+        self.glob_value_f = self._da.getVecArray(self._glob)
+
+        self.local_value_fields = self._da_fields.getVecArray(self._local_fields)
+        self.glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
+
         # Obtaining the array values of the cannonical variables:
         self.q1_center, self.q2_center = self._calculate_q_center()
 
@@ -176,10 +184,10 @@ class nonlinear_solver(object):
         i_q1_center = i_q1_lowest + 0.5
         i_q2_center = i_q2_lowest + 0.5
 
-        i_q1 = i_q1_center + \
-               np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
-        i_q2 = i_q2_center + \
-               np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
+        i_q1 = (i_q1_center +
+                np.arange(-self.N_ghost, N_q1_local + self.N_ghost))
+        i_q2 = (i_q2_center +
+                np.arange(-self.N_ghost, N_q2_local + self.N_ghost))
 
         q1_center = self.q1_start + i_q1 * self.dq1
         q2_center = self.q2_start + i_q2 * self.dq2
@@ -230,7 +238,7 @@ class nonlinear_solver(object):
         Used to initialize the distribution function, and the
         EM field quantities
         """
-        self.f = af.broadcast(self.physical_system.initial_conditions.\
+        self.f = af.broadcast(self.physical_system.initial_conditions.
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, params
                               )
@@ -273,9 +281,7 @@ class nonlinear_solver(object):
             raise NotImplementedError('Method not valid/not implemented')
 
         # Getting the values at the FDTD grid points:
-        self.E1_fdtd = 0.5 * \
-                       (self.E1 + af.shift(self.E1, 0, 1))  # (i + 1/2, j)
-        self.E2_fdtd = 0.5 * \
-                       (self.E2 + af.shift(self.E2, 1, 0))  # (i, j + 1/2)
+        self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
+        self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
 
         return

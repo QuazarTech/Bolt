@@ -17,8 +17,8 @@ def strang_step(self, dt):
     f_interp_2d(self, 0.25 * dt)
     self._communicate_distribution_function()
     # Solving the source/sink terms:
-    # RK2_step(self, 0.5 * dt)
-    # self._communicate_distribution_function()
+    RK2_step(self, 0.5 * dt)
+    self._communicate_distribution_function()
     # Advection in position space:
     f_interp_2d(self, 0.25 * dt)
     self._communicate_distribution_function()
@@ -31,8 +31,8 @@ def strang_step(self, dt):
     f_interp_2d(self, 0.25 * dt)
     self._communicate_distribution_function()
     # Solving the source/sink terms:
-    # RK2_step(self, 0.5 * dt)
-    # self._communicate_distribution_function()
+    RK2_step(self, 0.5 * dt)
+    self._communicate_distribution_function()
     # Advection in position space:
     f_interp_2d(self, 0.25 * dt)
     self._communicate_distribution_function()
