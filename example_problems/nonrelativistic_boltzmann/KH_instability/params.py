@@ -21,4 +21,4 @@ p_dim = 3
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (0.01 * af.broadcast(lambda a, b:a*b, q1**0,p1**0))
+    return (0.001 * af.broadcast(lambda a, b:a*b, q1**0,p1**0))
