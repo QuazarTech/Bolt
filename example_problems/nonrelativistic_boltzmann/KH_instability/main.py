@@ -2,6 +2,8 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 
+from tqdm import trange
+
 # Printing device, and backend details:
 af.info()
 
@@ -55,16 +57,17 @@ pl.rcParams['ytick.labelsize'] = 'medium'
 pl.rcParams['ytick.direction'] = 'in'
 
 # Defining the physical system to be solved:
-system = physical_system(domain,\
-                         boundary_conditions,\
-                         params,\
-                         initialize,\
-                         advection_terms,\
-                         collision_operator.BGK,\
+system = physical_system(domain,
+                         boundary_conditions,
+                         params,
+                         initialize,
+                         advection_terms,
+                         collision_operator.BGK,
                          moment_defs
-                        )
+                         )
 
-# Declaring a linear system object which will evolve the defined physical system:
+# Declaring a linear system object which will evolve
+# the defined physical system:
 nls = nonlinear_solver(system)
 
 # Time parameters:
@@ -73,23 +76,26 @@ t_final = 5.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
+v = np.linspace(0.9, 2.1, 100)
+
 
 def time_evolution():
 
-    for time_index, t0 in enumerate(time_array):
-        print('Computing For Time =', t0)
+    for time_index in trange(time_array.size):
         nls.strang_timestep(dt)
+
         density = nls.compute_moments('density')
 
         pl.contourf(np.array(nls.q1_center)[3:-3, 3:-3],
                     np.array(nls.q2_center)[3:-3, 3:-3],
-                    np.array(density)[3:-3, 3:-3], 100)
+                    np.array(density)[3:-3, 3:-3], v)
 
         pl.colorbar()
         pl.xlabel('$x$')
         pl.ylabel('$y$')
-        pl.title('Time = ' + str(t0))
+        pl.title('Time = ' + str(time_array[time_index]))
         pl.savefig('images/' + "%04d"%time_index + ".png")
         pl.clf()
+
 
 time_evolution()
