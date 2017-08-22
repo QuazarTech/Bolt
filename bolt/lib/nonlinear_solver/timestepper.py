@@ -15,13 +15,31 @@ from bolt.lib.nonlinear_solver.EM_fields_solver.fields_step \
 def strang_step(self, dt):
     # Advection in position space:
     f_interp_2d(self, 0.5 * dt)
-    self._communicate_distribution_function()
+
+    self.f[:3] = self.f[-6:-3]
+    self.f[-3:] = self.f[3:6]
+    self.f[:, :3] = self.f[:, -6:-3]
+    self.f[:, -3:] = self.f[:, 3:6]
+
+    # self._communicate_distribution_function()
     # Solving the source/sink terms:
     RK2_step(self, 1 * dt)
-    self._communicate_distribution_function()
+
+    self.f[:3] = self.f[-6:-3]
+    self.f[-3:] = self.f[3:6]
+    self.f[:, :3] = self.f[:, -6:-3]
+    self.f[:, -3:] = self.f[:, 3:6]
+
+    # self._communicate_distribution_function()
     # Advection in position space:
     f_interp_2d(self, 0.5 * dt)
-    self._communicate_distribution_function()
+
+    self.f[:3] = self.f[-6:-3]
+    self.f[-3:] = self.f[3:6]
+    self.f[:, :3] = self.f[:, -6:-3]
+    self.f[:, -3:] = self.f[:, 3:6]
+
+    # self._communicate_distribution_function()
 
     # Advection in velocity space:
     # fields_step(self, dt)

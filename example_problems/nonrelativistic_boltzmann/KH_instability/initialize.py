@@ -12,9 +12,19 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    rho = (af.abs(q2) <= 0.25) * 2 + (af.abs(q2) > 0.25)
+    q2_minus = -0.25
+    q2_plus = 0.25
 
-    p1_bulk = (af.abs(q2) <= 0.25) * 0.5 - (af.abs(q2) > 0.25) * 0.5
+    regulator = 50  # larger value makes the transition sharper
+
+    amplitude_p1 = 0.5
+
+    rho = 0.5 * (np.tanh(( q2 - q2_minus)*regulator) -
+                 np.tanh(( q2 - q2_plus)*regulator)) + 1
+
+    p1_bulk = amplitude_p1 * \
+              (af.tanh(( q2 - q2_minus)*regulator) -
+               af.tanh(( q2 - q2_plus )*regulator) - 1)
 
     T = (2.5 / rho)
 
