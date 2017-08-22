@@ -26,7 +26,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize'] = 12, 7.5
-pl.rcParams['figure.dpi'] = 300
+pl.rcParams['figure.dpi'] = 200
 pl.rcParams['image.cmap'] = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family'] = 'serif'
@@ -66,37 +66,30 @@ system = physical_system(domain,\
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
 
 # Time parameters:
 dt = 0.01
-t_final = 1.0
+t_final = 5.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
-# Initializing Arrays used in storing the data:
-density_data_ls  = np.zeros_like(time_array)
-density_data_nls = np.zeros_like(time_array)
 
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-
         print('Computing For Time =', t0)
-        
         nls.strang_timestep(dt)
-        ls.RK6_step(dt)
+        density = nls.compute_moments('density')
 
-        density_data_nls[time_index] = af.max(nls.compute_moments('density'))
-        density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
-        
-        print(af.print_mem_info())
+        pl.contourf(np.array(nls.q1_center)[3:-3, 3:-3],
+                    np.array(nls.q2_center)[3:-3, 3:-3],
+                    np.array(density)[3:-3, 3:-3], 100)
+
+        pl.colorbar()
+        pl.xlabel('$x$')
+        pl.ylabel('$y$')
+        pl.title('Time = ' + str(t0))
+        pl.savefig('images/' + "%04d"%time_index + ".png")
+        pl.clf()
 
 time_evolution()
-
-# pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, density_data_nls, label='Nonlinear Solver')
-pl.ylabel(r'$\rho$')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('plot.png')
