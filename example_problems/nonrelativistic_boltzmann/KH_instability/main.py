@@ -71,8 +71,8 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt = 0.0001
-t_final = 5.0
+dt = 0.00001
+t_final = 1.1
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -86,7 +86,7 @@ def time_evolution():
 
         density = nls.compute_moments('density')
 
-        if(time_index%100==0):
+        if(time_index%1000==0):
             pl.contourf(np.array(nls.q1_center)[3:-3, 3:-3],
                         np.array(nls.q2_center)[3:-3, 3:-3],
                         np.array(density)[3:-3, 3:-3], v)
