@@ -56,7 +56,7 @@ def time_evolution():
         density = nls.compute_moments('density')
 
         if(time_index%1000==0):
-            density_vec_value[:] = density
+            density_vec_value[:] = np.array(density[3:-3, 3:-3])
             viewer = PETSc.Viewer().createHDF5('dump/density_' + str(time_index) + '.h5',
                                                'w', comm=nls._comm)
             viewer(density_vec)
