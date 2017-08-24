@@ -18,7 +18,8 @@ boltzmann_constant = 1
 charge_electron = 0
 
 p_dim = 3
+num_devices = 4
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (0.001 * af.broadcast(lambda a, b:a*b, q1**0,p1**0))
+    return (0.00001 * af.broadcast(lambda a, b:a*b, q1**0,p1**0))

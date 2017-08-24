@@ -65,6 +65,9 @@ class nonlinear_solver(object):
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
 
+        if(self.physical_system.params.num_devices>1):
+            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+
         # The DA structure is used in domain decomposition:
         # The following DA is used in the communication routines where
         # information about the data of the distribution function needs
@@ -107,21 +110,21 @@ class nonlinear_solver(object):
 
         # Creation of the local and global vectors from the DA:
         # This is for the distribution function
-        # self._glob = self._da.createGlobalVec()
-        # self._local = self._da.createLocalVec()
+        self._glob = self._da.createGlobalVec()
+        self._local = self._da.createLocalVec()
 
         # The following global and local vectors are used in
         # the communication routines for EM fields
-        # self._glob_fields = self._da_fields.createGlobalVec()
-        # self._local_fields = self._da_fields.createLocalVec()
+        self._glob_fields = self._da_fields.createGlobalVec()
+        self._local_fields = self._da_fields.createLocalVec()
 
         # Accessing the values of the global and local Vectors:
 
-        # self.local_value_f = self._da.getVecArray(self._local)
-        # self.glob_value_f = self._da.getVecArray(self._glob)
+        self.local_value_f = self._da.getVecArray(self._local)
+        self.glob_value_f = self._da.getVecArray(self._glob)
 
-        # self.local_value_fields = self._da_fields.getVecArray(self._local_fields)
-        # self.glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
+        self.local_value_fields = self._da_fields.getVecArray(self._local_fields)
+        self.glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
 
         # Obtaining the array values of the cannonical variables:
         self.q1_center, self.q2_center = self._calculate_q_center()
