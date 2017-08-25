@@ -90,8 +90,6 @@ def time_evolution():
         density_data_nls[time_index] = af.max(nls.compute_moments('density'))
         density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
         
-        print(af.print_mem_info())
-
 time_evolution()
 
 # pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')

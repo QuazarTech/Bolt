@@ -16,6 +16,9 @@ time_splitting = 'strang'
 # Dimensionality considered in velocity space:
 p_dim = 1
 
+# Number of devices(GPUs/Accelerators) on each node:
+num_devices = 1
+
 # Constants:
 mass_particle = 1
 boltzmann_constant = 1
