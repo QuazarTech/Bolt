@@ -4,10 +4,10 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'fft'
+fields_initialize = 'electrostatic'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fft'
+fields_solver = 'fdtd'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
@@ -15,7 +15,7 @@ time_splitting = 'strang'
 # Constants:
 mass_particle = 1
 boltzmann_constant = 1
-charge_electron = 0
+charge_electron = -1
 
 p_dim = 3
 num_devices = 4

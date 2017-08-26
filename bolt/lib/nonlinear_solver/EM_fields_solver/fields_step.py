@@ -33,7 +33,7 @@ def fields_step(self, dt):
                   self.compute_moments('mom_p3_bulk')  # (i + 1/2, j + 1/2)
 
         # Obtaining the values for current density on the Yee-Grid:
-        self.J1 = 0.5 * (self.J1 + af.shift(self.J2, 0, 1))  # (i + 1/2, j)
+        self.J1 = 0.5 * (self.J1 + af.shift(self.J1, 0, 1))  # (i + 1/2, j)
         self.J2 = 0.5 * (self.J2 + af.shift(self.J2, 1, 0))  # (i, j + 1/2)
 
         self.J3 = 0.25 * (self.J3 + af.shift(self.J3, 1, 0) +

@@ -64,6 +64,9 @@ class test_distribution_function(object):
         self._glob = self._da.createGlobalVec()
         self._local = self._da.createLocalVec()
 
+        self._glob_value_f = self._da.getVecArray(self._glob)
+        self._local_value_f = self._da.getVecArray(self._local)
+
         self.f = af.constant(0,
                              self.q1.shape[0],
                              self.q1.shape[1],
@@ -114,6 +117,9 @@ class test_fields(object):
 
         self._glob_fields = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
+
+        self._glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
 
         self.E1 = af.constant(0, self.q1.shape[0], self.q1.shape[1],
                               dtype=af.Dtype.f64)

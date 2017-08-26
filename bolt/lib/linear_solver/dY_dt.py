@@ -54,9 +54,9 @@ def dY_dt(self, Y):
                                                self.physical_system.params
                                               ))/(self.N_q2 * self.N_q1)
 
-    mom_bulk_p1 = self.compute_moments('mom_p1_bulk')
-    mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
-    mom_bulk_p3 = self.compute_moments('mom_p3_bulk')
+    mom_bulk_p1 = 0*self.compute_moments('mom_p1_bulk')
+    mom_bulk_p2 = 0*self.compute_moments('mom_p2_bulk')
+    mom_bulk_p3 = 0*self.compute_moments('mom_p3_bulk')
 
     J1_hat = 2 * af.fft2(self.physical_system.params.charge_electron * 
                          mom_bulk_p1)/(self.N_q1 * self.N_q2)

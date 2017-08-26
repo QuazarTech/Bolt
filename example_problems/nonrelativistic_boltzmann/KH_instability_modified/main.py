@@ -44,7 +44,7 @@ PETSc.Object.setName(density_vec, 'density')
 
 # Time parameters:
 dt      = 0.00001
-t_final = 6.5
+t_final = 0.001
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -53,12 +53,12 @@ def time_evolution():
     for time_index in trange(time_array.size):
         nls.strang_timestep(dt)
 
-        density = nls.compute_moments('density')
+        # density = nls.compute_moments('density')
 
-        if(time_index%1000==0):
-            density_vec_value[:] = np.array(density[3:-3, 3:-3])
-            viewer = PETSc.Viewer().createHDF5('dump/density_' + str(time_index) + '.h5',
-                                               'w', comm=nls._comm)
-            viewer(density_vec)
+        # if(time_index%1000==0):
+        #     density_vec_value[:] = np.array(density[3:-3, 3:-3])
+        #     viewer = PETSc.Viewer().createHDF5('dump/density_' + str(time_index) + '.h5',
+        #                                        'w', comm=nls._comm)
+        #     viewer(density_vec)
 
 time_evolution()

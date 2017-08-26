@@ -16,15 +16,15 @@ def communicate_distribution_function(self):
     N_ghost = self.N_ghost
 
     # Global value is non-inclusive of the ghost-zones:
-    self.glob_value_f[:] = np.array(self.f[N_ghost:-N_ghost, 
-                                           N_ghost:-N_ghost])
+    self._glob_value_f[:] = np.array(self.f[N_ghost:-N_ghost, 
+                                            N_ghost:-N_ghost])
     
     # The following function takes care of periodic boundary conditions,
     # and interzonal communications:
     self._da.globalToLocal(self._glob, self._local)
 
     # Converting back from PETSc.Vec to af.Array:
-    self.f = af.to_array(self.local_value_f[:])
+    self.f = af.to_array(self._local_value_f[:])
 
     af.eval(self.f)
     return
@@ -44,48 +44,48 @@ def communicate_fields(self, on_fdtd_grid=False):
     # to the PETSc.Vec:
 
     if(on_fdtd_grid is True):
-        (self.local_value_fields[:])[:, :, 0] = np.array(self.E1_fdtd)
-        (self.local_value_fields[:])[:, :, 1] = np.array(self.E2_fdtd)
-        (self.local_value_fields[:])[:, :, 2] = np.array(self.E3_fdtd)
+        (self._local_value_fields[:])[:, :, 0] = np.array(self.E1_fdtd)
+        (self._local_value_fields[:])[:, :, 1] = np.array(self.E2_fdtd)
+        (self._local_value_fields[:])[:, :, 2] = np.array(self.E3_fdtd)
 
-        (self.local_value_fields[:])[:, :, 3] = np.array(self.B1_fdtd)
-        (self.local_value_fields[:])[:, :, 4] = np.array(self.B2_fdtd)
-        (self.local_value_fields[:])[:, :, 5] = np.array(self.B3_fdtd)
+        (self._local_value_fields[:])[:, :, 3] = np.array(self.B1_fdtd)
+        (self._local_value_fields[:])[:, :, 4] = np.array(self.B2_fdtd)
+        (self._local_value_fields[:])[:, :, 5] = np.array(self.B3_fdtd)
 
     else:
-        (self.local_value_fields[:])[:, :, 0] = np.array(self.E1)
-        (self.local_value_fields[:])[:, :, 1] = np.array(self.E2)
-        (self.local_value_fields[:])[:, :, 2] = np.array(self.E3)
+        (self._local_value_fields[:])[:, :, 0] = np.array(self.E1)
+        (self._local_value_fields[:])[:, :, 1] = np.array(self.E2)
+        (self._local_value_fields[:])[:, :, 2] = np.array(self.E3)
 
-        (self.local_value_fields[:])[:, :, 3] = np.array(self.B1)
-        (self.local_value_fields[:])[:, :, 4] = np.array(self.B2)
-        (self.local_value_fields[:])[:, :, 5] = np.array(self.B3)
+        (self._local_value_fields[:])[:, :, 3] = np.array(self.B1)
+        (self._local_value_fields[:])[:, :, 4] = np.array(self.B2)
+        (self._local_value_fields[:])[:, :, 5] = np.array(self.B3)
 
     # Global value is non-inclusive of the ghost-zones:
-    self.glob_value_fields[:] = (self.local_value_fields[:])[N_ghost:-N_ghost,
-                                                             N_ghost:-N_ghost,
-                                                             :]
+    self._glob_value_fields[:] = (self._local_value_fields[:])[N_ghost:-N_ghost,
+                                                               N_ghost:-N_ghost,
+                                                               :]
 
     # Takes care of boundary conditions and interzonal communications:
     self._da_fields.globalToLocal(self._glob_fields, self._local_fields)
 
     # Converting back to af.Array
     if(on_fdtd_grid is True):
-        self.E1_fdtd = af.to_array((self.local_value_fields[:])[:, :, 0])
-        self.E2_fdtd = af.to_array((self.local_value_fields[:])[:, :, 1])
-        self.E3_fdtd = af.to_array((self.local_value_fields[:])[:, :, 2])
+        self.E1_fdtd = af.to_array((self._local_value_fields[:])[:, :, 0])
+        self.E2_fdtd = af.to_array((self._local_value_fields[:])[:, :, 1])
+        self.E3_fdtd = af.to_array((self._local_value_fields[:])[:, :, 2])
 
-        self.B1_fdtd = af.to_array((self.local_value_fields[:])[:, :, 3])
-        self.B2_fdtd = af.to_array((self.local_value_fields[:])[:, :, 4])
-        self.B3_fdtd = af.to_array((self.local_value_fields[:])[:, :, 5])
+        self.B1_fdtd = af.to_array((self._local_value_fields[:])[:, :, 3])
+        self.B2_fdtd = af.to_array((self._local_value_fields[:])[:, :, 4])
+        self.B3_fdtd = af.to_array((self._local_value_fields[:])[:, :, 5])
 
     else:
-        self.E1 = af.to_array((self.local_value_fields[:])[:, :, 0])
-        self.E2 = af.to_array((self.local_value_fields[:])[:, :, 1])
-        self.E3 = af.to_array((self.local_value_fields[:])[:, :, 2])
+        self.E1 = af.to_array((self._local_value_fields[:])[:, :, 0])
+        self.E2 = af.to_array((self._local_value_fields[:])[:, :, 1])
+        self.E3 = af.to_array((self._local_value_fields[:])[:, :, 2])
 
-        self.B1 = af.to_array((self.local_value_fields[:])[:, :, 3])
-        self.B2 = af.to_array((self.local_value_fields[:])[:, :, 4])
-        self.B3 = af.to_array((self.local_value_fields[:])[:, :, 5])
+        self.B1 = af.to_array((self._local_value_fields[:])[:, :, 3])
+        self.B2 = af.to_array((self._local_value_fields[:])[:, :, 4])
+        self.B3 = af.to_array((self._local_value_fields[:])[:, :, 5])
 
     return

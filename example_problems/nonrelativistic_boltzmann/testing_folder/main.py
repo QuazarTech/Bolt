@@ -85,14 +85,14 @@ def time_evolution():
         print('Computing For Time =', t0)
         
         nls.strang_timestep(dt)
-        ls.RK6_step(dt)
+        ls.RK2_step(dt)
 
         density_data_nls[time_index] = af.max(nls.compute_moments('density'))
         density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
         
 time_evolution()
 
-# pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, density_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'$\rho$')
 pl.xlabel('Time')

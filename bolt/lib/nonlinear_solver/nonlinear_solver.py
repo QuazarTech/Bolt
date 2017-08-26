@@ -120,11 +120,11 @@ class nonlinear_solver(object):
 
         # Accessing the values of the global and local Vectors:
 
-        self.local_value_f = self._da.getVecArray(self._local)
-        self.glob_value_f = self._da.getVecArray(self._glob)
+        self._local_value_f = self._da.getVecArray(self._local)
+        self._glob_value_f = self._da.getVecArray(self._glob)
 
-        self.local_value_fields = self._da_fields.getVecArray(self._local_fields)
-        self.glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+        self._glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
 
         # Obtaining the array values of the cannonical variables:
         self.q1_center, self.q2_center = self._calculate_q_center()
@@ -246,45 +246,45 @@ class nonlinear_solver(object):
                               self.p1, self.p2, self.p3, params
                               )
 
-        # self.E1 = af.constant(0, self.f.shape[0],
-        #                       self.f.shape[1], dtype=af.Dtype.f64)
+        self.E1 = af.constant(0, self.f.shape[0],
+                              self.f.shape[1], dtype=af.Dtype.f64)
 
-        # self.E2 = self.E1.copy()
-        # self.E3 = self.E1.copy()
+        self.E2 = self.E1.copy()
+        self.E3 = self.E1.copy()
 
-        # self.B1 = self.E1.copy()
-        # self.B2 = self.E1.copy()
-        # self.B3 = self.E1.copy()
+        self.B1 = self.E1.copy()
+        self.B2 = self.E1.copy()
+        self.B3 = self.E1.copy()
 
-        # self.E1_fdtd = self.E1.copy()
-        # self.E2_fdtd = self.E1.copy()
-        # self.E3_fdtd = self.E1.copy()
+        self.E1_fdtd = self.E1.copy()
+        self.E2_fdtd = self.E1.copy()
+        self.E3_fdtd = self.E1.copy()
 
-        # self.B1_fdtd = self.E1.copy()
-        # self.B2_fdtd = self.E1.copy()
-        # self.B3_fdtd = self.E1.copy()
+        self.B1_fdtd = self.E1.copy()
+        self.B2_fdtd = self.E1.copy()
+        self.B3_fdtd = self.E1.copy()
 
-        # if (self.physical_system.params.fields_initialize == 'fft'):
-        #     fft_poisson(self)
+        if (self.physical_system.params.fields_initialize == 'fft'):
+            fft_poisson(self)
 
-        # elif (self.physical_system.params.fields_initialize ==
-        #       'electrostatic'):
-        #     compute_electrostatic_fields(self)
+        elif (self.physical_system.params.fields_initialize ==
+              'electrostatic'):
+            compute_electrostatic_fields(self)
 
-        # elif (self.physical_system.params.fields_initialize == 'user-defined'):
-        #     self.E1, self.E2, self.E3 = self.physical_system.\
-        #         initial_conditions.initialize_E(self.q1_center, self.q2_center,
-        #                                         params)
+        elif (self.physical_system.params.fields_initialize == 'user-defined'):
+            self.E1, self.E2, self.E3 = self.physical_system.\
+                initial_conditions.initialize_E(self.q1_center, self.q2_center,
+                                                params)
 
-        #     self.B1, self.B2, self.B3 = self.physical_system.\
-        #         initial_conditions.initialize_B(self.q1_center, self.q2_center,
-        #                                         params)
+            self.B1, self.B2, self.B3 = self.physical_system.\
+                initial_conditions.initialize_B(self.q1_center, self.q2_center,
+                                                params)
 
-        # else:
-        #     raise NotImplementedError('Method not valid/not implemented')
+        else:
+            raise NotImplementedError('Method not valid/not implemented')
 
-        # # Getting the values at the FDTD grid points:
-        # self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
-        # self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
+        # Getting the values at the FDTD grid points:
+        self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
+        self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
 
         return
