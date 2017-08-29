@@ -1,0 +1,6 @@
+pytest
+arrayfire
+numpy
+matplotlib
+h5py
+scipy
