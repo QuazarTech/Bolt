@@ -66,5 +66,7 @@ __pycache__/
 *.mp4
 *.h5
 *.png
+README_nontex.md
 
 \.idea/
+

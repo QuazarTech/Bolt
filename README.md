@@ -1,53 +1,36 @@
-# Boltzmann-Equation Solver Package
+# Bolt - A Fast Semi-Lagrangian Solver Framework For Kinetic Theories:
+[![Documentation Status](https://readthedocs.org/projects/qbolt/badge/?version=latest)](http://qbolt.readthedocs.io/en/latest/?badge=latest)
+[![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
+[![Code Health](https://landscape.io/github/ShyamSS-95/Bolt/master/landscape.svg?style=flat)](https://landscape.io/github/ShyamSS-95/Bolt/master)
 
-The solver package consists of a Cheng-Knorr solver as well as a linear theory solver. The results obtained from both methods are verified against each other. The solvers have been written in terms of library functions which can be called from a separate python file(refer to `run_ck.py` and `run_lt.py` under the `run_folder/`). In both the solver libraries a common configuration file is used to setup the initial conditions and boundary conditions of the simulation along with the simulation run-time parameters.
+This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
-## Getting Started:
+<p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/372221e63638d7fbbb468a0b9029d7a9.svg?invert_in_darkmode" align=middle width=450.2223pt height=36.953894999999996pt/></p>
 
-Clone the repo to your local machine, and add the folder to your python path. These steps may be performed by:
+Where <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c612c13be517545496e8c6e2cb223153.svg?invert_in_darkmode" align=middle width=25.226190000000003pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/0f78a8e240089a351e31b7191713956c.svg?invert_in_darkmode" align=middle width=25.226190000000003pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c01affe9953c41338ec92c5cb19e9dd5.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/60d7e869cdf701e26eaad5a4112ffff2.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/d38f278b9ebe01f0c37201b197e007d7.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>  and <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c90cd766eea8688c8b27fae1e3739f99.svg?invert_in_darkmode" align=middle width=30.926115000000003pt height=24.56552999999997pt/>  are terms that need to be coded in by the user.
 
-```bash
-git clone https://github.com/ShyamSS-95/Boltzmann-Solver.git
-cd Boltzmann-Solver
-export PYTHONPATH=$PWD:$PYTHONPATH
-```
+The generalized structure that the framework uses can be found in `lib/`. All the functions have been provided docstrings which are indicative of their usage. Additionally, we have validated the solvers by solving the Boltzmann-Equation:
+
+<p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/6012d33f73b29a6e67bdfd25286152d3.svg?invert_in_darkmode" align=middle width=766.6296pt height=38.464304999999996pt/></p>
+
+The functions that have been used for solving the above equation may be referred to from `src/nonrelativistic_boltzmann`.
 
 ## Dependencies:
 
-The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for shared memory parallelism, and [PETSc](https://bitbucket.org/petsc/petsc)(Built with hdf5 file writing support) for distributed memory parallelism and require those packages to be built and installed on the system of usage in addition to their python interfaces([arrayfire-python](https://github.com/arrayfire/arrayfire-python) and [petsc4py](https://bitbucket.org/petsc/petsc4py)). Additionally, following python libraries are also necessary:
+The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for shared memory parallelism, and [PETSc](https://bitbucket.org/petsc/petsc)(Built with HDF5 file writing support) for distributed memory parallelism and require those packages to be built and installed on the system of usage in addition to their python interfaces([arrayfire-python](https://github.com/arrayfire/arrayfire-python) and [petsc4py](https://bitbucket.org/petsc/petsc4py)). Additionally, following python libraries are also necessary:
 
 * numpy
-* h5py(used in file writing/reading)
-* matplotlib(used in postprocessing the data-generated)
+* h5py
+* matplotlib
 * pytest
+* mpi4py
 
-## Usage:
-
-To get started, look at `run_ck.py` and `run_lt.py` under `run_folder/`. Changes need to be made to `params.py` to indicate the parameters of the system which you intend to evolve for. Commenting has been added appropriately in each of these files to indicate the purpose of each function call. Additionally, docstrings have been provided for all the functions(not all - few in development), which can be viewed easily by typing `function_name?` from an IPython shell. One of the standard case we have been considering thusfar is the evolution of a system with a small density perturbation. Try making changes to the `params.py`, and see the plot for density amplitudes as given by the linear theory code, and the Cheng-Knorr:
-```bash
-ipython run_lt.py
-ipython run_ck.py
-ipython plot_density_amplitudes.py
-```
-
-In addition to the various unit tests, automated convergence tests that check the implementation of the physics have been added. Convergence tests for all the cases can be performed by running `run_all.sh`. Alternatively, to test a particular case, navigate to the appropriate folder, and execute the following set of commands:
-
-```bash
-ipython run_lt.py
-ipython run_ck.py
-py.test
-```
+The documentation is built using sphinx, and requires the following dependencies to be built locally:
+* sphinx
+* sphinx_rtd_theme
+* sphinx-autobuild
 
 ## Authors
 
 * **Shyam Sankaran** - [GitHub Profile](https://github.com/ShyamSS-95)
 * **Mani Chandra** - [GitHub Profile](https://github.com/mchandra)
-
-## In development:
-
-* Addition of other collision operators(currently only BGK operator has been implemented)
-* Additional unit checks for the Cheng-Knorr solvers 
-* Unit tests for the linear theory code
-* Evolving for multiple species
-* Implementation of a conservative and positivity preserving algorithm.
-* More thorough documentation
