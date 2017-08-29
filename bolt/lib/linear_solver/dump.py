@@ -3,6 +3,7 @@
 
 import arrayfire as af
 import numpy as np
+from petsc4py import PETSc
 import h5py
 
 
@@ -76,13 +77,8 @@ def dump_distribution_function(self, file_name):
     >> h5f.close()
 
     """
-    h5f = h5py.File(file_name + '.h5', 'w')
-    N_q1, N_q2, N_p1, N_p2, N_p3 = self.N_q1, self.N_q2,\
-                                   self.N_p1, self.N_p2, self.N_p3
-
-    f = 0.5 * self.N_q2 * self.N_q1 * af.real(af.ifft(self.Y[:, :, :, 0]))
-    h5f.create_dataset('distribution_function',
-                        data=np.array(f).reshape(N_q1, N_q2,
-                                                 N_p1, N_p2, N_p3))
-    h5f.close()
-    return
+    self._glob_value[:] = 0.5 * self.N_q2 * self.N_q1 * \
+                          np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    PETSc.Object.setName(self._glob, 'distribution_function')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    viewer(self._glob)

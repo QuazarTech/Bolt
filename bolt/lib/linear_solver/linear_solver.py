@@ -9,6 +9,7 @@
 import numpy as np
 import arrayfire as af
 from numpy.fft import fftfreq
+from petsc4py import PETSc
 
 # Importing solver functions:
 from bolt.lib.linear_solver.dY_dt import dY_dt
@@ -74,6 +75,18 @@ class linear_solver(object):
         if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):
             raise Exception('Only systems with periodic boundary conditions\
                              can be solved using the linear solver')
+
+        self._comm = PETSc.COMM_WORLD
+
+        if(self._comm.size != 1):
+            raise Exception('Linear solver cannot be run in parallel!')
+
+        self._da_dump = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                            dof=(self.N_p1 * self.N_p2 * self.N_p3),
+                                            )
+
+        self._glob = self._da_dump.createGlobalVec()
+        self._glob_value = self._da_dump.getVecArray(self._glob)
 
         # Intializing position, wavenumber and velocity arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()

@@ -15,6 +15,8 @@ from bolt.lib.nonlinear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic \
     import fft_poisson, compute_electrostatic_fields
+from bolt.lib.nonlinear_solver.dump import \
+    dump_distribution_function as dump_f
 
 
 class nonlinear_solver(object):
@@ -235,6 +237,8 @@ class nonlinear_solver(object):
     lie_timestep = lie_step
 
     compute_moments = compute_moments_imported
+
+    dump_distribution_function = dump_f
 
     def _initialize(self, params):
         """
