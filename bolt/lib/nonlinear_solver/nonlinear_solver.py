@@ -5,6 +5,7 @@
 import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
+import os
 
 # Importing solver libraries:
 from bolt.lib.nonlinear_solver.communicate \
@@ -69,6 +70,13 @@ class nonlinear_solver(object):
 
         if(self.physical_system.params.num_devices>1):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+
+        PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
+        PETSc.Sys.Print('On Node:')
+        os.system('hostname')
+        PETSc.Sys.Print('Device Details:')
+        af.info()
+        PETSc.Sys.Print('\n')
 
         # The DA structure is used in domain decomposition:
         # The following DA is used in the communication routines where

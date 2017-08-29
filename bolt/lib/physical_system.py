@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import types
 
+import types
+from petsc4py import PETSc
 
 class physical_system(object):
     """
@@ -160,3 +161,23 @@ class physical_system(object):
         # Assigning the moment dictionaries:
         self.moment_exponents = moment_defs.moment_exponents
         self.moment_coeffs = moment_defs.moment_coeffs
+
+        # Printing code signature:
+        PETSc.Sys.Print('---------------------------------------------------------------')
+        PETSc.Sys.Print('|         ____        ____                                    |')
+        PETSc.Sys.Print('|        / __ )____  / / /_             Version 1.0           |')
+        PETSc.Sys.Print('|       / __  / __ \/ / __/                                   |')
+        PETSc.Sys.Print('|      / /_/ / /_/ / / /_                                     |')
+        PETSc.Sys.Print('|     /_____/\____/_/\__/                                     |')
+        PETSc.Sys.Print('--------------------------------------------------------------')
+        PETSc.Sys.Print('| Copyright (C) 2017 Quazar Techologies, Delhi                |')
+        PETSc.Sys.Print('|                                                             |')
+        PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or       |')
+        PETSc.Sys.Print('| modify it under the terms of the GNU General Public License |')
+        PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)   |')
+        PETSc.Sys.Print('---------------------------------------------------------------')
+        PETSc.Sys.Print('Fields Initialization Method:', params.fields_initialize.upper())
+        PETSc.Sys.Print('Fields Solver Method:', params.fields_solver.upper())
+        PETSc.Sys.Print('Charge Electron:', params.charge_electron)
+        PETSc.Sys.Print('Dimensionality in p-space:', params.p_dim)
+        PETSc.Sys.Print('Number of Devices/Node:', params.num_devices)

@@ -2,9 +2,6 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 
-# Printing device, and backend details:
-af.info()
-
 from bolt.lib.physical_system import physical_system
 
 from bolt.lib.nonlinear_solver.nonlinear_solver \

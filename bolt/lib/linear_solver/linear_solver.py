@@ -9,6 +9,7 @@
 import numpy as np
 import arrayfire as af
 from numpy.fft import fftfreq
+import os
 from petsc4py import PETSc
 
 # Importing solver functions:
@@ -84,6 +85,13 @@ class linear_solver(object):
         self._da_dump = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                             dof=(self.N_p1 * self.N_p2 * self.N_p3),
                                             )
+
+        PETSc.Sys.Print('\nBackend Details for Linear Solver:')
+        PETSc.Sys.Print('On Node:')
+        os.system('hostname')
+        PETSc.Sys.Print('Device Details:')
+        af.info()
+        PETSc.Sys.Print('\n')
 
         self._glob = self._da_dump.createGlobalVec()
         self._glob_value = self._da_dump.getVecArray(self._glob)

@@ -53,7 +53,7 @@ pl.rcParams['ytick.labelsize'] = 'medium'
 pl.rcParams['ytick.direction'] = 'in'
 
 # Time parameters:
-t_final = 0.001
+t_final = 0.2
 N       = 2**np.arange(5, 10)
 
 def run_cases():
@@ -114,4 +114,4 @@ def test_convergence():
     pl.savefig('convergence_plot.png')
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    assert(abs(poly[0] + 2)<0.3)
+    assert(abs(poly[0] + 2)<0.2)
