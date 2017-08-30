@@ -87,11 +87,11 @@ class linear_solver(object):
                                             )
 
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')
-        PETSc.Sys.Print('On Node:')
+        print('On Node:')
         os.system('hostname')
-        PETSc.Sys.Print('Device Details:')
+        print('Device Details:')
         af.info()
-        PETSc.Sys.Print('\n')
+        print()
 
         self._glob = self._da_dump.createGlobalVec()
         self._glob_value = self._da_dump.getVecArray(self._glob)

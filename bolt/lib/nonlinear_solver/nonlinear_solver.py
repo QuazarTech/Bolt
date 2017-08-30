@@ -72,11 +72,11 @@ class nonlinear_solver(object):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
-        PETSc.Sys.Print('On Node:')
+        print('On Node:')
         os.system('hostname')
-        PETSc.Sys.Print('Device Details:')
+        print('Device Details:')
         af.info()
-        PETSc.Sys.Print('\n')
+        print()
 
         # The DA structure is used in domain decomposition:
         # The following DA is used in the communication routines where
