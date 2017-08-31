@@ -53,7 +53,7 @@ pl.rcParams['ytick.labelsize'] = 'medium'
 pl.rcParams['ytick.direction'] = 'in'
 
 # Time parameters:
-t_final = 0.2
+t_final = 0.001
 N       = 2**np.arange(5, 10)
 
 def run_cases():
