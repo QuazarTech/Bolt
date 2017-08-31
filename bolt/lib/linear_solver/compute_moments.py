@@ -46,6 +46,7 @@ def compute_moments(self, moment_name):
                           moment_coeffs[2] * self.p3**(moment_exponents[2])
 
     # Since f_hat = Y[:, :, :, 0]:
+    # We sum along axis 2 which contains the variations in velocity:
     moment_hat = af.sum(af.broadcast(lambda a, b:a*b, self.Y[:, :, :, 0], 
                                      moment_variable), 2) * \
                  self.dp3 * self.dp2 * self.dp1

@@ -6,8 +6,8 @@ import arrayfire as af
 
 def calculate_dfdp_background(self):
     """
-    Calculates the derivative of the background distribution with respect
-    to the variables p1, p2, p3.
+    Calculates the derivative of the background distribution 
+    with respect to the variables p1, p2, p3.
     """
     f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
 

@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This is the module for the which contains the functions of the
+linear solver of Bolt. It performs the FFT to map the given 
+input onto the Fourier basis, and evolves each mode of the
+input independantly. It is to be noted that this module
+can only be applied to systems with periodic boundary conditions.
+Additionally, this module isn't parallelized to run across
+multiple devices/nodes.
+"""
+
 # In this code, we shall default to using the positionsExpanded form
 # thoroughout. This means that the arrays defined in the system will
 # be of the form: (N_q1, N_q2, N_p1*N_p2*N_p3)
@@ -30,13 +40,12 @@ from bolt.lib.linear_solver.compute_moments \
 
 import bolt.lib.linear_solver.dump as dump
 
-
 class linear_solver(object):
     """
     An instance of this class' attributes contains methods which are used
-    in evolving the system declared under physical system. The state of the
-    system then may be determined from the attributes of the system such as
-    the distribution function and electromagnetic fields
+    in evolving the system declared under physical system linearly. The 
+    state of the system then may be determined from the attributes of the 
+    system such as the distribution function and electromagnetic fields
     """
 
     def __init__(self, physical_system):
@@ -77,14 +86,17 @@ class linear_solver(object):
             raise Exception('Only systems with periodic boundary conditions\
                              can be solved using the linear solver')
 
-        self._comm = PETSc.COMM_WORLD
+        # Initializing DAs which will be used in file-writing:
+        self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                              dof=(self.N_p1 * 
+                                                   self.N_p2 * 
+                                                   self.N_p3),
+                                              )
 
-        if(self._comm.size != 1):
-            raise Exception('Linear solver cannot be run in parallel!')
-
-        self._da_dump = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                            dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                            )
+        self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                                    dof=len(self.physical_system.\
+                                                            moment_exponents)
+                                                    )
 
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')
         print('On Node:')
@@ -93,14 +105,18 @@ class linear_solver(object):
         af.info()
         print()
 
-        self._glob = self._da_dump.createGlobalVec()
-        self._glob_value = self._da_dump.getVecArray(self._glob)
+        # Creating PETSc Vecs which are used in dumping to file:
+        self._glob_f       = self._da_dump_f.createGlobalVec()
+        self._glob_f_value = self._da_dump_f.getVecArray(self._glob_f)
+
+        self._glob_moments       = self._da_dump_moments.createGlobalVec()
+        self._glob_moments_value = self._da_dump_moments.\
+                                   getVecArray(self._glob_moments)
 
         # Intializing position, wavenumber and velocity arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()
-        self.k_q1, self.k_q2 = self._calculate_k()
-
-        self.p1, self.p2, self.p3 = self._calculate_p()
+        self.k_q1, self.k_q2           = self._calculate_k()
+        self.p1, self.p2, self.p3      = self._calculate_p()
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = self.physical_system.A_q(
@@ -112,8 +128,7 @@ class linear_solver(object):
         self._initialize(physical_system.params)
 
         # Assigning the function objects to methods of the solver:
-        self._A_p = self.physical_system.A_p
-
+        self._A_p            = self.physical_system.A_p
         self._source_or_sink = self.physical_system.source_or_sink
 
     def _calculate_q_center(self):
@@ -135,8 +150,8 @@ class linear_solver(object):
 
     def _calculate_k(self):
         """
-        Initializes the wave numbers k_q1 and k_q2 which will be used when
-        solving in fourier space.
+        Initializes the wave numbers k_q1 and k_q2 which will be 
+        used when solving in fourier space.
         """
         k_q1 = 2 * np.pi * fftfreq(self.N_q1, self.dq1)
         k_q2 = 2 * np.pi * fftfreq(self.N_q2, self.dq2)
@@ -166,10 +181,13 @@ class linear_solver(object):
                                                       p1_center,
                                                       p3_center)
 
+        # Flattening the obtained arrays:
         p1_center = af.flat(af.to_array(p1_center))
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
 
+        # Reordering such that variation in velocity is along axis 2:
+        # This is done to be consistent with the positionsExpanded form:
         p1_center = af.reorder(p1_center, 2, 3, 0, 1)
         p2_center = af.reorder(p2_center, 2, 3, 0, 1)
         p3_center = af.reorder(p3_center, 2, 3, 0, 1)
@@ -177,32 +195,33 @@ class linear_solver(object):
         af.eval(p1_center, p2_center, p3_center)
         return(p1_center, p2_center, p3_center)
 
-    # Assigning function that is used in computing the derivatives
-    # of the background distribution function:
-    _calculate_dfdp_background = calculate_dfdp_background
-
     def _initialize(self, params):
         """
         Called when the solver object is declared. This function is
-        used to initialize the mode perturbation of the distribution
-        function f_hat, along with the mode perturbation of the field
-        quantities
+        used to initialize the distribution function, and the field
+        quantities using the options as provided by the user. The
+        quantities are then mapped to the fourier basis by taking FFTs.
+        The independant modes are then evolved by using the linear
+        solver.
         """
-        f = af.broadcast(self.physical_system.initial_conditions.\
-                         initialize_f, self.q1_center, self.q2_center,
-                         self.p1, self.p2, self.p3, params
-                         )
-
+        f     = af.broadcast(self.physical_system.initial_conditions.\
+                             initialize_f, self.q1_center, self.q2_center,
+                             self.p1, self.p2, self.p3, params
+                             )
+        # Taking FFT:
         f_hat = af.fft2(f)
 
         # Since (k_q1, k_q2) = (0, 0) will give the background distribution:
-        self.f_background = af.abs(f_hat[0, 0, :]) \
-                            / (self.N_q1 * self.N_q2)
+        # The division by (self.N_q1 * self.N_q2) is performed since the FFT
+        # at (0, 0) returns (amplitude * (self.N_q1 * self.N_q2))
+        self.f_background = af.abs(f_hat[0, 0, :])/ (self.N_q1 * self.N_q2)
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
 
         # Scaling Appropriately:
+        # Except the case of (0, 0) the FFT returns
+        # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
         f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
         # Using a vector Y to evolve the system:
@@ -211,9 +230,10 @@ class linear_solver(object):
                              7, dtype = af.Dtype.c64
                              )
 
+        # Assigning the 0th indice along axis 3 to the f_hat:
         self.Y[:, :, :, 0] = f_hat
 
-        # Initializing:
+        # Initializing the EM field quantities:
         self.E3_hat = af.constant(0, self.N_q1, self.N_q2,\
                                   self.N_p1 * self.N_p2 * self.N_p3, 
                                   dtype = af.Dtype.c64)
@@ -254,6 +274,8 @@ class linear_solver(object):
         else:
             raise NotImplementedError('Method invalid/not-implemented')
 
+        # Assigning other indices along axis 3 to be
+        # the EM field quantities:
         self.Y[:, :, :, 1] = self.E1_hat
         self.Y[:, :, :, 2] = self.E2_hat
         self.Y[:, :, :, 3] = self.E3_hat
@@ -264,14 +286,26 @@ class linear_solver(object):
         af.eval(self.Y)
         return
 
+
     # Injection of solver methods from other files:
+    
+    # Assigning function that is used in computing the derivatives
+    # of the background distribution function:
+    _calculate_dfdp_background = calculate_dfdp_background
+
+    # Derivative of the vector Y which is indicative of the state 
+    # of the system w.r.t time:
     _dY_dt = dY_dt
 
+    # Time-steppers:
     RK2_step = RK2_step_imported
     RK4_step = RK4_step_imported
     RK6_step = RK6_step_imported
 
+    # Routine which is used in computing the moments of the
+    # distribution function:
     compute_moments = compute_moments_imported
 
+    # Methods used in writing the data to dump-files:
     dump_distribution_function = dump.dump_distribution_function
-    dump_variables = dump.dump_variables
+    dump_variables             = dump.dump_variables

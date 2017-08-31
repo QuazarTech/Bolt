@@ -140,13 +140,13 @@ class physical_system(object):
 
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
-        self.N_ghost = domain.N_ghost
+        self.N_ghost                 = domain.N_ghost
         self.bc_in_q1, self.bc_in_q2 = boundary_conditions.in_q1,\
                                        boundary_conditions.in_q2
 
         # Placeholder for all the functions:
         # These will later be called in the linear_solver and nonlinear_solver:
-        self.params = params
+        self.params             = params
         self.initial_conditions = initial_conditions
 
         # The following functions return the advection terms as components of a
@@ -158,9 +158,15 @@ class physical_system(object):
         # Usually, this is taken as a relaxation type collision operator
         self.source_or_sink = source_or_sink
 
+        # Checking that the number of keys in moment_exponents and
+        # moments_coeffs is the same:
+        if(moment_defs.moment_exponents.keys() != moment_defs.moment_coeffs.keys()):
+            raise Exception('Keys in moment_exponents and \
+                             moment_coeffs needs to be the same')
+        
         # Assigning the moment dictionaries:
         self.moment_exponents = moment_defs.moment_exponents
-        self.moment_coeffs = moment_defs.moment_coeffs
+        self.moment_coeffs    = moment_defs.moment_coeffs
 
         # Printing code signature:
         PETSc.Sys.Print('---------------------------------------------------------------')
