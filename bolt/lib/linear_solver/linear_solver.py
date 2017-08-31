@@ -308,4 +308,4 @@ class linear_solver(object):
 
     # Methods used in writing the data to dump-files:
     dump_distribution_function = dump.dump_distribution_function
-    dump_variables             = dump.dump_variables
+    dump_moments               = dump.dump_moments
