@@ -9,14 +9,14 @@ from bolt.lib.linear_solver.EM_fields_solver \
 
 def dY_dt(self, Y):
     """
-    Returns the value of the derivative of the mode perturbation of the 
-    distribution function, and the field quantities with respect to time. 
-    This is used to evolve the system with time.
+    Returns the value of the derivative of the fourier mode quantities 
+    of the distribution function, and the field quantities with 
+    respect to time. This is used to evolve the system with time.
 
     Input:
     ------
 
-      Y0 : The array Y is the state of the system as given by the result of 
+      Y  : The array Y is the state of the system as given by the result of 
            the last time-step's integration. The elements of Y, hold the 
            following data:
      
@@ -43,9 +43,6 @@ def dY_dt(self, Y):
     self.B2_hat = Y[:, :, :, 5]
     self.B3_hat = Y[:, :, :, 6]
 
-    if(self.physical_system.params.fields_solver == 'electrostatic'):
-        compute_electrostatic_fields(self)
-
     # Scaling Appropriately:
     f       = af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat)
     C_f_hat = 2 * af.fft2(self._source_or_sink(f, self.q1_center, self.q2_center,
@@ -54,6 +51,16 @@ def dY_dt(self, Y):
                                                self.physical_system.params
                                               ))/(self.N_q2 * self.N_q1)
 
+    if(self.physical_system.params.fields_solver == 'electrostatic' or
+       self.physical_system.params.fields_solver == 'fft'):
+        compute_electrostatic_fields(self)
+
+    elif(self.physical_system.fields_solver == 'fdtd'):
+        pass
+
+    else:
+        raise NotImplementedError('Method invalid/not-implemented')
+    
     mom_bulk_p1 = self.compute_moments('mom_p1_bulk')
     mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
     mom_bulk_p3 = self.compute_moments('mom_p3_bulk')
@@ -93,18 +100,19 @@ def dY_dt(self, Y):
                                       self.physical_system.params
                                      )
 
-
-    fields_term = af.broadcast(multiply, A_p1, self.dfdp1_background)  + \
-                  af.broadcast(multiply, A_p2, self.dfdp2_background)  + \
-                  af.broadcast(multiply, A_p3, self.dfdp3_background)
-
     df_hat_dt  = -1j * (af.broadcast(multiply, self.k_q1, self._A_q1) + 
                         af.broadcast(multiply, self.k_q2, self._A_q2)) \
                 * f_hat
 
+    
+    # Adding the fields term only when charge is non-zero
     if(self.physical_system.params.charge_electron != 0):
-        df_hat_dt -= fields_term
+        fields_term = af.broadcast(multiply, A_p1, self.dfdp1_background)  + \
+                      af.broadcast(multiply, A_p2, self.dfdp2_background)  + \
+                      af.broadcast(multiply, A_p3, self.dfdp3_background)
+        df_hat_dt  -= fields_term
 
+    # Avoiding addition of the fields term when tau != inf
     df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, 
                                                            self.q2_center,
                                                            self.p1, self.p2, self.p3
@@ -113,6 +121,8 @@ def dY_dt(self, Y):
                            0
                           )
     
+    # Obtaining the dY_dt vector by joining the derivative quantities of
+    # the individual distribution function and field modes:
     dY_dt = af.join(3, af.join(3, df_hat_dt, dE1_hat_dt, dE2_hat_dt, dE3_hat_dt),
                     dB1_hat_dt, dB2_hat_dt, dB3_hat_dt)
 
