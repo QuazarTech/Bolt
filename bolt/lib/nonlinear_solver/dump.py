@@ -4,47 +4,44 @@
 from petsc4py import PETSc
 
 
-# def dump_variables(file_name, self, **args):
-#     """
-#     This function is used to dump variables to a file for later usage.
+def dump_moments(self, file_name):
+    """
+    This function is used to dump variables to a file for later usage.
 
-#     Parameters:
-#     -----------
-#     This function takes the variable names which need to be dumped followed
-#     by their global vectors and the keys with which the variables are stored.
+    Parameters:
+    -----------
+    file_name : The variables will be dumped to this provided file name.
 
-#     Output:
-#     -------
-#     This function returns None. However it creates a file 'glob_vector.h5',
-#     containing the variables passed to this function.
+    Output:
+    -------
+    This function returns None. However it creates a file 'file_name.h5',
+    containing all the moments that were defined under moments_defs in
+    physical_system.
 
-#     Example:
-#     --------
-#     >> density     = solver.compute_moments('density')
-#     >> temperature = solver.compute_moments('energy')/density
-#     >> solver.dump_variables(density, temperature, density_glob,
-#                              temperature_glob,'density', 'temperature')
+    >> solver.dump_variables('boltzmann_moments_dump')
 
-#     The above set of statements will create 2 HDF5 files which contains the
-#     density, and temperature stored under the keys of 'density' and
-#     'temperature'
+    The above set of statements will create a HDF5 file which contains the
+    all the moments which have been defined in the physical_system object.
+    Suppose 'density' and 'energy' are two these moments, and are declared
+    the first and second in the moment_exponents object:
 
-#     These variables can then be accessed from the file using:
-#     >> import h5py
-#     >> h5f = h5py.File('density_glob.h5', 'r')
-#     >> rho = h5f['density'][:]
-#     >> h5f.close()
-#     """
-#     h5f = h5py.File(file_name + '.h5', 'w')
-#     for i in range(int(len(args) / 3)):
-#         PETSc.Object.setName(self._glob, 'distribution_function')
-#         viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-#         global_vec_value = self._da.getVecArray(self.glob)
-
-#         h5f.create_dataset(args[i + int(len(args) / 2)], data=args[i])
-#     h5f.close()
-#     return
-
+    These variables can then be accessed from the file using:
+    >> import h5py
+    >> h5f = h5py.File('boltzmann_moments_dump.h5', 'r')
+    >> rho = h5f['moments'][:][:, :, :, 0]
+    >> E   = h5f['moments'][:][:, :, :, 1]
+    >> h5f.close()
+    """
+    i = 0
+    
+    for key in self.physical_system.moment_exponents:
+        self._glob_moments_value[:][:, :, :, i] = \
+        self.compute_moments(key)
+        i += 1
+    
+    PETSc.Object.setName(self._glob_moments, 'moments')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    viewer(self._glob_moments)
 
 def dump_distribution_function(self, file_name):
     """
@@ -75,8 +72,8 @@ def dump_distribution_function(self, file_name):
     >> h5f.close()
 
     """
-    PETSc.Object.setName(self._glob, 'distribution_function')
+    PETSc.Object.setName(self._glob_f, 'distribution_function')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-    viewer(self._glob)
+    viewer(self._glob_f)
 
     return

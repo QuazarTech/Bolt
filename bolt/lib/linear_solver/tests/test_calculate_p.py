@@ -16,7 +16,7 @@ import arrayfire as af
 # Importing solver functions:
 from bolt.lib.linear_solver.linear_solver import linear_solver
 
-calculate_p = linear_solver._calculate_p
+calculate_p = linear_solver._calculate_p_center    
 
 
 class test():

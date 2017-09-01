@@ -12,13 +12,28 @@ are carried out as expected.
 import numpy as np
 import arrayfire as af
 import h5py
+from petsc4py import PETSc
 
 # Importing Solver functions:
 from bolt.lib.linear_solver.dump \
-    import dump_variables, dump_distribution_function
+    import dump_moments, dump_distribution_function
 
+from bolt.lib.linear_solver.compute_moments import \
+    compute_moments as compute_moments_imported
+
+from bolt.lib.linear_solver.linear_solver import linear_solver
+calculate_p = linear_solver._calculate_p_center    
+
+moment_exponents = dict(density=[0, 0, 0],
+                        energy=[2, 2, 2]
+                        )
+
+moment_coeffs = dict(density=[1, 0, 0],
+                     energy=[1, 1, 1]
+                     )
 
 class test(object):
+    
     def __init__(self):
         self.N_q1 = 2
         self.N_q2 = 3
@@ -26,28 +41,49 @@ class test(object):
         self.N_p2 = 5
         self.N_p3 = 6
 
-        self.f_expand = np.random.rand(2, 3, 4, 5, 6)
-        self.f = af.to_array(self.f_expand.reshape(2, 3, 4 * 5 * 6))
+        self.p1_start = self.p2_start = self.p3_start = 0
 
+        self.dp1 = 2/self.N_p1
+        self.dp2 = 2/self.N_p2
+        self.dp3 = 2/self.N_p3
 
-def test_dump_variables():
-    a = af.randu(10, dtype=af.Dtype.c64)
-    b = af.randu(10, 10, dtype=af.Dtype.c64)
-    c = af.randu(10, dtype=af.Dtype.f64)
-    d = af.randu(10, 10, dtype=af.Dtype.f64)
-    dump_variables(test, 'test_file', a, b, c, d, 'a', 'b', 'c', 'd')
+        self.p1, self.p2, self.p3 = self._calculate_p_center()
 
-    h5f = h5py.File('test_file.h5', 'r')
-    a_read = h5f['a'][:]
-    b_read = h5f['b'][:]
-    c_read = h5f['c'][:]
-    d_read = h5f['d'][:]
-    h5f.close()
+        self.physical_system = type('obj', (object,),
+                            {'moment_exponents': moment_exponents,
+                             'moment_coeffs': moment_coeffs}
+                            )
 
-    check = (a_read - np.array(a)) + (b_read - np.array(b)) + \
-        (c_read - np.array(c)) + (d_read - np.array(d))
-    assert(np.all(check == 0))
+        self.f = af.randu(self.N_q1, self.N_q2,
+                          self.N_p1 * self.N_p2 * self.N_p3,
+                          dtype = af.Dtype.f64
+                          )
 
+        self.Y = 2 * af.fft2(self.f)/(self.N_q1 * self.N_q2)
+
+        self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                              dof=(self.N_p1 * 
+                                                   self.N_p2 * 
+                                                   self.N_p3),
+                                              )
+
+        self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                                    dof=len(self.physical_system.\
+                                                            moment_exponents)
+                                                    )
+
+        self._glob_f       = self._da_dump_f.createGlobalVec()
+        self._glob_f_value = self._da_dump_f.getVecArray(self._glob_f)
+
+        self._glob_moments       = self._da_dump_moments.createGlobalVec()
+        self._glob_moments_value = self._da_dump_moments.\
+                                   getVecArray(self._glob_moments)
+
+        PETSc.Object.setName(self._glob_f, 'distribution_function')
+        PETSc.Object.setName(self._glob_moments, 'moments')
+    
+    compute_moments     = compute_moments_imported
+    _calculate_p_center = calculate_p
 
 def test_dump_distribution_function():
     test_obj = test()
@@ -57,4 +93,23 @@ def test_dump_distribution_function():
     f_read = h5f['distribution_function'][:]
     h5f.close()
 
-    assert(np.all(test_obj.f_expand - f_read == 0))
+    f_read_reordered = np.swapaxes(f_read, 0, 1)
+
+    assert(np.sum(abs(f_read_reordered - np.array(test_obj.f)))\
+           /f_read_reordered.size<1e-14)
+
+def test_dump_moments():
+    test_obj = test()
+    dump_moments(test_obj, 'test_file')
+
+    h5f = h5py.File('test_file.h5', 'r')
+    moments_read = h5f['moments'][:]
+    h5f.close()
+
+    moments_read = np.swapaxes(moments_read, 0, 1)
+
+    assert(af.sum(af.to_array(moments_read[:, :, 0]) - 
+                  compute_moments_imported(test_obj, 'density'))==0)
+
+    assert(af.sum(af.to_array(moments_read[:, :, 1]) - 
+                  compute_moments_imported(test_obj, 'energy'))==0)

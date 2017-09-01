@@ -17,12 +17,12 @@ class Poisson2D(object):
     """
 
     def __init__(self, obj):
-        self.da = obj._da_ksp
-        self.obj = obj
+        self.da     = obj._da_ksp
+        self.obj    = obj
         self.localX = self.da.createLocalVec()
 
     def formRHS(self, rho, rho_array):
-        rho_val = self.da.getVecArray(rho)
+        rho_val    = self.da.getVecArray(rho)
         rho_val[:] = rho_array
 
     def mult(self, mat, X, Y):

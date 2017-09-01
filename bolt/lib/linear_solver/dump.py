@@ -25,24 +25,24 @@ def dump_moments(self, file_name):
 
     The above set of statements will create a HDF5 file which contains the
     all the moments which have been defined in the physical_system object.
+    The data is always stored with the key 'moments' inside the HDF5 file.
     Suppose 'density' and 'energy' are two these moments, and are declared
     the first and second in the moment_exponents object:
 
     These variables can then be accessed from the file using:
     >> import h5py
     >> h5f = h5py.File('boltzmann_moments_dump.h5', 'r')
-    >> rho = h5f['moments'][:][:, :, :, 0]
-    >> E   = h5f['moments'][:][:, :, :, 1]
+    >> rho = h5f['moments'][:][:, :, 0]
+    >> E   = h5f['moments'][:][:, :, 1]
     >> h5f.close()
     """
     i = 0
     
     for key in self.physical_system.moment_exponents:
-        self._glob_moments_value[:][:, :, :, i] = \
-        self.compute_moments(key)
+        self._glob_moments_value[:][:, :, i] = \
+        np.array(self.compute_moments(key))
         i += 1
     
-    PETSc.Object.setName(self._glob_moments, 'moments')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_moments)
 
@@ -67,7 +67,8 @@ def dump_distribution_function(self, file_name):
     --------
     >> solver.dump_distribution_function('distribution_function')
     The above statement will create a HDF5 file which contains the
-    distribution function.
+    distribution function. The data is always stored with the key 
+    'distribution_function'
 
     This can later be accessed using:
     >> import h5py
@@ -77,6 +78,5 @@ def dump_distribution_function(self, file_name):
     """
     self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 * \
                             np.array(af.ifft2(self.Y[:, :, :, 0])).real
-    PETSc.Object.setName(self._glob_f, 'distribution_function')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_f)

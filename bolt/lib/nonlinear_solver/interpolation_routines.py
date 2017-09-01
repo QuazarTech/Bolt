@@ -9,7 +9,7 @@ def f_interp_2d(self, dt):
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
     ((i_q1_lowest, i_q2_lowest), (N_q1_local,
-                                  N_q2_local)) = self._da.getCorners()
+                                  N_q2_local)) = self._da_f.getCorners()
 
     addition = lambda a, b:a + b
 

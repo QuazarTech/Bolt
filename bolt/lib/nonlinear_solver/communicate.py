@@ -21,7 +21,7 @@ def communicate_distribution_function(self):
     
     # The following function takes care of periodic boundary conditions,
     # and interzonal communications:
-    self._da.globalToLocal(self._glob, self._local)
+    self._da_f.globalToLocal(self._glob_f, self._local_f)
 
     # Converting back from PETSc.Vec to af.Array:
     self.f = af.to_array(self._local_value_f[:])

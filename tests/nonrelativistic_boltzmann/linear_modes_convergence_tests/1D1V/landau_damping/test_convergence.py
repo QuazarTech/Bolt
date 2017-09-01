@@ -61,6 +61,7 @@ def run_cases():
     for i in range(N.size):
         af.device_gc()
         domain.N_q1 = int(N[i])
+        domain.N_p1 = int(N[i])
         dt          = 0.001/(2**i)
 
         # Defining the physical system to be solved:

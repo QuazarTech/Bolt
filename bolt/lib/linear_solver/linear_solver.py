@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-This is the module for the which contains the functions of the
+This is the module which contains the functions of the
 linear solver of Bolt. It performs the FFT to map the given 
 input onto the Fourier basis, and evolves each mode of the
 input independantly. It is to be noted that this module
@@ -25,9 +25,7 @@ from petsc4py import PETSc
 # Importing solver functions:
 from bolt.lib.linear_solver.dY_dt import dY_dt
 
-from bolt.lib.linear_solver.timestepper import RK2_step as RK2_step_imported
-from bolt.lib.linear_solver.timestepper import RK4_step as RK4_step_imported
-from bolt.lib.linear_solver.timestepper import RK6_step as RK6_step_imported
+import bolt.lib.linear_solver.timestepper as timestepper
 
 from bolt.lib.linear_solver.EM_fields_solver \
     import compute_electrostatic_fields
@@ -53,6 +51,16 @@ class linear_solver(object):
         Constructor for the linear_solver object. It takes the physical
         system object as an argument and uses it in intialization and
         evolution of the system in consideration.
+
+        Parameters:
+        -----------
+        physical_system: The defined physical system object which holds
+                         all the simulation information such as the initial
+                         conditions, and the domain info is passed as an
+                         argument in defining an instance of the
+                         nonlinear_solver. This system is then evolved, and
+                         monitored using the various methods under the
+                         nonlinear_solver class.
         """
         self.physical_system = physical_system
 
@@ -113,10 +121,15 @@ class linear_solver(object):
         self._glob_moments_value = self._da_dump_moments.\
                                    getVecArray(self._glob_moments)
 
+        # Setting names for the objects which will then be
+        # used as the key identifiers for the HDF5 files:
+        PETSc.Object.setName(self._glob_f, 'distribution_function')
+        PETSc.Object.setName(self._glob_moments, 'moments')
+
         # Intializing position, wavenumber and velocity arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()
         self.k_q1, self.k_q2           = self._calculate_k()
-        self.p1, self.p2, self.p3      = self._calculate_p()
+        self.p1, self.p2, self.p3      = self._calculate_p_center()
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = self.physical_system.A_q(
@@ -164,7 +177,7 @@ class linear_solver(object):
         af.eval(k_q1, k_q2)
         return(k_q1, k_q2)
 
-    def _calculate_p(self):
+    def _calculate_p_center(self):
         """
         Initializes the cannonical variables p1, p2 and p3 using a centered
         formulation. The size, and resolution are the same as declared
@@ -286,7 +299,6 @@ class linear_solver(object):
         af.eval(self.Y)
         return
 
-
     # Injection of solver methods from other files:
     
     # Assigning function that is used in computing the derivatives
@@ -298,9 +310,9 @@ class linear_solver(object):
     _dY_dt = dY_dt
 
     # Time-steppers:
-    RK2_step = RK2_step_imported
-    RK4_step = RK4_step_imported
-    RK6_step = RK6_step_imported
+    RK2_step = timestepper.RK2_step
+    RK4_step = timestepper.RK4_step
+    RK6_step = timestepper.RK6_step
 
     # Routine which is used in computing the moments of the
     # distribution function:

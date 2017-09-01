@@ -12,8 +12,6 @@ from bolt.lib.nonlinear_solver.interpolation_routines \
 
 
 def fields_step(self, dt):
-    af.device_gc() # Clearing out of scope memory
-    
     if (self.physical_system.params.fields_solver == 'fft'):
         fft_poisson(self)
         self._communicate_fields()
