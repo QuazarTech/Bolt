@@ -60,7 +60,12 @@ def run_cases():
     # Running the setup for all resolutions:
     for i in range(N.size):
         af.device_gc()
+
         domain.N_q1 = int(N[i])
+        domain.N_q2 = int(N[i])
+
+        domain.N_p1 = int(N[i])
+
         dt          = 0.001/(2**i)
 
         # Defining the physical system to be solved:
@@ -105,7 +110,7 @@ def test_convergence():
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
-    pl.loglog(N, error, 'o-', label = 'Numerical')
+    pl.loglog(N, error, label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
               label = r'$O(N^{-2})$')
     pl.legend(loc = 'best')
