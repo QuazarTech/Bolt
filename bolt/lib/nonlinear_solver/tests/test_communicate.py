@@ -55,17 +55,17 @@ class test_distribution_function(object):
                           self.N_q1 + 2 * self.N_ghost, 1,
                           self.N_p1 * self.N_p2 * self.N_p3)
 
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                       dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                       stencil_width=self.N_ghost,
-                                       boundary_type=('periodic', 'periodic'),
-                                       stencil_type=1, )
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof=(self.N_p1 * self.N_p2 * self.N_p3),
+                                         stencil_width=self.N_ghost,
+                                         boundary_type=('periodic', 'periodic'),
+                                         stencil_type=1, )
 
-        self._glob = self._da.createGlobalVec()
-        self._local = self._da.createLocalVec()
+        self._glob_f  = self._da_f.createGlobalVec()
+        self._local_f = self._da_f.createLocalVec()
 
-        self._glob_value_f = self._da.getVecArray(self._glob)
-        self._local_value_f = self._da.getVecArray(self._local)
+        self._glob_value_f = self._da_f.getVecArray(self._glob_f)
+        self._local_value_f = self._da_f.getVecArray(self._local_f)
 
         self.f = af.constant(0,
                              self.q1.shape[0],

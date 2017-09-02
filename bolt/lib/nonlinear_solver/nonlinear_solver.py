@@ -1,11 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 This is the module which contains the functions of the
 nonlinear solver of Bolt. It is based on the semi-lagrangian 
 method based on Cheng-Knorr(1978)
 """
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Importing dependencies:
 import arrayfire as af

@@ -34,9 +34,9 @@ class test(object):
 
         self.N_ghost = np.random.randint(1, 5)
 
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                        dof = 1,
-                                        stencil_width=self.N_ghost)
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof = 1,
+                                         stencil_width=self.N_ghost)
 
 
 def test_calculate_q():

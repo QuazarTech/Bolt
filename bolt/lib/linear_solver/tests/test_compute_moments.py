@@ -15,7 +15,6 @@ function
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-import pylab as pl
 
 # Importing solver functions:
 from bolt.lib.linear_solver.compute_moments import compute_moments

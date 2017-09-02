@@ -42,9 +42,9 @@ class test(object):
         self.N_p2 = np.random.randint(16, 32)
         self.N_p3 = np.random.randint(16, 32)
 
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                       dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                       stencil_width=self.N_ghost, )
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof=(self.N_p1 * self.N_p2 * self.N_p3),
+                                         stencil_width=self.N_ghost, )
 
 
 def test_convert_to_pExpanded():

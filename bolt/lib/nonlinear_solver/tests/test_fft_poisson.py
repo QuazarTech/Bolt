@@ -69,8 +69,12 @@ class test(object):
                                                              'periodic'),
                                               stencil_type=1, )
 
-        self._glob_fields = self._da_fields.createGlobalVec()
+        self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
+
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+
 
     def compute_moments(self, *args):
         return (af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))

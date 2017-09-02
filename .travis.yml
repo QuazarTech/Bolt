@@ -30,23 +30,24 @@ before_install:
     - git submodule update
     - mkdir build 
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release  -DCMAKE_INSTALL_PREFIX=package -DBUILD_GRAPHICS=OFF
-    - make -j8
-    - sudo make install
-    - cd package
-    - export AF_PATH=$PWD
-    - cd lib
-    - export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
-    - echo $LD_LIBRARY_PATH
-    - cd ../../../../
+    - #cmake .. -DCMAKE_BUILD_TYPE=Release  -DCMAKE_INSTALL_PREFIX=package -DBUILD_GRAPHICS=OFF
+    - #make -j8
+    - #sudo make install
+    - #cd package
+    - #export AF_PATH=$PWD
+    - #cd lib
+    - #export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+    - #echo $LD_LIBRARY_PATH
+    - cd ../../
     - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.7.6.tar.gz
     - tar xzf petsc-3.7.6.tar.gz
     - cd petsc-3.7.6
-    - python2 './configure' '--with-debugging=0' '--with-mpi=1' '--with-hdf5' '--download-hdf5' '--download-f2cblaslapack'
-    - make PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6 PETSC_ARCH=arch-linux2-c-opt all
-    - export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6
-    - export PETSC_ARCH=arch-linux2-c-opt
+    - #python2 './configure' '--with-debugging=0' '--with-mpi=1' '--with-hdf5' '--download-hdf5' '--download-f2cblaslapack'
+    - #make PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6 PETSC_ARCH=arch-linux2-c-opt all
+    - #export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6
+    - #export PETSC_ARCH=arch-linux2-c-opt
     - cd ..
+    - echo $PWD
     - pip install virtualenv
     - virtualenv venv 
     - source venv/bin/activate

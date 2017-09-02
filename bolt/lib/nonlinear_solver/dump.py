@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from petsc4py import PETSc
-
+import numpy as np
 
 def dump_moments(self, file_name):
     """
@@ -36,11 +36,11 @@ def dump_moments(self, file_name):
     
     for key in self.physical_system.moment_exponents:
         self._glob_moments_value[:][:, :, i] = \
-        self.compute_moments(key)
+        np.array(self.compute_moments(key))
         i += 1
     
     PETSc.Object.setName(self._glob_moments, 'moments')
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
 def dump_distribution_function(self, file_name):
