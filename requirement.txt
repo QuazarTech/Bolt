@@ -3,4 +3,5 @@ arrayfire
 numpy
 matplotlib
 h5py
-scipy
+mpi4py
+petsc4py
