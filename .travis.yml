@@ -47,10 +47,10 @@ before_install:
     - export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6
     - export PETSC_ARCH=arch-linux2-c-opt
     - cd ..
-    - export PYTHON_PATH=$PWD:$PYTHON_PATH
     - pip install virtualenv
     - virtualenv venv 
     - source venv/bin/activate
+    - export PYTHON_PATH=$PWD
 
 install:
     - pip install -r requirement.txt

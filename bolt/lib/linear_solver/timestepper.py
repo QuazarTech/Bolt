@@ -8,6 +8,12 @@ def RK6_step(self, dt):
     Evolves the various modes by a single time-step by
     making use of the RK-6 time-stepping scheme. 
     This scheme is 5th order accurate in time.
+
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
     """
     k1 = self._dY_dt(self.Y)
     k2 = self._dY_dt(self.Y + 0.25*k1*dt)
@@ -23,9 +29,15 @@ def RK6_step(self, dt):
 
 def RK4_step(self, dt):
     """
-    Evolves the various modesby a single time-step by
+    Evolves the various modes by a single time-step by
     making use of the RK-4 time-stepping scheme. 
     This scheme is 4th order accurate in time.
+
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
     """
     k1 = self._dY_dt(self.Y)
     k2 = self._dY_dt(self.Y + 0.5*k1*dt)
@@ -42,6 +54,12 @@ def RK2_step(self, dt):
     Evolves the various modes by a single time-step by
     making use of the RK-2 time-stepping scheme. 
     This scheme is 2nd order accurate in time.
+
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
     """
     k1 = self._dY_dt(self.Y)
     k2 = self._dY_dt(self.Y + 0.5*k1*dt)

@@ -52,8 +52,9 @@ class linear_solver(object):
         system object as an argument and uses it in intialization and
         evolution of the system in consideration.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
+        
         physical_system: The defined physical system object which holds
                          all the simulation information such as the initial
                          conditions, and the domain info is passed as an
