@@ -34,7 +34,7 @@ def calculate_dfdp_background(self):
             self.dfdp3_background)
 
     # Deleting the terms which aren't necessary anymore:
-    del dfdp1_background, dfdp2_background, dfdp3_background
+    del f_b, dfdp1_background, dfdp2_background, dfdp3_background
     af.device_gc()
 
     return

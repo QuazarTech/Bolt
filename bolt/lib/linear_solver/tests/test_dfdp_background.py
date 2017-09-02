@@ -48,6 +48,11 @@ class test():
                                     af.to_array(self.p2),\
                                     af.to_array(self.p3)
 
+        self.p1 = af.reorder(af.flat(self.p1), 2, 3, 0, 1)
+        self.p2 = af.reorder(af.flat(self.p2), 2, 3, 0, 1)
+        self.p3 = af.reorder(af.flat(self.p3), 2, 3, 0, 1)
+
+
         self.f_background = af.exp(-self.p1**2) * \
                             af.exp(-self.p2**2) * \
                             af.exp(-self.p3**2)
@@ -62,6 +67,7 @@ def test_df_dp_background():
     error_3 = np.zeros(N.size)
 
     for i in range(N.size):
+        af.device_gc()
         obj = test(N[i])
 
         calculate_dfdp_background(obj)
@@ -81,13 +87,8 @@ def test_df_dp_background():
                          af.exp(-obj.p2**2) * \
                          af.exp(-obj.p3**2)
 
-        dfdp1_expected = af.reorder(af.flat(dfdp1_expected),
-                                    2, 3, 0, 1)
-        dfdp2_expected = af.reorder(af.flat(dfdp2_expected),
-                                    2, 3, 0, 1)
-        dfdp3_expected = af.reorder(af.flat(dfdp3_expected),
-                                    2, 3, 0, 1)
-
+        af.eval(obj.dfdp1_background, obj.dfdp2_background, obj.dfdp3_background)
+        
         error_1[i] = af.sum(af.abs(dfdp1_expected - obj.dfdp1_background)) /\
                      dfdp1_expected.elements()
         error_2[i] = af.sum(af.abs(dfdp2_expected - obj.dfdp2_background)) /\
@@ -95,8 +96,7 @@ def test_df_dp_background():
         error_3[i] = af.sum(af.abs(dfdp3_expected - obj.dfdp3_background)) /\
                      dfdp3_expected.elements()
 
-        af.eval(error_1, error_2, error_3)
-          
+                  
     poly_1 = np.polyfit(np.log10(N), np.log10(error_1), 1)
     poly_2 = np.polyfit(np.log10(N), np.log10(error_2), 1)
     poly_3 = np.polyfit(np.log10(N), np.log10(error_3), 1)

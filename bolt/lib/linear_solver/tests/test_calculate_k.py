@@ -19,7 +19,6 @@ from bolt.lib.linear_solver.linear_solver import linear_solver as linear_solver
 
 calculate_k_center = linear_solver._calculate_k
 
-
 # Test object which is used to check:
 class test():
     def __init__(self):

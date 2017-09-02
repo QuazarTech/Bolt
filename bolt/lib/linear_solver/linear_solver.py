@@ -126,6 +126,9 @@ class linear_solver(object):
         PETSc.Object.setName(self._glob_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
 
+        print(type(self._glob_f))
+        print(type(self._glob_f_value))
+
         # Intializing position, wavenumber and velocity arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()
         self.k_q1, self.k_q2           = self._calculate_k()

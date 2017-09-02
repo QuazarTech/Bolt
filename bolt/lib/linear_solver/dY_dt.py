@@ -55,7 +55,7 @@ def dY_dt(self, Y):
        self.physical_system.params.fields_solver == 'fft'):
         compute_electrostatic_fields(self)
 
-    elif(self.physical_system.fields_solver == 'fdtd'):
+    elif(self.physical_system.params.fields_solver == 'fdtd'):
         pass
 
     else:

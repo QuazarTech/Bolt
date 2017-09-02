@@ -28,14 +28,14 @@ def dump_moments(self, file_name):
     These variables can then be accessed from the file using:
     >> import h5py
     >> h5f = h5py.File('boltzmann_moments_dump.h5', 'r')
-    >> rho = h5f['moments'][:][:, :, :, 0]
-    >> E   = h5f['moments'][:][:, :, :, 1]
+    >> rho = h5f['moments'][:][:, :, 0]
+    >> E   = h5f['moments'][:][:, :, 1]
     >> h5f.close()
     """
     i = 0
     
     for key in self.physical_system.moment_exponents:
-        self._glob_moments_value[:][:, :, :, i] = \
+        self._glob_moments_value[:][:, :, i] = \
         self.compute_moments(key)
         i += 1
     
