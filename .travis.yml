@@ -5,10 +5,6 @@ language: python
 python:
     - "3.5"
 
-env:
-    - LD_LIBRARY_PATH="$AF_PATH/lib"
-    - PYTHON_PATH="$HOME/Bolt/:$PYTHON_PATH"
-
 # command to install dependencies
 before_install:
     - sudo apt-get update -qq
@@ -47,8 +43,8 @@ before_install:
     - tar xzf petsc-3.7.6.tar.gz
     - cd petsc-3.7.6
     - python2 './configure' '--with-debugging=0' '--with-mpi=1' '--with-hdf5' '--download-hdf5' '--download-f2cblaslapack'
-    - make PETSC_DIR=/home/travis/build/ShyamSS-95/TryOutCI/petsc-3.7.6 PETSC_ARCH=arch-linux2-c-opt all
-    - export PETSC_DIR=/home/travis/build/ShyamSS-95/TryOutCI/petsc-3.7.6
+    - make PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6 PETSC_ARCH=arch-linux2-c-opt all
+    - export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6
     - export PETSC_ARCH=arch-linux2-c-opt
     - cd ..
     - export PYTHON_PATH=$PWD:$PYTHON_PATH
