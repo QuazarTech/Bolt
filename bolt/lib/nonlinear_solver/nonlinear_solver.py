@@ -305,7 +305,7 @@ class nonlinear_solver(object):
         quantities using the options as provided by the user.
         """
         # Initializing with the provided I.C's:
-        self.f = af.broadcast(self.physical_system.initial_conditions.
+        self.f = af.broadcast(self.physical_system.initial_conditions.\
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, params
                               )

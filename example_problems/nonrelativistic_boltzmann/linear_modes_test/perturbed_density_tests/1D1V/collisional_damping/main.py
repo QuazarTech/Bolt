@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import pylab as pl
+import cProfile
 
 from bolt.lib.physical_system import physical_system
 
@@ -67,7 +68,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt = 0.001
-t_final = 1.0
+t_final = 0.1
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -87,7 +88,7 @@ def time_evolution():
         density_data_nls[time_index] = af.max(nls.compute_moments('density'))
         density_data_ls[time_index]  = af.max(ls.compute_moments('density'))
         
-time_evolution()
+cProfile.run("time_evolution()")
 
 pl.plot(time_array, density_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, density_data_nls, label='Nonlinear Solver')

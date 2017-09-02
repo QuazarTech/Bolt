@@ -16,7 +16,7 @@ from bolt.lib.nonlinear_solver.interpolation_routines \
 
 class test(object):
     def __init__(self, N_q1, N_q2, N_ghost):
-        self._da = PETSc.DMDA().create(
+        self._da_f = PETSc.DMDA().create(
             [N_q1, N_q2],
             stencil_width=N_ghost,
             boundary_type=('periodic', 'periodic'))
