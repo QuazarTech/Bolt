@@ -69,6 +69,10 @@ class test(object):
         self._glob_fields = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
 
+        self._glob_value_fields = self._da_fields.getVecArray(self._glob_fields)
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+
+
     _communicate_fields = communicate_fields
 
 

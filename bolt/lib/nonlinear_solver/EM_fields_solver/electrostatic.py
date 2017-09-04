@@ -84,8 +84,15 @@ def compute_electrostatic_fields(self):
 
     ksp.solve(rho, phi)
 
-    if(ksp.converged is not True):
-        raise Exception('KSP solver diverging!')
+    num_tries = 0
+    while(ksp.converged is not True):
+        
+        ksp.setTolerances(atol = 10^{-5+num_tries}, rtol = 10^{-5+num_tries})
+        ksp.solve(rho, phi)
+        num_tries += 1
+        
+        if(num_tries == 4):
+            raise Exception('KSP solver diverging!')
 
     self._da_ksp.globalToLocal(phi, phi_local)
 

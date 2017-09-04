@@ -41,10 +41,17 @@ def fields_step(self, dt):
         # Storing the values for the previous half-time step:
         # We do this since the B values on the CK grid are defined at
         # time t = n. While the B values on the FDTD grid are defined
-        # at t = n + 1/2
+        # at t = n + 1/2:
+        B1_old = self.B1.copy()
+        B2_old = self.B2.copy()
+        B3_old = self.B3.copy()
 
         fdtd(self, dt)
         fdtd_grid_to_ck_grid(self)
+
+        self.B1_n = 0.5 * (self.B1 + B1_old)
+        self.B2_n = 0.5 * (self.B2 + B2_old)
+        self.B3_n = 0.5 * (self.B3 + B3_old)
 
     else:
         raise NotImplementedError('The method specified is \

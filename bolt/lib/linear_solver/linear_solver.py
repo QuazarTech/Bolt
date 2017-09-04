@@ -127,9 +127,6 @@ class linear_solver(object):
         PETSc.Object.setName(self._glob_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
 
-        print(type(self._glob_f))
-        print(type(self._glob_f_value))
-
         # Intializing position, wavenumber and velocity arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()
         self.k_q1, self.k_q2           = self._calculate_k()
@@ -314,9 +311,9 @@ class linear_solver(object):
     _dY_dt = dY_dt
 
     # Time-steppers:
-    RK2_step = timestepper.RK2_step
-    RK4_step = timestepper.RK4_step
-    RK6_step = timestepper.RK6_step
+    RK2_timestep = timestepper.RK2_step
+    RK4_timestep = timestepper.RK4_step
+    RK6_timestep = timestepper.RK6_step
 
     # Routine which is used in computing the moments of the
     # distribution function:

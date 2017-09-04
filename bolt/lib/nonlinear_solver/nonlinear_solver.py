@@ -311,6 +311,10 @@ class nonlinear_solver(object):
                               )
 
         # Initializing the EM fields quantities:
+        # These quantities are defined for the CK grid:
+        # That is at (i + 0.5, j + 0.5):
+
+        # Electric fields are defined at n-th timestep:
         self.E1 = af.constant(0, self.f.shape[0],
                               self.f.shape[1], dtype=af.Dtype.f64)
         self.E2 = af.constant(0, self.f.shape[0],
@@ -318,6 +322,7 @@ class nonlinear_solver(object):
         self.E3 = af.constant(0, self.f.shape[0],
                               self.f.shape[1], dtype=af.Dtype.f64)
 
+        # Magnetic fields are defined at the (n+0.5)-th timestep:
         self.B1 = af.constant(0, self.f.shape[0],
                               self.f.shape[1], dtype=af.Dtype.f64)
         self.B2 = af.constant(0, self.f.shape[0],
@@ -325,6 +330,15 @@ class nonlinear_solver(object):
         self.B3 = af.constant(0, self.f.shape[0],
                               self.f.shape[1], dtype=af.Dtype.f64)
 
+        # Arrays which hold the magnetic field quantities for the n-th timestep:
+        self.B1_n = af.constant(0, self.f.shape[0],
+                                self.f.shape[1], dtype=af.Dtype.f64)
+        self.B2_n = af.constant(0, self.f.shape[0],
+                                self.f.shape[1], dtype=af.Dtype.f64)
+        self.B3_n = af.constant(0, self.f.shape[0],
+                                self.f.shape[1], dtype=af.Dtype.f64)
+
+        # Declaring the arrays which store data on the FDTD grid:
         self.E1_fdtd = af.constant(0, self.f.shape[0],
                                    self.f.shape[1], dtype=af.Dtype.f64)
         self.E2_fdtd = af.constant(0, self.f.shape[0],

@@ -82,21 +82,16 @@ def fdtd_grid_to_ck_grid(self):
 
     # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the
     # nonlinear solver:
-    # (i + 1/2, j + 1/2)
     self.E1 = 0.5 * (self.E1_fdtd + af.shift(self.E1_fdtd, 0, -1))
-    # (i + 1/2, j + 1/2)
     self.B1 = 0.5 * (self.B1_fdtd + af.shift(self.B1_fdtd, -1, 0))
 
-    # (i + 1/2, j + 1/2)
     self.E2 = 0.5 * (self.E2_fdtd + af.shift(self.E2_fdtd, -1, 0))
-    # (i + 1/2, j + 1/2)
     self.B2 = 0.5 * (self.B2_fdtd + af.shift(self.B2_fdtd, 0, -1))
 
     self.E3 = 0.25 * (self.E3_fdtd + af.shift(self.E3_fdtd, 0, -1) +
                                      af.shift(self.E3_fdtd, -1, 0) +
                                      af.shift(self.E3_fdtd, -1, -1)
-                      )  # (i + 1/2, j + 1/2)
-
+                      )
     self.B3 = self.B3_fdtd
 
     af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)

@@ -39,14 +39,14 @@ def f_interp_2d(self, dt):
 def f_interp_p_3d(self, dt):
     """
     Since the interpolation function are being performed in velocity space,
-    the arrays used in the computation need to be in velocitiesExpanded form.
+    the arrays used in the computation need to be in pExpanded form.
     Hence we will need to convert the same:
     """
     # Following Lie Splitting:
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
                                       self.E1, self.E2, self.E3,
-                                      self.B1, self.B2, self.B3,
+                                      self.B1_n, self.B2_n, self.B3_n,
                                       self.physical_system.params
                                      )
     

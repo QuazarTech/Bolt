@@ -45,7 +45,7 @@ class test(object):
 
 
 def test_f_interp_2d():
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 11)
     error = np.zeros(N.size)
 
     for i in range(N.size):
@@ -58,5 +58,4 @@ def test_f_interp_2d():
         ) / f_analytic[3:-3, 3:-3].elements()
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
-
     assert (abs(poly[0] + 2) < 0.2)

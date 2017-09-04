@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 import arrayfire as af
 import numpy as np
 
 from bolt.lib.linear_solver.EM_fields_solver \
     import compute_electrostatic_fields
 
+
 def dY_dt(self, Y):
     """
     Returns the value of the derivative of the fourier mode quantities 
     of the distribution function, and the field quantities with 
-    respect to time. This is used to evolve the system with time.
+    respect to time. This is used to evolve the system in time.
 
     Input:
     ------
@@ -72,6 +74,7 @@ def dY_dt(self, Y):
     J3_hat = 2 * af.fft2(self.physical_system.params.charge_electron * 
                          mom_bulk_p3)/(self.N_q1 * self.N_q2)
 
+    # We define lambda functions to perform broadcasting operations:
     multiply = lambda a,b:a * b
     addition = lambda a,b:a + b
     

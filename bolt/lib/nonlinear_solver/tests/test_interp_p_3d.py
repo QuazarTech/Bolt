@@ -16,18 +16,19 @@ from bolt.lib.nonlinear_solver.interpolation_routines import f_interp_p_3d
 convert_p_imported = nonlinear_solver._convert_to_pExpanded
 convert_q_imported = nonlinear_solver._convert_to_qExpanded
 
-
 class test(object):
     def __init__(self, N):
         self.N_p1 = N
         self.N_p2 = N
         self.N_p3 = N
 
+        self.N_q1    = 1
+        self.N_q2    = 1
+        self.N_ghost = 0
+
         self.dp1 = 20 / self.N_p1
         self.dp2 = 20 / self.N_p2
         self.dp3 = 20 / self.N_p3
-
-        self.N_ghost = N_ghost = 3
 
         self.p1_start = self.p2_start = self.p3_start = -10
 
@@ -46,53 +47,30 @@ class test(object):
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
 
-        self.p1 = af.tile(af.reorder(p1_center, 2, 3, 0, 1),
-                          3 + 2 * N_ghost, 3 + 2 * N_ghost, 1, 1)
+        self.p1 = af.reorder(p1_center, 2, 3, 0, 1)
+        self.p2 = af.reorder(p2_center, 2, 3, 0, 1)
+        self.p3 = af.reorder(p3_center, 2, 3, 0, 1)
 
-        self.p2 = af.tile(af.reorder(p2_center, 2, 3, 0, 1),
-                          3 + 2 * N_ghost, 3 + 2 * N_ghost, 1, 1)
-
-        self.p3 = af.tile(af.reorder(p3_center, 2, 3, 0, 1),
-                          3 + 2 * N_ghost, 3 + 2 * N_ghost, 1, 1)
-
-        self.q1_start = self.q2_start = 0
-
-        q1_center = af.to_array(
-            (-N_ghost + np.arange(3 + 2 * N_ghost) + 0.5) * (1 / 3))
-        q2_center = af.to_array(
-            (-N_ghost + np.arange(3 + 2 * N_ghost) + 0.5) * (1 / 3))
-
-        # Tiling such that variation in q1 is along axis 0:
-        q1_center = af.tile(q1_center, 1, 3 + 2 * self.N_ghost,
-                            self.N_p1 * self.N_p2 * self.N_p3)
-
-        # Tiling such that variation in q2 is along axis 1:
-        q2_center = af.tile(af.reorder(q2_center), 3 + 2 * self.N_ghost, 1,
-                            self.N_p1 * self.N_p2 * self.N_p3)
-
-        self.q1_center, self.q2_center = q1_center, q2_center
+        self.q1_center = self.q2_center = np.random.rand(1)
 
         # Creating Dummy Values:
-        self.E1 = self.q1_center[:, :, 0, 0]
-        self.E2 = self.q1_center[:, :, 0, 0]
-        self.E3 = self.q1_center[:, :, 0, 0]
+        self.E1 = self.q1_center
+        self.E2 = self.q1_center
+        self.E3 = self.q1_center
 
-        self.B1 = self.q1_center[:, :, 0, 0]
-        self.B2 = self.q1_center[:, :, 0, 0]
-        self.B3 = self.q1_center[:, :, 0, 0]
+        self.B1_n = self.q1_center
+        self.B2_n = self.q1_center
+        self.B3_n = self.q1_center
 
-        self.f = af.sin(2 * np.pi * self.p1 +
-                        4 * np.pi * self.p2 +
-                        6 * np.pi * self.p3)
+        self.f = af.exp(-self.p1**2 - 2*self.p2**2 - 3*self.p3**2)
 
         self.physical_system = type('obj', (object, ),
                                     {'params': 'placeHolder'})
 
-        self._da = PETSc.DMDA().create([3, 3],
-                                        dof=(self.N_p1 *
-                                             self.N_p2 *
-                                             self.N_p3),
-                                        stencil_width=N_ghost)
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof=(self.N_p1 *
+                                              self.N_p2 *
+                                              self.N_p3))
 
     def _A_p(self, *args):
         return (1, 1, 1)
@@ -102,19 +80,19 @@ class test(object):
 
 
 def test_f_interp_p_3d():
-    N = np.array([16, 24, 32, 48, 64, 80, 96, 112, 128])
+    N     = 2**np.arange(5, 9)#np.array([16, 24, 32, 48, 64, 80, 96, 112, 128])
     error = np.zeros(N.size)
 
     for i in range(N.size):
         af.device_gc()
         obj = test(int(N[i]))
-        f_interp_p_3d(obj, 0.00001)
-        f_analytic = af.sin(2 * np.pi * (obj.p1 - 0.00001) +
-                            4 * np.pi * (obj.p2 - 0.00001) +
-                            6 * np.pi * (obj.p3 - 0.00001))
+        
+        f_interp_p_3d(obj, 1e-5)
+        
+        f_analytic = af.exp(-(obj.p1 - 1e-5)**2 - 2*(obj.p2 - 1e-5)**2 - 3*(obj.p3 - 1e-5)**2)
 
-        error[i] = af.sum(af.abs(obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3])
-                          ) / f_analytic[3:-3, 3:-3].elements()
+        error[i] = af.sum(af.abs(obj.f - f_analytic)
+                          ) / f_analytic.elements()
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
     assert(abs(poly[0] + 2)<0.2)

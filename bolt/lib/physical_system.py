@@ -175,7 +175,7 @@ class physical_system(object):
         PETSc.Sys.Print('|       / __  / __ \/ / __/                                   |')
         PETSc.Sys.Print('|      / /_/ / /_/ / / /_                                     |')
         PETSc.Sys.Print('|     /_____/\____/_/\__/                                     |')
-        PETSc.Sys.Print('--------------------------------------------------------------')
+        PETSc.Sys.Print('|-------------------------------------------------------------|')
         PETSc.Sys.Print('| Copyright (C) 2017 Quazar Techologies, Delhi                |')
         PETSc.Sys.Print('|                                                             |')
         PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or       |')

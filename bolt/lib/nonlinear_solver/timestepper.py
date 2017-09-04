@@ -13,7 +13,17 @@ from bolt.lib.nonlinear_solver.EM_fields_solver.fields_step \
 
 
 def strang_step(self, dt):
+    """
+    Advances the system using a strang-split 
+    scheme. This scheme is 2nd order accurate in
+    time.
 
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
+    """
     # For hydrodynamic cases:
     if(self.physical_system.params.charge_electron == 0):
         # Advection in position space:
@@ -62,7 +72,17 @@ def strang_step(self, dt):
 
 
 def lie_step(self, dt):
+    """
+    Advances the system using a lie-split 
+    scheme. This scheme is 1st order accurate in
+    time.
 
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
+    """
     # For hydrodynamic cases:
     if(self.physical_system.params.charge_electron == 0):
         # Advection in position space:

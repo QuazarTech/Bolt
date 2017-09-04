@@ -1,4 +1,4 @@
-"""Here we define the advection terms for the Boltzmann equation."""
+"""Here we define the advection terms for the nonrelativistic Boltzmann equation."""
 
 
 def A_q(p1, p2, p3, params):
@@ -8,7 +8,7 @@ def A_q(p1, p2, p3, params):
 
 class _additional_terms(object):
     def __init__(self):
-        return
+        pass
 
     def T1(self, q1, q2):
         return (q1 * q2)
