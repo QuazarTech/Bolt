@@ -12,6 +12,7 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 import os
+from profilehooks import profile
 
 # Importing solver libraries:
 import bolt.lib.nonlinear_solver.communicate as communicate
@@ -384,7 +385,7 @@ class nonlinear_solver(object):
     _communicate_fields                = communicate.\
                                          communicate_fields
 
-    strang_timestep = timestepper.strang_step
+    strang_timestep = profile(timestepper.strang_step)
     lie_timestep    = timestepper.lie_step
 
     compute_moments = compute_moments_imported

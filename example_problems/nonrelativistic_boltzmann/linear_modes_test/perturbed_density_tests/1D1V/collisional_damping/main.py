@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import pylab as pl
+import time
 
 from bolt.lib.physical_system import physical_system
 
@@ -67,7 +68,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 0.1
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -91,8 +92,6 @@ temp_data_ls = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        print('Computing For Time =', t0)
-
         n_nls = nls.compute_moments('density')
 
         p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
@@ -134,7 +133,7 @@ def time_evolution():
         temp_data_ls[time_index] = af.max(T_ls)
 
         nls.strang_timestep(dt)
-        ls.RK2_timestep(dt)
+        # ls.RK2_timestep(dt)
         
 time_evolution()
 
