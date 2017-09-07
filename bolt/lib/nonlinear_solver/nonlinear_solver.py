@@ -3,7 +3,7 @@
 
 """
 This is the module which contains the functions of the
-nonlinear solver of Bolt. It is based on the semi-lagrangian 
+nonlinear solver of Bolt. It uses a semi-lagrangian 
 method based on Cheng-Knorr(1978)
 """
 
@@ -12,7 +12,6 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 import os
-from profilehooks import profile
 
 # Importing solver libraries:
 import bolt.lib.nonlinear_solver.communicate as communicate
@@ -171,6 +170,11 @@ class nonlinear_solver(object):
         # Assigning the function object to a method of nonlinear solver:
         self._initialize(physical_system.params)
 
+        # Assigning the value to globalVector(for dump at t = 0):
+        self._glob_value_f[:] = np.array(self.f[self.N_ghost:-self.N_ghost,
+                                                self.N_ghost:-self.N_ghost
+                                                ])
+
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
                                          physical_system.params)[0]
@@ -180,8 +184,8 @@ class nonlinear_solver(object):
         # Assigning the function objects to methods of the solver:
         self._A_p = physical_system.A_p
 
-        # Source/Sink term(restricted to relaxation type collision operators):
-        self._source_or_sink = physical_system.source_or_sink
+        # Source/Sink term:
+        self._source = physical_system.source
 
     def _convert_to_qExpanded(self, array):
         """
@@ -385,7 +389,7 @@ class nonlinear_solver(object):
     _communicate_fields                = communicate.\
                                          communicate_fields
 
-    strang_timestep = profile(timestepper.strang_step)
+    strang_timestep = timestepper.strang_step
     lie_timestep    = timestepper.lie_step
 
     compute_moments = compute_moments_imported

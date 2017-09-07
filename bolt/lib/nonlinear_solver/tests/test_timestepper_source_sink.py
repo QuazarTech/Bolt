@@ -19,8 +19,8 @@ class test(object):
     def __init__(self):
         self.f = af.to_array(np.array([1.0]))
 
-    def _source_or_sink(self):
-        return (self.f)
+    def _source_or_sink(self, f):
+        return (f)
 
 
 # This test ensures that the RK2 implementation is 2nd order in time

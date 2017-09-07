@@ -142,8 +142,8 @@ class linear_solver(object):
         self._initialize(physical_system.params)
 
         # Assigning the function objects to methods of the solver:
-        self._A_p            = self.physical_system.A_p
-        self._source_or_sink = self.physical_system.source_or_sink
+        self._A_p    = self.physical_system.A_p
+        self._source = self.physical_system.source
 
     def _calculate_q_center(self):
         """

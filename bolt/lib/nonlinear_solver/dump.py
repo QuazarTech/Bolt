@@ -48,7 +48,8 @@ def dump_moments(self, file_name):
     
     for key in self.physical_system.moment_exponents:
         self._glob_moments_value[:][:, :, i] = \
-        np.array(self.compute_moments(key))
+        np.array(self.compute_moments(key)[self.N_ghost:-self.N_ghost,
+                                           self.N_ghost:-self.N_ghost])
         i += 1
     
     PETSc.Object.setName(self._glob_moments, 'moments')

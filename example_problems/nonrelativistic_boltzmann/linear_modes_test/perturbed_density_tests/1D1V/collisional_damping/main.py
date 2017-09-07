@@ -2,6 +2,7 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 import time
+import h5py
 
 from bolt.lib.physical_system import physical_system
 
@@ -68,9 +69,9 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.1
+t_final = 0.5
 
-time_array = np.arange(0, t_final + dt, dt)
+time_array = np.arange(dt, t_final + dt, dt)
 
 # Initializing Arrays used in storing the data:
 rho_data_nls  = np.zeros_like(time_array)
@@ -92,6 +93,10 @@ temp_data_ls = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
+
+        nls.strang_timestep(dt)
+        ls.RK2_timestep(dt)
+
         n_nls = nls.compute_moments('density')
 
         p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
@@ -132,9 +137,6 @@ def time_evolution():
 
         temp_data_ls[time_index] = af.max(T_ls)
 
-        nls.strang_timestep(dt)
-        # ls.RK2_timestep(dt)
-        
 time_evolution()
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')

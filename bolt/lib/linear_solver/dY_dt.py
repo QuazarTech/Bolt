@@ -47,11 +47,11 @@ def dY_dt(self, Y):
 
     # Scaling Appropriately:
     f       = af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat)
-    C_f_hat = 2 * af.fft2(self._source_or_sink(f, self.q1_center, self.q2_center,
-                                               self.p1, self.p2, self.p3,
-                                               self.compute_moments, 
-                                               self.physical_system.params
-                                              ))/(self.N_q2 * self.N_q1)
+    C_f_hat = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
+                                       self.p1, self.p2, self.p3,
+                                       self.compute_moments, 
+                                       self.physical_system.params
+                                      ))/(self.N_q2 * self.N_q1)
 
     if(self.physical_system.params.fields_solver == 'electrostatic' or
        self.physical_system.params.fields_solver == 'fft'):

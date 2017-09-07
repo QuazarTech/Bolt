@@ -6,7 +6,7 @@ import arrayfire as af
 # Importing solver functions:
 from bolt.lib.nonlinear_solver.interpolation_routines \
     import f_interp_2d
-from bolt.lib.nonlinear_solver.timestepper_source_sink \
+from bolt.lib.nonlinear_solver.timestepper_source \
     import RK2_step
 from bolt.lib.nonlinear_solver.EM_fields_solver.fields_step \
     import fields_step
@@ -28,16 +28,16 @@ def strang_step(self, dt):
     if(self.physical_system.params.charge_electron == 0):
         pass
         # Advection in position space:
-        # f_interp_2d(self, 0.5 * dt)
+        f_interp_2d(self, 0.5 * dt)
         self._communicate_distribution_function()
 
         # Solving the source/sink terms:
-        # RK2_step(self, dt)
-        # self._communicate_distribution_function()
+        RK2_step(self, dt)
+        self._communicate_distribution_function()
 
         # Advection in position space:
-        # f_interp_2d(self, 0.5 * dt)
-        # self._communicate_distribution_function()
+        f_interp_2d(self, 0.5 * dt)
+        self._communicate_distribution_function()
 
     else:
         # Advection in position space:
