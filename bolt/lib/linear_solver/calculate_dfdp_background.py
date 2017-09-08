@@ -12,16 +12,16 @@ def calculate_dfdp_background(self):
     f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
 
     # Using a 4th order central difference stencil:
-    dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1) +
-                        af.shift(f_b, 2) - 8 * af.shift(f_b, 1)
+    dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
+                        +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
                         ) / (12 * self.dp1)
 
-    dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1) +
-                        af.shift(f_b, 0, 2) - 8 * af.shift(f_b, 0, 1)
+    dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
+                        +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
                         ) / (12 * self.dp2)
 
-    dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1) +
-                        af.shift(f_b, 0, 0, 2) - 8 * af.shift(f_b, 0, 0, 1)
+    dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
+                        +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
                         ) / (12 * self.dp3)
 
     # Reordering such that the variations in velocity are along axis 2
@@ -32,9 +32,5 @@ def calculate_dfdp_background(self):
     af.eval(self.dfdp1_background,
             self.dfdp2_background,
             self.dfdp3_background)
-
-    # Deleting the terms which aren't necessary anymore:
-    del f_b, dfdp1_background, dfdp2_background, dfdp3_background
-    af.device_gc()
 
     return

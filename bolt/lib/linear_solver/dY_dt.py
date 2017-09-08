@@ -51,7 +51,8 @@ def dY_dt(self, Y):
                                        self.p1, self.p2, self.p3,
                                        self.compute_moments, 
                                        self.physical_system.params
-                                      ))/(self.N_q2 * self.N_q1)
+                                      )
+                         )/(self.N_q2 * self.N_q1)
 
     if(self.physical_system.params.fields_solver == 'electrostatic' or
        self.physical_system.params.fields_solver == 'fft'):
@@ -67,12 +68,17 @@ def dY_dt(self, Y):
     mom_bulk_p2 = self.compute_moments('mom_p2_bulk')
     mom_bulk_p3 = self.compute_moments('mom_p3_bulk')
 
-    J1_hat = 2 * af.fft2(self.physical_system.params.charge_electron * 
-                         mom_bulk_p1)/(self.N_q1 * self.N_q2)
-    J2_hat = 2 * af.fft2(self.physical_system.params.charge_electron * 
-                         mom_bulk_p2)/(self.N_q1 * self.N_q2)
-    J3_hat = 2 * af.fft2(self.physical_system.params.charge_electron * 
-                         mom_bulk_p3)/(self.N_q1 * self.N_q2)
+    J1_hat = 2 * af.fft2(  self.physical_system.params.charge_electron 
+                         * mom_bulk_p1
+                         )/(self.N_q1 * self.N_q2)
+    
+    J2_hat = 2 * af.fft2(  self.physical_system.params.charge_electron
+                         * mom_bulk_p2
+                         )/(self.N_q1 * self.N_q2)
+
+    J3_hat = 2 * af.fft2(  self.physical_system.params.charge_electron
+                         * mom_bulk_p3
+                         )/(self.N_q1 * self.N_q2)
 
     # We define lambda functions to perform broadcasting operations:
     multiply = lambda a,b:a * b
@@ -80,16 +86,19 @@ def dY_dt(self, Y):
     
     dE1_hat_dt = af.broadcast(addition, 
                               af.broadcast(multiply, self.B3_hat, 1j * self.k_q2),
-                              - J1_hat)
+                              - J1_hat
+                             )
 
     dE2_hat_dt = af.broadcast(addition,
                               af.broadcast(multiply,-self.B3_hat, 1j * self.k_q1),
-                              - J2_hat)
+                              - J2_hat
+                             )
 
     dE3_hat_dt = af.broadcast(addition, 
                               af.broadcast(multiply, self.B2_hat, 1j * self.k_q1) -
                               af.broadcast(multiply, self.B1_hat, 1j * self.k_q2), 
-                              - J3_hat)
+                              - J3_hat
+                             )
 
     dB1_hat_dt = af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
     dB2_hat_dt = af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
@@ -104,8 +113,8 @@ def dY_dt(self, Y):
                                      )
 
     df_hat_dt  = -1j * (af.broadcast(multiply, self.k_q1, self._A_q1) + 
-                        af.broadcast(multiply, self.k_q2, self._A_q2)) \
-                * f_hat
+                        af.broadcast(multiply, self.k_q2, self._A_q2)
+                       ) * f_hat
 
     
     # Adding the fields term only when charge is non-zero

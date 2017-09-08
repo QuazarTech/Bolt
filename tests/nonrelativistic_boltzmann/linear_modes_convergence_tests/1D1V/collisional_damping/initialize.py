@@ -53,3 +53,28 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     af.eval(f)
     return (f)
+
+
+# In case of user-defined fields the initial-conditions are provided
+# using the functions below. It should be ensured that these satisfy
+# maxwell's constraint equations.(add check - TODO)
+
+
+def initialize_E(q1, q2, p1, p2, p3, params):
+    # Declare initial conditions for E here
+    E1 = 0 * q1[:, :, 0]
+    E2 = 0 * q1[:, :, 0]
+    E3 = 0 * q1[:, :, 0]
+
+    af.eval(E1, E2, E3)
+    return (E1, E2, E3)
+
+
+def initialize_B(q1, q2, p1, p2, p3, params):
+    # Declare initial conditions for B here
+    B1 = 0 * q1[:, :, 0]
+    B2 = 0 * q1[:, :, 0]
+    B3 = 0 * q1[:, :, 0]
+
+    af.eval(B1, B2, B3)
+    return (B1, B2, B3)

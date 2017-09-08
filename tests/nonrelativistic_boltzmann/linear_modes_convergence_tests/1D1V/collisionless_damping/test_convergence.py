@@ -53,7 +53,7 @@ pl.rcParams['ytick.labelsize'] = 'medium'
 pl.rcParams['ytick.direction'] = 'in'
 
 # Time parameters:
-t_final = 0.1
+t_final = 0.001
 N       = 2**np.arange(5, 10)
 
 def run_cases():
@@ -98,23 +98,23 @@ def test_convergence():
     run_cases()
     
     for i in range(N.size):
-        h5f   = h5py.File('dump_files/nlsm_' + str(N[i]) + '.h5')
-        nls_f = h5f['moments'][:]
+        h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
+        nls_f = h5f['distribution_function'][:]
         h5f.close()    
 
-        h5f  = h5py.File('dump_files/lsm_' + str(N[i]) + '.h5')
-        ls_f = h5f['moments'][:]
+        h5f  = h5py.File('dump_files/lsf_' + str(N[i]) + '.h5')
+        ls_f = h5f['distribution_function'][:]
         h5f.close()
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
-    # pl.loglog(N, error, 'o-', label = 'Numerical')
-    # pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
-    #           label = r'$O(N^{-2})$')
-    # pl.legend(loc = 'best')
-    # pl.ylabel('Error')
-    # pl.xlabel('$N$')
-    # pl.savefig('convergence_plot.png')
+    pl.loglog(N, error, 'o-', label = 'Numerical')
+    pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
+              label = r'$O(N^{-2})$')
+    pl.legend(loc = 'best')
+    pl.ylabel('Error')
+    pl.xlabel('$N$')
+    pl.savefig('convergence_plot.png')
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    assert(abs(poly[0] + 2)<0.25)
+    assert(abs(poly[0] + 4)<0.25)

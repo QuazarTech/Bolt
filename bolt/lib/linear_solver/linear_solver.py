@@ -99,12 +99,14 @@ class linear_solver(object):
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof=(self.N_p1 * 
                                                    self.N_p2 * 
-                                                   self.N_p3),
+                                                   self.N_p3
+                                                   )
                                               )
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof=len(self.physical_system.\
-                                                            moment_exponents)
+                                                            moment_exponents
+                                                            )
                                                     )
 
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')

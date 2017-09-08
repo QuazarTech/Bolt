@@ -28,20 +28,20 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     # distribution function is assigned accordingly:
     if (params.p_dim == 3):
 
-        f = rho_b * (m / (2 * np.pi * k * T))**(3 / 2) * \
+        f = rho * (m / (2 * np.pi * k * T))**(3 / 2) * \
             af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) * \
             af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T)) * \
             af.exp(-m * (p3 - p3_bulk)**2 / (2 * k * T))
 
     elif (params.p_dim == 2):
 
-        f = rho_b * (m / (2 * np.pi * k * T)) * \
+        f = rho * (m / (2 * np.pi * k * T)) * \
             af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) * \
             af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T))
 
     else:
 
-        f = rho_b *\
+        f = rho *\
             af.sqrt(m / (2 * np.pi * k * T)) * \
             af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T))
 
