@@ -235,7 +235,7 @@ class linear_solver(object):
         f     = af.broadcast(self.physical_system.initial_conditions.\
                              initialize_f, self.q1_center, self.q2_center,
                              self.p1, self.p2, self.p3, params
-                             )
+                            )
         # Taking FFT:
         f_hat = af.fft2(f)
 
