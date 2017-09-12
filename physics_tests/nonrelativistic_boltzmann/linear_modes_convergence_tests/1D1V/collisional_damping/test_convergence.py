@@ -9,5 +9,5 @@ def tau(q1, q2, p1, p2, p3):
           )
 
 def test_convergence():
-    run_cases(0, tau)
+    run_cases(1, 1, 0, tau)
     check_convergence()
