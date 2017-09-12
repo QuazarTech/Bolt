@@ -53,9 +53,9 @@ class test():
         self.p3 = af.reorder(af.flat(self.p3), 2, 3, 0, 1)
 
 
-        self.f_background = af.exp(-self.p1**2) * \
-                            af.exp(-self.p2**2) * \
-                            af.exp(-self.p3**2)
+        self.f_background =   af.exp(-self.p1**2) \
+                            * af.exp(-self.p2**2) \
+                            * af.exp(-self.p3**2)
 
 
 def test_df_dp_background():
@@ -72,35 +72,35 @@ def test_df_dp_background():
 
         calculate_dfdp_background(obj)
 
-        dfdp1_expected = -2 * obj.p1 * \
-                         af.exp(-obj.p1**2) * \
-                         af.exp(-obj.p2**2) * \
-                         af.exp(-obj.p3**2)
+        dfdp1_expected = -2 * obj.p1 \
+                            * af.exp(-obj.p1**2) \
+                            * af.exp(-obj.p2**2) \
+                            * af.exp(-obj.p3**2)
 
-        dfdp2_expected = -2 * obj.p2 * \
-                         af.exp(-obj.p1**2) * \
-                         af.exp(-obj.p2**2) * \
-                         af.exp(-obj.p3**2)
+        dfdp2_expected = -2 * obj.p2 \
+                            * af.exp(-obj.p1**2) \
+                            * af.exp(-obj.p2**2) \
+                            * af.exp(-obj.p3**2)
 
-        dfdp3_expected = -2 * obj.p3 * \
-                         af.exp(-obj.p1**2) * \
-                         af.exp(-obj.p2**2) * \
-                         af.exp(-obj.p3**2)
+        dfdp3_expected = -2 * obj.p3 \
+                            * af.exp(-obj.p1**2) \
+                            * af.exp(-obj.p2**2) \
+                            * af.exp(-obj.p3**2)
 
         af.eval(obj.dfdp1_background, obj.dfdp2_background, obj.dfdp3_background)
         
-        error_1[i] = af.sum(af.abs(dfdp1_expected - obj.dfdp1_background)) /\
-                     dfdp1_expected.elements()
-        error_2[i] = af.sum(af.abs(dfdp2_expected - obj.dfdp2_background)) /\
-                     dfdp2_expected.elements()
-        error_3[i] = af.sum(af.abs(dfdp3_expected - obj.dfdp3_background)) /\
-                     dfdp3_expected.elements()
+        error_1[i] =   af.sum(af.abs(dfdp1_expected - obj.dfdp1_background)) \
+                     / dfdp1_expected.elements()
+        error_2[i] =   af.sum(af.abs(dfdp2_expected - obj.dfdp2_background)) \
+                     / dfdp2_expected.elements()
+        error_3[i] =   af.sum(af.abs(dfdp3_expected - obj.dfdp3_background)) \
+                     / dfdp3_expected.elements()
 
                   
     poly_1 = np.polyfit(np.log10(N), np.log10(error_1), 1)
     poly_2 = np.polyfit(np.log10(N), np.log10(error_2), 1)
     poly_3 = np.polyfit(np.log10(N), np.log10(error_3), 1)
 
-    assert(abs(poly_1[0] + 4) < 0.2 and
-           abs(poly_2[0] + 4) < 0.2 and
-           abs(poly_3[0] + 4) < 0.2)
+    assert(abs(poly_1[0] + 4) < 0.2)
+    assert(abs(poly_2[0] + 4) < 0.2)
+    assert(abs(poly_3[0] + 4) < 0.2)

@@ -14,15 +14,15 @@ def calculate_dfdp_background(self):
     # Using a 4th order central difference stencil:
     dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
                         +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
-                        ) / (12 * self.dp1)
+                       ) / (12 * self.dp1)
 
     dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
                         +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
-                        ) / (12 * self.dp2)
+                       ) / (12 * self.dp2)
 
     dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
                         +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
-                        ) / (12 * self.dp3)
+                       ) / (12 * self.dp3)
 
     # Reordering such that the variations in velocity are along axis 2
     self.dfdp1_background = af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1)
@@ -31,6 +31,7 @@ def calculate_dfdp_background(self):
 
     af.eval(self.dfdp1_background,
             self.dfdp2_background,
-            self.dfdp3_background)
+            self.dfdp3_background
+           )
 
     return

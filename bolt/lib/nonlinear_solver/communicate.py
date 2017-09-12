@@ -17,7 +17,9 @@ def communicate_distribution_function(self):
 
     # Global value is non-inclusive of the ghost-zones:
     self._glob_value_f[:] = np.array(self.f[N_ghost:-N_ghost, 
-                                            N_ghost:-N_ghost])
+                                            N_ghost:-N_ghost
+                                           ]
+                                    )
     
     # The following function takes care of periodic boundary conditions,
     # and interzonal communications:
@@ -64,7 +66,8 @@ def communicate_fields(self, on_fdtd_grid=False):
     # Global value is non-inclusive of the ghost-zones:
     self._glob_value_fields[:] = (self._local_value_fields[:])[N_ghost:-N_ghost,
                                                                N_ghost:-N_ghost,
-                                                               :]
+                                                               :
+                                                               ]
 
     # Takes care of boundary conditions and interzonal communications:
     self._da_fields.globalToLocal(self._glob_fields, self._local_fields)

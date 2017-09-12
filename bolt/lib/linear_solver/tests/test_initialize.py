@@ -20,19 +20,19 @@ from bolt.lib.linear_solver.compute_moments \
 
 initialize = linear_solver._initialize
 
-moment_exponents = dict(density=[0, 0, 0],
-                        mom_p1_bulk=[1, 0, 0],
-                        mom_p2_bulk=[0, 1, 0],
-                        mom_p3_bulk=[0, 0, 1],
-                        energy=[2, 2, 2]
+moment_exponents = dict(density     = [0, 0, 0],
+                        mom_p1_bulk = [1, 0, 0],
+                        mom_p2_bulk = [0, 1, 0],
+                        mom_p3_bulk = [0, 0, 1],
+                        energy      = [2, 2, 2]
                         )
 
-moment_coeffs = dict(density=[1, 0, 0],
-                     mom_p1_bulk=[1, 0, 0],
-                     mom_p2_bulk=[0, 1, 0],
-                     mom_p3_bulk=[0, 0, 1],
-                     energy=[1, 1, 1]
-                     )
+moment_coeffs = dict(density     = [1, 0, 0],
+                     mom_p1_bulk = [1, 0, 0],
+                     mom_p2_bulk = [0, 1, 0],
+                     mom_p3_bulk = [0, 0, 1],
+                     energy      = [1, 1, 1]
+                    )
 
 def empty_function(*args):
     return None
@@ -42,10 +42,10 @@ def MB_dist(q1, q2, p1, p2, p3, params):
     # Calculating the perturbed density:
     rho = 1 + (0.01 * af.cos(2 * np.pi * q1 + 4 * np.pi * q2))
 
-    f = rho * (1 / (2 * np.pi))**(3 / 2) * \
-        af.exp(-0.5 * p1**2) * \
-        af.exp(-0.5 * p2**2) * \
-        af.exp(-0.5 * p3**2)
+    f = rho * (1 / (2 * np.pi))**(3 / 2) \
+            * af.exp(-0.5 * p1**2) \
+            * af.exp(-0.5 * p2**2) \
+            * af.exp(-0.5 * p3**2)
 
     af.eval(f)
     return (f)
@@ -56,16 +56,19 @@ class params:
 
 class test(object):
     def __init__(self):
+        # Initializing an object with required attributes:
         self.physical_system = type('obj', (object, ),
                                     {'initial_conditions':
                                       type('obj', (object,), {'initialize_f':MB_dist}),
                                      'params':
                                       type('obj', (object,), {'fields_initialize':'fft',
-                                                              'charge_electron':-1
-                                                              }),
+                                                              'charge_electron':  -1
+                                                             }
+                                          ),
                                       'moment_exponents': moment_exponents,
-                                      'moment_coeffs': moment_coeffs
-                                     })
+                                      'moment_coeffs':    moment_coeffs
+                                     }
+                                    )
 
         self.q1_start = np.random.randint(0, 5)
         self.q2_start = np.random.randint(0, 5)
@@ -105,9 +108,9 @@ class test(object):
 def test_initialize():
     obj = test()
     initialize(obj, params)
-    f_background_ana = (1 / (2 * np.pi))**(3 / 2) * \
-                        af.exp(-0.5 * obj.p1**2) * \
-                        af.exp(-0.5 * obj.p2**2) * \
-                        af.exp(-0.5 * obj.p3**2)
+    f_background_ana =    (1 / (2 * np.pi))**(3 / 2) \
+                        * af.exp(-0.5 * obj.p1**2)  \
+                        * af.exp(-0.5 * obj.p2**2)  \
+                        * af.exp(-0.5 * obj.p3**2)
 
     assert(af.sum(af.abs(obj.f_background - f_background_ana))<1e-13)

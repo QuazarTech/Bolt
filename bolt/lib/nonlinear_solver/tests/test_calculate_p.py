@@ -50,14 +50,17 @@ def test_calculate_p():
         np.meshgrid(p2_expected, p1_expected, p3_expected)
 
     p1_expected = af.reorder(af.flat(af.to_array(p1_expected)),
-                             2, 3, 0, 1)
+                             2, 3, 0, 1
+                            )
 
     p2_expected = af.reorder(af.flat(af.to_array(p2_expected)),
-                             2, 3, 0, 1)
+                             2, 3, 0, 1
+                            )
 
     p3_expected = af.reorder(af.flat(af.to_array(p3_expected)),
-                             2, 3, 0, 1)
+                             2, 3, 0, 1
+                            )
     
-    assert (af.sum(af.abs(p1_expected - p1)) +
-            af.sum(af.abs(p2_expected - p2)) +
-            af.sum(af.abs(p3_expected - p3)) == 0)
+    assert (af.sum(af.abs(p1_expected - p1)) == 0)
+    assert (af.sum(af.abs(p2_expected - p2)) == 0)
+    assert (af.sum(af.abs(p3_expected - p3)) == 0)

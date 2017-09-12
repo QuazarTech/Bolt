@@ -45,9 +45,9 @@ def fdtd(self, dt):
     B3_shifted_q1 = af.shift(B3, 1, 0)
     B3_shifted_q2 = af.shift(B3, 0, 1)
 
-    self.E1_fdtd += (dt / dq2) * (B3 - B3_shifted_q2) - self.J1 * dt
-    self.E2_fdtd += -(dt / dq1) * (B3 - B3_shifted_q1) - self.J2 * dt
-    self.E3_fdtd += (dt / dq1) * (B2 - B2_shifted_q1) \
+    self.E1_fdtd +=   (dt / dq2) * (B3 - B3_shifted_q2) - self.J1 * dt
+    self.E2_fdtd +=  -(dt / dq1) * (B3 - B3_shifted_q1) - self.J2 * dt
+    self.E3_fdtd +=   (dt / dq1) * (B2 - B2_shifted_q1) \
                     - (dt / dq2) * (B1 - B1_shifted_q2) \
                     - dt * self.J3
 
@@ -69,12 +69,13 @@ def fdtd(self, dt):
     E3_shifted_q2 = af.shift(E3, 0, -1)
 
     self.B1_fdtd += -(dt / dq2) * (E3_shifted_q2 - E3)
-    self.B2_fdtd += (dt / dq1) * (E3_shifted_q1 - E3)
+    self.B2_fdtd +=  (dt / dq1) * (E3_shifted_q1 - E3)
     self.B3_fdtd += - (dt / dq1) * (E2_shifted_q1 - E2) \
                     + (dt / dq2) * (E1_shifted_q2 - E1)
 
     af.eval(self.E1_fdtd, self.E2_fdtd, self.E3_fdtd,
-            self.B1_fdtd, self.B2_fdtd, self.B3_fdtd)
+            self.B1_fdtd, self.B2_fdtd, self.B3_fdtd
+           )
     return
 
 
@@ -82,16 +83,16 @@ def fdtd_grid_to_ck_grid(self):
 
     # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the
     # nonlinear solver:
-    self.E1 = 0.5 * (self.E1_fdtd + af.shift(self.E1_fdtd, 0, -1))
-    self.B1 = 0.5 * (self.B1_fdtd + af.shift(self.B1_fdtd, -1, 0))
+    self.E1 = 0.5 * (self.E1_fdtd + af.shift(self.E1_fdtd,  0, -1))
+    self.B1 = 0.5 * (self.B1_fdtd + af.shift(self.B1_fdtd, -1,  0))
 
-    self.E2 = 0.5 * (self.E2_fdtd + af.shift(self.E2_fdtd, -1, 0))
-    self.B2 = 0.5 * (self.B2_fdtd + af.shift(self.B2_fdtd, 0, -1))
+    self.E2 = 0.5 * (self.E2_fdtd + af.shift(self.E2_fdtd, -1,  0))
+    self.B2 = 0.5 * (self.B2_fdtd + af.shift(self.B2_fdtd,  0, -1))
 
-    self.E3 = 0.25 * (self.E3_fdtd + af.shift(self.E3_fdtd, 0, -1) +
-                                     af.shift(self.E3_fdtd, -1, 0) +
-                                     af.shift(self.E3_fdtd, -1, -1)
-                      )
+    self.E3 = 0.25 * (  self.E3_fdtd + af.shift(self.E3_fdtd, 0, -1)
+                      + af.shift(self.E3_fdtd, -1,  0)
+                      + af.shift(self.E3_fdtd, -1, -1)
+                     )
     self.B3 = self.B3_fdtd
 
     af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)

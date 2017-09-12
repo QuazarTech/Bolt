@@ -95,7 +95,8 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    self._glob_f_value[:] =   0.5 * self.N_q2 * self.N_q1
-                            * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    # Scaling Appropriately:
+    self._glob_f_value[:] =   0.5 * self.N_q2 * self.N_q1 \
+                                  * np.array(af.ifft2(self.Y[:, :, :, 0])).real
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_f)

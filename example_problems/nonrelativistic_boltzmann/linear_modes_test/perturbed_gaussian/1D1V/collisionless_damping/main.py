@@ -52,12 +52,12 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 # Defining the physical system to be solved:
-system = physical_system(domain,\
-                         boundary_conditions,\
-                         params,\
-                         initialize,\
-                         advection_terms,\
-                         collision_operator.BGK,\
+system = physical_system(domain,
+                         boundary_conditions,
+                         params,
+                         initialize,
+                         advection_terms,
+                         collision_operator.BGK,
                          moment_defs
                         )
 
@@ -104,7 +104,8 @@ def time_evolution():
         T_nls = (nls.compute_moments('energy') - 
                  n_nls * p1_bulk_nls**2 -
                  n_nls * p2_bulk_nls**2 -
-                 n_nls * p3_bulk_nls**2) / n_nls
+                 n_nls * p3_bulk_nls**2
+                ) / n_nls
 
         rho_data_nls[time_index]  = af.max(n_nls)
         
@@ -123,7 +124,8 @@ def time_evolution():
         T_ls = (ls.compute_moments('energy') - 
                  n_ls * p1_bulk_ls**2 -
                  n_ls * p2_bulk_ls**2 -
-                 n_ls * p3_bulk_ls**2) / n_ls
+                 n_ls * p3_bulk_ls**2
+               ) / n_ls
 
         rho_data_ls[time_index]  = af.max(n_ls)
         

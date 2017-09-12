@@ -23,20 +23,21 @@ def fields_step(self, dt):
     elif (self.physical_system.params.fields_solver == 'fdtd'):
         # Will returned a flattened array containing the values of
         # J1,2,3 in 2D space:
-        self.J1 = self.physical_system.params.charge_electron * \
-                  self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
-        self.J2 = self.physical_system.params.charge_electron * \
-                  self.compute_moments('mom_p2_bulk')  # (i + 1/2, j + 1/2)
-        self.J3 = self.physical_system.params.charge_electron * \
-                  self.compute_moments('mom_p3_bulk')  # (i + 1/2, j + 1/2)
+        self.J1 =   self.physical_system.params.charge_electron \
+                  * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
+        self.J2 =   self.physical_system.params.charge_electron \
+                  * self.compute_moments('mom_p2_bulk')  # (i + 1/2, j + 1/2)
+        self.J3 =   self.physical_system.params.charge_electron \
+                  * self.compute_moments('mom_p3_bulk')  # (i + 1/2, j + 1/2)
 
         # Obtaining the values for current density on the Yee-Grid:
         self.J1 = 0.5 * (self.J1 + af.shift(self.J1, 0, 1))  # (i + 1/2, j)
         self.J2 = 0.5 * (self.J2 + af.shift(self.J2, 1, 0))  # (i, j + 1/2)
 
-        self.J3 = 0.25 * (self.J3 + af.shift(self.J3, 1, 0) +
-                                    af.shift(self.J3, 0, 1) +
-                                    af.shift(self.J3, 1, 1))  # (i, j)
+        self.J3 = 0.25 * (  self.J3 + af.shift(self.J3, 1, 0) +
+                          + af.shift(self.J3, 0, 1)
+                          + af.shift(self.J3, 1, 1)
+                         )  # (i, j)
 
         # Storing the values for the previous half-time step:
         # We do this since the B values on the CK grid are defined at
@@ -55,8 +56,8 @@ def fields_step(self, dt):
 
     else:
         raise NotImplementedError('The method specified is \
-                                    invalid/not-implemented')
+                                    invalid/not-implemented'
+                                 )
 
     f_interp_p_3d(self, dt)
-
     return

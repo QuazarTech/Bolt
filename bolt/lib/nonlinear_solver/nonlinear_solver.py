@@ -95,45 +95,61 @@ class nonlinear_solver(object):
         # automatically takes care of applying periodic boundary conditions.
 
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                         dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                         stencil_width=self.N_ghost,
-                                         boundary_type=(self.bc_in_q1,
-                                                        self.bc_in_q2),
-                                         proc_sizes=(PETSc.DECIDE, PETSc.DECIDE),
-                                         stencil_type=1,
-                                         comm=self._comm)
+                                         dof           = (  self.N_p1 
+                                                          * self.N_p2 
+                                                          * self.N_p3
+                                                         ),
+                                         stencil_width = self.N_ghost,
+                                         boundary_type = (self.bc_in_q1,
+                                                          self.bc_in_q2
+                                                         ),
+                                         proc_sizes    = (PETSc.DECIDE, 
+                                                          PETSc.DECIDE
+                                                         ),
+                                         stencil_type  = 1,
+                                         comm          = self._comm
+                                        )
 
         # This DA object is used in the communication routines for the
         # EM field quantities. A DOF of 6 is taken so that the communications,
         # and application of B.C's may be carried out in a single call among
         # all the field quantities(E1, E2, E3, B1, B2, B3)
         self._da_fields = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof=6,
-                                              stencil_width=self.N_ghost,
-                                              boundary_type=(self.bc_in_q1,
-                                                             self.bc_in_q2),
-                                              proc_sizes=(PETSc.DECIDE,
-                                                          PETSc.DECIDE),
-                                              stencil_type=1,
-                                              comm=self._comm)
+                                              dof           = 6,
+                                              stencil_width = self.N_ghost,
+                                              boundary_type = (self.bc_in_q1,
+                                                               self.bc_in_q2
+                                                              ),
+                                              proc_sizes    = (PETSc.DECIDE,
+                                                               PETSc.DECIDE
+                                                              ),
+                                              stencil_type  = 1,
+                                              comm          = self._comm
+                                             )
 
         # Additionally, a DA object also needs to be created for the KSP solver
         # with a DOF of 1:
         self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                            stencil_width=self.N_ghost,
-                                            boundary_type=(self.bc_in_q1,
-                                                           self.bc_in_q2),
-                                            proc_sizes=(PETSc.DECIDE,
-                                                        PETSc.DECIDE),
-                                            stencil_type=1,
-                                            comm=self._comm)
+                                            stencil_width = self.N_ghost,
+                                            boundary_type = (self.bc_in_q1,
+                                                             self.bc_in_q2
+                                                            ),
+                                            proc_sizes    = (PETSc.DECIDE,
+                                                             PETSc.DECIDE
+                                                            ),
+                                            stencil_type  = 1,
+                                            comm          = self._comm)
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof=len(self.physical_system.\
-                                                            moment_exponents),
-                                                    proc_sizes=(PETSc.DECIDE,
-                                                                PETSc.DECIDE),
-                                                    comm=self._comm)
+                                                    dof        = len(self.
+                                                                     physical_system.
+                                                                     moment_exponents
+                                                                    ),
+                                                    proc_sizes = (PETSc.DECIDE,
+                                                                  PETSc.DECIDE
+                                                                 ),
+                                                    comm       = self._comm
+                                                   )
 
         # Creation of the local and global vectors from the DA:
         # This is for the distribution function
@@ -173,13 +189,16 @@ class nonlinear_solver(object):
         # Assigning the value to globalVector(for dump at t = 0):
         self._glob_value_f[:] = np.array(self.f[self.N_ghost:-self.N_ghost,
                                                 self.N_ghost:-self.N_ghost
-                                                ])
+                                               ]
+                                        )
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
-                                         physical_system.params)[0]
+                                         physical_system.params
+                                        )[0]
         self._A_q2 = physical_system.A_q(self.p1, self.p2, self.p3,
-                                         physical_system.params)[1]
+                                         physical_system.params
+                                        )[1]
 
         # Assigning the function objects to methods of the solver:
         self._A_p = physical_system.A_p
@@ -187,54 +206,60 @@ class nonlinear_solver(object):
         # Source/Sink term:
         self._source = physical_system.source
 
-    def _convert_to_qExpanded(self, array):
+    def _convert_to_q_expanded(self, array):
         """
         Since we are limited to use 4D arrays due to
         the bound from ArrayFire, we define 2 forms
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        qExpanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        pExpanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
+        q_expanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        p_expanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
         
         This function converts the input array from
-        pExpanded to qExpanded form.
+        p_expanded to q_expanded form.
         """
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),
-         (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        
+        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
+            self._da_f.getCorners()
+        
         array = af.moddims(array,
                            (N_q1_local + 2 * self.N_ghost),
                            (N_q2_local + 2 * self.N_ghost),
-                           self.N_p1 * self.N_p2 * self.N_p3, 1)
+                           self.N_p1 * self.N_p2 * self.N_p3
+                          )
 
         af.eval(array)
         return (array)
 
-    def _convert_to_pExpanded(self, array):
+    def _convert_to_p_expanded(self, array):
         """
         Since we are limited to use 4D arrays due to
         the bound from ArrayFire, we define 2 forms
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        qExpanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        pExpanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
+        q_expanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        p_expanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
         
         This function converts the input array from
-        qExpanded to pExpanded form.
+        q_expanded to p_expanded form.
         """
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),
-         (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        
+        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
+            self._da_f.getCorners()
+        
         array = af.moddims(array,
-                           (N_q1_local + 2 * self.N_ghost) *
-                           (N_q2_local + 2 * self.N_ghost),
-                           self.N_p1, self.N_p2, self.N_p3)
+                             (N_q1_local + 2 * self.N_ghost)
+                           * (N_q2_local + 2 * self.N_ghost),
+                           self.N_p1, self.N_p2, self.N_p3
+                          )
 
         af.eval(array)
         return (array)
@@ -245,21 +270,24 @@ class nonlinear_solver(object):
         formulation. The size, and resolution are the same as declared
         under domain of the physical system object.
 
-        Returns in qExpanded form.
+        Returns in q_expanded form.
         """
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),
-         (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
+            self._da_f.getCorners()
 
         i_q1_center = i_q1_lowest + 0.5
         i_q2_center = i_q2_lowest + 0.5
 
-        i_q1 = (i_q1_center +
-                np.arange(-self.N_ghost, N_q1_local + self.N_ghost))
-        i_q2 = (i_q2_center +
-                np.arange(-self.N_ghost, N_q2_local + self.N_ghost))
+        i_q1 = (  i_q1_center 
+                + np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
+               )
+
+        i_q2 = (  i_q2_center
+                + np.arange(-self.N_ghost, N_q2_local + self.N_ghost)
+               )
 
         q1_center = self.q1_start + i_q1 * self.dq1
         q2_center = self.q2_start + i_q2 * self.dq2
@@ -276,18 +304,16 @@ class nonlinear_solver(object):
         formulation. The size, and resolution are the same as declared
         under domain of the physical system object.
 
-        Returns in qExpanded form.
+        Returns in q_expanded form.
         """
-        p1_center = self.p1_start + \
-                    (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
-        p2_center = self.p2_start + \
-                    (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-        p3_center = self.p3_start + \
-                    (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+        p1_center = self.p1_start + (0.5 + np.arange(self.N_p1)) * self.dp1
+        p2_center = self.p2_start + (0.5 + np.arange(self.N_p2)) * self.dp2
+        p3_center = self.p3_start + (0.5 + np.arange(self.N_p3)) * self.dp3
 
         p2_center, p1_center, p3_center = np.meshgrid(p2_center,
                                                       p1_center,
-                                                      p3_center)
+                                                      p3_center
+                                                     )
 
         # Flattening the arrays:
         p1_center = af.flat(af.to_array(p1_center))
@@ -310,69 +336,139 @@ class nonlinear_solver(object):
         quantities using the options as provided by the user.
         """
         # Initializing with the provided I.C's:
+        # af.broadcast, allows us to perform batched operations 
+        # when operating on arrays of different sizes
+        # af.broadcast(function, *args) performs batched operations on
+        # function(*args)
         self.f = af.broadcast(self.physical_system.initial_conditions.\
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, params
                               )
+
+        # Obtaining the left-bottom corner coordinates
+        # (lowest values of the canonical coordinates in the local zone)
+        # Additionally, we also obtain the size of the local zone
+        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
+            self._da_f.getCorners()
 
         # Initializing the EM fields quantities:
         # These quantities are defined for the CK grid:
         # That is at (i + 0.5, j + 0.5):
 
         # Electric fields are defined at n-th timestep:
-        self.E1 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
-        self.E2 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
-        self.E3 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
+        self.E1 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
+
+        self.E2 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
+
+        self.E3 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
 
         # Magnetic fields are defined at the (n+0.5)-th timestep:
-        self.B1 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
-        self.B2 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
-        self.B3 = af.constant(0, self.f.shape[0],
-                              self.f.shape[1], dtype=af.Dtype.f64)
+        self.B1 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
+
+        self.B2 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
+
+        self.B3 = af.constant(0, 
+                              N_q1_local + 2 * self.N_ghost,
+                              N_q2_local + 2 * self.N_ghost,
+                              dtype=af.Dtype.f64
+                             )
 
         # Arrays which hold the magnetic field quantities for the n-th timestep:
-        self.B1_n = af.constant(0, self.f.shape[0],
-                                self.f.shape[1], dtype=af.Dtype.f64)
-        self.B2_n = af.constant(0, self.f.shape[0],
-                                self.f.shape[1], dtype=af.Dtype.f64)
-        self.B3_n = af.constant(0, self.f.shape[0],
-                                self.f.shape[1], dtype=af.Dtype.f64)
+        self.B1_n = af.constant(0, 
+                                N_q1_local + 2 * self.N_ghost,
+                                N_q2_local + 2 * self.N_ghost,
+                                dtype=af.Dtype.f64
+                               )
+
+        self.B2_n = af.constant(0, 
+                                N_q1_local + 2 * self.N_ghost,
+                                N_q2_local + 2 * self.N_ghost,
+                                dtype=af.Dtype.f64
+                               )
+
+        self.B3_n = af.constant(0, 
+                                N_q1_local + 2 * self.N_ghost,
+                                N_q2_local + 2 * self.N_ghost,
+                                dtype=af.Dtype.f64
+                               )
 
         # Declaring the arrays which store data on the FDTD grid:
-        self.E1_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
-        self.E2_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
-        self.E3_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
+        self.E1_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
 
-        self.B1_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
-        self.B2_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
-        self.B3_fdtd = af.constant(0, self.f.shape[0],
-                                   self.f.shape[1], dtype=af.Dtype.f64)
+        self.E2_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
+
+        self.E3_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
+
+        self.B1_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
+
+        self.B2_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
+
+        self.B3_fdtd = af.constant(0, 
+                                   N_q1_local + 2 * self.N_ghost,
+                                   N_q2_local + 2 * self.N_ghost,
+                                   dtype=af.Dtype.f64
+                                  )
 
         if (self.physical_system.params.fields_initialize == 'fft'):
             fft_poisson(self)
 
         elif (self.physical_system.params.fields_initialize ==
-              'electrostatic'):
+              'electrostatic'
+             ):
             compute_electrostatic_fields(self)
 
         elif (self.physical_system.params.fields_initialize == 'user-defined'):
-            self.E1, self.E2, self.E3 = self.physical_system.\
-                initial_conditions.initialize_E(self.q1_center, self.q2_center,
-                                                params)
+            self.E1, self.E2, self.E3 = \
+                self.physical_system.initial_conditions.initialize_E(self.q1_center,
+                                                                     self.q2_center,
+                                                                     params
+                                                                    )
 
-            self.B1, self.B2, self.B3 = self.physical_system.\
-                initial_conditions.initialize_B(self.q1_center, self.q2_center,
-                                                params)
+            self.B1, self.B2, self.B3 = \
+                self.physical_system.initial_conditions.initialize_B(self.q1_center,
+                                                                     self.q2_center,
+                                                                     params
+                                                                    )
 
         else:
             raise NotImplementedError('Method not valid/not implemented')

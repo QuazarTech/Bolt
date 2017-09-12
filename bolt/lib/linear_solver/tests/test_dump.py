@@ -24,13 +24,13 @@ from bolt.lib.linear_solver.compute_moments import \
 from bolt.lib.linear_solver.linear_solver import linear_solver
 calculate_p = linear_solver._calculate_p_center    
 
-moment_exponents = dict(density=[0, 0, 0],
-                        energy=[2, 2, 2]
-                        )
+moment_exponents = dict(density = [0, 0, 0],
+                        energy  = [2, 2, 2]
+                       )
 
-moment_coeffs = dict(density=[1, 0, 0],
-                     energy=[1, 1, 1]
-                     )
+moment_coeffs = dict(density = [1, 0, 0],
+                     energy  = [1, 1, 1]
+                    )
 
 class test(object):
     
@@ -49,28 +49,31 @@ class test(object):
 
         self.p1, self.p2, self.p3 = self._calculate_p_center()
 
+        # Creating an object with required attributes for the test:
         self.physical_system = type('obj', (object,),
-                            {'moment_exponents': moment_exponents,
-                             'moment_coeffs': moment_coeffs}
-                            )
+                                    {'moment_exponents': moment_exponents,
+                                     'moment_coeffs':    moment_coeffs
+                                    }
+                                   )
 
         self.f = af.randu(self.N_q1, self.N_q2,
                           self.N_p1 * self.N_p2 * self.N_p3,
                           dtype = af.Dtype.f64
-                          )
+                         )
 
         self.Y = 2 * af.fft2(self.f)/(self.N_q1 * self.N_q2)
 
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof=(self.N_p1 * 
-                                                   self.N_p2 * 
-                                                   self.N_p3),
-                                              )
+                                              dof = (  self.N_p1 
+                                                     * self.N_p2 
+                                                     * self.N_p3
+                                                    ),
+                                             )
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof=len(self.physical_system.\
-                                                            moment_exponents)
-                                                    )
+                                                    dof = len(self.physical_system.\
+                                                              moment_exponents)
+                                                   )
 
         self._glob_f       = self._da_dump_f.createGlobalVec()
         self._glob_f_value = self._da_dump_f.getVecArray(self._glob_f)
@@ -109,7 +112,11 @@ def test_dump_moments():
     moments_read = np.swapaxes(moments_read, 0, 1)
 
     assert(af.sum(af.to_array(moments_read[:, :, 0]) - 
-                  compute_moments_imported(test_obj, 'density'))==0)
+                  compute_moments_imported(test_obj, 'density')
+                 )==0
+          )
 
     assert(af.sum(af.to_array(moments_read[:, :, 1]) - 
-                  compute_moments_imported(test_obj, 'energy'))==0)
+                  compute_moments_imported(test_obj, 'energy')
+                 )==0
+          )

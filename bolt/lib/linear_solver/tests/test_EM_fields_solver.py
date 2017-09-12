@@ -45,12 +45,15 @@ class test(object):
         self.q2 = af.tile(af.reorder(self.q2), self.N_q1, 1)
 
     def compute_moments(self, string):
-        return(1 +
-               0.01 * af.cos(2 * np.pi * self.q1[:, :, 0] +
-                             4 * np.pi * self.q2[:, :, 0]) -
-               0.02 * af.sin(2 * np.pi * self.q1[:, :, 0] +
-                             4 * np.pi * self.q2[:, :, 0])
-               )
+        return(1
+               + 0.01 * af.cos(  2 * np.pi * self.q1
+                               + 4 * np.pi * self.q2
+                              )
+             
+               - 0.02 * af.sin(  2 * np.pi * self.q1
+                               + 4 * np.pi * self.q2
+                              )
+              )
 
 def test_compute_electrostatic_fields():
 
@@ -60,21 +63,22 @@ def test_compute_electrostatic_fields():
     E1 = 0.5 * test_obj.N_q1 * test_obj.N_q2 * af.ifft2(test_obj.E1_hat)
     E2 = 0.5 * test_obj.N_q1 * test_obj.N_q2 * af.ifft2(test_obj.E2_hat)
 
-    E1_analytical = test_obj.physical_system.params.charge_electron * \
-        2 * np.pi / (20 * np.pi**2) *\
-        (0.01 * af.sin(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2) +
-         0.02 * af.cos(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
-         )
+    E1_analytical =   test_obj.physical_system.params.charge_electron \
+                    * 2 * np.pi / (20 * np.pi**2) \
+                    * (  0.01 * af.sin(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
+                       + 0.02 * af.cos(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
+                      )
 
-    E2_analytical = test_obj.physical_system.params.charge_electron * \
-        4 * np.pi / (20 * np.pi**2) *\
-        (0.01 * af.sin(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2) +
-         0.02 * af.cos(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
-         )
+    E2_analytical =   test_obj.physical_system.params.charge_electron \
+                    * 4 * np.pi / (20 * np.pi**2) \
+                    * (  0.01 * af.sin(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
+                       + 0.02 * af.cos(2 * np.pi * test_obj.q1 + 4 * np.pi * test_obj.q2)
+                      )
 
     add = lambda a,b:a+b
 
     error_E1 = af.sum(af.abs(af.broadcast(add, E1_analytical, - E1)))/E1.elements()
     error_E2 = af.sum(af.abs(af.broadcast(add, E2_analytical, - E2)))/E2.elements()
 
-    assert(error_E1 < 1e-14 and error_E2 < 1e-14)
+    assert(error_E1 < 1e-14)
+    assert(error_E2 < 1e-14)

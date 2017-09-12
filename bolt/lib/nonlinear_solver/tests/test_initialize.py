@@ -21,29 +21,29 @@ from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
 initialize = nonlinear_solver._initialize
 
-moment_exponents = dict(density=[0, 0, 0],
-                        mom_p1_bulk=[1, 0, 0],
-                        mom_p2_bulk=[0, 1, 0],
-                        mom_p3_bulk=[0, 0, 1],
-                        energy=[2, 2, 2]
+moment_exponents = dict(density     = [0, 0, 0],
+                        mom_p1_bulk = [1, 0, 0],
+                        mom_p2_bulk = [0, 1, 0],
+                        mom_p3_bulk = [0, 0, 1],
+                        energy      = [2, 2, 2]
                         )
 
-moment_coeffs = dict(density=[1, 0, 0],
-                     mom_p1_bulk=[1, 0, 0],
-                     mom_p2_bulk=[0, 1, 0],
-                     mom_p3_bulk=[0, 0, 1],
-                     energy=[1, 1, 1]
-                     )
+moment_coeffs = dict(density     = [1, 0, 0],
+                     mom_p1_bulk = [1, 0, 0],
+                     mom_p2_bulk = [0, 1, 0],
+                     mom_p3_bulk = [0, 0, 1],
+                     energy      = [1, 1, 1]
+                    )
 
 def MB_dist(q1, q2, p1, p2, p3, params):
 
     # Calculating the perturbed density:
     rho = 1 + af.cos(2 * np.pi * q1 + 4 * np.pi * q2)
 
-    f = rho * (1 / (2 * np.pi))**(3 / 2) * \
-        af.exp(-0.5 * p1**2) * \
-        af.exp(-0.5 * p2**2) * \
-        af.exp(-0.5 * p3**2)
+    f = rho * (1 / (2 * np.pi))**(3 / 2) \
+            * af.exp(-0.5 * p1**2) \
+            * af.exp(-0.5 * p2**2) \
+            * af.exp(-0.5 * p3**2)
 
     af.eval(f)
     return (f)
@@ -54,6 +54,7 @@ class params:
 
 class test(object):
     def __init__(self):
+        # Initializing object with required parameters:
         self.physical_system = type('obj', (object, ),
                                     {'initial_conditions':
                                       type('obj', (object,), {'initialize_f':MB_dist}),
@@ -63,7 +64,8 @@ class test(object):
                                                               }),
                                       'moment_exponents': moment_exponents,
                                       'moment_coeffs': moment_coeffs
-                                     })
+                                    }
+                                   )
 
         self.q1_start = np.random.randint(0, 5)
         self.q2_start = np.random.randint(0, 5)
@@ -98,14 +100,16 @@ class test(object):
         self._comm = PETSc.COMM_WORLD
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof = 1,
-                                         stencil_width=self.N_ghost)
+                                         stencil_width=self.N_ghost
+                                        )
 
         self._da_fields = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof=6,
                                               stencil_width=self.N_ghost,
                                               boundary_type=('periodic',
                                                              'periodic'),
-                                              stencil_type=1, )
+                                              stencil_type=1, 
+                                             )
 
         self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
@@ -132,9 +136,9 @@ def test_initialize():
     p2 = af.tile(obj.p2, obj.N_q1 + 2, obj.N_q2 + 2)
     p3 = af.tile(obj.p3, obj.N_q1 + 2, obj.N_q2 + 2)
 
-    f_ana = rho * (1 / (2 * np.pi))**(3 / 2) * \
-            af.exp(-0.5 * p1**2) * \
-            af.exp(-0.5 * p2**2) * \
-            af.exp(-0.5 * p3**2)
+    f_ana = rho * (1 / (2 * np.pi))**(3 / 2) \
+                * af.exp(-0.5 * p1**2) \
+                * af.exp(-0.5 * p2**2) \
+                * af.exp(-0.5 * p3**2)
 
     assert(af.sum(af.abs(obj.f - f_ana))<1e-13)

@@ -45,12 +45,12 @@ def test_calculate_k():
     k1_expected = af.tile(k1_expected,
                           1,
                           test_obj.N_q2,
-                          )
+                         )
 
     k2_expected = af.tile(af.reorder(k2_expected),
                           test_obj.N_q1,
                           1,
-                          )
+                         )
 
-    assert(af.sum(af.abs(k1_expected - k1)) +
-           af.sum(af.abs(k2_expected - k2)) == 0)
+    assert(af.sum(af.abs(k1_expected - k1)) == 0)
+    assert(af.sum(af.abs(k2_expected - k2)) == 0)

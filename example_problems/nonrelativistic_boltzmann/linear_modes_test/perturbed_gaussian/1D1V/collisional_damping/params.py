@@ -30,4 +30,7 @@ temperature_background = 1
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (0.01 * af.broadcast(lambda a,b:a*b, q1**0,p1**0))
+    return (af.constant(0.01, q1.shape[0], q2.shape[1], 
+                        p1.shape[2], dtype = af.Dtype.f64
+                       )
+           )

@@ -37,19 +37,19 @@ def test_calculate_q_center():
 
     q1, q2 = calculate_q_center(test_obj)
 
-    q1_expected = test_obj.q1_start + \
-                  (0.5 + np.arange(test_obj.N_q1)) * test_obj.dq1
+    q1_expected =   test_obj.q1_start \
+                  + (0.5 + np.arange(test_obj.N_q1)) * test_obj.dq1
 
-    q2_expected = test_obj.q2_start + \
-                  (0.5 + np.arange(test_obj.N_q2)) * test_obj.dq2
+    q2_expected =   test_obj.q2_start \
+                  + (0.5 + np.arange(test_obj.N_q2)) * test_obj.dq2
 
     q1_expected = af.tile(af.to_array(q1_expected),
-                          1, test_obj.N_q2,
-                          )
+                          1, test_obj.N_q2
+                         )
 
     q2_expected = af.tile(af.reorder(af.to_array(q2_expected)),
-                          test_obj.N_q1, 1,
-                          )
+                          test_obj.N_q1, 1
+                         )
 
-    assert(af.sum(af.abs(q1_expected - q1)) +
-           af.sum(af.abs(q2_expected - q2)) == 0)
+    assert(af.sum(af.abs(q1_expected - q1)) == 0)
+    assert(af.sum(af.abs(q2_expected - q2)) == 0)

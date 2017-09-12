@@ -36,7 +36,8 @@ class test(object):
 
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof = 1,
-                                         stencil_width=self.N_ghost)
+                                         stencil_width=self.N_ghost
+                                        )
 
 
 def test_calculate_q():
@@ -50,11 +51,11 @@ def test_calculate_q():
 
     q1_expected = af.tile(af.to_array(q1_expected), 1,
                           obj.N_q2 + 2 * obj.N_ghost,
-                          )
+                         )
 
     q2_expected = af.tile(af.reorder(af.to_array(q2_expected)),
                           obj.N_q1 + 2 * obj.N_ghost, 1,
-                          )
+                         )
 
-    assert (af.sum(af.abs(q1_expected - q1)) +
-            af.sum(af.abs(q2_expected - q2)) == 0)
+    assert (af.sum(af.abs(q1_expected - q1)) == 0)
+    assert (af.sum(af.abs(q2_expected - q2)) == 0)

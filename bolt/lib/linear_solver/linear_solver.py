@@ -97,18 +97,20 @@ class linear_solver(object):
 
         # Initializing DAs which will be used in file-writing:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof=(self.N_p1 * 
-                                                   self.N_p2 * 
-                                                   self.N_p3
-                                                   )
-                                              )
+                                              dof=(  self.N_p1 
+                                                   * self.N_p2 
+                                                   * self.N_p3
+                                                  )
+                                             )
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof=len(self.physical_system.\
                                                             moment_exponents
-                                                            )
-                                                    )
+                                                           )
+                                                   )
 
+
+        # Printing backend details:
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')
         print('On Node:')
         os.system('hostname')
@@ -135,10 +137,15 @@ class linear_solver(object):
         self.p1, self.p2, self.p3      = self._calculate_p_center()
 
         # Assigning the advection terms along q1 and q2
-        self._A_q1 = self.physical_system.A_q(
-            self.p1, self.p2, self.p3, physical_system.params)[0]
-        self._A_q2 = self.physical_system.A_q(
-            self.p1, self.p2, self.p3, physical_system.params)[1]
+        self._A_q1 = \
+            self.physical_system.A_q(self.p1, self.p2, self.p3, 
+                                     physical_system.params
+                                    )[0]
+
+        self._A_q2 = \
+            self.physical_system.A_q(self.p1, self.p2, self.p3,
+                                     physical_system.params
+                                    )[1]
 
         # Initializing f, f_hat and the other EM field quantities:
         self._initialize(physical_system.params)
@@ -186,16 +193,19 @@ class linear_solver(object):
         formulation. The size, and resolution are the same as declared
         under domain of the physical system object.
         """
-        p1_center = self.p1_start + \
-            (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
-        p2_center = self.p2_start + \
-            (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-        p3_center = self.p3_start + \
-            (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
+        p1_center = \
+            self.p1_start + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
+        
+        p2_center = \
+            self.p2_start + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
+        
+        p3_center = \
+            self.p3_start + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
 
         p2_center, p1_center, p3_center = np.meshgrid(p2_center,
                                                       p1_center,
-                                                      p3_center)
+                                                      p3_center
+                                                     )
 
         # Flattening the obtained arrays:
         p1_center = af.flat(af.to_array(p1_center))
@@ -220,6 +230,8 @@ class linear_solver(object):
         The independant modes are then evolved by using the linear
         solver.
         """
+        # af.broadcast(function, *args) performs batched operations on
+        # function(*args):
         f     = af.broadcast(self.physical_system.initial_conditions.\
                              initialize_f, self.q1_center, self.q2_center,
                              self.p1, self.p2, self.p3, params
@@ -241,30 +253,34 @@ class linear_solver(object):
         f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
         # Using a vector Y to evolve the system:
-        self.Y = af.constant(0, self.N_q1, self.N_q2,\
+        self.Y = af.constant(0, self.N_q1, self.N_q2,
                              self.N_p1 * self.N_p2 * self.N_p3,
                              7, dtype = af.Dtype.c64
-                             )
+                            )
 
         # Assigning the 0th indice along axis 3 to the f_hat:
         self.Y[:, :, :, 0] = f_hat
 
         # Initializing the EM field quantities:
-        self.E3_hat = af.constant(0, self.N_q1, self.N_q2,\
+        self.E3_hat = af.constant(0, self.N_q1, self.N_q2,
                                   self.N_p1 * self.N_p2 * self.N_p3, 
-                                  dtype = af.Dtype.c64)
+                                  dtype = af.Dtype.c64
+                                 )
     
-        self.B1_hat = af.constant(0, self.N_q1, self.N_q2,\
+        self.B1_hat = af.constant(0, self.N_q1, self.N_q2,
                                   self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64)
+                                  dtype = af.Dtype.c64
+                                 )
         
-        self.B2_hat = af.constant(0, self.N_q1, self.N_q2,\
+        self.B2_hat = af.constant(0, self.N_q1, self.N_q2,
                                   self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64) 
+                                  dtype = af.Dtype.c64
+                                 ) 
         
-        self.B3_hat = af.constant(0, self.N_q1, self.N_q2,\
+        self.B3_hat = af.constant(0, self.N_q1, self.N_q2,
                                   self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64)
+                                  dtype = af.Dtype.c64
+                                 )
         
         # Initializing EM fields using Poisson Equation:
         if(self.physical_system.params.fields_initialize == 'electrostatic' or
@@ -274,10 +290,11 @@ class linear_solver(object):
 
         # If option is given as user-defined:
         elif(self.physical_system.params.fields_initialize == 'user-defined'):
-            E1, E2, E3 = self.initial_conditions.initialize_E(
-                self.physical_system.params)
-            B1, B2, B3 = self.initial_conditions.initialize_B(
-                self.physical_system.params)
+            E1, E2, E3 = \
+                self.initial_conditions.initialize_E(self.physical_system.params)
+            
+            B1, B2, B3 = \
+                self.initial_conditions.initialize_B(self.physical_system.params)
 
             # Scaling Appropriately
             self.E1_hat = 2 * af.fft2(E1) / (self.N_q1 * self.N_q2)
