@@ -27,6 +27,7 @@ The documentation is built using sphinx, and requires the following dependencies
 * sphinx
 * sphinx_rtd_theme
 * sphinx-autobuild
+* numpydoc
 
 ## Authors
 
