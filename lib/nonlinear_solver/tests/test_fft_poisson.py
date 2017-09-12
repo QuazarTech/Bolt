@@ -21,10 +21,12 @@ from lib.nonlinear_solver.communicate import communicate_fields
 class test(object):
     def __init__(self):
 
+        # Creating object:
         self.physical_system = type('obj', (object, ),
-                            {'params': type('obj', (object, ),
-                                {'charge_electron': -1})
-                             })
+                                    {'params': type('obj', (object, ),
+                                     {'charge_electron': -1})
+                                    }
+                                   )
 
         self.q1_start = 0
         self.q2_start = 0
@@ -40,19 +42,26 @@ class test(object):
 
         self.N_ghost = np.random.randint(3, 5)
 
-        self.q1 = self.q1_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q1 + self.N_ghost)) * self.dq1
-        self.q2 = self.q2_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q2 + self.N_ghost)) * self.dq2
+        self.q1 = self.q1_start \
+                  + (0.5 + np.arange(-self.N_ghost,
+                                     self.N_q1 + self.N_ghost
+                                    )
+                    ) * self.dq1
+        
+        self.q2 = self.q2_start \
+                  + (0.5 + np.arange(-self.N_ghost,
+                                      self.N_q2 + self.N_ghost
+                                    )
+                    ) * self.dq2
 
         self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
         self.q2, self.q1 = af.to_array(self.q2), af.to_array(self.q1)
 
         # Assigning initial values to zero:
         self.E1 = af.constant(0, self.q1.shape[0], self.q1.shape[1],
-                              dtype=af.Dtype.f64)
+                              dtype=af.Dtype.f64
+                             )
+
         self.E2 = self.E1.copy()
         self.E3 = self.E1.copy()
 
@@ -67,10 +76,15 @@ class test(object):
                                               stencil_width=self.N_ghost,
                                               boundary_type=('periodic',
                                                              'periodic'),
-                                              stencil_type=1, )
+                                              stencil_type=1, 
+                                             )
 
-        self._glob_fields = self._da_fields.createGlobalVec()
+        self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
+
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+
 
     def compute_moments(self, *args):
         return (af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
@@ -82,11 +96,13 @@ def test_fft_poisson():
     obj = test()
     fft_poisson(obj)
 
-    E1_expected = (0.1 / np.pi) * af.cos(2 * np.pi * obj.q1 +
-                                         4 * np.pi * obj.q2)
+    E1_expected = (0.1 / np.pi) * af.cos(  2 * np.pi * obj.q1
+                                         + 4 * np.pi * obj.q2
+                                        )
 
-    E2_expected = (0.2 / np.pi) * af.cos(2 * np.pi * obj.q1 +
-                                         4 * np.pi * obj.q2)
+    E2_expected = (0.2 / np.pi) * af.cos(  2 * np.pi * obj.q1
+                                         + 4 * np.pi * obj.q2
+                                        )
 
     error_E1 = af.sum(af.abs(obj.E1 - E1_expected)) / (obj.E1.elements())
     error_E2 = af.sum(af.abs(obj.E2 - E2_expected)) / (obj.E2.elements())

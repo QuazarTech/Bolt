@@ -40,18 +40,19 @@ class test(object):
 
         self.N_ghost = np.random.randint(3, 5)
 
-        self.q1 = self.q1_start + \
-            (0.5 + np.arange(-self.N_ghost,
-                              self.N_q1 + self.N_ghost)) * self.dq1
-        self.q2 = self.q2_start + \
-            (0.5 + np.arange(-self.N_ghost,
-                              self.N_q2 + self.N_ghost)) * self.dq2
+        self.q1 = self.q1_start \
+            + (0.5 + np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
+        
+        self.q2 = self.q2_start \
+            + (0.5 + np.arange(-self.N_ghost,self.N_q2 + self.N_ghost)) * self.dq2
 
         self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
         self.q2, self.q1 = af.to_array(self.q2), af.to_array(self.q1)
 
         self.E1_fdtd = af.constant(0, self.q1.shape[0], self.q1.shape[1],
-                                   dtype=af.Dtype.f64)
+                                   dtype=af.Dtype.f64
+                                  )
+
         self.E2_fdtd = self.E1_fdtd.copy()
         self.E3_fdtd = self.E1_fdtd.copy()
 
@@ -64,10 +65,15 @@ class test(object):
                                                stencil_width=self.N_ghost,
                                                boundary_type=('periodic',
                                                               'periodic'),
-                                               stencil_type=1, )
+                                               stencil_type=1, 
+                                             )
 
-        self._glob_fields = self._da_fields.createGlobalVec()
+        self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
+
+        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+
 
     _communicate_fields = communicate_fields
 
@@ -92,7 +98,7 @@ def test_fdtd_mode1():
         obj.B2_fdtd[N_g:-N_g, N_g:-N_g] =\
             gauss1D(obj.q1[N_g:-N_g, N_g:-N_g], 0.1)
 
-        dt = obj.dq1 / 2
+        dt   = obj.dq1 / 2
         time = np.arange(dt, 1 + dt, dt)
 
         E3_initial = obj.E3_fdtd.copy()
@@ -105,24 +111,27 @@ def test_fdtd_mode1():
             fdtd(obj, dt)
 
         error_B1[i] = af.sum(af.abs(obj.B1_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    B1_initial[N_g:-N_g, N_g:-N_g])) /\
-                            (B1_initial.elements())
+                                    B1_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B1_initial.elements())
 
         error_B2[i] = af.sum(af.abs(obj.B2_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    B2_initial[N_g:-N_g, N_g:-N_g])) /\
-                            (B2_initial.elements())
+                                    B2_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B2_initial.elements())
 
         error_E3[i] = af.sum(af.abs(obj.E3_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    E3_initial[N_g:-N_g, N_g:-N_g])) /\
-                            (E3_initial.elements())
+                                    E3_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E3_initial.elements())
 
     poly_B1 = np.polyfit(np.log10(N), np.log10(error_B1), 1)
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
 
-    assert (abs(poly_B1[0] + 3) < 0.4 and
-            abs(poly_B2[0] + 3) < 0.4 and
-            abs(poly_E3[0] + 2) < 0.4)
+    assert (abs(poly_B1[0] + 3) < 0.4)
+    assert (abs(poly_B2[0] + 3) < 0.4) 
+    assert (abs(poly_E3[0] + 2) < 0.4)
 
 
 def test_fdtd_mode2():
@@ -144,7 +153,7 @@ def test_fdtd_mode2():
         obj.E2_fdtd[N_g:-N_g, N_g:-N_g] =\
             gauss1D(obj.q1[N_g:-N_g, N_g:-N_g], 0.1)
 
-        dt = obj.dq1 / 2
+        dt   = obj.dq1 / 2
         time = np.arange(dt, 1 + dt, dt)
 
         B3_initial = obj.B3_fdtd.copy()
@@ -157,25 +166,24 @@ def test_fdtd_mode2():
             fdtd(obj, dt)
 
         error_E1[i] = af.sum(af.abs(obj.E1_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    E1_initial[N_g:-N_g, N_g:-N_g])) /\
-                            (E1_initial.elements())
+                                    E1_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E1_initial.elements())
 
         error_E2[i] = af.sum(af.abs(obj.E2_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    E2_initial[N_g:-N_g, N_g:-N_g])) /\
-                                    (E2_initial.elements())
+                                    E2_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E2_initial.elements())
 
         error_B3[i] = af.sum(af.abs(obj.B3_fdtd[N_g:-N_g, N_g:-N_g] -
-                                    B3_initial[N_g:-N_g, N_g:-N_g])) /\
-                                    (B3_initial.elements())
+                                    B3_initial[N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B3_initial.elements())
 
     poly_E1 = np.polyfit(np.log10(N), np.log10(error_E1), 1)
     poly_E2 = np.polyfit(np.log10(N), np.log10(error_E2), 1)
     poly_B3 = np.polyfit(np.log10(N), np.log10(error_B3), 1)
 
-    print(poly_E1)
-    print(poly_E2)
-    print(poly_B3)
-
-    assert (abs(poly_E1[0] + 3) < 0.4 and
-            abs(poly_E2[0] + 3) < 0.4 and
-            abs(poly_B3[0] + 2) < 0.4)
+    assert (abs(poly_E1[0] + 3) < 0.4)
+    assert (abs(poly_E2[0] + 3) < 0.4)
+    assert (abs(poly_B3[0] + 2) < 0.4)

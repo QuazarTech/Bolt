@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import types
 
+import types
+from petsc4py import PETSc
 
 class physical_system(object):
     """
@@ -19,7 +20,7 @@ class physical_system(object):
                  params,
                  initial_conditions,
                  advection_term,
-                 source_or_sink,
+                 source,
                  moment_defs):
         """
         domain: Object/Input parameter file, that contains the details of
@@ -47,8 +48,8 @@ class physical_system(object):
                          A_p2... are functions which are declared depending
                          upon the system that is being evolved.
 
-        source_or_sink: Function which provides us the expression that is used
-                        on the RHS of the advection equation.
+        source: Function which provides us the expression that is used
+                on the RHS of the advection equation.
 
         moment_defs: File that contains the dictionary holding the moment
                      definitions in terms of the moment exponents and moment
@@ -88,7 +89,7 @@ class physical_system(object):
                              of type function')
 
         # Checking for type of source_or_sink:
-        if(isinstance(source_or_sink, types.FunctionType) is False):
+        if(isinstance(source, types.FunctionType) is False):
             raise TypeError('Expected source_or_sink to be of type function')
 
         # Checking for the types of the methods in advection_term:
@@ -139,13 +140,13 @@ class physical_system(object):
 
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
-        self.N_ghost = domain.N_ghost
+        self.N_ghost                 = domain.N_ghost
         self.bc_in_q1, self.bc_in_q2 = boundary_conditions.in_q1,\
                                        boundary_conditions.in_q2
 
         # Placeholder for all the functions:
         # These will later be called in the linear_solver and nonlinear_solver:
-        self.params = params
+        self.params             = params
         self.initial_conditions = initial_conditions
 
         # The following functions return the advection terms as components of a
@@ -155,8 +156,37 @@ class physical_system(object):
 
         # Assigning the function which is used in computing the term on RHS:
         # Usually, this is taken as a relaxation type collision operator
-        self.source_or_sink = source_or_sink
+        self.source = source
 
+        # Checking that the number of keys in moment_exponents and
+        # moments_coeffs is the same:
+        if(moment_defs.moment_exponents.keys() != moment_defs.moment_coeffs.keys()):
+            raise Exception('Keys in moment_exponents and \
+                             moment_coeffs needs to be the same')
+        
         # Assigning the moment dictionaries:
         self.moment_exponents = moment_defs.moment_exponents
-        self.moment_coeffs = moment_defs.moment_coeffs
+        self.moment_coeffs    = moment_defs.moment_coeffs
+
+        # Printing code signature:
+        PETSc.Sys.Print('-------------------------------------------------------------------')
+        PETSc.Sys.Print("|          ,/                                                     |")
+        PETSc.Sys.Print("|        ,'/          ____        ____                            |")                   
+        PETSc.Sys.Print("|      ,' /          / __ )____  / / /_                           |")
+        PETSc.Sys.Print("|    ,'  /_____,    / __  / __ \/ / __/                           |")
+        PETSc.Sys.Print("|  .'____    ,'    / /_/ / /_/ / / /_                             |")
+        PETSc.Sys.Print("|       /  ,'     /_____/\____/_/\__/                             |")
+        PETSc.Sys.Print("|      / ,'                                                       |")
+        PETSc.Sys.Print("|     /,'                                                         |")
+        PETSc.Sys.Print("|    /'                                                           |")
+        PETSc.Sys.Print('|-----------------------------------------------------------------|')
+        PETSc.Sys.Print('| Copyright (C) 2017, Research Division, Quazar Techologies, Delhi|')
+        PETSc.Sys.Print('|                                                                 |')
+        PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or modify    |')
+        PETSc.Sys.Print('| it under the terms of the GNU General Public License as         |')
+        PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)       |')
+        PETSc.Sys.Print('-------------------------------------------------------------------')
+        PETSc.Sys.Print('Fields Initialization Method:', params.fields_initialize.upper())
+        PETSc.Sys.Print('Fields Solver Method:', params.fields_solver.upper())
+        PETSc.Sys.Print('Charge Electron:', params.charge_electron)
+        PETSc.Sys.Print('Number of Devices/Node:', params.num_devices)

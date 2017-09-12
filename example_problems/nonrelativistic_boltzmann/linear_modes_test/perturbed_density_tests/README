@@ -1,0 +1,13 @@
+This folder contains tests with the density setup as a small sinusoidal perturbation about a mean value:
+
+n = 1 + epsilon_1 * sin(2 * pi * x + 4 * pi * y)
+      + epsilon_2 * cos(2 * pi * x + 4 * pi * y)
+
+We observe the evolution of the various quantities as given by the nonlinear and linear solver, and check that the results yielded match each other.
+
+We broadly consider 4 different cases for this setup:
+
+- Purely collisionless, No EM fields
+- Collisional, No EM fields
+- Purely collisionless, Electrostatic Case(Landau Damping)
+- Collisional, Electrostatic Case

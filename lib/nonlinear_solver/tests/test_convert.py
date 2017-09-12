@@ -7,8 +7,8 @@ sets a hard limit on the dimensionality of the array to be 4.
 
 To surpass this, we internally use 2 different forms in which the array
 can be stored:
-- qExpanded - shape:(Nq1, Nq2, Np1 * Np2 * Np3)
-- pExpanded - shape:(Nq1 * Nq2, Np1, Np2, Np3)
+- q_expanded - shape:(Nq1, Nq2, Np1 * Np2 * Np3)
+- p_expanded - shape:(Nq1 * Nq2, Np1, Np2, Np3)
 
 This file contains the test functions that are used to convert the arrays
 from one from to another and viceversa
@@ -21,8 +21,8 @@ from petsc4py import PETSc
 
 from lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 
-convert_to_pExpanded = nonlinear_solver._convert_to_pExpanded
-convert_to_qExpanded = nonlinear_solver._convert_to_qExpanded
+convert_to_p_expanded = nonlinear_solver._convert_to_p_expanded
+convert_to_q_expanded = nonlinear_solver._convert_to_q_expanded
 
 
 class test(object):
@@ -42,37 +42,42 @@ class test(object):
         self.N_p2 = np.random.randint(16, 32)
         self.N_p3 = np.random.randint(16, 32)
 
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                       dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                       stencil_width=self.N_ghost, )
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof=(self.N_p1 * self.N_p2 * self.N_p3),
+                                         stencil_width=self.N_ghost, 
+                                        )
 
 
-def test_convert_to_pExpanded():
+def test_convert_to_p_expanded():
     obj = test()
     test_array = af.randu(obj.N_q1 + 2 * obj.N_ghost,
                           obj.N_q2 + 2 * obj.N_ghost,
-                          obj.N_p1 * obj.N_p2 * obj.N_p3)
+                          obj.N_p1 * obj.N_p2 * obj.N_p3
+                         )
 
-    modified = convert_to_pExpanded(obj, test_array)
+    modified = convert_to_p_expanded(obj, test_array)
 
     expected = af.moddims(test_array,
                           (obj.N_q1 + 2 * obj.N_ghost) *
                           (obj.N_q2 + 2 * obj.N_ghost),
-                          obj.N_p1, obj.N_p2, obj.N_p3)
+                          obj.N_p1, obj.N_p2, obj.N_p3
+                         )
 
     assert (af.sum(modified - expected) == 0)
 
 
-def test_convert_to_qExpanded():
+def test_convert_to_q_expanded():
     obj = test()
-    test_array = af.randu((obj.N_q1 + 2 * obj.N_ghost) *
-                          (obj.N_q2 + 2 * obj.N_ghost),
-                          obj.N_p1, obj.N_p2, obj.N_p3)
+    test_array = af.randu(  (obj.N_q1 + 2 * obj.N_ghost)
+                          * (obj.N_q2 + 2 * obj.N_ghost),
+                          obj.N_p1, obj.N_p2, obj.N_p3
+                         )
 
-    modified = convert_to_qExpanded(obj, test_array)
+    modified = convert_to_q_expanded(obj, test_array)
 
     expected = af.moddims(test_array, (obj.N_q1 + 2 * obj.N_ghost),
                           (obj.N_q2 + 2 * obj.N_ghost),
-                          obj.N_p1 * obj.N_p2 * obj.N_p3)
+                          obj.N_p1 * obj.N_p2 * obj.N_p3
+                         )
 
     assert (af.sum(modified - expected) == 0)

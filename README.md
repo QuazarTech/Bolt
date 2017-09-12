@@ -1,7 +1,5 @@
 # Bolt - A Fast Semi-Lagrangian Solver Framework For Kinetic Theories:
-[![Documentation Status](https://readthedocs.org/projects/qbolt/badge/?version=latest)](http://qbolt.readthedocs.io/en/latest/?badge=latest)
-[![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/)
-[![Code Health](https://landscape.io/github/ShyamSS-95/Bolt/master/landscape.svg?style=flat)](https://landscape.io/github/ShyamSS-95/Bolt/master)
+[![Documentation Status](https://readthedocs.org/projects/qbolt/badge/?version=latest)](http://qbolt.readthedocs.io/en/latest/?badge=latest)[![Build Status](https://travis-ci.org/ShyamSS-95/Bolt.svg?branch=master)](https://travis-ci.org/ShyamSS-95/Bolt)
 
 This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
@@ -29,6 +27,7 @@ The documentation is built using sphinx, and requires the following dependencies
 * sphinx
 * sphinx_rtd_theme
 * sphinx-autobuild
+* numpydoc
 
 ## Authors
 

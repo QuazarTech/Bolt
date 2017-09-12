@@ -40,43 +40,54 @@ class test_distribution_function(object):
         self.N_p2 = np.random.randint(16, 32)
         self.N_p3 = np.random.randint(16, 32)
 
-        self.q1 = self.q1_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q1 + self.N_ghost)) * self.dq1
-        self.q2 = self.q2_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q2 + self.N_ghost)) * self.dq2
+        self.q1 =   self.q1_start \
+                  + (0.5 + np.arange(-self.N_ghost,
+                                     self.N_q1 + self.N_ghost
+                                    )
+                    ) * self.dq1
+
+        self.q2 =   self.q2_start \
+                  + (0.5 + np.arange(-self.N_ghost,
+                                     self.N_q2 + self.N_ghost
+                                    )
+                    ) * self.dq2
 
         self.q1 = af.tile(af.to_array(self.q1), 1,
                           self.N_q2 + 2 * self.N_ghost,
-                          self.N_p1 * self.N_p2 * self.N_p3)
+                          self.N_p1 * self.N_p2 * self.N_p3
+                         )
 
         self.q2 = af.tile(af.reorder(af.to_array(self.q2)),
                           self.N_q1 + 2 * self.N_ghost, 1,
-                          self.N_p1 * self.N_p2 * self.N_p3)
+                          self.N_p1 * self.N_p2 * self.N_p3
+                         )
 
-        self._da = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                       dof=(self.N_p1 * self.N_p2 * self.N_p3),
-                                       stencil_width=self.N_ghost,
-                                       boundary_type=('periodic', 'periodic'),
-                                       stencil_type=1, )
+        self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                         dof=(self.N_p1 * self.N_p2 * self.N_p3),
+                                         stencil_width=self.N_ghost,
+                                         boundary_type=('periodic', 'periodic'),
+                                         stencil_type=1, 
+                                        )
 
-        self._glob = self._da.createGlobalVec()
-        self._local = self._da.createLocalVec()
+        self._glob_f  = self._da_f.createGlobalVec()
+        self._local_f = self._da_f.createLocalVec()
+
+        self._glob_value_f  = self._da_f.getVecArray(self._glob_f)
+        self._local_value_f = self._da_f.getVecArray(self._local_f)
 
         self.f = af.constant(0,
                              self.q1.shape[0],
                              self.q1.shape[1],
                              self.q1.shape[2],
-                             dtype=af.Dtype.f64)
+                             dtype=af.Dtype.f64
+                            )
 
-        self.f[self.N_ghost:-self.N_ghost,
-               self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                    4 * np.pi * self.q2
-                                                    )[self.N_ghost:
-                                                      -self.N_ghost,
-                                                      self.N_ghost:
-                                                      -self.N_ghost]
+        self.f[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
 
 class test_fields(object):
@@ -95,12 +106,17 @@ class test_fields(object):
 
         self.N_ghost = np.random.randint(1, 5)
 
-        self.q1 = self.q1_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q1 + self.N_ghost)) * self.dq1
-        self.q2 = self.q2_start + \
-                  (0.5 + np.arange(-self.N_ghost,
-                                    self.N_q2 + self.N_ghost)) * self.dq2
+        self.q1 = self.q1_start \
+                  * (0.5 + np.arange(-self.N_ghost,
+                                     self.N_q1 + self.N_ghost
+                                    )
+                    ) * self.dq1
+
+        self.q2 = self.q2_start \
+                  * (0.5 + np.arange(-self.N_ghost,
+                                    self.N_q2 + self.N_ghost
+                                    )
+                    ) * self.dq2
 
         self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
         self.q1, self.q2 = af.to_array(self.q1), af.to_array(self.q2)
@@ -110,67 +126,66 @@ class test_fields(object):
                                               stencil_width=self.N_ghost,
                                               boundary_type=('periodic',
                                                              'periodic'),
-                                              stencil_type=1,)
+                                              stencil_type=1,
+                                             )
 
-        self._glob_fields = self._da_fields.createGlobalVec()
+        self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
 
+        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
+
         self.E1 = af.constant(0, self.q1.shape[0], self.q1.shape[1],
-                              dtype=af.Dtype.f64)
+                              dtype=af.Dtype.f64
+                             )
+
         self.E2 = self.E1.copy()
         self.E3 = self.E1.copy()
         self.B1 = self.E1.copy()
         self.B2 = self.E1.copy()
         self.B3 = self.E1.copy()
 
-        self.E1[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
+        self.E1[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
-        self.E2[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
+        self.E2[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
+        
+        self.E3[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
-        self.E3[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
+        self.B1[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
-        self.B1[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
+        self.B2[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
-        self.B2[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
-
-        self.B3[self.N_ghost:-self.N_ghost,
-                self.N_ghost:-self.N_ghost] = af.sin(2 * np.pi * self.q1 +
-                                                     4 * np.pi * self.q2
-                                                     )[self.N_ghost:
-                                                       -self.N_ghost,
-                                                       self.N_ghost:
-                                                       -self.N_ghost]
-
+        self.B3[self.N_ghost:-self.N_ghost,self.N_ghost:-self.N_ghost] = \
+            af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[self.N_ghost:
+                                                              -self.N_ghost,
+                                                              self.N_ghost:
+                                                              -self.N_ghost
+                                                             ]
 
 def test_communicate_distribution_function():
     obj = test_distribution_function()

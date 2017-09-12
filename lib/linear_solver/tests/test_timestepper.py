@@ -8,13 +8,14 @@ We integrate till t = 1 and compare the results with the expected
 analytic solution f = Ae^t
 """
 
+import arrayfire as af
 import numpy as np
 from lib.linear_solver.timestepper import RK2_step, RK4_step, RK6_step
 
 
 class test(object):
     def __init__(self):
-        self.Y = 100
+        self.Y = af.to_array(np.array([100]))
 
     def _dY_dt(self, Y):
         return(Y)
@@ -29,7 +30,7 @@ def test_RK2():
         test_obj = test()
         for j in range(number_of_time_step[i]):
             RK2_step(test_obj, time_step_sizes[i])
-        error[i] = abs(test_obj.Y - 100 * np.exp(1))
+        error[i] = af.sum(af.abs(test_obj.Y - 100 * np.exp(1)))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
     print(poly)
@@ -45,7 +46,7 @@ def test_RK4():
         test_obj = test()
         for j in range(number_of_time_step[i]):
             RK4_step(test_obj, time_step_sizes[i])
-        error[i] = abs(test_obj.Y - 100 * np.exp(1))
+        error[i] = af.sum(af.abs(test_obj.Y - 100 * np.exp(1)))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
     print(poly)
@@ -61,7 +62,7 @@ def test_RK6():
         test_obj = test()
         for j in range(number_of_time_step[i]):
             RK6_step(test_obj, time_step_sizes[i])
-        error[i] = abs(test_obj.Y - 100 * np.exp(1))
+        error[i] = af.sum(af.abs(test_obj.Y - 100 * np.exp(1)))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
     print(poly)

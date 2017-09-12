@@ -14,9 +14,9 @@ import numpy as np
 import arrayfire as af
 
 # Importing solver functions:
-from lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.linear_solver.linear_solver import linear_solver
 
-calculate_p = linear_solver._calculate_p
+calculate_p = linear_solver._calculate_p_center    
 
 
 class test():
@@ -37,9 +37,6 @@ class test():
         self.dp2 = (self.p2_end - self.p2_start) / self.N_p2
         self.dp3 = (self.p3_end - self.p3_start) / self.N_p3
 
-        self.N_q1 = np.random.randint(16, 32)
-        self.N_q2 = np.random.randint(16, 32)
-
 
 def test_calculate_p():
     obj = test()
@@ -52,21 +49,21 @@ def test_calculate_p():
 
     p2_expected, p1_expected, p3_expected = np.meshgrid(p2_expected,
                                                         p1_expected,
-                                                        p3_expected)
+                                                        p3_expected
+                                                       )
+    
+    p1_expected = af.reorder(af.flat(af.to_array(p1_expected)),
+                             2, 3, 0, 1
+                            )
+                          
+    p2_expected = af.reorder(af.flat(af.to_array(p2_expected)),
+                             2, 3, 0, 1
+                            )
+                         
+    p3_expected = af.reorder(af.flat(af.to_array(p3_expected)),
+                             2, 3, 0, 1
+                            )
 
-    p1_expected = af.tile(af.reorder(af.flat(af.to_array(p1_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1, obj.N_q2, 1, 1)
-
-    p2_expected = af.tile(af.reorder(af.flat(af.to_array(p2_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1, obj.N_q2, 1, 1)
-
-    p3_expected = af.tile(af.reorder(af.flat(af.to_array(p3_expected)),
-                                     2, 3, 0, 1),
-                          obj.N_q1, obj.N_q2, 1, 1)
-
-    assert(af.sum(af.abs(p1_expected - p1)) == 0 and
-           af.sum(af.abs(p2_expected - p2)) == 0 and
-           af.sum(af.abs(p3_expected - p3)) == 0
-           )
+    assert(af.sum(af.abs(p1_expected - p1)) == 0)
+    assert(af.sum(af.abs(p2_expected - p2)) == 0)
+    assert(af.sum(af.abs(p3_expected - p3)) == 0)
