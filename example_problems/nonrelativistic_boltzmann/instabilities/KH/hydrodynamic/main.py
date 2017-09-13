@@ -29,7 +29,7 @@ system = physical_system(domain,
                          advection_terms,
                          collision_operator.BGK,
                          moment_defs
-                         )
+                        )
 
 # Declaring a linear system object which will evolve
 # the defined physical system:

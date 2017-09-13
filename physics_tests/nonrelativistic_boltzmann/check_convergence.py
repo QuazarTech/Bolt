@@ -50,7 +50,8 @@ def check_convergence():
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
-              label = r'$O(N^{-2})$')
+              label = r'$O(N^{-2})$'
+             )
     pl.legend(loc = 'best')
     pl.ylabel('Error')
     pl.xlabel('$N$')

@@ -51,12 +51,12 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         dt           = 1e-6/(2**i)
 
         # Defining the physical system to be solved:
-        system = physical_system(domain,\
-                                 boundary_conditions,\
-                                 params,\
-                                 initialize,\
-                                 advection_terms,\
-                                 collision_operator.BGK,\
+        system = physical_system(domain,
+                                 boundary_conditions,
+                                 params,
+                                 initialize,
+                                 advection_terms,
+                                 collision_operator.BGK,
                                  moment_defs
                                 )
 
