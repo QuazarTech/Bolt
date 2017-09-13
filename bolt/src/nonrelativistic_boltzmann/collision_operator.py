@@ -4,6 +4,10 @@
 import numpy as np
 import arrayfire as af
 
+# Using af.broadcast, since p1, p2, p3 are of size (1, 1, Np1*Np2*Np3)
+# All moment quantities are of shape (Nq1, Nq2)
+# By wrapping with af.broadcast, we can perform batched operations
+# on arrays of different sizes.
 @af.broadcast
 def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     """Return the Local MB distribution."""
@@ -38,14 +42,14 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
     p3_bulk = moments('mom_p3_bulk') / n
 
     T =   (1 / params.p_dim) \
-        * (moments('energy') 
-        -  n * p1_bulk**2
-        -  n * p2_bulk**2
-        -  n * p3_bulk**2
+        * (  moments('energy') 
+           - n * p1_bulk**2
+           - n * p2_bulk**2
+           - n * p3_bulk**2
           ) / n
 
-    C_f = -(f -
-            f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
+    C_f = -(  f
+            - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
            ) / params.tau(q1, q2, p1, p2, p3)
 
     af.eval(C_f)
