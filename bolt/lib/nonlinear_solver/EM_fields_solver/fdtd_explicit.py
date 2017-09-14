@@ -4,7 +4,10 @@
 import arrayfire as af
 
 
-def fdtd(self, dt):
+def fdtd(self, dt, performance_test_flag = False):
+    
+    if(performance_test_flag == True):
+        tic = af.time()
 
     # E's and B's are staggered in time such that
     # B's are defined at (n + 1/2), and E's are defined at n
@@ -25,7 +28,7 @@ def fdtd(self, dt):
     # The communicate function transfers the data from the local vectors
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
-    self._communicate_fields(True)
+    self._communicate_fields(True, performance_test_flag)
 
     dq1 = self.dq1
     dq2 = self.dq2
@@ -51,7 +54,7 @@ def fdtd(self, dt):
                     - (dt / dq2) * (B1 - B1_shifted_q2) \
                     - dt * self.J3
 
-    self._communicate_fields(True)
+    self._communicate_fields(True, performance_test_flag)
 
     E1 = self.E1_fdtd
     E2 = self.E2_fdtd
@@ -76,6 +79,12 @@ def fdtd(self, dt):
     af.eval(self.E1_fdtd, self.E2_fdtd, self.E3_fdtd,
             self.B1_fdtd, self.B2_fdtd, self.B3_fdtd
            )
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_fieldsolver += toc - tic
+    
     return
 
 
@@ -93,6 +102,7 @@ def fdtd_grid_to_ck_grid(self):
                       + af.shift(self.E3_fdtd, -1,  0)
                       + af.shift(self.E3_fdtd, -1, -1)
                      )
+
     self.B3 = self.B3_fdtd
 
     af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)

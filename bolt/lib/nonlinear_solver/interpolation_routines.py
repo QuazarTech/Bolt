@@ -4,7 +4,11 @@
 import arrayfire as af
 
 
-def f_interp_2d(self, dt):
+def f_interp_2d(self, dt, performance_test_flag = False):
+    
+    if(performance_test_flag == True):
+        tic = af.time()
+    
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -38,15 +42,24 @@ def f_interp_2d(self, dt):
                        )
 
     af.eval(self.f)
+    
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp2 += toc - tic
+
     return
 
 
-def f_interp_p_3d(self, dt):
+def f_interp_p_3d(self, dt, performance_test_flag = False):
     """
     Since the interpolation function are being performed in velocity space,
     the arrays used in the computation need to be in p_expanded form.
     Hence we will need to convert the same:
     """
+    if(performance_test_flag == True):
+        tic = af.time()
+
     # Following Lie Splitting:
     # af.broadcast, allows us to perform batched operations 
     # when operating on arrays of different sizes
@@ -115,4 +128,10 @@ def f_interp_p_3d(self, dt):
     self.f = self._convert_to_q_expanded(self.f)
 
     af.eval(self.f)
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp3 += toc - tic
+    
     return

@@ -3,7 +3,8 @@ This file compares the time when operations are performed
 using af.broadcast, and without.
 """
 
-import arrayfire as af 
+import arrayfire as af
+af.set_backend('cpu') 
 af.info()
 
 def add(a, b):

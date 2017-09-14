@@ -188,5 +188,8 @@ class physical_system(object):
         PETSc.Sys.Print('-------------------------------------------------------------------')
         PETSc.Sys.Print('Fields Initialization Method:', params.fields_initialize.upper())
         PETSc.Sys.Print('Fields Solver Method:', params.fields_solver.upper())
+        PETSc.Sys.Print('Resolution(Nq1, Nq2, Np1, Np2, Np3):', domain.N_q1, ',', domain.N_q2, ',',
+                        domain.N_p1, ',', domain.N_p2, ',', domain.N_p3
+                       )
         PETSc.Sys.Print('Charge Electron:', params.charge_electron)
         PETSc.Sys.Print('Number of Devices/Node:', params.num_devices)

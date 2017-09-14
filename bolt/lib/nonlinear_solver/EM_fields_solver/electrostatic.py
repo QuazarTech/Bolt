@@ -49,7 +49,11 @@ class Poisson2D(object):
                 y[j, i] = u_xx + u_yy
 
 
-def compute_electrostatic_fields(self):
+def compute_electrostatic_fields(self, performance_test_flag = False):
+    
+    if(performance_test_flag == True):
+        tic = af.time()
+
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
@@ -122,10 +126,16 @@ def compute_electrostatic_fields(self):
                ) / (2 * self.dq2)
 
     af.eval(self.E1, self.E2)
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_fieldsolver += toc - tic
+    
     return
 
 
-def fft_poisson(self):
+def fft_poisson(self, performance_test_flag = False):
     """
     Solves the Poisson Equation using the FFTs:
 
@@ -133,6 +143,8 @@ def fft_poisson(self):
     (ie. used on a single node) with periodic boundary
     conditions.
     """
+    if(performance_test_flag == True):
+        tic = af.time()
 
     if (self._comm.size != 1):
         raise Exception('FFT solver can only be used when run in serial')
@@ -162,7 +174,12 @@ def fft_poisson(self):
         self.E2[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E2_hat))
 
         # Applying Periodic B.C's:
-        self._communicate_fields()
-
+        self._communicate_fields(performance_test_flag)
         af.eval(self.E1, self.E2)
-        return
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_fieldsolver += toc - tic
+    
+    return

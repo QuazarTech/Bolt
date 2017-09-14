@@ -64,3 +64,19 @@ def test_f_interp_2d():
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
     assert (abs(poly[0] + 2) < 0.2)
+
+def test_f_interp_2d_perf():
+    test_obj = test(512, 512, 3)
+
+    f_interp_2d(test_obj, 0.00001)
+    af.sync()
+
+    tic = af.time()
+    for i in range(1000):
+        f_interp_2d(test_obj, 0.00001)
+    toc = af.time()
+    af.sync()
+
+    print('Time for 1000 iterations =', toc - tic)
+
+test_f_interp_2d_perf()

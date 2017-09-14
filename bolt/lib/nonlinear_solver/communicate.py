@@ -5,7 +5,7 @@ import arrayfire as af
 import numpy as np
 
 
-def communicate_distribution_function(self):
+def communicate_distribution_function(self, performance_test_flag = False):
     """
     Used in communicating the values at the boundary zones
     for each of the local vectors among all procs.
@@ -13,6 +13,9 @@ def communicate_distribution_function(self):
     (and periodic B.C's) procedures for the distribution
     function array.
     """
+    if(performance_test_flag == True):
+        tic = af.time()
+    
     N_ghost = self.N_ghost
 
     # Global value is non-inclusive of the ghost-zones:
@@ -29,10 +32,16 @@ def communicate_distribution_function(self):
     self.f = af.to_array(self._local_value_f[:])
 
     af.eval(self.f)
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_communicate_f += toc - tic
+    
     return
 
 
-def communicate_fields(self, on_fdtd_grid=False):
+def communicate_fields(self, on_fdtd_grid=False, performance_test_flag = False):
     """
     Used in communicating the values at the boundary zones
     for each of the local vectors among all procs.
@@ -40,6 +49,9 @@ def communicate_fields(self, on_fdtd_grid=False):
     (and periodic B.C's) procedures for the EM field
     arrays.
     """
+    if(performance_test_flag == True):
+        tic = af.time()
+    
     N_ghost = self.N_ghost
 
     # Assigning the values of the af.Array fields quantities
@@ -81,6 +93,10 @@ def communicate_fields(self, on_fdtd_grid=False):
         self.B1_fdtd = af.to_array((self._local_value_fields[:])[:, :, 3])
         self.B2_fdtd = af.to_array((self._local_value_fields[:])[:, :, 4])
         self.B3_fdtd = af.to_array((self._local_value_fields[:])[:, :, 5])
+        
+        af.eval(self.E1_fdtd, self.E2_fdtd, self.E3_fdtd,
+                self.B1_fdtd, self.B2_fdtd, self.B3_fdtd
+               )
 
     else:
         self.E1 = af.to_array((self._local_value_fields[:])[:, :, 0])
@@ -90,5 +106,12 @@ def communicate_fields(self, on_fdtd_grid=False):
         self.B1 = af.to_array((self._local_value_fields[:])[:, :, 3])
         self.B2 = af.to_array((self._local_value_fields[:])[:, :, 4])
         self.B3 = af.to_array((self._local_value_fields[:])[:, :, 5])
+
+        af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)
+
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_communicate_fields += toc - tic
 
     return

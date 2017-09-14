@@ -5,3 +5,5 @@ matplotlib
 h5py
 mpi4py
 petsc4py
+tqdm
+prettytable
