@@ -80,7 +80,7 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
     pc.setType('none')
 
     N_g = self.N_ghost
-    ksp.setTolerances(atol=1e-5)
+    ksp.setTolerances(atol=1e-7)
     pde.RHS(rho,
               self.physical_system.params.charge_electron
             * np.array(self.compute_moments('density')[N_g:-N_g,
@@ -95,11 +95,11 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
     num_tries = 0
     while(ksp.converged is not True):
         
-        ksp.setTolerances(atol = 10^{-5+num_tries}, rtol = 10^{-5+num_tries})
+        ksp.setTolerances(atol = 10**(-6+num_tries), rtol = 10**(-6+num_tries))
         ksp.solve(rho, phi)
         num_tries += 1
         
-        if(num_tries == 4):
+        if(num_tries == 5):
             raise Exception('KSP solver diverging!')
 
     self._da_ksp.globalToLocal(phi, phi_local)

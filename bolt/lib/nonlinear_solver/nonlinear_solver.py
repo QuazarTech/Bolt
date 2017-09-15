@@ -518,61 +518,61 @@ class nonlinear_solver(object):
                           op = MPI.MAX, root = 0
                          )
                          
-        # Other miscellaneous functions which aren't timed
-        table = PrettyTable(["Method", "Time-Taken(s/iter)", "Percentage(%)"])
-        table.add_row(['TIMESTEP', time_ts[0]/N_iters, 100])
-        
-        table.add_row(['INTERP2', time_interp2[0]/N_iters,
-                       100*time_interp2[0]/time_ts[0]
-                      ]
-                     )
-        
-        table.add_row(['FIELD-STEP', time_fieldstep[0]/N_iters,
-                       100*time_fieldstep[0]/time_ts[0]
-                      ]
-                     )
-        
-        table.add_row(['SOURCE_TS', time_sourcets[0]/N_iters,
-                       100*time_sourcets[0]/time_ts[0]
-                      ]
-                     )
-
-        table.add_row(['COMMUNICATE_F', time_communicate_f[0]/N_iters,
-                       100*time_communicate_f[0]/time_ts[0]
-                      ]
-                     )
-   
-        PETSc.Sys.Print(table)
-
-        if(self.physical_system.params.charge_electron != 0):
-
-            PETSc.Sys.Print('FIELDS-STEP consists of:')
-            
+        if(self._comm.rank == 0):
             table = PrettyTable(["Method", "Time-Taken(s/iter)", "Percentage(%)"])
-
+            table.add_row(['TIMESTEP', time_ts[0]/N_iters, 100])
+            
+            table.add_row(['INTERP2', time_interp2[0]/N_iters,
+                           100*time_interp2[0]/time_ts[0]
+                          ]
+                         )
+            
             table.add_row(['FIELD-STEP', time_fieldstep[0]/N_iters,
-                           100
+                           100*time_fieldstep[0]/time_ts[0]
+                          ]
+                         )
+            
+            table.add_row(['SOURCE_TS', time_sourcets[0]/N_iters,
+                           100*time_sourcets[0]/time_ts[0]
                           ]
                          )
 
-            table.add_row(['FIELD-SOLVER', time_fieldsolver[0]/N_iters,
-                           100*time_fieldsolver[0]/time_fieldstep[0]
+            table.add_row(['COMMUNICATE_F', time_communicate_f[0]/N_iters,
+                           100*time_communicate_f[0]/time_ts[0]
                           ]
                          )
-
-            table.add_row(['INTERP3', time_interp3[0]/N_iters,
-                           100*time_interp3[0]/time_fieldstep[0]
-                          ]
-                         )
-
-            table.add_row(['COMMUNICATE_FIELDS', time_communicate_fields[0]/N_iters,
-                           100*time_communicate_fields[0]/time_fieldstep[0]
-                          ]
-                         )
-
+       
             PETSc.Sys.Print(table)
 
-        PETSc.Sys.Print('Spatial Zone Cycles/s =', self.N_q1*self.N_q2/time_ts[0])
+            if(self.physical_system.params.charge_electron != 0):
+
+                PETSc.Sys.Print('FIELDS-STEP consists of:')
+                
+                table = PrettyTable(["Method", "Time-Taken(s/iter)", "Percentage(%)"])
+
+                table.add_row(['FIELD-STEP', time_fieldstep[0]/N_iters,
+                               100
+                              ]
+                             )
+
+                table.add_row(['FIELD-SOLVER', time_fieldsolver[0]/N_iters,
+                               100*time_fieldsolver[0]/time_fieldstep[0]
+                              ]
+                             )
+
+                table.add_row(['INTERP3', time_interp3[0]/N_iters,
+                               100*time_interp3[0]/time_fieldstep[0]
+                              ]
+                             )
+
+                table.add_row(['COMMUNICATE_FIELDS', time_communicate_fields[0]/N_iters,
+                               100*time_communicate_fields[0]/time_fieldstep[0]
+                              ]
+                             )
+
+                PETSc.Sys.Print(table)
+
+            PETSc.Sys.Print('Spatial Zone Cycles/s =', self.N_q1*self.N_q2/time_ts[0])
         
     # Injection of solver functions into class as methods:
     _communicate_distribution_function = communicate.\
