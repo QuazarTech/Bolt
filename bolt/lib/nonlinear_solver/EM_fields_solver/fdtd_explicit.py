@@ -5,10 +5,6 @@ import arrayfire as af
 
 
 def fdtd(self, dt, performance_test_flag = False):
-    
-    if(performance_test_flag == True):
-        tic = af.time()
-
     # E's and B's are staggered in time such that
     # B's are defined at (n + 1/2), and E's are defined at n
 
@@ -29,7 +25,10 @@ def fdtd(self, dt, performance_test_flag = False):
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
     self._communicate_fields(True, performance_test_flag)
-
+    
+    if(performance_test_flag == True):
+        tic = af.time()
+    
     dq1 = self.dq1
     dq2 = self.dq2
 
@@ -53,8 +52,16 @@ def fdtd(self, dt, performance_test_flag = False):
     self.E3_fdtd +=   (dt / dq1) * (B2 - B2_shifted_q1) \
                     - (dt / dq2) * (B1 - B1_shifted_q2) \
                     - dt * self.J3
-
+    
+    if(performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_fieldsolver += toc - tic
+    
     self._communicate_fields(True, performance_test_flag)
+
+    if(performance_test_flag == True):
+        tic = af.time()
 
     E1 = self.E1_fdtd
     E2 = self.E2_fdtd
