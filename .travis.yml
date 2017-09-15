@@ -57,6 +57,4 @@ install:
 
 # command to run tests
 script:
-    - python -m arrayfire.tests
-    - export PYTHON_PATH=/home/travis/build/ShyamSS-95/Bolt
-    - make test
+    - python -c 'import bolt'

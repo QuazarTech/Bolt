@@ -522,7 +522,7 @@ class nonlinear_solver(object):
             table = PrettyTable(["Method", "Time-Taken(s/iter)", "Percentage(%)"])
             table.add_row(['TIMESTEP', time_ts[0]/N_iters, 100])
             
-            table.add_row(['INTERP2', time_interp2[0]/N_iters,
+            table.add_row(['Q_ADVECTION', time_interp2[0]/N_iters,
                            100*time_interp2[0]/time_ts[0]
                           ]
                          )
@@ -560,7 +560,7 @@ class nonlinear_solver(object):
                               ]
                              )
 
-                table.add_row(['INTERP3', time_interp3[0]/N_iters,
+                table.add_row(['P_ADVECTION', time_interp3[0]/N_iters,
                                100*time_interp3[0]/time_fieldstep[0]
                               ]
                              )
