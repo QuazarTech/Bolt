@@ -20,12 +20,12 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass_particle = 1
+mass_particle      = 1
 boltzmann_constant = 1
-charge_electron = 0
+charge_electron    = 0
 
 # Initial Conditions used in initialize:
-rho_background = 1
+rho_background         = 1
 temperature_background = 1
 
 p1_bulk_background = 0

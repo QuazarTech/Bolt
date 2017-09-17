@@ -1,5 +1,6 @@
 import numpy as np
 import arrayfire as af
+
 from physics_tests.nonrelativistic_boltzmann.run_cases import run_cases
 from physics_tests.nonrelativistic_boltzmann.check_convergence import check_convergence
 
@@ -24,7 +25,7 @@ def test_collisional():
     check_convergence()
 
 def test_fields_collisionless():
-    run_cases(1, 1, 0, tau_collisionless)
+    run_cases(1, 1, -10, tau_collisionless)
     check_convergence()
 
 def test_fields_collisional():

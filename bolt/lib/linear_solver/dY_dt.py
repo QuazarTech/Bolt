@@ -46,7 +46,7 @@ def dY_dt(self, Y):
     self.B3_hat = Y[:, :, :, 6]
 
     # Scaling Appropriately:
-    f       = af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat)
+    f       = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
     C_f_hat = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
                                        self.p1, self.p2, self.p3,
                                        self.compute_moments, 

@@ -170,15 +170,15 @@ class physical_system(object):
 
         # Printing code signature:
         PETSc.Sys.Print('-------------------------------------------------------------------')
-        PETSc.Sys.Print("|          ,/                                                     |")
-        PETSc.Sys.Print("|        ,'/          ____        ____                            |")                   
-        PETSc.Sys.Print("|      ,' /          / __ )____  / / /_                           |")
-        PETSc.Sys.Print("|    ,'  /_____,    / __  / __ \/ / __/                           |")
-        PETSc.Sys.Print("|  .'____    ,'    / /_/ / /_/ / / /_                             |")
-        PETSc.Sys.Print("|       /  ,'     /_____/\____/_/\__/                             |")
-        PETSc.Sys.Print("|      / ,'                                                       |")
-        PETSc.Sys.Print("|     /,'                                                         |")
-        PETSc.Sys.Print("|    /'                                                           |")
+        PETSc.Sys.Print("|                      ,/                                         |")
+        PETSc.Sys.Print("|                    ,'/          ____        ____                |")                   
+        PETSc.Sys.Print("|                  ,' /          / __ )____  / / /_               |")
+        PETSc.Sys.Print("|                ,'  /_____,    / __  / __ \/ / __/               |")
+        PETSc.Sys.Print("|              .'____    ,'    / /_/ / /_/ / / /_                 |")
+        PETSc.Sys.Print("|                   /  ,'     /_____/\____/_/\__/                 |")
+        PETSc.Sys.Print("|                  / ,'                                           |")
+        PETSc.Sys.Print("|                 /,'                                             |")
+        PETSc.Sys.Print("|                /'                                               |")
         PETSc.Sys.Print('|-----------------------------------------------------------------|')
         PETSc.Sys.Print('| Copyright (C) 2017, Research Division, Quazar Techologies, Delhi|')
         PETSc.Sys.Print('|                                                                 |')
@@ -186,10 +186,10 @@ class physical_system(object):
         PETSc.Sys.Print('| it under the terms of the GNU General Public License as         |')
         PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)       |')
         PETSc.Sys.Print('-------------------------------------------------------------------')
-        PETSc.Sys.Print('Fields Initialization Method:', params.fields_initialize.upper())
-        PETSc.Sys.Print('Fields Solver Method:', params.fields_solver.upper())
-        PETSc.Sys.Print('Resolution(Nq1, Nq2, Np1, Np2, Np3):', domain.N_q1, ',', domain.N_q2, ',',
-                        domain.N_p1, ',', domain.N_p2, ',', domain.N_p3
+        PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
+        PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
+        PETSc.Sys.Print('Resolution(Nq1, Nq2, Np1, Np2, Np3):', '(', domain.N_q1, ',', domain.N_q2, 
+                        ',',domain.N_p1, ',', domain.N_p2, ',', domain.N_p3, ')'
                        )
-        PETSc.Sys.Print('Charge Electron:', params.charge_electron)
-        PETSc.Sys.Print('Number of Devices/Node:', params.num_devices)
+        PETSc.Sys.Print('Charge Electron                    :', params.charge_electron)
+        PETSc.Sys.Print('Number of Devices/Node             :', params.num_devices)

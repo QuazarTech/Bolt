@@ -13,17 +13,27 @@ import numpy as np
 from mpi4py import MPI
 from petsc4py import PETSc
 from prettytable import PrettyTable
-import os
+import socket
 
 # Importing solver libraries:
 import bolt.lib.nonlinear_solver.communicate as communicate
 import bolt.lib.nonlinear_solver.timestepper as timestepper
 import bolt.lib.nonlinear_solver.dump as dump
+from bolt.lib.nonlinear_solver.tests.performance.bandwidth_test import bandwidth_test
 
 from bolt.lib.nonlinear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic \
     import fft_poisson, compute_electrostatic_fields
+
+# The following function is used in formatting for print:
+def indent(txt, stops=1):
+    """
+    This function indents every line of the input as a multiple of
+    4 spaces.
+    """
+    return '\n'.join(" " * 4 * stops + line for line in  txt.splitlines())
+
 
 class nonlinear_solver(object):
     """
@@ -84,11 +94,13 @@ class nonlinear_solver(object):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
-        print('On Node:')
-        os.system('hostname')
-        print('Device Details:')
-        af.info()
-        print()
+        PETSc.Sys.syncPrint(indent('Rank ' + str(self._comm.rank) + ' of ' + str(self._comm.size-1)))
+        PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
+        PETSc.Sys.syncPrint(indent('Device Details:'))
+        PETSc.Sys.syncPrint(indent(af.info_str(), 2))
+        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.syncPrint()
+        PETSc.Sys.syncFlush()
 
         # The DA structure is used in domain decomposition:
         # The following DA is used in the communication routines where
@@ -207,6 +219,31 @@ class nonlinear_solver(object):
 
         # Source/Sink term:
         self._source = physical_system.source
+
+    def memory_bandwidth(size, n_reads, n_writes, n_evals, time_elapsed):
+        return(size * 8 * (n_reads + n_writes) 
+                    * n_evals/(time_elapsed*2**30)
+              )
+
+    def bandwidth_test(n_evals):
+
+        a = af.randu(32, 32, 32**3, dtype = af.Dtype.f64)
+        b = af.randu(32, 32, 32**3, dtype = af.Dtype.f64)
+        c = a + b
+        af.eval(c)
+        af.sync()
+
+        tic = af.time()
+        for i in range(n_evals):
+            c = a + b
+            af.eval(c)
+        af.sync()
+        toc = af.time()
+
+        bandwidth_available = memory_bandwidth(a.elements(), 2, 1,
+                                               n_evals, toc - tic
+                                              )
+        return(bandwidth_available)
 
     def _convert_to_q_expanded(self, array):
         """

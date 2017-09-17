@@ -19,7 +19,7 @@ multiple devices/nodes.
 import numpy as np
 import arrayfire as af
 from numpy.fft import fftfreq
-import os
+import socket
 from petsc4py import PETSc
 
 # Importing solver functions:
@@ -37,6 +37,19 @@ from bolt.lib.linear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 
 import bolt.lib.linear_solver.dump as dump
+
+from bolt.lib.linear_solver.tests.performance.bandwidth_test\
+    import bandwidth_test
+
+
+# The following function is used in formatting for print:
+def indent(txt, stops=1):
+    """
+    This function indents every line of the input as a multiple of
+    4 spaces.
+    """
+    return '\n'.join(" " * 4 * stops + line for line in  txt.splitlines())
+
 
 class linear_solver(object):
     """
@@ -112,11 +125,11 @@ class linear_solver(object):
 
         # Printing backend details:
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')
-        print('On Node:')
-        os.system('hostname')
-        print('Device Details:')
-        af.info()
-        print()
+        PETSc.Sys.Print(indent('On Node: '+ socket.gethostname()))
+        PETSc.Sys.Print(indent('Device Details:'))
+        PETSc.Sys.Print(indent(af.info_str(), 2))
+        PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.Print()
 
         # Creating PETSc Vecs which are used in dumping to file:
         self._glob_f       = self._da_dump_f.createGlobalVec()
