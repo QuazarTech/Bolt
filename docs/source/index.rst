@@ -14,6 +14,14 @@ Welcome to Bolt's documentation!
    theory
    user_guide
 
+Quick-Reference:
+----------------
+
+.. autosummary::
+   bolt.lib.physical_system
+   bolt.lib.linear_system.linear_system
+   bolt.lib.nonlinear_system.nonlinear_system
+
 Indices and tables
 ==================
 
