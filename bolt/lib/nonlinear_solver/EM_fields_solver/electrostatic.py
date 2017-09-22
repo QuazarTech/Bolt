@@ -152,7 +152,7 @@ def fft_poisson(self, performance_test_flag = False):
     else:
         N_g = self.N_ghost
         rho =   self.physical_system.params.charge_electron \
-              * self.compute_moments('density')[N_g:-N_g, N_g:-N_g]
+              * (self.compute_moments('density')[N_g:-N_g, N_g:-N_g])
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)
         k_q2 = fftfreq(rho.shape[1], self.dq2)

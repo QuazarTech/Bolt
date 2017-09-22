@@ -12,11 +12,33 @@ given by the FFT solver
 
 import numpy as np
 import arrayfire as af
+af.set_backend('cpu')
+import pylab as pl
 from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
+def compute_moments_sinusoidal(self, *args):
+    return (1 + af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
+
+def compute_moments_hyperbolic(self, *args):
+    q2_minus = 0.25
+    q2_plus  = 0.75
+
+    regulator = 20 # larger value makes the transition sharper
+
+    rho = 1 + 0.5 * (  af.tanh(( self.q2 - q2_minus)*regulator) 
+                     - af.tanh(( self.q2 - q2_plus )*regulator)
+                    )
+
+    rho[:self.N_ghost]  = rho[-2*self.N_ghost:-self.N_ghost]
+    rho[-self.N_ghost:] = rho[self.N_ghost:2*self.N_ghost]
+
+    rho[:, :self.N_ghost]  = rho[:, -2*self.N_ghost:-self.N_ghost]
+    rho[:, -self.N_ghost:] = rho[:, self.N_ghost:2*self.N_ghost]
+    
+    return(rho)
 
 class test(object):
     def __init__(self):
@@ -85,26 +107,68 @@ class test(object):
         self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
         self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
 
-
-    def compute_moments(self, *args):
-        return (af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
-
     _communicate_fields = communicate_fields
-
+    compute_moments     = compute_moments_hyperbolic
 
 def test_fft_poisson():
     obj = test()
     fft_poisson(obj)
 
-    E1_expected = (0.1 / np.pi) * af.cos(  2 * np.pi * obj.q1
-                                         + 4 * np.pi * obj.q2
-                                        )
+    # E1_expected = (0.1 / np.pi) * af.cos(  2 * np.pi * obj.q1
+    #                                      + 4 * np.pi * obj.q2
+    #                                     )
 
-    E2_expected = (0.2 / np.pi) * af.cos(  2 * np.pi * obj.q1
-                                         + 4 * np.pi * obj.q2
-                                        )
+    # E2_expected = (0.2 / np.pi) * af.cos(  2 * np.pi * obj.q1
+    #                                      + 4 * np.pi * obj.q2
+    #                                     )
+
+    E1_expected = 0
+
+    E2_expected = -0.5/20 * (   af.log(af.cosh(( obj.q2 - 0.25)*20)) 
+                              - af.log(af.cosh(( obj.q2 - 0.75)*20))
+                            ) 
+
+    # E1_expected = 0
+
+    # E2_expected = -0.5/5 * 0.5 * (  af.exp(-10*( obj.q2 - 0.25)**2) 
+    #                               - af.exp(-10*( obj.q2 - 0.75)**2)
+    #                              )
+
+    # E1_expected = -0.5 * af.log(1+obj.q1+obj.q2)
+
+    # E2_expected = -0.5 * af.log(1+obj.q1+obj.q2) 
+
+    N_g = obj.N_ghost
+
+    pl.contourf(-np.array(obj.compute_moments('density') - 1)[N_g:-N_g, N_g:-N_g], 100)
+    pl.colorbar()
+    pl.show()
+    pl.clf()
+
+    pl.contourf(np.array(af.convolve2_separable(af.Array([0, 1, 0]), 
+                                                af.Array([1, 0, -1]),
+                                                E2_expected
+                                               )
+                        )[N_g:-N_g, N_g:-N_g]/(2*obj.dq2), 
+                100
+               )
+    
+    pl.colorbar()
+    pl.show()
+    pl.clf()
+
+    pl.contourf(np.array(E2_expected)[N_g:-N_g, N_g:-N_g], 100)
+    pl.colorbar()
+    pl.show()
+    pl.clf()
+
+    pl.contourf(np.array(obj.E2)[N_g:-N_g, N_g:-N_g], 100)
+    pl.colorbar()
+    pl.show()
 
     error_E1 = af.sum(af.abs(obj.E1 - E1_expected)) / (obj.E1.elements())
     error_E2 = af.sum(af.abs(obj.E2 - E2_expected)) / (obj.E2.elements())
 
     assert (error_E1 < 1e-14 and error_E2 < 1e-14)
+
+test_fft_poisson()
