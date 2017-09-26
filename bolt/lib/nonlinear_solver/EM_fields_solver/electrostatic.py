@@ -90,6 +90,7 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
                       )
            )
 
+    ksp.setFromOptions()
     ksp.solve(rho, phi)
 
     num_tries = 0

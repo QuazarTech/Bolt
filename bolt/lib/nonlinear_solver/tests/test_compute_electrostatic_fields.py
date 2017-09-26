@@ -13,7 +13,10 @@ given by the KSP solver
 
 import numpy as np
 import arrayfire as af
+import petsc4py, sys
+petsc4py.init(sys.argv)
 from petsc4py import PETSc
+
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic \
     import compute_electrostatic_fields
@@ -143,7 +146,10 @@ def test_compute_electrostatic_fields_2():
         obj = test(N[i])
         compute_electrostatic_fields(obj)
 
-        E1_expected = 0
+        E1_expected = 0 * obj.q1
+        
+        q2_minus = 0.25
+        q2_plus  = 0.75
 
         E2_expected = -0.5/20 * (  af.log(af.cosh(( obj.q2 - q2_minus)*20)) 
                                  - af.log(af.cosh(( obj.q2 - q2_plus )*20))
@@ -166,3 +172,6 @@ def test_compute_electrostatic_fields_2():
 
     assert (abs(poly_E1[0] + 2) < 0.2)
     assert (abs(poly_E2[0] + 2) < 0.2)
+
+
+test_compute_electrostatic_fields_2()
