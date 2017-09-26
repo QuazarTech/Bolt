@@ -10,6 +10,8 @@ method based on Cheng-Knorr(1978)
 # Importing dependencies:
 import arrayfire as af
 import numpy as np
+import petsc4py, sys
+petsc4py.init(sys.argv)
 from mpi4py import MPI
 from petsc4py import PETSc
 from prettytable import PrettyTable

@@ -1,6 +1,9 @@
 import arrayfire as af
 import numpy as np
 import pylab as pl
+import petsc4py
+import sys
+petsc4py.init(sys.argv)
 
 from bolt.lib.physical_system import physical_system
 

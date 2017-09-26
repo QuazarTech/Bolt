@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import petsc4py, sys 
+petsc4py.init(sys.argv)
 from petsc4py import PETSc
 import arrayfire as af
 import numpy as np
@@ -74,7 +76,8 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
     ksp = PETSc.KSP().create()
 
     ksp.setOperators(A)
-    ksp.setType('cg')
+    ksp.setFromOptions()
+    # ksp.setType('cg')
 
     pc = ksp.getPC()
     pc.setType('none')
@@ -167,8 +170,8 @@ def fft_poisson(self, performance_test_flag = False):
         potential_hat       = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
         potential_hat[0, 0] = 0
 
-        E1_hat = -1j * 2 * np.pi * (k_q1) * potential_hat
-        E2_hat = -1j * 2 * np.pi * (k_q2) * potential_hat
+        E1_hat = -1j * 2 * np.pi * k_q1 * potential_hat
+        E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
 
         self.E1[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E1_hat))
         self.E2[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E2_hat))
