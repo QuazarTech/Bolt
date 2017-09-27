@@ -7,7 +7,7 @@ import numpy as np
 from numpy.fft import fftfreq
 
 
-class Poisson2D(object):
+class poisson_eqn(object):
     """
     This user class is an application context for the problem at hand;
     It contains some parametes and frames the matrix system depending on
@@ -16,38 +16,21 @@ class Poisson2D(object):
     using the PETSc's KSP solver methods
     """
 
-    def __init__(self, obj):
-        self.da     = obj._da_ksp
-        self.obj    = obj
-        self.localX = self.da.createLocalVec()
+    def __init__(self, nonlinear_solver_obj):
+        self.da        = nonlinear_solver_obj._da_snes
+        self.obj       = nonlinear_solver_obj
+        self.local_phi = self.da.createLocalVec() # phi with ghost zones
 
-    def RHS(self, rho, rho_array):
-        rho_val    = self.da.getVecArray(rho)
-        rho_val[:] = rho_array
+    def compute_residual(self, snes, phi, residual):
 
-    def mult(self, mat, X, Y):
+        #self.da.globalToLocal(phi, self.local_phi)
 
-        self.da.globalToLocal(X, self.localX)
-
-        x = self.da.getVecArray(self.localX)
-        y = self.da.getVecArray(Y)
-
-        (q1_start, q1_end), (q2_start, q2_end) = self.da.getRanges()
-
-        for j in range(q1_start, q1_end):
-            for i in range(q2_start, q2_end):
-                u = x[j, i]  # center
-
-                u_w = x[j, i - 1]  # west
-                u_e = x[j, i + 1]  # east
-                u_s = x[j - 1, i]  # south
-                u_n = x[j + 1, i]  # north
-
-                u_xx = (-u_e + 2 * u - u_w) / self.obj.dq2**2
-                u_yy = (-u_n + 2 * u - u_s) / self.obj.dq1**2
-
-                y[j, i] = u_xx + u_yy
-
+        #phi_array      = self.local_phi.getArray(readonly=1)
+        phi_array      = phi.getArray(readonly=1)
+        residual_array = residual.getArray(readonly=0)
+    
+        residual_array[:] = phi_array**2. - 2.
+        return
 
 def compute_electrostatic_fields(self, performance_test_flag = False):
     
@@ -57,76 +40,89 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local,N_q2_local)) = self._da_ksp.getCorners()
+    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_snes.getCorners()
 
-    pde = Poisson2D(self)
-    phi = self._da_ksp.createGlobalVec()
-    rho = self._da_ksp.createGlobalVec()
+    snes = PETSc.SNES().create()
+    pde  = poisson_eqn(self)
+    snes.setFunction(pde.compute_residual, self.glob_residual)
+    
+    snes.setDM(self._da_snes)
+    snes.setFromOptions()
+    snes.solve(None, self.glob_phi)
+    
+    phi_array = self.glob_phi.getArray()
+    print("phi = ", phi_array)
 
-    phi_local = self._da_ksp.createLocalVec()
+    
 
-    A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()],
-                                 comm=self._da_ksp.comm
-                                )
-    A.setPythonContext(pde)
-    A.setUp()
+#    pde = Poisson2D(self)
+#    phi = self._da_ksp.createGlobalVec()
+#    rho = self._da_ksp.createGlobalVec()
+#
+#    phi_local = self._da_ksp.createLocalVec()
+#
+#    A = PETSc.Mat().createPython([phi.getSizes(), rho.getSizes()],
+#                                 comm=self._da_ksp.comm
+#                                )
+#    A.setPythonContext(pde)
+#    A.setUp()
+#
+#    ksp = PETSc.KSP().create()
+#
+#    ksp.setOperators(A)
+#    ksp.setType('cg')
+#
+#    pc = ksp.getPC()
+#    pc.setType('none')
+#
+#    N_g = self.N_ghost
+#    ksp.setTolerances(atol=1e-7)
+#    pde.RHS(rho,
+#              self.physical_system.params.charge_electron
+#            * np.array(self.compute_moments('density')[N_g:-N_g,
+#                                                       N_g:-N_g
+#                                                      ]
+#                       - 1
+#                      )
+#           )
+#
+#    ksp.setFromOptions()
+#    ksp.solve(rho, phi)
+#
+#    num_tries = 0
+#    while(ksp.converged is not True):
+#        
+#        ksp.setTolerances(atol = 10**(-6+num_tries), rtol = 10**(-6+num_tries))
+#        ksp.solve(rho, phi)
+#        num_tries += 1
+#        
+#        if(num_tries == 5):
+#            raise Exception('KSP solver diverging!')
+#
+#    self._da_ksp.globalToLocal(phi, phi_local)
 
-    ksp = PETSc.KSP().create()
-
-    ksp.setOperators(A)
-    ksp.setType('cg')
-
-    pc = ksp.getPC()
-    pc.setType('none')
-
-    N_g = self.N_ghost
-    ksp.setTolerances(atol=1e-7)
-    pde.RHS(rho,
-              self.physical_system.params.charge_electron
-            * np.array(self.compute_moments('density')[N_g:-N_g,
-                                                       N_g:-N_g
-                                                      ]
-                       - 1
-                      )
-           )
-
-    ksp.setFromOptions()
-    ksp.solve(rho, phi)
-
-    num_tries = 0
-    while(ksp.converged is not True):
-        
-        ksp.setTolerances(atol = 10**(-6+num_tries), rtol = 10**(-6+num_tries))
-        ksp.solve(rho, phi)
-        num_tries += 1
-        
-        if(num_tries == 5):
-            raise Exception('KSP solver diverging!')
-
-    self._da_ksp.globalToLocal(phi, phi_local)
-
-    # Since rho was defined at (i + 0.5, j + 0.5)
-    # Electric Potential returned will also be at (i + 0.5, j + 0.5)
-    electric_potential = af.to_array(np.swapaxes(phi_local[:].
-                                                 reshape(  N_q2_local
-                                                         + 2 * self.N_ghost,
-                                                           N_q1_local +
-                                                         + 2 * self.N_ghost
-                                                        ),
-                                                 0, 1
-                                                )
-                                    )
-
-    # Obtaining the values at (i+0.5, j+0.5):
-    self.E1 = -(  af.shift(electric_potential, -1)
-                - af.shift(electric_potential,  1)
-               ) / (2 * self.dq1)
-
-    self.E2 = -(  af.shift(electric_potential, 0, -1)
-                - af.shift(electric_potential, 0,  1)
-               ) / (2 * self.dq2)
-
-    af.eval(self.E1, self.E2)
+#    # Since rho was defined at (i + 0.5, j + 0.5)
+#    # Electric Potential returned will also be at (i + 0.5, j + 0.5)
+#    electric_potential = af.to_array(np.swapaxes(phi_local[:].
+#                                                 reshape(  N_q2_local
+#                                                         + 2 * self.N_ghost,
+#                                                           N_q1_local +
+#                                                         + 2 * self.N_ghost
+#                                                        ),
+#                                                 0, 1
+#                                                )
+#                                    )
+#
+#    # Obtaining the values at (i+0.5, j+0.5):
+#    self.E1 = -(  af.shift(electric_potential, -1)
+#                - af.shift(electric_potential,  1)
+#               ) / (2 * self.dq1)
+#
+#    self.E2 = -(  af.shift(electric_potential, 0, -1)
+#                - af.shift(electric_potential, 0,  1)
+#               ) / (2 * self.dq2)
+#
+#    af.eval(self.E1, self.E2)
 
     if(performance_test_flag == True):
         af.sync()

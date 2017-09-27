@@ -143,16 +143,16 @@ class nonlinear_solver(object):
 
         # Additionally, a DA object also needs to be created for the KSP solver
         # with a DOF of 1:
-        self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                            stencil_width = self.N_ghost,
-                                            boundary_type = (self.bc_in_q1,
-                                                             self.bc_in_q2
-                                                            ),
-                                            proc_sizes    = (PETSc.DECIDE,
-                                                             PETSc.DECIDE
-                                                            ),
-                                            stencil_type  = 1,
-                                            comm          = self._comm)
+        self._da_snes = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                             stencil_width = self.N_ghost,
+                                             boundary_type = (self.bc_in_q1,
+                                                              self.bc_in_q2
+                                                             ),
+                                             proc_sizes    = (PETSc.DECIDE,
+                                                              PETSc.DECIDE
+                                                             ),
+                                             stencil_type  = 1,
+                                             comm          = self._comm)
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof        = len(self.
@@ -174,6 +174,12 @@ class nonlinear_solver(object):
         # the communication routines for EM fields
         self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
+    
+        self.glob_phi      = self._da_snes.createGlobalVec()
+        self.glob_residual = self._da_snes.createGlobalVec()
+        self.glob_phi.set(0.)
+        self.glob_residual.set(0.)
+
 
         # The following vector is used to dump the data to file:
         self._glob_moments = self._da_dump_moments.createGlobalVec()
