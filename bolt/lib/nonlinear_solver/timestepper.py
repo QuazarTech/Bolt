@@ -11,6 +11,71 @@ from bolt.lib.nonlinear_solver.timestepper_source \
 from bolt.lib.nonlinear_solver.EM_fields_solver.fields_step \
     import fields_step
 
+def _strang_split_operations(self, dt, op1, op2):
+    """
+    Performs strang splitting for any 2 operators.
+
+    Parameters
+    ----------
+    dt : float
+         Time-step size to evolve the system
+
+    op1 : function
+          Function which solves the 1st part of the split
+          equation
+
+    op2 : function
+          Function which solves the 2nd part of the split
+          equation
+    
+    Notes
+    ------
+    This also performs the communicate step between 
+    operations
+    """
+    op1(self, 0.5 * dt)
+    self._communicate_distribution_function()
+
+    # Solving the source/sink terms:
+    op2(self, dt)
+    self._communicate_distribution_function()
+
+    # Advection in position space:
+    op1(self, 0.5 * dt)
+    self._communicate_distribution_function()
+
+    return    
+
+def _lie_split_operations(self, dt, op1, op2):
+    """
+    Performs lie splitting for any 2 operators.
+
+    Parameters
+    ----------
+    op1 : function
+          Function which solves the 1st part of the split
+          equation
+
+    op2 : function
+          Function which solves the 2nd part of the split
+          equation
+
+    dt : float
+         Time-step size to evolve the system
+    
+    Notes
+    ------
+    This also performs the communicate step between 
+    operations
+    """
+    op1(self, dt)
+    self._communicate_distribution_function()
+
+    # Solving the source/sink terms:
+    op2(self, dt)
+    self._communicate_distribution_function()
+
+    return  
 
 def strang_step(self, dt, performance_test_flag = False):
     """
