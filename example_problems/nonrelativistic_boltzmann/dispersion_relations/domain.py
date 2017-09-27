@@ -1,6 +1,6 @@
 q1_start = 0
 q1_end   = 1
-N_q1     = 128
+N_q1     = 16
 
 q2_start = 0
 q2_end   = 1

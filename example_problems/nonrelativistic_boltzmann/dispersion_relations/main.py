@@ -65,7 +65,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.002
-t_final = 0.8
+t_final = 1.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -91,7 +91,8 @@ omega = 2 * np.pi * np.fft.fftfreq(time_array.size, dt)
 pl.plot(omega, f_hat)
 pl.xlabel(r'$\omega$')
 pl.ylabel(r'$|FFT(\max(\rho(x))(t))|$')
+pl.xlim(-10, 10)
 pl.savefig('omega.png')
 pl.clf()
 
-print('Omega:', omega[int(np.amax(f_hat))])
+print('Omega:', omega[int(np.argmax(f_hat))])
