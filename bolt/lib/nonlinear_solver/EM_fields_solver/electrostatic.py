@@ -5,6 +5,7 @@ from petsc4py import PETSc
 import arrayfire as af
 import numpy as np
 from numpy.fft import fftfreq
+import sys
 
 
 class poisson_eqn(object):
@@ -20,16 +21,51 @@ class poisson_eqn(object):
         self.da        = nonlinear_solver_obj._da_snes
         self.obj       = nonlinear_solver_obj
         self.local_phi = self.da.createLocalVec() # phi with ghost zones
+        self.N_ghost   = self.obj.N_ghost
+
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = \
+                self.da.getCorners()
+        
+        self.N_q1_local = N_q1_local
+        self.N_q2_local = N_q2_local
 
     def compute_residual(self, snes, phi, residual):
 
-        #self.da.globalToLocal(phi, self.local_phi)
+        self.da.globalToLocal(phi, self.local_phi)
 
-        #phi_array      = self.local_phi.getArray(readonly=1)
-        phi_array      = phi.getArray(readonly=1)
+        N_g = self.N_ghost
+
+	# Residual assembly using numpy
+        phi_array = self.local_phi.getArray(readonly=1)
+        phi_array = phi_array.reshape([self.N_q2_local + 2*N_g, \
+                                       self.N_q1_local + 2*N_g, 1], \
+                                      order='A'
+                                     )
+
         residual_array = residual.getArray(readonly=0)
-    
-        residual_array[:] = phi_array**2. - 2.
+        residual_array = residual_array.reshape([self.N_q2_local, \
+                                                 self.N_q1_local, 1], \
+                                                order='A'
+                                               )
+
+        residual_array[:, :, :] = phi_array[N_g:-N_g, N_g:-N_g, :]**2. - 2.
+
+	# Residual assembly using arrayfire
+#        phi_array    = self.local_phi.getArray(readonly=1)
+#        phi_af_array = af.to_array(phi_array)
+#        phi_af_array = af.moddims(phi_af_array,
+#                                  self.N_q1_local + 2*N_g,
+#                                  self.N_q2_local + 2*N_g
+#                                 )
+#
+#        residual_af_array = phi_af_array[N_g:-N_g, N_g:-N_g]**2. - 2.
+#        residual_af_array = af.moddims(residual_af_array,
+#                                         self.N_q1_local
+#                                       * self.N_q2_local
+#                                      )
+#        residual_array    = residual.getArray(readonly=0)
+#        residual_array[:] = residual_af_array.to_ndarray()
+
         return
 
 def compute_electrostatic_fields(self, performance_test_flag = False):

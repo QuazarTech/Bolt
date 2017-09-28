@@ -152,6 +152,7 @@ class nonlinear_solver(object):
                                                               PETSc.DECIDE
                                                              ),
                                              stencil_type  = 1,
+                                             dof = 1,
                                              comm          = self._comm)
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
