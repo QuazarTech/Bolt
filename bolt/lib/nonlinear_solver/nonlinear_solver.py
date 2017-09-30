@@ -19,6 +19,7 @@ import socket
 
 # Importing solver libraries:
 import bolt.lib.nonlinear_solver.communicate as communicate
+import bolt.lib.nonlinear_solver.apply_boundary_conditions as apply_boundary_conditions
 import bolt.lib.nonlinear_solver.timestepper as timestepper
 import bolt.lib.nonlinear_solver.dump as dump
 from bolt.lib.nonlinear_solver.tests.performance.bandwidth_test import bandwidth_test
@@ -85,10 +86,9 @@ class nonlinear_solver(object):
 
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
-        self.N_ghost = physical_system.N_ghost
-        self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1,\
-                                       physical_system.bc_in_q2
-
+        self.N_ghost             = physical_system.N_ghost
+        self.boundary_conditions = physical_system.boundary_conditions
+        
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
 
@@ -104,20 +104,32 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 
+        # Defaulting testing flags to false:
+        self.testing_source_flag   = False 
+        self.performance_test_flag = False
+
+        petsc_bc_in_q1 = self.bc_in_q1
+        petsc_bc_in_q2 = self.bc_in_q2
+
+        if(self.boundary_conditions.in_q1 != 'periodic'):
+            petsc_bc_in_q1 = 'ghosted'
+
+        if(self.boundary_conditions.in_q2 != 'periodic'):
+            petsc_bc_in_q2 = 'ghosted'
+
         # The DA structure is used in domain decomposition:
         # The following DA is used in the communication routines where
         # information about the data of the distribution function needs
         # to be communicated amongst processes. Additionally this structure
         # automatically takes care of applying periodic boundary conditions.
-
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof           = (  self.N_p1 
                                                           * self.N_p2 
                                                           * self.N_p3
                                                          ),
                                          stencil_width = self.N_ghost,
-                                         boundary_type = (self.bc_in_q1,
-                                                          self.bc_in_q2
+                                         boundary_type = (petsc_bc_in_q1,
+                                                          petsc_bc_in_q2
                                                          ),
                                          proc_sizes    = (PETSc.DECIDE, 
                                                           PETSc.DECIDE
@@ -133,8 +145,8 @@ class nonlinear_solver(object):
         self._da_fields = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof           = 6,
                                               stencil_width = self.N_ghost,
-                                              boundary_type = (self.bc_in_q1,
-                                                               self.bc_in_q2
+                                              boundary_type = (petsc_bc_in_q1,
+                                                               petsc_bc_in_q2
                                                               ),
                                               proc_sizes    = (PETSc.DECIDE,
                                                                PETSc.DECIDE
@@ -147,8 +159,8 @@ class nonlinear_solver(object):
         # with a DOF of 1:
         self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                             stencil_width = self.N_ghost,
-                                            boundary_type = (self.bc_in_q1,
-                                                             self.bc_in_q2
+                                            boundary_type = (petsc_bc_in_q1,
+                                                             petsc_bc_in_q2
                                                             ),
                                             proc_sizes    = (PETSc.DECIDE,
                                                              PETSc.DECIDE
@@ -222,30 +234,6 @@ class nonlinear_solver(object):
         # Source/Sink term:
         self._source = physical_system.source
 
-    def memory_bandwidth(size, n_reads, n_writes, n_evals, time_elapsed):
-        return(size * 8 * (n_reads + n_writes) 
-                    * n_evals/(time_elapsed*2**30)
-              )
-
-    def bandwidth_test(n_evals):
-
-        a = af.randu(32, 32, 32**3, dtype = af.Dtype.f64)
-        b = af.randu(32, 32, 32**3, dtype = af.Dtype.f64)
-        c = a + b
-        af.eval(c)
-        af.sync()
-
-        tic = af.time()
-        for i in range(n_evals):
-            c = a + b
-            af.eval(c)
-        af.sync()
-        toc = af.time()
-
-        bandwidth_available = memory_bandwidth(a.elements(), 2, 1,
-                                               n_evals, toc - tic
-                                              )
-        return(bandwidth_available)
 
     def _convert_to_q_expanded(self, array):
         """
@@ -263,10 +251,8 @@ class nonlinear_solver(object):
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        
-        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
-            self._da_f.getCorners()
-        
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+
         array = af.moddims(array,
                            (N_q1_local + 2 * self.N_ghost),
                            (N_q2_local + 2 * self.N_ghost),
@@ -289,12 +275,11 @@ class nonlinear_solver(object):
         This function converts the input array from
         q_expanded to p_expanded form.
         """
+
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        
-        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
-            self._da_f.getCorners()
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
         
         array = af.moddims(array,
                              (N_q1_local + 2 * self.N_ghost)
@@ -313,14 +298,14 @@ class nonlinear_solver(object):
 
         Returns in q_expanded form.
         """
+
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
-            self._da_f.getCorners()
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
-        i_q1_center = i_q1_lowest + 0.5
-        i_q2_center = i_q2_lowest + 0.5
+        i_q1_center = i_q1_start + 0.5
+        i_q2_center = i_q2_start + 0.5
 
         i_q1 = (  i_q1_center 
                 + np.arange(-self.N_ghost, N_q1_local + self.N_ghost)
@@ -389,8 +374,7 @@ class nonlinear_solver(object):
         # Obtaining the left-bottom corner coordinates
         # (lowest values of the canonical coordinates in the local zone)
         # Additionally, we also obtain the size of the local zone
-        ((i_q1_lowest, i_q2_lowest),(N_q1_local, N_q2_local)) = \
-            self._da_f.getCorners()
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
         # Initializing the EM fields quantities:
         # These quantities are defined for the CK grid:
@@ -526,10 +510,12 @@ class nonlinear_solver(object):
         of each of the functions which are used during the 
         process of a single-timestep.
         """
+
         # Initializing the global variables:
         time_ts = np.zeros(1); time_interp2 = np.zeros(1); time_fieldstep = np.zeros(1); 
         time_sourcets = np.zeros(1); time_communicate_f = np.zeros(1); time_fieldsolver = np.zeros(1)
-        time_interp3 = np.zeros(1); time_communicate_fields = np.zeros(1)
+        time_interp3 = np.zeros(1); time_communicate_fields = np.zeros(1) 
+        time_apply_bcs_f = np.zeros(1); time_apply_bcs_fields = np.zeros(1)
 
         # Performing reduction operations to obtain the greatest time amongst nodes/devices:
         self._comm.Reduce(np.array([self.time_ts/N_iters]), time_ts,
@@ -547,6 +533,9 @@ class nonlinear_solver(object):
         self._comm.Reduce(np.array([self.time_communicate_f/N_iters]), time_communicate_f,
                           op = MPI.MAX, root = 0
                          )
+        self._comm.Reduce(np.array([self.time_apply_bcs_f/N_iters]), time_apply_bcs_f,
+                          op = MPI.MAX, root = 0
+                         )
         self._comm.Reduce(np.array([self.time_fieldsolver/N_iters]), time_fieldsolver,
                           op = MPI.MAX, root = 0
                          )
@@ -554,6 +543,9 @@ class nonlinear_solver(object):
                           op = MPI.MAX, root = 0
                          )
         self._comm.Reduce(np.array([self.time_communicate_fields/N_iters]), time_communicate_fields,
+                          op = MPI.MAX, root = 0
+                         )
+        self._comm.Reduce(np.array([self.time_apply_bcs_fields/N_iters]), time_apply_bcs_fields,
                           op = MPI.MAX, root = 0
                          )
                          
@@ -573,6 +565,11 @@ class nonlinear_solver(object):
             
             table.add_row(['SOURCE_TS', time_sourcets[0]/N_iters,
                            100*time_sourcets[0]/time_ts[0]
+                          ]
+                         )
+
+            table.add_row(['APPLY_BCS_F', time_apply_bcs_f[0]/N_iters,
+                           100*time_apply_bcs_f[0]/time_ts[0]
                           ]
                          )
 
@@ -604,6 +601,11 @@ class nonlinear_solver(object):
                               ]
                              )
 
+                table.add_row(['APPLY_BCS_FIELDS', time_apply_bcs_fields[0]/N_iters,
+                               100*time_apply_bcs_fields[0]/time_fieldstep[0]
+                              ]
+                             )
+
                 table.add_row(['COMMUNICATE_FIELDS', time_communicate_fields[0]/N_iters,
                                100*time_communicate_fields[0]/time_fieldstep[0]
                               ]
@@ -619,8 +621,12 @@ class nonlinear_solver(object):
     _communicate_fields                = communicate.\
                                          communicate_fields
 
+    _apply_bcs_f      = apply_boundary_conditions.apply_bcs_f
+    _apply_bcs_fields = apply_boundary_conditions.apply_bcs_fields
+
     strang_timestep = timestepper.strang_step
     lie_timestep    = timestepper.lie_step
+    swss_timestep   = timestepper.swss_step
 
     compute_moments = compute_moments_imported
 

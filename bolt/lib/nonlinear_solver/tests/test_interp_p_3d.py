@@ -76,6 +76,8 @@ class test(object):
                                              )
                                         )
 
+        self.performance_test_flag = False
+
     def _A_p(self, *args):
         return (1, 1, 1)
 

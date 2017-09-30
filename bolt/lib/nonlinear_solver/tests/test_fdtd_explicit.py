@@ -74,6 +74,7 @@ class test(object):
         self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
         self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
 
+        self.performance_test_flag = False
 
     _communicate_fields = communicate_fields
 

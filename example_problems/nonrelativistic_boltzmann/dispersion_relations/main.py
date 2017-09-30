@@ -3,6 +3,7 @@ import numpy as np
 import petsc4py
 import sys
 import h5py
+import pylab as pl
 
 petsc4py.init(sys.argv)
 
@@ -36,24 +37,28 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 10
+t_final = 0.5
 
 time_array = np.arange(0, t_final + dt, dt)
 
 # Initializing Array used in storing the data:
-rho_data = np.zeros_like(time_array)
+rho_data     = np.zeros_like(time_array)
+rho_hat_data = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
     print('Computing For Time =', t0)
 
     n = ls.compute_moments('density')
-    rho_data[time_index] = af.max(n)
+    rho_data[time_index]     = af.max(n)
+    rho_hat_data[time_index] = af.max(af.abs(af.fft(n-1)))
     ls.RK2_timestep(dt)
 
 f_hat = abs(np.fft.fft(rho_data - np.min(rho_data)))
 omega = 2 * np.pi * np.fft.fftfreq(time_array.size, dt)
 
 h5f = h5py.File('data.h5', 'w')
+h5f.create_dataset('rho', data = rho_data)
+h5f.create_dataset('rho_hat', data = rho_hat_data)
 h5f.create_dataset('f_hat', data = f_hat)
 h5f.create_dataset('time', data = time_array)
 h5f.create_dataset('omega', data = omega)

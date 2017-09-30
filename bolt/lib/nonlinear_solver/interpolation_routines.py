@@ -4,9 +4,9 @@
 import arrayfire as af
 
 
-def f_interp_2d(self, dt, performance_test_flag = False):
+def f_interp_2d(self, dt):
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
     
     # Obtaining the left-bottom corner coordinates
@@ -24,26 +24,14 @@ def f_interp_2d(self, dt, performance_test_flag = False):
     q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
-    # Obtaining the center coordinates:
-    (i_q1_center, i_q2_center) = (i_q1_lowest + 0.5, i_q2_lowest + 0.5)
-
-    # Obtaining the left, and bottom boundaries for the local zones:
-    q1_boundary_lower = self.q1_start + i_q1_center * self.dq1
-    q2_boundary_lower = self.q2_start + i_q2_center * self.dq2
-
-    # Adding N_ghost to account for the offset due to ghost zones:
-    q1_interpolant =   (q1_center_new - q1_boundary_lower) / self.dq1 \
-                     + self.N_ghost
-    q2_interpolant =   (q2_center_new - q2_boundary_lower) / self.dq2 \
-                     + self.N_ghost
-
-    self.f = af.approx2(self.f, q1_interpolant, q2_interpolant,
-                        af.INTERP.BICUBIC_SPLINE
+    self.f = af.approx2(self.f, q1_center_new, q2_center_new,
+                        af.INTERP.BICUBIC_SPLINE, 
+                        xp = self.q1_center, yp = self.q2_center
                        )
 
     af.eval(self.f)
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_interp2 += toc - tic
@@ -51,13 +39,13 @@ def f_interp_2d(self, dt, performance_test_flag = False):
     return
 
 
-def f_interp_p_3d(self, dt, performance_test_flag = False):
+def f_interp_p_3d(self, dt):
     """
     Since the interpolation function are being performed in velocity space,
     the arrays used in the computation need to be in p_expanded form.
     Hence we will need to convert the same:
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     # Following Lie Splitting:
@@ -86,6 +74,7 @@ def f_interp_p_3d(self, dt, performance_test_flag = False):
     p1_new = self._convert_to_p_expanded(p1_new)
     p2_new = self._convert_to_p_expanded(p2_new)
     p3_new = self._convert_to_p_expanded(p3_new)
+
 
     # Transforming interpolant to go from [0, N_p - 1]:
     p1_lower_boundary = self.p1_start + 0.5 * self.dp1
@@ -120,7 +109,7 @@ def f_interp_p_3d(self, dt, performance_test_flag = False):
     # Changing p1 from (Nq1*Nq2, Np1, Np2, Np3) --> (Np1, Nq1*Nq2, Np2, Np3)
     self.f = af.approx1(af.reorder(self.f, 3, 2, 0, 1),
                         af.reorder(p1_interpolant),
-                        af.INTERP.CUBIC_SPLINE
+                        af.INTERP.CUBIC_SPLINE,
                        )
 
     # Changing f from (Np1, Nq1*Np2, Np2, Np3) --> (Nq1*Nq2, Np1, Np2, Np3)
@@ -129,7 +118,7 @@ def f_interp_p_3d(self, dt, performance_test_flag = False):
 
     af.eval(self.f)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_interp3 += toc - tic

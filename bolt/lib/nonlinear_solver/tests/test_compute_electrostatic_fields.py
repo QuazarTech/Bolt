@@ -92,6 +92,8 @@ class test(object):
                                             stencil_type=1,
                                           )
 
+        self.performance_test_flag = False
+
     compute_moments = compute_moments_sinusoidal
 
 def test_compute_electrostatic_fields_1():

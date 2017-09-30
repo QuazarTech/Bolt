@@ -141,6 +141,7 @@ class physical_system(object):
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
         self.N_ghost                 = domain.N_ghost
+        self.boundary_conditions     = boundary_conditions
         self.bc_in_q1, self.bc_in_q2 = boundary_conditions.in_q1,\
                                        boundary_conditions.in_q2
 

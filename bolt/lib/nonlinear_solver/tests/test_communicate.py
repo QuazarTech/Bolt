@@ -88,6 +88,7 @@ class test_distribution_function(object):
                                                               self.N_ghost:
                                                               -self.N_ghost
                                                              ]
+        self.performance_test_flag = False
 
 
 class test_fields(object):

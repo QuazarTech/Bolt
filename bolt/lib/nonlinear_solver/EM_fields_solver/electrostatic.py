@@ -51,15 +51,15 @@ class Poisson2D(object):
                 y[j, i] = u_xx + u_yy
 
 
-def compute_electrostatic_fields(self, performance_test_flag = False):
+def compute_electrostatic_fields(self):
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     # Obtaining the left-bottom corner coordinates
     # (lowest values of the canonical coordinates in the local zone)
     # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local,N_q2_local)) = self._da_ksp.getCorners()
+    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
     pde = Poisson2D(self)
     phi = self._da_ksp.createGlobalVec()
@@ -77,7 +77,7 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
 
     ksp.setOperators(A)
     ksp.setFromOptions()
-    # ksp.setType('cg')
+    ksp.setType('cg')
 
     pc = ksp.getPC()
     pc.setType('none')
@@ -130,7 +130,7 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
 
     af.eval(self.E1, self.E2)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
@@ -138,7 +138,7 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
     return
 
 
-def fft_poisson(self, performance_test_flag = False):
+def fft_poisson(self):
     """
     Solves the Poisson Equation using the FFTs:
 
@@ -146,7 +146,7 @@ def fft_poisson(self, performance_test_flag = False):
     (ie. used on a single node) with periodic boundary
     conditions.
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     if (self._comm.size != 1):
@@ -177,10 +177,10 @@ def fft_poisson(self, performance_test_flag = False):
         self.E2[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E2_hat))
 
         # Applying Periodic B.C's:
-        self._communicate_fields(performance_test_flag)
+        self._communicate_fields()
         af.eval(self.E1, self.E2)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
