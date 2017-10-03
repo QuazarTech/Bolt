@@ -154,8 +154,8 @@ def test_mirror():
     expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
     N_g      = obj.N_ghost
 
-    expected[:N_g]     = af.flip(expected[N_g:2 * N_g], 0)
-    expected[-N_g:]    = af.flip(expected[-2 * N_g:-N_g], 0)
+    expected[:N_g, :]  = af.flip(expected[N_g:2 * N_g], 0)
+    expected[-N_g:, :] = af.flip(expected[-2 * N_g:-N_g], 0)
     expected[:, -N_g:] = af.flip(expected[:, -2 * N_g:-N_g], 1)
     expected[:, :N_g]  = af.flip(expected[:, N_g:2 * N_g], 1)
 
@@ -165,27 +165,29 @@ def test_dirichlet():
     
     obj = test('dirichlet', 'dirichlet')
 
-    obj._A_q1, obj._A_q2 = 1, 1
+    obj._A_q1, obj._A_q2 = 100, 100
     obj.dt               = 0.001
 
-    obj.f[obj.N_ghost:-obj.N_ghost,obj.N_ghost:-obj.N_ghost] = \
-    af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)[obj.N_ghost:
-                                                                  -obj.N_ghost,
-                                                                  obj.N_ghost:
-                                                                  -obj.N_ghost
-                                                                 ]
+    obj.f = af.constant(0, obj.q1_center.shape[0], 
+                        obj.q1_center.shape[1], 
+                        obj.q1_center.shape[2],
+                        dtype = af.Dtype.f64
+                       )
 
+    apply_bcs_f(obj)
 
-    # apply_bcs_f(obj)
+    expected = af.constant(0, obj.q1_center.shape[0], 
+                           obj.q1_center.shape[1], 
+                           obj.q1_center.shape[2],
+                           dtype = af.Dtype.f64
+                          )
 
-    expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
-    N_g      = obj.N_ghost
+    N_g = obj.N_ghost
 
-    print(expected.shape)
+    expected[:N_g]     = af.select(obj.q1_center<obj.q1_start, 1, expected)[:N_g]
+    expected[-N_g:]    = af.select(obj.q1_center>obj.q1_end, 1, expected)[-N_g:]
+    expected[:, :N_g]  = af.select(obj.q2_center<obj.q2_start, 2, expected)[:, :N_g]
+    expected[:, -N_g:] = af.select(obj.q2_center>obj.q2_end, 2, expected)[:, -N_g:]
 
-    expected[:N_g, :]  = 1
-    expected[obj.N_q1-N_g:, :] = 1
-    expected[:, obj.N_q2-N_g:] = 2
-    expected[:, :N_g]  = 2
-
-    assert (af.max(af.abs(obj.f[N_g:-N_g, N_g:-N_g] - expected[N_g:-N_g, N_g:-N_g])) < 5e-14)
+    assert (af.max(af.abs(obj.f[:, N_g:-N_g] - expected[:, N_g:-N_g])) < 5e-14)
+    assert (af.max(af.abs(obj.f[N_g:-N_g, :] - expected[N_g:-N_g, :])) < 5e-14)

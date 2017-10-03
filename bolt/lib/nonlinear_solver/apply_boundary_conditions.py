@@ -35,10 +35,10 @@ def apply_bcs_f(self):
                             self.physical_system.params
                            )
 
-            self.f = af.select(q1_center_new < self.q1_start,
-                               f_left,
-                               self.f
-                              )
+            self.f[:self.N_ghost] = af.select(q1_center_new < self.q1_start,
+                                              f_left,
+                                              self.f
+                                             )[:self.N_ghost]
 
         if(i_q1_end == self.N_q1 - 1):
             
@@ -48,10 +48,10 @@ def apply_bcs_f(self):
                               self.physical_system.params
                              )
             
-            self.f = af.select(q1_center_new > self.q1_end,
-                               f_right,
-                               self.f
-                              )
+            self.f[-self.N_ghost:] = af.select(q1_center_new > self.q1_end,
+                                               f_right,
+                                               self.f
+                                              )[-self.N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q1 == 'mirror'):
 
@@ -82,10 +82,10 @@ def apply_bcs_f(self):
                           self.physical_system.params
                          )
 
-            self.f = af.select(q2_center_new < self.q2_start,
-                               f_bot,
-                               self.f
-                              )
+            self.f[:, :self.N_ghost] = af.select(q2_center_new < self.q2_start,
+                                                 f_bot,
+                                                 self.f
+                                                )[:, :self.N_ghost]
 
         if(i_q2_end == self.N_q2 - 1):
             
@@ -95,10 +95,10 @@ def apply_bcs_f(self):
                           self.physical_system.params
                          )
             
-            self.f = af.select(q2_center_new > self.q2_end,
-                               f_top,
-                               self.f
-                              )
+            self.f[:, -self.N_ghost:] = af.select(q2_center_new > self.q2_end,
+                                                  f_top,
+                                                  self.f
+                                                 )[:, -self.N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
 
