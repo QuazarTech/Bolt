@@ -208,6 +208,9 @@ def strang_step(self, dt):
 
         tic = af.time()
 
+    self.dt            = dt
+    self.time_elapsed += dt
+
     # Advection in position space:
     op_advect_q  = f_interp_2d
     # Solving the source/sink terms:

@@ -30,11 +30,21 @@ from bolt.lib.nonlinear_solver.apply_boundary_conditions \
 
 from bolt.lib.nonlinear_solver.communicate import communicate_f
 
+def f_x(*args):
+    return(1)
+
+def f_y(*args):
+    return(2)
+
 class test(object):
     def __init__(self, in_q1, in_q2):
         self.physical_system = type('obj', (object, ),
                                     {'boundary_conditions': type('obj', (object, ),
-                                     {'in_q1': in_q1, 'in_q2': in_q2})
+                                     {'in_q1': in_q1, 'in_q2': in_q2,
+                                      'f_left':f_x, 'f_right':f_x,
+                                      'f_bot':f_y, 'f_top':f_y,
+                                     }),
+                                     'params':'placeHolder'
                                     }
                                    )
 
@@ -55,6 +65,9 @@ class test(object):
         self.N_p1 = np.random.randint(16, 32)
         self.N_p2 = np.random.randint(16, 32)
         self.N_p3 = np.random.randint(16, 32)
+
+        # Dummy variable:
+        self.p1, self.p2, self.p3 = 1, 1, 1
 
         self.q1_center =   self.q1_start \
                          + (0.5 + np.arange(-self.N_ghost,
@@ -126,7 +139,7 @@ def test_periodic():
     assert (af.max(af.abs(obj.f - expected)) < 5e-14)
 
 def test_mirror():
-    
+
     obj = test('mirror', 'mirror')
     obj.f[obj.N_ghost:-obj.N_ghost,obj.N_ghost:-obj.N_ghost] = \
     af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)[obj.N_ghost:
@@ -147,3 +160,32 @@ def test_mirror():
     expected[:, :N_g]  = af.flip(expected[:, N_g:2 * N_g], 1)
 
     assert (af.max(af.abs(obj.f - expected)) < 5e-14)
+
+def test_dirichlet():
+    
+    obj = test('dirichlet', 'dirichlet')
+
+    obj._A_q1, obj._A_q2 = 1, 1
+    obj.dt               = 0.001
+
+    obj.f[obj.N_ghost:-obj.N_ghost,obj.N_ghost:-obj.N_ghost] = \
+    af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)[obj.N_ghost:
+                                                                  -obj.N_ghost,
+                                                                  obj.N_ghost:
+                                                                  -obj.N_ghost
+                                                                 ]
+
+
+    # apply_bcs_f(obj)
+
+    expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
+    N_g      = obj.N_ghost
+
+    print(expected.shape)
+
+    expected[:N_g, :]  = 1
+    expected[obj.N_q1-N_g:, :] = 1
+    expected[:, obj.N_q2-N_g:] = 2
+    expected[:, :N_g]  = 2
+
+    assert (af.max(af.abs(obj.f[N_g:-N_g, N_g:-N_g] - expected[N_g:-N_g, N_g:-N_g])) < 5e-14)

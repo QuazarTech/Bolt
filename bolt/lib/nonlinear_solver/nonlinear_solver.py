@@ -234,6 +234,8 @@ class nonlinear_solver(object):
         # Source/Sink term:
         self._source = physical_system.source
 
+        # Initializing a variable to track time-elapsed:
+        self.time_elapsed = 0
 
     def _convert_to_q_expanded(self, array):
         """
