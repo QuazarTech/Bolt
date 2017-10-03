@@ -616,10 +616,10 @@ class nonlinear_solver(object):
             PETSc.Sys.Print('Spatial Zone Cycles/s =', self.N_q1*self.N_q2/time_ts[0])
         
     # Injection of solver functions into class as methods:
-    _communicate_distribution_function = communicate.\
-                                         communicate_distribution_function
-    _communicate_fields                = communicate.\
-                                         communicate_fields
+    _communicate_f      = communicate.\
+                          communicate_f
+    _communicate_fields = communicate.\
+                          communicate_fields
 
     _apply_bcs_f      = apply_boundary_conditions.apply_bcs_f
     _apply_bcs_fields = apply_boundary_conditions.apply_bcs_fields

@@ -76,8 +76,8 @@ class test_distribution_function(object):
         self._local_value_f = self._da_f.getVecArray(self._local_f)
 
         self.f = af.constant(0,
-                             self.q1.shape[0],
-                             self.q1.shape[1],
+                             self.N_q1,
+                             self.N_q2,
                              self.q1.shape[2],
                              dtype=af.Dtype.f64
                             )

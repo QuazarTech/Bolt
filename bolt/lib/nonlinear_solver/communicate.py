@@ -5,7 +5,7 @@ import arrayfire as af
 import numpy as np
 
 
-def communicate_distribution_function(self):
+def communicate_f(self):
     """
     Used in communicating the values at the boundary zones
     for each of the local vectors among all procs.

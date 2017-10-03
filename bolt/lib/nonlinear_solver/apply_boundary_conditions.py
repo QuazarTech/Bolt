@@ -20,12 +20,13 @@ def apply_bcs_f(self):
 
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
-    q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
-    q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
     if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
 
+        q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
+
         if(i_q1_start == 0):
+    
             f_left = self.physical_system.boundary_conditions.\
                      f_left(self.q1_center, self.q2_center,
                             self.p1, self.p2, self.p3, 
@@ -69,6 +70,8 @@ def apply_bcs_f(self):
         raise NotImplementedError('Boundary condition invalid/not-implemented')
 
     if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
+    
+        q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
         if(i_q2_start == 0):
             f_bot = self.physical_system.boundary_conditions.\
@@ -120,7 +123,7 @@ def apply_bcs_f(self):
         toc = af.time()
         self.time_apply_bcs_f += toc - tic
 
-    self._communicate_distribution_function()
+    self._communicate_f()
 
     return
 
