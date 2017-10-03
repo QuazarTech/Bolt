@@ -21,6 +21,8 @@ def apply_bcs_f(self):
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
 
+    self._communicate_f()
+
     if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
 
         q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
@@ -52,6 +54,11 @@ def apply_bcs_f(self):
                               )
 
     elif(self.physical_system.boundary_conditions.in_q1 == 'mirror'):
+
+        print(self.N_q1)
+        print(i_q1_start)
+        print(i_q1_end)
+
 
         if(i_q1_start == 0):
             self.f[:N_ghost] = af.flip(self.f[N_ghost:2 * N_ghost], 0)
@@ -100,6 +107,10 @@ def apply_bcs_f(self):
 
     elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
 
+        print(self.N_q2)
+        print(i_q2_start)
+        print(i_q2_end)
+
         if(i_q2_start == 0):
             self.f[:, :N_ghost]  = af.flip(self.f[:, N_ghost:2 * N_ghost], 1)
 
@@ -123,7 +134,6 @@ def apply_bcs_f(self):
         toc = af.time()
         self.time_apply_bcs_f += toc - tic
 
-    self._communicate_f()
 
     return
 

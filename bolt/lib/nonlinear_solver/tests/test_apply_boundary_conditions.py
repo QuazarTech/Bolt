@@ -31,10 +31,10 @@ from bolt.lib.nonlinear_solver.apply_boundary_conditions \
 from bolt.lib.nonlinear_solver.communicate import communicate_f
 
 class test(object):
-    def __init__(self):
+    def __init__(self, in_q1, in_q2):
         self.physical_system = type('obj', (object, ),
                                     {'boundary_conditions': type('obj', (object, ),
-                                     {'in_q1': 'periodic', 'in_q2': 'periodic'})
+                                     {'in_q1': in_q1, 'in_q2': in_q2})
                                     }
                                    )
 
@@ -78,10 +78,17 @@ class test(object):
                                  self.N_p1 * self.N_p2 * self.N_p3
                                 )
 
+        petsc_in_q1 = 'periodic'
+        petsc_in_q2 = 'periodic'
+
+        if(in_q1 != 'periodic'):
+            petsc_in_q1 = 'ghosted'
+            petsc_in_q2 = 'ghosted'
+
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof=(self.N_p1 * self.N_p2 * self.N_p3),
                                          stencil_width=self.N_ghost,
-                                         boundary_type=('periodic', 'periodic'),
+                                         boundary_type=(petsc_in_q1, petsc_in_q2),
                                          stencil_type=1, 
                                         )
 
@@ -104,7 +111,7 @@ class test(object):
 
 def test_periodic():
 
-    obj = test()
+    obj = test('periodic', 'periodic')
     obj.f[obj.N_ghost:-obj.N_ghost,obj.N_ghost:-obj.N_ghost] = \
     af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)[obj.N_ghost:
                                                                   -obj.N_ghost,
@@ -118,3 +125,25 @@ def test_periodic():
     expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
     assert (af.max(af.abs(obj.f - expected)) < 5e-14)
 
+def test_mirror():
+    
+    obj = test('mirror', 'mirror')
+    obj.f[obj.N_ghost:-obj.N_ghost,obj.N_ghost:-obj.N_ghost] = \
+    af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)[obj.N_ghost:
+                                                                  -obj.N_ghost,
+                                                                  obj.N_ghost:
+                                                                  -obj.N_ghost
+                                                                 ]
+
+
+    apply_bcs_f(obj)
+
+    expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
+    N_g      = obj.N_ghost
+
+    expected[:N_g]     = af.flip(expected[N_g:2 * N_g], 0)
+    expected[-N_g:]    = af.flip(expected[-2 * N_g:-N_g], 0)
+    expected[:, -N_g:] = af.flip(expected[:, -2 * N_g:-N_g], 1)
+    expected[:, :N_g]  = af.flip(expected[:, N_g:2 * N_g], 1)
+
+    assert (af.max(af.abs(obj.f - expected)) < 5e-14)
