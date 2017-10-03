@@ -9,11 +9,6 @@ def f_interp_2d(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
     
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
-
     # Defining a lambda function to perform broadcasting operations
     # This is done using af.broadcast, which allows us to perform 
     # batched operations when operating on arrays of different sizes
@@ -26,7 +21,7 @@ def f_interp_2d(self, dt):
 
     self.f = af.approx2(self.f, q1_center_new, q2_center_new,
                         af.INTERP.BICUBIC_SPLINE, 
-                        xp = self.q1_center, yp = self.q2_center
+                        xp = self.q1_center, yp = self.q2_center,
                        )
 
     af.eval(self.f)
