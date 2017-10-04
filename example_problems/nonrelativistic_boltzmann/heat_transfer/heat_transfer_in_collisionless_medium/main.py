@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import pylab as pl
+import h5py
 
 from bolt.lib.physical_system import physical_system
 
@@ -66,17 +67,9 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 1.0
+t_final = 2.0
 
-time_array = np.arange(0, t_final + dt, dt)
-
-# Initializing Arrays used in storing the data:
-rho_data_nls  = np.zeros_like(time_array)
-
-p1b_data_nls  = np.zeros_like(time_array)
-p2b_data_nls  = np.zeros_like(time_array)
-p3b_data_nls  = np.zeros_like(time_array)
-
+time_array    = np.arange(0, t_final + dt, dt)
 temp_data_nls = np.zeros_like(time_array)
 
 def time_evolution():
@@ -98,54 +91,13 @@ def time_evolution():
                  - n_nls * p3_bulk_nls**2
                 ) / n_nls
 
-        rho_data_nls[time_index]  = af.max(n_nls)
-        
-        p1b_data_nls[time_index]  = af.max(p1_bulk_nls)
-        p2b_data_nls[time_index]  = af.max(p2_bulk_nls)
-        p3b_data_nls[time_index]  = af.max(p3_bulk_nls)
-
-        temp_data_nls[time_index] = af.mean(T_nls[3:-3])
+        temp_data_nls[time_index] = af.sum(T_nls[0.5 * nls.N_q1 + nls.N_ghost, 0])
 
         nls.strang_timestep(dt)
         
 time_evolution()
 
-# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
-# pl.ylabel(r'MAX($\rho$)')
-# pl.xlabel('Time')
-# pl.legend()
-# pl.savefig('rho.png')
-# pl.clf()
-
-# pl.plot(time_array, temp_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, temp_data_nls, label='Nonlinear Solver')
-pl.ylabel(r'$T_{avg}$')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('E.png')
-pl.clf()
-
-# pl.plot(time_array, p1b_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.plot(time_array, p1b_data_nls, label='Nonlinear Solver')
-# pl.ylabel(r'MAX($p_{1b}$)')
-# pl.xlabel('Time')
-# pl.legend()
-# pl.savefig('p1b.png')
-# pl.clf()
-
-# pl.plot(time_array, p2b_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.plot(time_array, p2b_data_nls, label='Nonlinear Solver')
-# pl.ylabel(r'MAX($p_{2b}$)')
-# pl.xlabel('Time')
-# pl.legend()
-# pl.savefig('p2b.png')
-# pl.clf()
-
-# pl.plot(time_array, p3b_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.plot(time_array, p3b_data_nls, label='Nonlinear Solver')
-# pl.ylabel(r'MAX($p_{3b}$)')
-# pl.xlabel('Time')
-# pl.legend()
-# pl.savefig('p3b.png')
-# pl.clf()
+h5f = h5py.File('numerical.h5', 'w')
+h5f.create_dataset('temperature', data = temp_data_nls)
+h5f.create_dataset('time', data = time_array)
+h5f.close()
