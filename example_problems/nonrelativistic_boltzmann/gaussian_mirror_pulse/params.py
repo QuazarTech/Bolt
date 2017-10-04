@@ -25,7 +25,7 @@ boltzmann_constant = 1
 charge_electron    = 0
 
 # Initial Conditions used in initialize:
-rho_background         = 1
+rho_background  = 1
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):

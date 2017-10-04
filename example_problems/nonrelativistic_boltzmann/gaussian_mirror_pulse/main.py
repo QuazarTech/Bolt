@@ -64,7 +64,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 1.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -75,11 +75,9 @@ def time_evolution():
 
         n_nls = nls.compute_moments('density')
 
-        af.display(af.flat(n_nls))
-
-        pl.contourf(np.array(nls.q1_center[:, :, 0]), np.array(nls.q2_center[:, :, 0]), 
-                    np.array(n_nls-1), 100, cmap = 'bwr')
-        pl.colorbar()
+        pl.plot(np.array(nls.q1_center[:, :, 0]),
+                np.array(n_nls-1)
+               )
         pl.savefig('%04d'%time_index + '.png')
         pl.clf()
 
