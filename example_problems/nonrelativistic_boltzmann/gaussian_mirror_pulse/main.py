@@ -76,8 +76,11 @@ def time_evolution():
         n_nls = nls.compute_moments('density')
 
         pl.plot(np.array(nls.q1_center[:, :, 0]),
-                np.array(n_nls-1)
+                np.array(n_nls)
                )
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$\rho$')
+        pl.ylim(1, 1.01)
         pl.savefig('images/%04d'%time_index + '.png')
         pl.clf()
 
