@@ -35,6 +35,8 @@ def apply_bcs_f(self):
                             self.physical_system.params
                            )
 
+            # self.f[:self.N_ghost] = f_left[:self.N_ghost] #af.select(q1_center_new < self.q1_start,
+
             self.f[:self.N_ghost] = af.select(q1_center_new < self.q1_start,
                                               f_left,
                                               self.f
@@ -47,6 +49,8 @@ def apply_bcs_f(self):
                               self.p1, self.p2, self.p3, 
                               self.physical_system.params
                              )
+                      
+            # self.f[-self.N_ghost:] = f_right[-self.N_ghost:]
             
             self.f[-self.N_ghost:] = af.select(q1_center_new > self.q1_end,
                                                f_right,

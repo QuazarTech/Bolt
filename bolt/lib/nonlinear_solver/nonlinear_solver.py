@@ -108,8 +108,8 @@ class nonlinear_solver(object):
         self.testing_source_flag   = False 
         self.performance_test_flag = False
 
-        petsc_bc_in_q1 = self.bc_in_q1
-        petsc_bc_in_q2 = self.bc_in_q2
+        petsc_bc_in_q1 = 'periodic'
+        petsc_bc_in_q2 = 'periodic'
 
         if(self.boundary_conditions.in_q1 != 'periodic'):
             petsc_bc_in_q1 = 'ghosted'
@@ -476,35 +476,36 @@ class nonlinear_solver(object):
                                    dtype=af.Dtype.f64
                                   )
 
-        if (self.physical_system.params.fields_initialize == 'fft'):
-            fft_poisson(self)
+        if(self.physical_system.params.charge_electron != 0):
+            if (self.physical_system.params.fields_initialize == 'fft'):
+                fft_poisson(self)
 
-        elif (self.physical_system.params.fields_initialize ==
-              'electrostatic'
-             ):
-            compute_electrostatic_fields(self)
+            elif (self.physical_system.params.fields_initialize ==
+                  'electrostatic'
+                 ):
+                compute_electrostatic_fields(self)
 
-        elif (self.physical_system.params.fields_initialize == 'user-defined'):
-            self.E1, self.E2, self.E3 = \
-                self.physical_system.initial_conditions.initialize_E(self.q1_center,
-                                                                     self.q2_center,
-                                                                     params
-                                                                    )
+            elif (self.physical_system.params.fields_initialize == 'user-defined'):
+                self.E1, self.E2, self.E3 = \
+                    self.physical_system.initial_conditions.initialize_E(self.q1_center,
+                                                                         self.q2_center,
+                                                                         params
+                                                                        )
 
-            self.B1, self.B2, self.B3 = \
-                self.physical_system.initial_conditions.initialize_B(self.q1_center,
-                                                                     self.q2_center,
-                                                                     params
-                                                                    )
+                self.B1, self.B2, self.B3 = \
+                    self.physical_system.initial_conditions.initialize_B(self.q1_center,
+                                                                         self.q2_center,
+                                                                         params
+                                                                        )
 
-        else:
-            raise NotImplementedError('Method not valid/not implemented')
+            else:
+                raise NotImplementedError('Method not valid/not implemented')
 
-        # Getting the values at the FDTD grid points:
-        self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
-        self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
+            # Getting the values at the FDTD grid points:
+            self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
+            self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
 
-        return
+            return
 
     def print_performance_timings(self, N_iters):
         """
