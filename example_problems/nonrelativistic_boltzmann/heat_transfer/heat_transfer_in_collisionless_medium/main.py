@@ -91,7 +91,7 @@ def time_evolution():
                  - n_nls * p3_bulk_nls**2
                 ) / n_nls
 
-        temp_data_nls[time_index] = af.sum(T_nls[0.5 * nls.N_q1 + nls.N_ghost, 0])
+        temp_data_nls[time_index] = af.mean(T_nls)
 
         nls.strang_timestep(dt)
         

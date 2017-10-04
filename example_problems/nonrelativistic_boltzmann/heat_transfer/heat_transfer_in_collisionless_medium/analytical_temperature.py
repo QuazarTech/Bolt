@@ -35,53 +35,57 @@ def theta_walls(x):
 
 theta_walls = np.vectorize(theta_walls)
 
-def f0(v_1, v_perp, v, x):
+def f0(v, x):
     # Setting the temperature corresponding to that of the wall beyond boundaries
     if(x<=0):
         theta = theta_walls(x)
-        return 1 * (m/(2*np.pi*k*theta))**(3./2.) * np.exp(-m*v**2./(2.*k*theta))
+        return 1 * (m/(2*np.pi*k*theta))**(1./2.) * np.exp(-m*v**2./(2.*k*theta))
     
     if(x>=1):
         theta = theta_walls(x)
-        return 1 * (m/(2*np.pi*k*theta))**(3./2.) * np.exp(-m*v**2./(2.*k*theta))
+        return 1 * (m/(2*np.pi*k*theta))**(1./2.) * np.exp(-m*v**2./(2.*k*theta))
     
     else:   
         rho   = rho_init(x)
         theta = theta_init(x)     
-        return rho * (m/(2*np.pi*k*theta))**(3./2.) * np.exp(-m*v**2./(2.*k*theta))
+        return rho * (m/(2*np.pi*k*theta))**(1./2.) * np.exp(-m*v**2./(2.*k*theta))
 
-def f(v_1, v_perp, v, x, t):
+def f(v, x, t):
     
     if(x<=0):
         theta = theta_walls(x)
-        return 1 * (m/(2*np.pi*k*theta))**(3./2.) * np.exp(-m*v**2./(2.*k*theta))
+        return 1 * (m/(2*np.pi*k*theta))**(1./2.) * np.exp(-m*v**2./(2.*k*theta))
 
     if(x>=1):
         theta = theta_walls(x)
-        return 1 * (m/(2*np.pi*k*theta))**(3./2.) * np.exp(-m*v**2./(2.*k*theta))
+        return 1 * (m/(2*np.pi*k*theta))**(1./2.) * np.exp(-m*v**2./(2.*k*theta))
                 
 
     else:
-        return f0(v_1, v_perp, v, x - v_1*t)
+        return f0(v, x - v*t)
 
-def pressure_integrand(v_1, v_perp, x, t):
-    v                = np.sqrt(v_1**2. + v_perp**2.)
-    integral_measure = 2*np.pi*v_perp
+def rho_integrand(v, x, t):
+    integral_measure = 1
+    return integral_measure * f(v, x, t)
 
-    return integral_measure * v**2. * f(v_1, v_perp, v, x, t)
+def pressure_integrand(v, x, t):
+    integral_measure = 1
+    return integral_measure * v**2. * f(v, x, t)
 
-soln = np.zeros([N_t])
+soln = np.zeros([N_x, N_t])
 
-for n in range(N_t):
-    print( "n = ", n)
+for grid_point in range(N_x):
+    for n in range(N_t):
+        integral1 = nquad(pressure_integrand, [[-np.inf, np.inf]], 
+                          args=(x[grid_point], t[n])
+                         )
+        integral2 = nquad(rho_integrand, [[-np.inf, np.inf]], 
+                          args=(x[grid_point], t[n])
+                         )
 
-    integral = nquad(pressure_integrand, [[-np.inf, np.inf], [0, np.inf]], 
-                     args=(x[int(N_x/2)], t[n])
-                    )
-
-    soln[n]  = integral[0]
+        soln[grid_point, n] = integral1[0]/integral2[0]
 
 h5f = h5py.File('analytical.h5', 'w')
-h5f.create_dataset('temperature', data = soln)
+h5f.create_dataset('temperature', data = np.sum(soln, 0)/32)
 h5f.create_dataset('time', data = t)
 h5f.close()
