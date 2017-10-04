@@ -21,7 +21,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -78,7 +78,7 @@ def time_evolution():
         pl.plot(np.array(nls.q1_center[:, :, 0]),
                 np.array(n_nls-1)
                )
-        pl.savefig('%04d'%time_index + '.png')
+        pl.savefig('images/%04d'%time_index + '.png')
         pl.clf()
 
         nls.strang_timestep(dt)

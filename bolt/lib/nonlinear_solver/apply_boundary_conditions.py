@@ -61,9 +61,19 @@ def apply_bcs_f(self):
 
         if(i_q1_start == 0):
             self.f[:N_ghost] = af.flip(self.f[N_ghost:2 * N_ghost], 0)
+            self.f[:N_ghost] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                    1
+                                                   )
+                                           )[:N_ghost]
 
         if(i_q1_end == self.N_q1 - 1):
             self.f[-N_ghost:] = af.flip(self.f[-2 * N_ghost:-N_ghost], 0)
+            self.f[-N_ghost:] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                    1
+                                                   )
+                                           )[-N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q1 == 'shear'):
         # Not-implemented
@@ -107,10 +117,20 @@ def apply_bcs_f(self):
     elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
 
         if(i_q2_start == 0):
-            self.f[:, :N_ghost]  = af.flip(self.f[:, N_ghost:2 * N_ghost], 1)
+            self.f[:, :N_ghost] = af.flip(self.f[:, N_ghost:2 * N_ghost], 1)
+            self.f[:, :N_ghost] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                    2
+                                                   )
+                                           )[:, :N_ghost]
 
         if(i_q2_end == self.N_q2 - 1):
             self.f[:, -N_ghost:] = af.flip(self.f[:, -2 * N_ghost:-N_ghost], 1)
+            self.f[:, -N_ghost:] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                    2
+                                                   )
+                                           )[:, -N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q2 == 'shear'):
         # Not implemented
