@@ -80,7 +80,7 @@ def time_evolution():
                )
         pl.xlabel(r'$x$')
         pl.ylabel(r'$\rho$')
-        pl.ylim(1, 1.01)
+        pl.ylim(0.99, 1.01)
         pl.savefig('images/%04d'%time_index + '.png')
         pl.clf()
 

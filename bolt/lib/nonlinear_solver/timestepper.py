@@ -33,21 +33,10 @@ def _strang_split_operations(self, op1, op2, dt):
 
     dt : float
          Time-step size to evolve the system
-    
-    Note
-    -----
-    This also performs the apply_boundary_conditions step between 
-    operations
-    
     """
     op1(self, 0.5 * dt)
-    self._apply_bcs_f()
-
     op2(self, dt)
-    self._apply_bcs_f()
-
     op1(self, 0.5 * dt)
-    self._apply_bcs_f()
 
     return    
 
@@ -73,18 +62,9 @@ def _lie_split_operations(self, op1, op2, dt):
 
     dt : float
          Time-step size to evolve the system
-    
-    Note
-    -----
-    This also performs the apply_boundary_conditions step between 
-    operations
-    
     """
     op1(self, dt)
-    self._apply_bcs_f()
-
     op2(self, dt)
-    self._apply_bcs_f()
 
     return  
 
@@ -111,11 +91,6 @@ def _swss_split_operations(self, op1, op2, dt):
     dt : float
          Time-step size to evolve the system
     
-    Note
-    -----
-    This also performs the apply_boundary_conditions step between 
-    operations
-    
     """
     # Storing start values:
     f_start = self.f
@@ -130,10 +105,7 @@ def _swss_split_operations(self, op1, op2, dt):
 
     # Performing e^At e^Bt
     op1(self, dt)
-    self._apply_bcs_f()
-
     op2(self, dt)
-    self._apply_bcs_f()
 
     # Storing values obtained in this order:
     f_intermediate = self.f
@@ -159,10 +131,7 @@ def _swss_split_operations(self, op1, op2, dt):
 
     # Performing e^Bt e^At:
     op2(self, dt)
-    self._apply_bcs_f()
-
     op1(self, dt)
-    self._apply_bcs_f()
 
     # Averaging solution:
     self.f = 0.5 * (self.f + f_intermediate)
@@ -208,11 +177,14 @@ def strang_step(self, dt):
 
         tic = af.time()
 
-    self.dt            = dt
-    self.time_elapsed += dt
-
     # Advection in position space:
-    op_advect_q  = f_interp_2d
+    def op_advect_q(self, dt):
+        f_interp_2d(self, dt)
+        self._communicate_f()
+        self._apply_bcs_f()
+
+        return
+
     # Solving the source/sink terms:
     op_solve_src = RK2_step 
     # Solving for fields/advection in velocity space:
@@ -220,16 +192,18 @@ def strang_step(self, dt):
 
     # Cases which lack fields:
     if(self.physical_system.params.charge_electron == 0):
-
         _strang_split_operations(self, op_advect_q, op_solve_src, dt)
     
     
     else:
-        compound_op = lambda self, dt:_strang_split_operations(self, op1 = op_advect_q, 
-                                                               op2 = op_solve_src, dt = dt
-                                                              )
-
+        def compound_op(self, dt):
+            return(_strang_split_operations(self, op1 = op_advect_q,
+                                            op2 = op_solve_src, dt = dt
+                                           )
+                  )
         _strang_split_operations(self, compound_op, op_fields, dt)
+
+    self.time_elapsed += dt
 
     if(self.performance_test_flag == True):
         af.sync()
@@ -271,7 +245,13 @@ def lie_step(self, dt):
         tic = af.time()
 
     # Advection in position space:
-    op_advect_q  = f_interp_2d
+    def op_advect_q(self, dt):
+        f_interp_2d(self, dt)
+        self._communicate_f()
+        self._apply_bcs_f()
+
+        return
+
     # Solving the source/sink terms:
     op_solve_src = RK2_step 
     # Solving for fields/advection in velocity space:
@@ -279,16 +259,18 @@ def lie_step(self, dt):
 
     # Cases which lack fields:
     if(self.physical_system.params.charge_electron == 0):
-
         _lie_split_operations(self, op_advect_q, op_solve_src, dt)
     
     
     else:
-        compound_op = lambda self, dt:_lie_split_operations(self, op1 = op_advect_q, 
-                                                            op2 = op_solve_src, dt = dt
-                                                           )
-
+        def compound_op(self, dt):
+            return(_lie_split_operations(self, op1 = op_advect_q,
+                                         op2 = op_solve_src, dt = dt
+                                        )
+                  )
         _lie_split_operations(self, compound_op, op_fields, dt)
+
+    self.time_elapsed += dt
 
     if(self.performance_test_flag == True):
         af.sync()
@@ -329,7 +311,13 @@ def swss_step(self, dt):
         tic = af.time()
 
     # Advection in position space:
-    op_advect_q  = f_interp_2d
+    def op_advect_q(self, dt):
+        f_interp_2d(self, dt)
+        self._communicate_f()
+        self._apply_bcs_f()
+
+        return
+
     # Solving the source/sink terms:
     op_solve_src = RK2_step 
     # Solving for fields/advection in velocity space:
@@ -337,16 +325,18 @@ def swss_step(self, dt):
 
     # Cases which lack fields:
     if(self.physical_system.params.charge_electron == 0):
-
         _swss_split_operations(self, op_advect_q, op_solve_src, dt)
     
     
     else:
-        compound_op = lambda self, dt:_swss_split_operations(self, op1 = op_advect_q, 
-                                                             op2 = op_solve_src, dt = dt
-                                                            )
-
+        def compound_op(self, dt):
+            return(_swss_split_operations(self, op1 = op_advect_q,
+                                          op2 = op_solve_src, dt = dt
+                                         )
+                  )
         _swss_split_operations(self, compound_op, op_fields, dt)
+
+    self.time_elapsed += dt
 
     if(self.performance_test_flag == True):
         af.sync()

@@ -11,7 +11,9 @@ method based on Cheng-Knorr(1978)
 import arrayfire as af
 import numpy as np
 import petsc4py, sys
+
 petsc4py.init(sys.argv)
+
 from mpi4py import MPI
 from petsc4py import PETSc
 from prettytable import PrettyTable
@@ -84,8 +86,8 @@ class nonlinear_solver(object):
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
-        # Getting number of ghost zones, and the boundary conditions that are
-        # utilized
+        # Getting number of ghost zones, and the boundary 
+        # conditions that are utilized:
         self.N_ghost             = physical_system.N_ghost
         self.boundary_conditions = physical_system.boundary_conditions
         
