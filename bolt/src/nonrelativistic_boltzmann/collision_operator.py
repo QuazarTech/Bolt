@@ -52,5 +52,9 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
             - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
            ) / params.tau(q1, q2, p1, p2, p3)
 
+    # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
+    # WORKAROUND:
+    C_f = af.select(params.tau(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
+    
     af.eval(C_f)
     return(C_f)

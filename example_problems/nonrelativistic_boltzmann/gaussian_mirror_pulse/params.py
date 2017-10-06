@@ -14,7 +14,7 @@ fields_solver = 'fdtd'
 time_splitting = 'strang'
 
 # Dimensionality considered in velocity space:
-p_dim = 1
+p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1

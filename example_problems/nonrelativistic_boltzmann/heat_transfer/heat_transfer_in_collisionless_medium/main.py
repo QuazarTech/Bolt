@@ -67,7 +67,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 2.0
 
 time_array    = np.arange(0, t_final + dt, dt)
 temp_data_nls = np.zeros_like(time_array)

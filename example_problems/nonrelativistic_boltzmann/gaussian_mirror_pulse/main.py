@@ -64,26 +64,49 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 1.0
+t_final = 2.0
 
-time_array = np.arange(0, t_final + dt, dt)
+time_array = np.arange(dt, t_final + dt, dt)
+
+n_nls_initial = nls.compute_moments('density')
+
+pl.contourf(np.array(nls.q1_center[3:-3, 3:-3]),
+            np.array(nls.q2_center[3:-3, 3:-3]),
+            np.array(n_nls_initial[3:-3, 3:-3]),
+            100,
+            cmap = 'gist_heat'
+           )
+pl.title('Time = 0')
+pl.xlabel(r'$x$')
+pl.ylabel(r'$y$')
+pl.savefig('images/0000.png')
+pl.clf()
 
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        print('Computing For Time =', t0)
 
+        print('Computing For Time =', t0)
+        nls.strang_timestep(dt)
         n_nls = nls.compute_moments('density')
 
-        pl.plot(np.array(nls.q1_center[:, :, 0]),
-                np.array(n_nls)
-               )
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$\rho$')
-        pl.ylim(0.99, 1.01)
-        pl.savefig('images/%04d'%time_index + '.png')
-        pl.clf()
+        if((time_index+1)%10 == 0):
 
-        nls.strang_timestep(dt)
-        
+            pl.contourf(np.array(nls.q1_center[3:-3, 3:-3]),
+                        np.array(nls.q2_center[3:-3, 3:-3]),
+                        np.array(n_nls[3:-3, 3:-3]),
+                        100,
+                        cmap = 'gist_heat'
+                       )
+            pl.title('Time =' + str(t0))
+            pl.xlabel(r'$x$')
+            pl.ylabel(r'$y$')
+            pl.savefig('images/%04d'%((time_index+1)/10) + '.png')
+            pl.clf()
+
 time_evolution()
+print(af.sum(af.abs(  n_nls_initial[3:-3, 3:-3] 
+                    - n_nls_final[3:-3, 3:-3]
+                   )
+            )/(n_nls_final[3:-3, 3:-3]).elements()
+     )

@@ -179,9 +179,9 @@ def strang_step(self, dt):
 
     # Advection in position space:
     def op_advect_q(self, dt):
-        f_interp_2d(self, dt)
         self._communicate_f()
         self._apply_bcs_f()
+        f_interp_2d(self, dt)
 
         return
 
@@ -246,9 +246,9 @@ def lie_step(self, dt):
 
     # Advection in position space:
     def op_advect_q(self, dt):
-        f_interp_2d(self, dt)
         self._communicate_f()
         self._apply_bcs_f()
+        f_interp_2d(self, dt)
 
         return
 
@@ -312,9 +312,9 @@ def swss_step(self, dt):
 
     # Advection in position space:
     def op_advect_q(self, dt):
-        f_interp_2d(self, dt)
         self._communicate_f()
         self._apply_bcs_f()
+        f_interp_2d(self, dt)
 
         return
 

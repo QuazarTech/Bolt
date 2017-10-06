@@ -14,10 +14,17 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     rho_b = params.rho_background
 
     # Calculating the perturbed density:
-    rho = rho_b + 0.01 * af.sin(2 * np.pi * q1)
+    rho = 0.01 * af.exp(-400 * (q2 - 0.5)**2 - 400 * (q1 - 0.5)**2)
+    f   = p1 * rho
 
-    f = rho * (m / (2 * np.pi * k))**0.5 \
-            * af.exp(-m * (p1-1)**2 / (2 * k)) 
+    f[:] = 0
+
+    f   = af.moddims(f, 70*70, 4, 4)
+    rho = af.moddims(rho, 70*70)
+
+    f[:, 3, 2] = rho
+    
+    f = af.moddims(f, 70, 70, 4*4)
 
     af.eval(f)
     return (f)

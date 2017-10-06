@@ -32,13 +32,13 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-# # Analytical:
-# h5f = h5py.File('analytical.h5', 'r')
-# temp_ana = h5f['temperature'][:]
-# time_ana = h5f['time'][:]
-# h5f.close()
-
 # Analytical:
+h5f = h5py.File('analytical.h5', 'r')
+temp_ana = h5f['temperature'][:]
+time_ana = h5f['time'][:]
+h5f.close()
+
+# Numerical:
 h5f = h5py.File('numerical.h5', 'r')
 temp_num = h5f['temperature'][:]
 time_num = h5f['time'][:]
@@ -46,7 +46,7 @@ h5f.close()
 
 # Plotting:
 pl.plot(time_num, temp_num, label = 'Numerical')
-# pl.plot(time_ana, temp_ana, '--', color = 'black', label = 'Analytical')
+pl.plot(time_ana, temp_ana, '--', color = 'black', label = 'Analytical')
 pl.xlabel(r'$t$')
 pl.ylabel(r'$T_{avg}$')
 pl.legend()

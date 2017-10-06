@@ -66,10 +66,9 @@ def apply_bcs_f(self):
                 f_right = self._convert_to_q_expanded(f_right)
                 self.f  = self._convert_to_q_expanded(self.f)
 
-            self.f[-self.N_ghost:] = f_left[-self.N_ghost:]
+            self.f[-self.N_ghost:] = f_right[-self.N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q1 == 'mirror'):
-
         if(i_q1_start == 0):
             self.f[:N_ghost] = af.flip(self.f[N_ghost:2 * N_ghost], 0)
             self.f[:N_ghost] = \
@@ -159,7 +158,6 @@ def apply_bcs_f(self):
         af.sync()
         toc = af.time()
         self.time_apply_bcs_f += toc - tic
-
 
     return
 
