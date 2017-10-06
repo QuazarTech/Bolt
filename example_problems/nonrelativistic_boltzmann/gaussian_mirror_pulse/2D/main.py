@@ -20,7 +20,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 10, 6
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -76,11 +76,16 @@ pl.contourf(np.array(nls.q1_center[3:-3, 3:-3]),
             100,
             cmap = 'gist_heat'
            )
+
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
 pl.savefig('images/0000.png')
 pl.clf()
+
+af.display(nls._convert_to_p_expanded(af.tile(nls.p1, 70, 70))[:, 3, 2])
+af.display(nls._convert_to_p_expanded(af.tile(nls.p2, 70, 70))[:, 3, 2])
 
 def time_evolution():
 
@@ -101,12 +106,8 @@ def time_evolution():
             pl.title('Time =' + str(t0))
             pl.xlabel(r'$x$')
             pl.ylabel(r'$y$')
+            pl.axes().set_aspect('equal')
             pl.savefig('images/%04d'%((time_index+1)/10) + '.png')
             pl.clf()
 
 time_evolution()
-print(af.sum(af.abs(  n_nls_initial[3:-3, 3:-3] 
-                    - n_nls_final[3:-3, 3:-3]
-                   )
-            )/(n_nls_final[3:-3, 3:-3]).elements()
-     )

@@ -1,5 +1,5 @@
 q1_start = 0
-q1_end   = 1
+q1_end   = 1.5
 N_q1     = 64
 
 q2_start = 0

@@ -14,7 +14,7 @@ import numpy as np
 from bolt.lib.nonlinear_solver.timestepper_source \
     import RK4_step
 from bolt.lib.nonlinear_solver.timestepper \
-    import _strang_split_operations,_lie_split_operations, _swss_split_operations
+    import _strang_split_operations,_lie_split_operations, _swss_split_operations, _jia_split_operations
 
 class test(object):
     def __init__(self):
@@ -92,3 +92,18 @@ def test_swss_split_operations():
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
     assert (abs(poly[0] + 2) < 0.2)
+
+def test_jia_split_operations():
+
+    number_of_time_step = 10**np.arange(3)
+    time_step_sizes     = 1 / number_of_time_step
+    error = np.zeros(time_step_sizes.size)
+
+    for i in range(time_step_sizes.size):
+        test_obj = test()
+        for j in range(number_of_time_step[i]):
+            _jia_split_operations(test_obj, op1, op2, time_step_sizes[i])
+        error[i] = abs(af.sum(test_obj.f) - np.exp(1) + 1)
+
+    poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
+    assert (abs(poly[0] + 4) < 0.2)
