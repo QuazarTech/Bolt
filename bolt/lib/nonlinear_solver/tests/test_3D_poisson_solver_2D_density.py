@@ -40,14 +40,14 @@ pl.rcParams['ytick.direction']  = 'in'
 
 comm = PETSc.COMM_WORLD.tompi4py()
 
-N_q1_poisson = 70
-N_q2_poisson = 70
-N_q3_poisson = 70
+N_q1_poisson = 69
+N_q2_poisson = 69
+N_q3_poisson = 69
 
-N_q1_density = 35
-N_q2_density = 35
+N_q1_density = 69
+N_q2_density = 69
 
-N_ghost = 3
+N_ghost = 1
 
 da_3D = PETSc.DMDA().create([N_q1_poisson,
                              N_q2_poisson,
@@ -71,8 +71,8 @@ glob_residual = da_3D.createGlobalVec()
 ) = \
     da_3D.getCorners()
 
-q1_3D_start = -2.; q1_3D_end = 2.
-q2_3D_start = -2.; q2_3D_end = 2.
+q1_3D_start = -1.; q1_3D_end = 1.
+q2_3D_start = -1.; q2_3D_end = 1.
 q3_3D_start =  0.; q3_3D_end = 2.
 
 dq1_3D = (q1_3D_end - q1_3D_start) / N_q1_poisson
@@ -147,6 +147,13 @@ density_array = density_array.reshape([N_q2_2D_local + 2*N_ghost, \
                                      )
 
 print("rank = ", comm.rank)
+offset = 2*N_ghost-1
+print("i_q1_local_3D = [", i_q1_3D_start, ",", i_q1_3D_start+N_q1_3D_local+offset, "]")
+print("i_q2_local_3D = [", i_q2_3D_start, ",", i_q2_3D_start+N_q2_3D_local+offset, "]")
+print("i_q3_local_3D = [", i_q3_3D_start, ",", i_q3_3D_start+N_q3_3D_local+offset, "]")
+print(" ")
+print("i_q1_local_2D = [", i_q1_2D_start, ",", i_q1_2D_start+N_q2_2D_local+offset, "]")
+print("i_q2_local_2D = [", i_q2_2D_start, ",", i_q2_2D_start+N_q2_2D_local+offset, "]")
 
 # Figure out the coordinates of the 3D phi cube of the current rank
 print("q1_3D_start = ", q1_3D[N_ghost])
@@ -194,10 +201,10 @@ class poisson_eqn(object):
         					]
                                                )
 
-        phi_array[:N_ghost, :, :]               = 0.
-        phi_array[N_q1_3D_local+N_ghost:, :, :] = 0.
-        phi_array[:, :N_ghost, :]               = 0.
-        phi_array[:, N_q2_3D_local+N_ghost:, :] = 0.
+        #phi_array[:N_ghost, :, :]               = 0.
+        #phi_array[N_q1_3D_local+N_ghost:, :, :] = 0.
+        #phi_array[:, :N_ghost, :]               = 0.
+        #phi_array[:, N_q2_3D_local+N_ghost:, :] = 0.
         phi_array[:, :, :N_ghost]               = 0.
         phi_array[:, :, N_q3_3D_local+N_ghost:] = 0.
 
@@ -214,11 +221,15 @@ class poisson_eqn(object):
         
         laplacian_phi = d2phi_dx2 + d2phi_dy2 + d2phi_dz2
 
-        laplacian_phi[q3_2D_in_3D_index_start:q3_2D_in_3D_index_end,
-                      q2_2D_in_3D_index_start:q2_2D_in_3D_index_end,
-                      q1_2D_in_3D_index_start:q1_2D_in_3D_index_end
-                     ] \
-                     += density_array
+#        laplacian_phi[q3_2D_in_3D_index_start:q3_2D_in_3D_index_end,
+#                      q2_2D_in_3D_index_start:q2_2D_in_3D_index_end,
+#                      q1_2D_in_3D_index_start:q1_2D_in_3D_index_end
+#                     ] \
+#                     += density_array
+
+        print(density_array.shape)
+        print(laplacian_phi[35:35, 0:70, 0:70].shape)
+#        laplacian_phi[35:35, 0:70, 0:70] += density_array
 
         residual_array[:, :, :] = \
             laplacian_phi[N_g:-N_g, N_g:-N_g, N_g:-N_g]
