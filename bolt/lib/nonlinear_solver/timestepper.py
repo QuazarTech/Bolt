@@ -149,7 +149,8 @@ def _swss_split_operations(self, op1, op2, dt):
 
     return
 
-def _jia_split_operations(self, op1, op2, dt):    """
+def _jia_split_operations(self, op1, op2, dt):    
+    """
     Performs the splitting proposed in Jia et al(2011)
     for any 2 operators. This scheme is 4th order accurate
     for commutative operations, and 3rd order accurate for

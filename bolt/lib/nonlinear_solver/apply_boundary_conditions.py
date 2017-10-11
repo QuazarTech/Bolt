@@ -97,19 +97,34 @@ def apply_bcs_f(self):
 
     if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
     
-        q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * self.dt)
+        A_q2 = self._convert_to_p_expanded(af.tile(self._A_q2, 
+                                                   self.f.shape[0],
+                                                   self.f.shape[1]
+                                                  )
+                                          )
 
         if(i_q2_start == 0):
+    
             f_bot = self.physical_system.boundary_conditions.\
                     f_bot(self.q1_center, self.q2_center,
                           self.p1, self.p2, self.p3, 
                           self.physical_system.params
                          )
 
-            self.f[:, :self.N_ghost] = af.select(q2_center_new < self.q2_start,
-                                                 f_bot,
-                                                 self.f
-                                                )[:, :self.N_ghost]
+            if(self.time_elapsed == 0):
+                pass
+
+            else:
+                # Only changing outgoing characteristics:
+                f_bot  = self._convert_to_p_expanded(f_bot)
+                self.f = self._convert_to_p_expanded(self.f)
+
+                f_bot = af.select(A_q2>0, f_bot, self.f)
+
+                f_bot  = self._convert_to_q_expanded(f_bot)
+                self.f = self._convert_to_q_expanded(self.f)
+
+            self.f[:, :self.N_ghost] = f_bot[:, :self.N_ghost]
 
         if(i_q2_end == self.N_q2 - 1):
             
@@ -118,11 +133,21 @@ def apply_bcs_f(self):
                           self.p1, self.p2, self.p3, 
                           self.physical_system.params
                          )
-            
-            self.f[:, -self.N_ghost:] = af.select(q2_center_new > self.q2_end,
-                                                  f_top,
-                                                  self.f
-                                                 )[:, -self.N_ghost:]
+  
+            if(self.time_elapsed == 0):
+                pass
+
+            else:
+                # Only changing outgoing characteristics:
+                f_top  = self._convert_to_p_expanded(f_top)
+                self.f = self._convert_to_p_expanded(self.f)
+
+                f_top = af.select(A_q2<0, f_top, self.f)
+
+                f_top  = self._convert_to_q_expanded(f_top)
+                self.f = self._convert_to_q_expanded(self.f)
+
+            self.f[:, -self.N_ghost:] = f_top[:, -self.N_ghost:]
 
     elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
 

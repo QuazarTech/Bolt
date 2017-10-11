@@ -2,6 +2,7 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 import h5py
+import time
 
 from bolt.lib.physical_system import physical_system
 
@@ -91,9 +92,14 @@ def time_evolution():
                  - n_nls * p3_bulk_nls**2
                 ) / n_nls
 
+        af.display(T_nls[:3, 3:-3])
+        af.display(T_nls[-3:, 3:-3])
+
+        time.sleep(5)
         temp_data_nls[time_index] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
         nls.strang_timestep(dt)
         
+
 time_evolution()
 
 h5f = h5py.File('numerical.h5', 'w')

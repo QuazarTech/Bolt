@@ -76,7 +76,6 @@ pl.contourf(np.array(nls.q1_center[3:-3, 3:-3]),
             100,
             cmap = 'gist_heat'
            )
-
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -92,7 +91,7 @@ def time_evolution():
         nls.strang_timestep(dt)
         n_nls = nls.compute_moments('density')
 
-        if((time_index+1)%5 == 0):
+        if((time_index+1)%1 == 0):
 
             pl.contourf(np.array(nls.q1_center[3:-3, 3:-3]),
                         np.array(nls.q2_center[3:-3, 3:-3]),
@@ -104,7 +103,7 @@ def time_evolution():
             pl.xlabel(r'$x$')
             pl.ylabel(r'$y$')
             pl.axes().set_aspect('equal')
-            pl.savefig('images/%04d'%((time_index+1)/5) + '.png')
+            pl.savefig('images/%04d'%((time_index+1)/1) + '.png')
             pl.clf()
 
 time_evolution()

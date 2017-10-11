@@ -19,12 +19,12 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     f[:] = 0
 
-    f   = af.moddims(f, 70*70, 4, 4)
-    rho = af.moddims(rho, 70*70)
+    f   = af.moddims(f, 1030*1030, 4, 4)
+    rho = af.moddims(rho, 1030*1030)
 
     f[:, 3, 2] = rho
     
-    f = af.moddims(f, 70, 70, 4*4)
+    f = af.moddims(f, 1030, 1030, 4*4)
 
     af.eval(f)
     return (f)
