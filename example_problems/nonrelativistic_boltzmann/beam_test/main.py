@@ -20,7 +20,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 10, 6
+pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -63,7 +63,7 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.01
 t_final = 2.0
 
 time_array = np.arange(dt, t_final + dt, dt)

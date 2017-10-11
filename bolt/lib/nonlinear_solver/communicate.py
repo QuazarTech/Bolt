@@ -4,7 +4,6 @@
 import arrayfire as af
 import numpy as np
 
-
 def communicate_f(self):
     """
     Used in communicating the values at the boundary zones

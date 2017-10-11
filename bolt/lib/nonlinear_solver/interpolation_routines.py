@@ -3,7 +3,6 @@
 
 import arrayfire as af
 
-
 def f_interp_2d(self, dt):
     
     if(self.performance_test_flag == True):
