@@ -42,17 +42,41 @@ q2  = h5f['q2'][:]
 n   = h5f['n'][:]
 h5f.close()
 
-pl.contourf(q1[3:-3, 3:-3],
-            q2[3:-3, 3:-3],
-            n[3:-3, 3:-3],
-            100,
-            cmap = 'gist_heat'
-           )
+# pl.contourf(q1[3:-3, 3:-3],
+#             q2[3:-3, 3:-3],
+#             n[3:-3, 3:-3],
+#             100,
+#             cmap = 'gist_heat'
+#            )
+# pl.title('Time = 0')
+# pl.xlabel(r'$x$')
+# pl.ylabel(r'$y$')
+# pl.axes().set_aspect('equal')
+# pl.savefig('images/0000.png')
+# pl.clf()
 
+# for time_index, t0 in enumerate(time):
+#     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+#     n   = h5f['n'][:]
+#     h5f.close()
+
+#     pl.contourf(q1[3:-3, 3:-3],
+#                 q2[3:-3, 3:-3],
+#                 n[3:-3, 3:-3],
+#                 100,
+#                 cmap = 'gist_heat'
+#                )
+#     pl.title('Time =' + str(t0))
+#     pl.xlabel(r'$x$')
+#     pl.ylabel(r'$y$')
+#     pl.axes().set_aspect('equal')
+#     pl.savefig('images/%04d'%(time_index+1) + '.png')
+#     pl.clf()
+
+pl.plot(q2[66, 3:-3], n[66, 3:-3])
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.axes().set_aspect('equal')
+pl.ylabel(r'$n$')
 pl.savefig('images/0000.png')
 pl.clf()
 
@@ -61,15 +85,9 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:]
     h5f.close()
 
-    pl.contourf(q1[3:-3, 3:-3],
-                q2[3:-3, 3:-3],
-                n[3:-3, 3:-3],
-                100,
-                cmap = 'gist_heat'
-               )
-    pl.title('Time =' + str(t0))
+    pl.plot(q2[66, 3:-3], n[66, 3:-3])
+    pl.title('Time = ' + str(t0))
     pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.axes().set_aspect('equal')
+    pl.ylabel(r'$n$')
     pl.savefig('images/%04d'%(time_index+1) + '.png')
     pl.clf()
