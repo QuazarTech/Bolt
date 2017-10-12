@@ -34,7 +34,7 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.01
 t_final = 2.0
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -50,6 +50,11 @@ h5f.close()
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
+        print('For Time =', t0)
+        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
+        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
+        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
+        print()
 
         nls.strang_timestep(dt)
         n_nls = nls.compute_moments('density')

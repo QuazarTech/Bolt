@@ -9,15 +9,15 @@ def f_left(q1, q2, p1, p2, p3, params):
     f    = q1**0 * np.sqrt(1 / (4 * np.pi)) * af.exp(-p1**2 / 4)
     f[:] = 0
     
-    f           = af.moddims(f, 134*134, 16, 16)
+    f           = af.moddims(f, 148*148, 4, 4)
     f_activated = f.copy()
     
-    f_activated[:, 9, 9] = 1
+    f_activated[:, 2, 2] = 1
     
-    f           = af.moddims(f, 134, 134, 16*16)
-    f_activated = af.moddims(f_activated, 134, 134, 16*16)
+    f           = af.moddims(f, 148, 148, 4*4)
+    f_activated = af.moddims(f_activated, 148, 148, 4*4)
     
-    f[:, 50:76] = f_activated[:, 50:76]
+    f[:, 60:87] = f_activated[:, 60:87]
     return(f)
 
 @af.broadcast

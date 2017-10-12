@@ -1,6 +1,6 @@
 import arrayfire as af
 import numpy as np
-import h5py
+import h5py 
 
 from bolt.lib.physical_system import physical_system
 
@@ -19,6 +19,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
+
 # Defining the physical system to be solved:
 system = physical_system(domain,
                          boundary_conditions,
@@ -33,7 +34,7 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.02
 t_final = 2.0
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -49,6 +50,7 @@ h5f.close()
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
+        
         print('For Time =', t0)
         print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
         print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
