@@ -88,7 +88,7 @@ class nonlinear_solver(object):
 
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
-        self.N_ghost             = physical_system.N_ghost
+        N_g = self.N_ghost       = physical_system.N_ghost
         self.boundary_conditions = physical_system.boundary_conditions
         
         # Declaring the communicator:
@@ -216,11 +216,38 @@ class nonlinear_solver(object):
         # Assigning the function object to a method of nonlinear solver:
         self._initialize(physical_system.params)
 
-        # Assigning the value to globalVector(for dump at t = 0):
-        self._glob_value_f[:] = np.array(self.f[self.N_ghost:-self.N_ghost,
-                                                self.N_ghost:-self.N_ghost
-                                               ]
-                                        )
+        # Applying dirichlet boundary conditions:        
+        if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
+
+            self.f[:N_g] = self.physical_system.boundary_conditions.\
+                           f_left(self.q1_center, self.q2_center,
+                                  self.p1, self.p2, self.p3, 
+                                  self.physical_system.params
+                                 )[:N_g]
+
+            self.f[-N_g:] = self.physical_system.boundary_conditions.\
+                            f_right(self.q1_center, self.q2_center,
+                                    self.p1, self.p2, self.p3, 
+                                    self.physical_system.params
+                                   )[-N_g:]
+
+        if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
+            
+            self.f[:, :N_g] = self.physical_system.boundary_conditions.\
+                              f_bot(self.q1_center, self.q2_center,
+                                    self.p1, self.p2, self.p3, 
+                                    self.physical_system.params
+                                   )[:, :N_g]
+            
+            self.f[:, -N_g:] = self.physical_system.boundary_conditions.\
+                               f_top(self.q1_center, self.q2_center,
+                                     self.p1, self.p2, self.p3, 
+                                     self.physical_system.params
+                                    )[:, -N_g:]
+
+        # Assigning the value to the PETSc Vecs(for dump at t = 0):
+        self._local_value_f[:] = np.array(self.f)
+        self._glob_value_f[:]  = np.array(self.f)[N_g:-N_g,N_g:-N_g]
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,

@@ -32,7 +32,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.01
+dt      = 0.001
 t_final = 2.0
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -42,10 +42,16 @@ q2  = h5f['q2'][:]
 n   = h5f['n'][:]
 h5f.close()
 
-pl.plot(q1[:, 0], n[:, 0])
+pl.contourf(q1[3:-3, 3:-3],
+            q2[3:-3, 3:-3],
+            n[3:-3, 3:-3],
+            100,
+            cmap = 'gist_heat'
+           )
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
-pl.ylabel(r'$n$')
+pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
 pl.savefig('images/0000.png')
 pl.clf()
 
@@ -54,9 +60,15 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:]
     h5f.close()
 
-    pl.plot(q1[:, 0], n[:, 0])
-    pl.title('Time = ' + str(t0))
+    pl.contourf(q1[3:-3, 3:-3],
+                q2[3:-3, 3:-3],
+                n[3:-3, 3:-3],
+                100,
+                cmap = 'gist_heat'
+               )
+    pl.title('Time =' + str(t0))
     pl.xlabel(r'$x$')
-    pl.ylabel(r'$n$')
+    pl.ylabel(r'$y$')
+    pl.axes().set_aspect('equal')
     pl.savefig('images/%04d'%(time_index+1) + '.png')
     pl.clf()

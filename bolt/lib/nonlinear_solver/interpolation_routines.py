@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
-import time
 
 def f_interp_2d(self, dt):
     

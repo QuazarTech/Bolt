@@ -30,15 +30,8 @@ def apply_bcs_f(self):
                             self.physical_system.params
                            )
 
-            # We check for the time elapsed since the boundary conditions
-            # also needs to be applied to the system at t = 0
-            # At t = 0, there is no need to check the direction of flow
-            if(self.time_elapsed == 0):
-                pass
-
-            else:
-                # Only changing inflowing characteristics:
-                f_left = af.select(A_q1>0, f_left, self.f)
+            # Only changing inflowing characteristics:
+            f_left = af.select(A_q1>0, f_left, self.f)
 
             self.f[:N_ghost] = f_left[:N_ghost]
 
@@ -51,15 +44,8 @@ def apply_bcs_f(self):
                               self.physical_system.params
                              )
 
-            # We check for the time elapsed since the boundary conditions
-            # also needs to be applied to the system at t = 0
-            # At t = 0, there is no need to check the direction of flow
-            if(self.time_elapsed == 0):
-                pass
-
-            else:
-                # Only changing inflowing characteristics:
-                f_right = af.select(A_q1<0, f_right, self.f)
+            # Only changing inflowing characteristics:
+            f_right = af.select(A_q1<0, f_right, self.f)
 
             self.f[-N_ghost:] = f_right[-N_ghost:]
 
@@ -126,15 +112,8 @@ def apply_bcs_f(self):
                           self.physical_system.params
                          )
 
-            # We check for the time elapsed since the boundary conditions
-            # also needs to be applied to the system at t = 0
-            # At t = 0, there is no need to check the direction of flow
-            if(self.time_elapsed == 0):
-                pass
-
-            else:
-                # Only changing inflowing characteristics:
-                f_bot = af.select(A_q2>0, f_bot, self.f)
+            # Only changing inflowing characteristics:
+            f_bot = af.select(A_q2>0, f_bot, self.f)
 
             self.f[:, :N_ghost] = f_bot[:, :N_ghost]
 
@@ -147,15 +126,8 @@ def apply_bcs_f(self):
                           self.physical_system.params
                          )
 
-            # We check for the time elapsed since the boundary conditions
-            # also needs to be applied to the system at t = 0
-            # At t = 0, there is no need to check the direction of flow
-            if(self.time_elapsed == 0):
-                pass
-
-            else:
-                # Only changing inflowing characteristics:
-                f_top = af.select(A_q2<0, f_top, self.f)
+            # Only changing inflowing characteristics:
+            f_top = af.select(A_q2<0, f_top, self.f)
 
             self.f[:, -N_ghost:] = f_top[:, -N_ghost:]
 

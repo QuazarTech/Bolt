@@ -32,7 +32,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.01
+dt      = 0.001
 t_final = 2.0
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -42,7 +42,7 @@ q2  = h5f['q2'][:]
 n   = h5f['n'][:]
 h5f.close()
 
-pl.plot(q1[:, 0], n[:, 0])
+pl.plot(q1[3:-3, 3:-3], n[3:-3, 3:-3])
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$n$')
@@ -50,13 +50,15 @@ pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
+    
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     n   = h5f['n'][:]
     h5f.close()
 
-    pl.plot(q1[:, 0], n[:, 0])
-    pl.title('Time = ' + str(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$n$')
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
-    pl.clf()
+    if((time_index+1)%10==0):
+        pl.plot(q1[3:-3, 3:-3], n[3:-3, 3:-3])
+        pl.title('Time =' + str(t0))
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$n$')
+        pl.savefig('images/%04d'%(time_index+1) + '.png')
+        pl.clf()

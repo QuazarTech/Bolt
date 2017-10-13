@@ -15,13 +15,11 @@ def communicate_f(self):
     if(self.performance_test_flag == True):
         tic = af.time()
     
-    N_ghost = self.N_ghost
+    N_g = self.N_ghost
 
+    self._local_value_f[:] = np.array(self.f)
     # Global value is non-inclusive of the ghost-zones:
-    self._glob_value_f[:] = np.array(self.f[N_ghost:-N_ghost, 
-                                            N_ghost:-N_ghost
-                                           ]
-                                    )
+    self._glob_value_f[:] = (self._local_value_f[:])[N_g:-N_g, N_g:-N_g]
     
     # The following function takes care of periodic boundary conditions,
     # and interzonal communications:
