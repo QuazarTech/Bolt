@@ -58,7 +58,7 @@ def time_evolution(nls):
     time_array = np.arange(dt, t_final + dt, dt)
 
     for time_index, t0 in enumerate(time_array):
-        nls.strang_timestep(dt)
+        nls.lie_timestep(dt)
 
     return
 
@@ -85,8 +85,8 @@ for i in range(N.size):
     n_nls    = nls.compute_moments('density')
 
     N_g      = nls.N_ghost
-    error[i] = af.mean(af.abs(  n_nls[N_g:-N_g, N_g:-N_g] 
-                              - n_nls_initial[N_g:-N_g, N_g:-N_g]
+    error[i] = af.mean(af.abs(  n_nls[N_g:-N_g, 0] 
+                              - n_nls_initial[N_g:-N_g, 0]
                              )
                       )
     
@@ -94,6 +94,8 @@ for i in range(N.size):
     pl.plot(n_nls_initial[N_g:-N_g, 0], '--', color = 'black')
     pl.savefig(str(N[i])+'.png')
     pl.clf()
+    print(error)
+
 
 pl.loglog(N, error, 'o-', label = 'Numerical')
 pl.loglog(N, error[0]*32/N, '--', color = 'black', 

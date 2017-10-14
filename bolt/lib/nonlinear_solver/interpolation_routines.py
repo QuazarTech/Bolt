@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+import numpy as np
 
 def f_interp_2d(self, dt):
     
@@ -19,7 +20,7 @@ def f_interp_2d(self, dt):
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
     self.f = af.approx2(self.f, q1_center_new, q2_center_new,
-                        af.INTERP.BICUBIC_SPLINE, 
+                        af.INTERP.BILINEAR, 
                         xp = self.q1_center, yp = self.q2_center,
                        )
 
@@ -32,6 +33,47 @@ def f_interp_2d(self, dt):
 
     return
 
+# FFT INTERPOLATION:
+# Used in testing and debugging:
+def f_fft_interp_2d(self, dt):
+    
+    if(   self.physical_system.boundary_conditions.in_q1 != 'periodic' 
+       or self.physical_system.boundary_conditions.in_q2 != 'periodic'
+      ):
+        raise Exception('Cannot be used in non-periodic domains!')
+
+    if(self._comm.size != 1):
+        raise Exception('Cannot be used in parallel!')
+
+    if(self.performance_test_flag == True):
+        tic = af.time()
+
+    k_q1 = np.fft.fftfreq(self.N_q1, self.dq1)
+    k_q2 = np.fft.fftfreq(self.N_q2, self.dq2)
+
+    k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
+
+    k_q1 = af.tile(af.to_array(k_q1), 1, 1, self.f.shape[2])
+    k_q2 = af.tile(af.to_array(k_q2), 1, 1, self.f.shape[2])
+
+    A_q1 = af.tile(self._A_q1, self.f.shape[0], self.f.shape[1])
+    A_q2 = af.tile(self._A_q2, self.f.shape[0], self.f.shape[1])
+
+    N_g = self.N_ghost
+
+    self.f[N_g:-N_g, N_g:-N_g] = \
+        af.real(af.ifft2(   af.fft2(self.f[N_g:-N_g, N_g:-N_g])
+                          * af.exp(-2 * np.pi * 1j * k_q1 * A_q1[N_g:-N_g, N_g:-N_g])
+                          * af.exp(-2 * np.pi * 1j * k_q2 * A_q2[N_g:-N_g, N_g:-N_g])
+                        )
+               )
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp2 += toc - tic
+
+    return
 
 def f_interp_p_3d(self, dt):
     """
@@ -42,7 +84,7 @@ def f_interp_p_3d(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    # Following Lie Splitting:
+    # Following Strang Splitting:
     # af.broadcast, allows us to perform batched operations 
     # when operating on arrays of different sizes
     # af.broadcast(function, *args) performs batched operations on

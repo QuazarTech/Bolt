@@ -5,9 +5,9 @@ import arrayfire as af
 
 # Importing solver functions:
 from bolt.lib.nonlinear_solver.interpolation_routines \
-    import f_interp_2d
+    import f_interp_2d, f_fft_interp_2d
 from bolt.lib.nonlinear_solver.timestepper_source \
-    import RK2_step
+    import RK2_step, RK4_step
 from bolt.lib.nonlinear_solver.EM_fields_solver.fields_step \
     import fields_step
 
@@ -66,7 +66,7 @@ def _lie_split_operations(self, op1, op2, dt):
          Time-step size to evolve the system
     """
     op1(self, dt)
-    op2(self, dt)
+    # op2(self, dt)
 
     return  
 
@@ -351,7 +351,7 @@ def lie_step(self, dt):
     def op_advect_q(self, dt):
         self._communicate_f()
         self._apply_bcs_f()
-        f_interp_2d(self, dt)
+        f_fft_interp_2d(self, dt)
 
         return
 
@@ -438,6 +438,73 @@ def swss_step(self, dt):
                                          )
                   )
         _swss_split_operations(self, compound_op, op_fields, dt)
+
+    self.time_elapsed += dt
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_ts += toc - tic
+    
+    return
+
+def jia_step(self, dt):
+    """
+    Advances the system using the Jia split scheme.
+
+    NOTE: This scheme is computationally expensive, and is 
+          primarily used for testing
+
+    Parameters
+    ----------
+
+    dt : float
+         Time-step size to evolve the system
+    """
+    if(self.performance_test_flag == True):
+        
+        if hasattr(self, 'time_ts'):
+            pass
+            
+        else:
+            self.time_ts                 = 0
+            self.time_interp2            = 0
+            self.time_fieldstep          = 0
+            self.time_fieldsolver        = 0
+            self.time_interp3            = 0
+            self.time_sourcets           = 0
+            self.time_apply_bcs_f        = 0
+            self.time_apply_bcs_fields   = 0
+            self.time_communicate_f      = 0
+            self.time_communicate_fields = 0
+
+        tic = af.time()
+
+    # Advection in position space:
+    def op_advect_q(self, dt):
+        self._communicate_f()
+        self._apply_bcs_f()
+        f_fft_interp_2d(self, dt)
+
+        return
+
+    # Solving the source/sink terms:
+    op_solve_src = RK4_step 
+    # Solving for fields/advection in velocity space:
+    op_fields    = fields_step
+
+    # Cases which lack fields:
+    if(self.physical_system.params.charge_electron == 0):
+        _jia_split_operations(self, op_advect_q, op_solve_src, dt)
+    
+    
+    else:
+        def compound_op(self, dt):
+            return(_jia_split_operations(self, op1 = op_advect_q,
+                                         op2 = op_solve_src, dt = dt
+                                        )
+                  )
+        _jia_split_operations(self, compound_op, op_fields, dt)
 
     self.time_elapsed += dt
 

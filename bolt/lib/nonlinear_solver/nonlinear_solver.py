@@ -659,6 +659,7 @@ class nonlinear_solver(object):
     strang_timestep = timestepper.strang_step
     lie_timestep    = timestepper.lie_step
     swss_timestep   = timestepper.swss_step
+    jia_timestep    = timestepper.jia_step
 
     compute_moments = compute_moments_imported
 
