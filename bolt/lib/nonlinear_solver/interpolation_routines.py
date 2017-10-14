@@ -19,7 +19,7 @@ def f_interp_2d(self, dt):
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
     self.f = af.approx2(self.f, q1_center_new, q2_center_new,
-                        af.INTERP.BILINEAR, 
+                        af.INTERP.BICUBIC_SPLINE, 
                         xp = self.q1_center, yp = self.q2_center,
                        )
 

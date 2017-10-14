@@ -3,7 +3,7 @@ import pylab as pl
 import h5py
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 12, 4
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -32,8 +32,8 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.01
-t_final = 2.0
+dt      = 0.0025
+t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
@@ -42,41 +42,16 @@ q2  = h5f['q2'][:]
 n   = h5f['n'][:]
 h5f.close()
 
-# pl.contourf(q1[3:-3, 3:-3],
-#             q2[3:-3, 3:-3],
-#             n[3:-3, 3:-3],
-#             100,
-#             cmap = 'gist_heat'
-#            )
-# pl.title('Time = 0')
-# pl.xlabel(r'$x$')
-# pl.ylabel(r'$y$')
-# pl.axes().set_aspect('equal')
-# pl.savefig('images/0000.png')
-# pl.clf()
-
-# for time_index, t0 in enumerate(time):
-#     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-#     n   = h5f['n'][:]
-#     h5f.close()
-
-#     pl.contourf(q1[3:-3, 3:-3],
-#                 q2[3:-3, 3:-3],
-#                 n[3:-3, 3:-3],
-#                 100,
-#                 cmap = 'gist_heat'
-#                )
-#     pl.title('Time =' + str(t0))
-#     pl.xlabel(r'$x$')
-#     pl.ylabel(r'$y$')
-#     pl.axes().set_aspect('equal')
-#     pl.savefig('images/%04d'%(time_index+1) + '.png')
-#     pl.clf()
-
-pl.plot(q2[66, 10:-10], n[66, 10:-10])
+pl.contourf(q1[3:-3, 3:-3],
+            q2[3:-3, 3:-3],
+            n[3:-3, 3:-3],
+            100,
+            cmap = 'gist_heat'
+           )
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
-pl.ylabel(r'$n$')
+pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
 pl.savefig('images/0000.png')
 pl.clf()
 
@@ -85,9 +60,34 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:]
     h5f.close()
 
-    pl.plot(q2[66, 10:-10], n[66, 10:-10])
-    pl.title('Time = ' + str(t0))
+    pl.contourf(q1[3:-3, 3:-3],
+                q2[3:-3, 3:-3],
+                n[3:-3, 3:-3],
+                100,
+                cmap = 'gist_heat'
+               )
+    pl.title('Time =' + str(t0))
     pl.xlabel(r'$x$')
-    pl.ylabel(r'$n$')
+    pl.ylabel(r'$y$')
+    pl.axes().set_aspect('equal')
     pl.savefig('images/%04d'%(time_index+1) + '.png')
     pl.clf()
+
+# pl.plot(q2[66, 10:-10], n[66, 10:-10])
+# pl.title('Time = 0')
+# pl.xlabel(r'$x$')
+# pl.ylabel(r'$n$')
+# pl.savefig('images/0000.png')
+# pl.clf()
+
+# for time_index, t0 in enumerate(time):
+#     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+#     n   = h5f['n'][:]
+#     h5f.close()
+
+#     pl.plot(q2[66, 10:-10], n[66, 10:-10])
+#     pl.title('Time = ' + str(t0))
+#     pl.xlabel(r'$x$')
+#     pl.ylabel(r'$n$')
+#     pl.savefig('images/%04d'%(time_index+1) + '.png')
+#     pl.clf()

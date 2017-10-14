@@ -34,8 +34,8 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.01
-t_final = 2.0
+dt      = 0.0025
+t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 
