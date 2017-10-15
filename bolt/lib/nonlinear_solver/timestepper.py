@@ -66,7 +66,7 @@ def _lie_split_operations(self, op1, op2, dt):
          Time-step size to evolve the system
     """
     op1(self, dt)
-    # op2(self, dt)
+    op2(self, dt)
 
     return  
 
@@ -351,7 +351,7 @@ def lie_step(self, dt):
     def op_advect_q(self, dt):
         self._communicate_f()
         self._apply_bcs_f()
-        f_fft_interp_2d(self, dt)
+        f_interp_2d(self, dt)
 
         return
 
@@ -484,7 +484,7 @@ def jia_step(self, dt):
     def op_advect_q(self, dt):
         self._communicate_f()
         self._apply_bcs_f()
-        f_fft_interp_2d(self, dt)
+        f_interp_2d(self, dt)
 
         return
 

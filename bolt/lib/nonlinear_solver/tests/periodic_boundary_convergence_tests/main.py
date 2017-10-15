@@ -54,7 +54,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 t_final = 1.0
 
 def time_evolution(nls):
-    dt         = 0.01 * 32/nls.N_q1
+    dt         = 0.01 #* 32/nls.N_q1
     time_array = np.arange(dt, t_final + dt, dt)
 
     for time_index, t0 in enumerate(time_array):

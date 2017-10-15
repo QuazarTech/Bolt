@@ -14,6 +14,7 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
+
     if (params.p_dim == 3):
         f0 = n * (m / (2 * np.pi * k * T))**(3 / 2)  \
                * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \
@@ -37,16 +38,19 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
     """Return BGK operator -(f-f0)/tau."""
     n = moments('density')
 
-    p1_bulk = moments('mom_p1_bulk') / n
-    p2_bulk = moments('mom_p2_bulk') / n
-    p3_bulk = moments('mom_p3_bulk') / n
+    # Floor used to avoid 0/0 limit:
+    eps = 1e-15
+
+    p1_bulk = moments('mom_p1_bulk') / (n + eps)
+    p2_bulk = moments('mom_p2_bulk') / (n + eps)
+    p3_bulk = moments('mom_p3_bulk') / (n + eps)
 
     T =   (1 / params.p_dim) \
         * (  moments('energy') 
            - n * p1_bulk**2
            - n * p2_bulk**2
            - n * p3_bulk**2
-          ) / n
+          ) / (n + eps) + eps
 
     C_f = -(  f
             - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
