@@ -1,7 +1,6 @@
 import numpy as np
 import pylab as pl
 import h5py
-import time
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -49,7 +48,6 @@ pl.contourf(q1[3:-3, 3:-3],
             100,
             cmap = 'gist_heat'
            )
-
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -61,10 +59,6 @@ for time_index, t0 in enumerate(time):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     n   = h5f['n'][:]
     h5f.close()
-
-    pl.contourf(n[3:-3, 3:-3], 100)
-    pl.colorbar()
-    pl.show()
 
     pl.contourf(q1[3:-3, 3:-3],
                 q2[3:-3, 3:-3],

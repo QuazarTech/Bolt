@@ -16,10 +16,12 @@ def apply_bcs_f(self):
     if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
         # _A_q1 is of shape (1, 1, Np1 * Np2 * Np3)
         # We tile to get it to form (Nq1, Nq2, Np1 * Np2 * Np3)
-        A_q1 = af.tile(self._A_q1, 
-                       self.f.shape[0],
-                       self.f.shape[1]
-                      )
+        A_q1 = self._A_q1
+        
+        # A_q1 = af.tile(self._A_q1, 
+        #                self.f.shape[0],
+        #                self.f.shape[1]
+        #               )
 
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):

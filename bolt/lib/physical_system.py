@@ -83,8 +83,12 @@ class physical_system(object):
         # Checking for the types of the methods in advection_term:
         attributes = [a for a in dir(advection_term) if not a.startswith('_')]
         for i in range(len(attributes)):
-            if(isinstance(getattr(advection_term, attributes[i]),
-                          types.FunctionType) is False):
+            if(    isinstance(getattr(advection_term, attributes[i]),
+                              types.FunctionType) is False
+               and isinstance(getattr(advection_term, attributes[i]),
+                              types.ModuleType) is False
+                
+              ):
                 raise TypeError('Expected attributes of advection_term \
                                  to be of type function')
 

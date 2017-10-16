@@ -1,17 +1,21 @@
-"""
-Here we define the advection terms for the 
-nonrelativistic Boltzmann equation.
-"""
+import arrayfire as af
 
+# Refractive index of the medium:
+# TODO: Consider giving as an input using params.
+# Discuss with Mani about the same
+def n(q1, q2):
+    n = af.constant(0, q1.shape[0], q1.shape[1], dtype = af.Dtype.f64)
+    return(n)
+
+@af.broadcast
 def A_q(q1, q2, p1, p2, p3, params):
     """Return the terms A_q1, A_q2."""
-    return (p1, p2)
+    c = 1 #Speed of light
 
-# If necessary, additional terms as a function of the arguments
-# passed to A_p may be used:s
-# For instance:
-def T1(q1, q2, p1, p2, p3):
-    return(q1*q2)
+    p1_hat = p1/af.sqrt(p1**2 + p2**2)
+    p2_hat = p2/af.sqrt(p1**2 + p2**2)
+
+    return (c/n(q1, q2) * p1_hat, c/n(q1, q2) * p2_hat)
 
 # This can then be called inside A_p if needed:
 # F1 = (params.char....)(E1 + ....) + T1(q1, q2, p1, p2, p3)

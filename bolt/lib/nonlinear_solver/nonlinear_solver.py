@@ -250,10 +250,13 @@ class nonlinear_solver(object):
         self._glob_value_f[:]  = np.array(self.f)[N_g:-N_g,N_g:-N_g]
 
         # Assigning the advection terms along q1 and q2
-        self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
+        self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[0]
-        self._A_q2 = physical_system.A_q(self.p1, self.p2, self.p3,
+
+        self._A_q2 = physical_system.A_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[1]
 
