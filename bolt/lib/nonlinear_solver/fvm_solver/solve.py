@@ -1,1 +1,0 @@
-import arrayfire as af
