@@ -11,5 +11,5 @@ def f_left(q1, q2, p1, p2, p3, params):
 
 @af.broadcast
 def f_right(q1, q2, p1, p2, p3, params):
-    f = q1**0 * np.sqrt(1 / (4 * np.pi)) * af.exp(-(p1+1)**2 / 4)
+    f = 2 * q1**0 * np.sqrt(1 / (4 * np.pi)) * af.exp(-(p1+1)**2 / 4)
     return(f)

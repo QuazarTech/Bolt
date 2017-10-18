@@ -297,7 +297,6 @@ def strang_step(self, dt):
     if(self.physical_system.params.charge_electron == 0):
         _strang_split_operations(self, op_advect_q, op_solve_src, dt)
     
-    
     else:
         def compound_op(self, dt):
             return(_strang_split_operations(self, op1 = op_advect_q,

@@ -109,7 +109,7 @@ def time_evolution():
 
         rho_data_nls[time_index]  = af.max(n_nls)
         
-        p1b_data_nls[time_index]  = af.max(p1_bulk_nls)
+        p1b_data_nls[time_index]  = af.max(p1_bulk_nls[3:-3])
         p2b_data_nls[time_index]  = af.max(p2_bulk_nls)
         p3b_data_nls[time_index]  = af.max(p3_bulk_nls)
 
@@ -129,7 +129,7 @@ def time_evolution():
 
         rho_data_ls[time_index]  = af.max(n_ls)
         
-        p1b_data_ls[time_index]  = af.max(p1_bulk_ls)
+        p1b_data_ls[time_index]  = af.max(p1_bulk_ls[3:-3])
         p2b_data_ls[time_index]  = af.max(p2_bulk_ls)
         p3b_data_ls[time_index]  = af.max(p3_bulk_ls)
 

@@ -20,7 +20,7 @@ def f_interp_2d(self, dt):
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
     self.f = af.approx2(self.f, q1_center_new, q2_center_new,
-                        af.INTERP.BILINEAR, 
+                        af.INTERP.BICUBIC_SPLINE, 
                         xp = self.q1_center, yp = self.q2_center,
                        )
 
@@ -110,7 +110,6 @@ def f_interp_p_3d(self, dt):
     p1_new = self._convert_to_p_expanded(p1_new)
     p2_new = self._convert_to_p_expanded(p2_new)
     p3_new = self._convert_to_p_expanded(p3_new)
-
 
     # Transforming interpolant to go from [0, N_p - 1]:
     p1_lower_boundary = self.p1_start + 0.5 * self.dp1
