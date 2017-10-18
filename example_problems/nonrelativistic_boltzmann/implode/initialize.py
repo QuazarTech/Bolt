@@ -11,8 +11,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    rho_b = params.rho_background
-
     # Calculating the perturbed density:
     rho = af.select(q1+q2>0.15, q1**0, 0.125)
     T   = af.select(q1+q2>0.15, q1**0, 0.373)

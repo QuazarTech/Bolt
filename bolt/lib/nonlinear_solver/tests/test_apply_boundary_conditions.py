@@ -29,6 +29,10 @@ from bolt.lib.nonlinear_solver.apply_boundary_conditions \
     import apply_bcs_f
 
 from bolt.lib.nonlinear_solver.communicate import communicate_f
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+
+convert_to_q_expanded = nonlinear_solver._convert_to_q_expanded
+convert_to_p_expanded = nonlinear_solver._convert_to_p_expanded
 
 def f_x(*args):
     return(1)
@@ -121,6 +125,8 @@ class test(object):
         self.performance_test_flag = False
 
     _communicate_f = communicate_f
+    _convert_to_q_expanded = convert_to_q_expanded
+    _convert_to_p_expanded = convert_to_p_expanded
 
 def test_periodic():
 
@@ -136,7 +142,11 @@ def test_periodic():
     apply_bcs_f(obj)
 
     expected = af.sin(2 * np.pi * obj.q1_center + 4 * np.pi * obj.q2_center)
-    assert (af.max(af.abs(obj.f - expected)) < 5e-14)
+    assert (af.max(af.abs(obj.f - expected)[obj.N_ghost:-obj.N_ghost,
+                                            obj.N_ghost:-obj.N_ghost
+                                           ]
+                  ) < 5e-14
+           )
 
 def test_mirror():
 
@@ -165,7 +175,11 @@ def test_dirichlet():
     
     obj = test('dirichlet', 'dirichlet')
 
-    obj._A_q1, obj._A_q2 = 100, 100
+    obj._A_q1, obj._A_q2 = af.Array([100]), af.Array([100])
+    
+    obj._A_q1 = af.tile(obj._A_q1, 1, 1, obj.q1_center.shape[2])
+    obj._A_q2 = af.tile(obj._A_q2, 1, 1, obj.q1_center.shape[2])
+
     obj.dt               = 0.001
 
     obj.f = af.constant(0, obj.q1_center.shape[0], 
@@ -184,10 +198,9 @@ def test_dirichlet():
 
     N_g = obj.N_ghost
 
+    # Only ingoing characteristics should be affected:
     expected[:N_g]     = af.select(obj.q1_center<obj.q1_start, 1, expected)[:N_g]
-    expected[-N_g:]    = af.select(obj.q1_center>obj.q1_end, 1, expected)[-N_g:]
     expected[:, :N_g]  = af.select(obj.q2_center<obj.q2_start, 2, expected)[:, :N_g]
-    expected[:, -N_g:] = af.select(obj.q2_center>obj.q2_end, 2, expected)[:, -N_g:]
 
     assert (af.max(af.abs(obj.f[:, N_g:-N_g] - expected[:, N_g:-N_g])) < 5e-14)
     assert (af.max(af.abs(obj.f[N_g:-N_g, :] - expected[N_g:-N_g, :])) < 5e-14)

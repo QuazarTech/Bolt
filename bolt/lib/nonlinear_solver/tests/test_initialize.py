@@ -11,6 +11,7 @@ distribution function array as we expect.
 import numpy as np
 from numpy.fft import fftfreq
 import arrayfire as af
+af.set_backend("cpu")
 from petsc4py import PETSc
 
 # Importing solver functions:
@@ -119,6 +120,8 @@ class test(object):
         
         self.q1_center, self.q2_center = nonlinear_solver._calculate_q_center(self)
         self.p1, self.p2, self.p3      = nonlinear_solver._calculate_p_center(self)
+        
+        self.performance_test_flag = False
 
     compute_moments     = compute_moments_imported
     _communicate_fields = communicate_fields
