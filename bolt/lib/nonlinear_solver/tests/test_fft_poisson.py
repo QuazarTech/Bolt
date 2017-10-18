@@ -12,11 +12,14 @@ given by the FFT solver
 
 import numpy as np
 import arrayfire as af
+af.set_backend('cpu')
 from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
+def compute_moments_sinusoidal(self, *args):
+    return (1 + af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
 
 class test(object):
     def __init__(self):
@@ -34,8 +37,8 @@ class test(object):
         self.q1_end = 1
         self.q2_end = 1
 
-        self.N_q1 = np.random.randint(24, 48)
-        self.N_q2 = np.random.randint(24, 48)
+        self.N_q1 = 1024
+        self.N_q2 = 1024
 
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
         self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
@@ -84,13 +87,11 @@ class test(object):
 
         self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
         self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
-
-
-    def compute_moments(self, *args):
-        return (af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
+        
+        self.performance_test_flag = False
 
     _communicate_fields = communicate_fields
-
+    compute_moments     = compute_moments_sinusoidal
 
 def test_fft_poisson():
     obj = test()

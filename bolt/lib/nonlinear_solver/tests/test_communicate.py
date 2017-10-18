@@ -17,7 +17,7 @@ import arrayfire as af
 from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.communicate \
-    import communicate_distribution_function, communicate_fields
+    import communicate_f, communicate_fields
 
 
 class test_distribution_function(object):
@@ -88,6 +88,7 @@ class test_distribution_function(object):
                                                               self.N_ghost:
                                                               -self.N_ghost
                                                              ]
+        self.performance_test_flag = False
 
 
 class test_fields(object):
@@ -186,10 +187,11 @@ class test_fields(object):
                                                               self.N_ghost:
                                                               -self.N_ghost
                                                              ]
+        self.performance_test_flag = False
 
 def test_communicate_distribution_function():
     obj = test_distribution_function()
-    communicate_distribution_function(obj)
+    communicate_f(obj)
 
     expected = af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
 
@@ -207,3 +209,5 @@ def test_communicate_fields():
     assert (af.max(af.abs(obj.B1 - expected)) < 5e-14)
     assert (af.max(af.abs(obj.B2 - expected)) < 5e-14)
     assert (af.max(af.abs(obj.B3 - expected)) < 5e-14)
+
+test_communicate_distribution_function()

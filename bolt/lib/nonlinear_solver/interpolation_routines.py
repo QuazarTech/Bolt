@@ -2,18 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+import numpy as np
 
-
-def f_interp_2d(self, dt, performance_test_flag = False):
+def f_interp_2d(self, dt):
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
     
-    # Obtaining the left-bottom corner coordinates
-    # (lowest values of the canonical coordinates in the local zone)
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_lowest, i_q2_lowest), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
-
     # Defining a lambda function to perform broadcasting operations
     # This is done using af.broadcast, which allows us to perform 
     # batched operations when operating on arrays of different sizes
@@ -24,43 +19,72 @@ def f_interp_2d(self, dt, performance_test_flag = False):
     q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
-    # Obtaining the center coordinates:
-    (i_q1_center, i_q2_center) = (i_q1_lowest + 0.5, i_q2_lowest + 0.5)
-
-    # Obtaining the left, and bottom boundaries for the local zones:
-    q1_boundary_lower = self.q1_start + i_q1_center * self.dq1
-    q2_boundary_lower = self.q2_start + i_q2_center * self.dq2
-
-    # Adding N_ghost to account for the offset due to ghost zones:
-    q1_interpolant =   (q1_center_new - q1_boundary_lower) / self.dq1 \
-                     + self.N_ghost
-    q2_interpolant =   (q2_center_new - q2_boundary_lower) / self.dq2 \
-                     + self.N_ghost
-
-    self.f = af.approx2(self.f, q1_interpolant, q2_interpolant,
-                        af.INTERP.BICUBIC_SPLINE
+    self.f = af.approx2(self.f, q1_center_new, q2_center_new,
+                        af.INTERP.BICUBIC_SPLINE, 
+                        xp = self.q1_center, yp = self.q2_center,
                        )
 
     af.eval(self.f)
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_interp2 += toc - tic
 
     return
 
+# FFT INTERPOLATION:
+# Used in testing and debugging:
+def f_fft_interp_2d(self, dt):
+    
+    if(   self.physical_system.boundary_conditions.in_q1 != 'periodic' 
+       or self.physical_system.boundary_conditions.in_q2 != 'periodic'
+      ):
+        raise Exception('Cannot be used in non-periodic domains!')
 
-def f_interp_p_3d(self, dt, performance_test_flag = False):
+    if(self._comm.size != 1):
+        raise Exception('Cannot be used in parallel!')
+
+    if(self.performance_test_flag == True):
+        tic = af.time()
+
+    k_q1 = np.fft.fftfreq(self.N_q1, self.dq1)
+    k_q2 = np.fft.fftfreq(self.N_q2, self.dq2)
+
+    k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
+
+    k_q1 = af.tile(af.to_array(k_q1), 1, 1, self.f.shape[2])
+    k_q2 = af.tile(af.to_array(k_q2), 1, 1, self.f.shape[2])
+
+    A_q1 = af.tile(self._A_q1, self.f.shape[0], self.f.shape[1])
+    A_q2 = af.tile(self._A_q2, self.f.shape[0], self.f.shape[1])
+
+    N_g = self.N_ghost
+
+    self.f[N_g:-N_g, N_g:-N_g] = \
+        af.real(af.ifft2(   af.fft2(self.f[N_g:-N_g, N_g:-N_g])
+                          * af.exp(-2 * np.pi * 1j * k_q1 * A_q1[N_g:-N_g, N_g:-N_g])
+                          * af.exp(-2 * np.pi * 1j * k_q2 * A_q2[N_g:-N_g, N_g:-N_g])
+                        )
+               )
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp2 += toc - tic
+
+    return
+
+def f_interp_p_3d(self, dt):
     """
     Since the interpolation function are being performed in velocity space,
     the arrays used in the computation need to be in p_expanded form.
     Hence we will need to convert the same:
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
-    # Following Lie Splitting:
+    # Following Strang Splitting:
     # af.broadcast, allows us to perform batched operations 
     # when operating on arrays of different sizes
     # af.broadcast(function, *args) performs batched operations on
@@ -120,7 +144,7 @@ def f_interp_p_3d(self, dt, performance_test_flag = False):
     # Changing p1 from (Nq1*Nq2, Np1, Np2, Np3) --> (Np1, Nq1*Nq2, Np2, Np3)
     self.f = af.approx1(af.reorder(self.f, 3, 2, 0, 1),
                         af.reorder(p1_interpolant),
-                        af.INTERP.CUBIC_SPLINE
+                        af.INTERP.CUBIC_SPLINE,
                        )
 
     # Changing f from (Np1, Nq1*Np2, Np2, Np3) --> (Nq1*Nq2, Np1, Np2, Np3)
@@ -129,7 +153,7 @@ def f_interp_p_3d(self, dt, performance_test_flag = False):
 
     af.eval(self.f)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_interp3 += toc - tic

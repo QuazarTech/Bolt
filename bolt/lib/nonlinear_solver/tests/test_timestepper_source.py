@@ -18,6 +18,8 @@ from bolt.lib.nonlinear_solver.timestepper_source \
 class test(object):
     def __init__(self):
         self.f = af.to_array(np.array([1.0]))
+        self.performance_test_flag = False
+        self.testing_source_flag   = True
 
     def _source(self, f):
         return (f)
@@ -32,7 +34,7 @@ def test_RK2():
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK2_step(test_obj, time_step_sizes[i], 1)
+            RK2_step(test_obj, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
@@ -48,12 +50,10 @@ def test_RK4():
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK4_step(test_obj, time_step_sizes[i], 1)
+            RK4_step(test_obj, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
-    print(error)
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
-    print(poly)
     assert (abs(poly[0] + 4) < 0.2)
 
 
@@ -66,10 +66,8 @@ def test_RK6():
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK6_step(test_obj, time_step_sizes[i], 1)
+            RK6_step(test_obj, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
-    print(error)
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
-    print(poly)
     assert (abs(poly[0] + 5) < 0.2)

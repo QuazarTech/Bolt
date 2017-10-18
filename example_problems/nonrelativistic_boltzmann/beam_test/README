@@ -1,0 +1,5 @@
+The beam test is a test for the Dirichlet boundary. This test has been performed in a 1D as well as in a 2D case:
+
+- In the 1D case, Dirichlet boundary conditions are applied along q1. In the left boundary, we initialize a distribution with all particles moving at a particular velocity. On the right boundary, the distribution function is set to zero. We expect a constant inflow from the left with exit on the right. Eventually, we would find that the system would reach a steady state with the density throughout the medium taking the value of the inflow density.
+
+- In the 2D case, Dirichlet boundary conditions are set along q1, with mirror boundary conditions set along q2. The goal is to reproduce a result similar to that of Figure 6 of http://iopscience.iop.org/article/10.1088/0067-0049/199/1/9/meta
