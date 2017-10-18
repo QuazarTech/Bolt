@@ -13,23 +13,21 @@ def minmod(x, y, z):
     af.eval(result)
     return result
 
-def slopeMM(self, axis):
+def slope_minmod(input_array, dim):
   
-    if(axis == 0):
-        f_i_plus_one  = af.shift(self.f * self.C_q1, -1)
-        f_i_minus_one = af.shift(self.f * self.C_q1,  1)
+    if(dim == 'q1'):
+        
+        f_i_plus_one  = af.shift(input_array, -1)
+        f_i_minus_one = af.shift(input_array,  1)
 
-        forward_diff  = (f_i_plus_one - self.f * self.C_q1 )/self.dq1
-        backward_diff = (self.f * self.C_q1 - f_i_minus_one)/self.dq1
-        central_diff  = backward_diff + forward_diff
+    elif(dim == 'q2'):
 
-    elif(axis == 1):
-        f_i_plus_one  = af.shift(self.f * self.C_q2, 0, -1)
-        f_i_minus_one = af.shift(self.f * self.C_q2, 0,  1)
+        f_i_plus_one  = af.shift(input_array, 0, -1)
+        f_i_minus_one = af.shift(input_array, 0,  1)
 
-        forward_diff  = (f_i_plus_one - self.f * self.C_q2 )/self.dq2
-        backward_diff = (self.f * self.C_q2 - f_i_minus_one)/self.dq2
-        central_diff  = backward_diff + forward_diff
+    forward_diff  = (f_i_plus_one - input_array  )
+    backward_diff = (input_array  - f_i_minus_one)
+    central_diff  = backward_diff + forward_diff
 
     slope_lim_theta = params.slope_lim_theta
 
@@ -39,16 +37,18 @@ def slopeMM(self, axis):
 
     return(minmod(left, center, right))
 
-def reconstructMM(self):
+def reconstruct_minmod(f, C_q1, C_q2):
 
-    slope = slopeMM(self, 0)
+    slope = slope_minmod(f * C_q1, 'q1')
 
-    left_flux  = self.f * self.C_q1 - 0.5 * slope
-    right_flux = self.f * self.C_q1 + 0.5 * slope
+    left_plus_eps_flux   = f * C_q1 - 0.5 * slope
+    right_minus_eps_flux = f * C_q1 + 0.5 * slope
 
-    slope = slopeMM(self, 1)
+    slope = slope_minmod(f * C_q2, 'q2')
 
-    bot_flux = self.f * self.C_q2 - 0.5 * slope
-    top_flux = self.f * self.C_q2 + 0.5 * slope
+    bot_plus_eps_flux  = f * C_q2 - 0.5 * slope
+    top_minus_eps_flux = f * C_q2 + 0.5 * slope
 
-    return(left_flux, right_flux, bot_flux, top_flux)
+    return(left_plus_eps_flux, right_minus_eps_flux,
+           bot_plus_eps_flux, top_minus_eps_flux
+          )

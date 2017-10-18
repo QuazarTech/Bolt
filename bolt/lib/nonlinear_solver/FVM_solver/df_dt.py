@@ -1,7 +1,7 @@
 import arrayfire as af
 
-from bolt.lib.nonlinear_solver.FVM_solver.fluxes \
-    import upwind_flux
+from bolt.lib.nonlinear_solver.FVM_solver.riemann_solver \
+    import riemann_solver
 
 # Equation to solve:
 # df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
@@ -23,16 +23,13 @@ from bolt.lib.nonlinear_solver.FVM_solver.fluxes \
 #                  +  C[f_{i, j}]
 #                )
 
-def df_dt(self):
+def df_dt(f, C_q1, C_q2, dq1, dq2, source):
 
-    left_flux, right_flux, bot_flux, top_flux = upwind_flux(self)
+    left_flux, right_flux, bot_flux, top_flux = riemann_solver(f, C_q1, C_q2)
 
-    df_dt = - (right_flux - left_flux)/self.dq1
-            - (top_flux   - bot_flux )/self.dq2
-            + self._source(self.f, self.q1_center, self.q2_center, 
-                           self.p1, self.p2, self.p3,
-                           self.compute_moments, self.physical_system.params
-                          ) 
+    df_dt = - (right_flux - left_flux)/dq1
+            - (top_flux   - bot_flux )/dq2
+            + source(f) 
 
     af.eval(df_dt)
     return(df_dt)
