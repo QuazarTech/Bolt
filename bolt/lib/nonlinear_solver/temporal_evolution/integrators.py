@@ -6,11 +6,11 @@ import arrayfire as af
 def RK2(dx_dt, x_initial, dt, *args):
 
     # Obtaining value at midpoint(dt/2)
-    x = x + dx_dt(x_initial, *args) * (dt / 2)
+    x = x_initial + dx_dt(x_initial, *args) * (dt / 2)
     x = x_initial + dx_dt(x, *args) * dt
 
     af.eval(x)
-    return
+    return(x)
 
 def RK4(dx_dt, x_initial, dt, *args):
 
@@ -25,7 +25,7 @@ def RK4(dx_dt, x_initial, dt, *args):
     x = x_initial + ((k1 + 2 * k2 + 2 * k3 + k4) / 6) * dt
 
     af.eval(x)
-    return
+    return(x)
 
 def RK6(self, dt):
 
@@ -55,4 +55,4 @@ def RK6(self, dt):
                              ) * dt
 
     af.eval(x)
-    return
+    return(x)

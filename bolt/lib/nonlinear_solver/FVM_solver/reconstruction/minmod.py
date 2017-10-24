@@ -1,7 +1,9 @@
 import arrayfire as af
 
+# Adapted from grim(by Chandra et al.):
 def minmod(x, y, z):
-    min_of_all = af.min(af.min(af.abs(x), af.abs(y)), af.abs(z))
+
+    min_of_all = af.minof(af.minof(af.abs(x),af.abs(y)), af.abs(z))
 
     # af.sign(x) = 1 for x<0 and sign(x) for x>0:
     signx = 1 - 2 * af.sign(x)
@@ -29,7 +31,7 @@ def slope_minmod(input_array, dim):
     backward_diff = (input_array  - f_i_minus_one)
     central_diff  = backward_diff + forward_diff
 
-    slope_lim_theta = params.slope_lim_theta
+    slope_lim_theta = 2
 
     left   = slope_lim_theta * backward_diff
     center = 0.5 * central_diff
@@ -39,15 +41,16 @@ def slope_minmod(input_array, dim):
 
 def reconstruct_minmod(f, C_q1, C_q2):
 
-    slope = slope_minmod(f * C_q1, 'q1')
+    multiply = lambda a, b: a * b
+    slope = slope_minmod(af.broadcast(multiply, f, C_q1), 'q1')
 
-    left_plus_eps_flux   = f * C_q1 - 0.5 * slope
-    right_minus_eps_flux = f * C_q1 + 0.5 * slope
+    left_plus_eps_flux   = af.broadcast(multiply, f, C_q1) - 0.5 * slope
+    right_minus_eps_flux = af.broadcast(multiply, f, C_q1) + 0.5 * slope
 
-    slope = slope_minmod(f * C_q2, 'q2')
+    slope = slope_minmod(af.broadcast(multiply, f, C_q2), 'q2')
 
-    bot_plus_eps_flux  = f * C_q2 - 0.5 * slope
-    top_minus_eps_flux = f * C_q2 + 0.5 * slope
+    bot_plus_eps_flux  = af.broadcast(multiply, f, C_q2) - 0.5 * slope
+    top_minus_eps_flux = af.broadcast(multiply, f, C_q2) + 0.5 * slope
 
     return(left_plus_eps_flux, right_minus_eps_flux,
            bot_plus_eps_flux, top_minus_eps_flux

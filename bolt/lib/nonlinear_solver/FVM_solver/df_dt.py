@@ -1,7 +1,7 @@
 import arrayfire as af
 
-from bolt.lib.nonlinear_solver.FVM_solver.riemann_solver \
-    import riemann_solver
+# Importing Riemann solver used in calculating fluxes:
+from .riemann_solver import riemann_solver
 
 # Equation to solve:
 # df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
@@ -27,8 +27,8 @@ def df_dt(f, C_q1, C_q2, dq1, dq2, source):
 
     left_flux, right_flux, bot_flux, top_flux = riemann_solver(f, C_q1, C_q2)
 
-    df_dt = - (right_flux - left_flux)/dq1
-            - (top_flux   - bot_flux )/dq2
+    df_dt = - (right_flux - left_flux)/dq1 \
+            - (top_flux   - bot_flux )/dq2 \
             + source(f) 
 
     af.eval(df_dt)

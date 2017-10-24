@@ -67,7 +67,8 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 1.0
+
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -107,13 +108,13 @@ def time_evolution():
                  - n_nls * p3_bulk_nls**2
                 ) / n_nls
 
-        rho_data_nls[time_index]  = af.max(n_nls)
+        rho_data_nls[time_index]  = af.max(n_nls[3:-3, 3:-3])
         
-        p1b_data_nls[time_index]  = af.max(p1_bulk_nls)
-        p2b_data_nls[time_index]  = af.max(p2_bulk_nls)
-        p3b_data_nls[time_index]  = af.max(p3_bulk_nls)
+        p1b_data_nls[time_index]  = af.max(p1_bulk_nls[3:-3, 3:-3])
+        p2b_data_nls[time_index]  = af.max(p2_bulk_nls[3:-3, 3:-3])
+        p3b_data_nls[time_index]  = af.max(p3_bulk_nls[3:-3, 3:-3])
 
-        temp_data_nls[time_index] = af.max(T_nls)
+        temp_data_nls[time_index] = af.max(T_nls[3:-3, 3:-3])
 
         n_ls = ls.compute_moments('density')
 
