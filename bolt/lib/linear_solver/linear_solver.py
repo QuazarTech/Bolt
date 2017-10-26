@@ -36,7 +36,7 @@ from bolt.lib.linear_solver.calculate_dfdp_background \
 from bolt.lib.linear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 
-import bolt.lib.linear_solver.dump as dump
+from .file_io import dump
 
 from bolt.lib.linear_solver.tests.performance.bandwidth_test\
     import bandwidth_test

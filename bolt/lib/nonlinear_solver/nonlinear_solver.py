@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-This is the module which contains the functions of the
-nonlinear solver of Bolt. 
+This is the module where the main solver object for the
+nonlinear solver of bolt is defined. 
 
 The solver utilizes a semi-lagrangian 
 method which uses advective interpolation
@@ -14,7 +14,7 @@ The q-space has the option of using 2 different methods:
 - A semi-lagrangian scheme based on Cheng-Knorr(1978) which
   uses advective interpolation.(non-conservative)
 
-- Finite volume scheme(ADD OPTIONS HERE)
+- Finite volume scheme(ADD OPTIONS HERE)(conservative)
 
 """
 
@@ -36,7 +36,7 @@ from . import apply_boundary_conditions
 from . import timestep
 
 from .file_io import dump
-# from .file_io import load
+from .file_io import load
 
 from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
