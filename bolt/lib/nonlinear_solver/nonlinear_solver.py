@@ -3,18 +3,30 @@
 
 """
 This is the module where the main solver object for the
-nonlinear solver of bolt is defined. 
+nonlinear solver of bolt is defined. This solver object 
+stores the details of the system defined under physical_system, 
+and is evolved using the methods of this module.
 
-The solver utilizes a semi-lagrangian 
-method which uses advective interpolation
-based on Cheng-Knorr(1978) is used in the p-space
+The solver utilizes a semi-lagrangian which uses advective 
+interpolation based on Cheng-Knorr(1978) in the p-space:
+   
+    - The interpolation schemes available are 
+      linear and quadratic spline.
 
 The q-space has the option of using 2 different methods:
 
 - A semi-lagrangian scheme based on Cheng-Knorr(1978) which
   uses advective interpolation.(non-conservative)
 
-- Finite volume scheme(ADD OPTIONS HERE)(conservative)
+    - The interpolation schemes available are 
+      linear and quadratic spline.
+
+- Finite volume scheme(conservative):
+
+    - Riemann solvers available are Lax-Friedrichs and 1st order
+      upwind schemes.
+
+    - The reconstruction schemes available are minmod, PPM, and WENO5
 
 """
 
@@ -49,14 +61,23 @@ class nonlinear_solver(object):
     An instance of this class' attributes contains methods which are used
     in evolving the system declared under physical system nonlinearly. The 
     state of the system then may be determined from the attributes of the 
-    system such as the distribution function and electromagnetic fields
+    system such as the distribution function and electromagnetic fields.
+    
+    Relevant physical information is obtained by coarse graining this system
+    by taking moments of the distribution function. This is performed by the
+    compute_moments() method.  
     """
 
     def __init__(self, physical_system, performance_test_flag = False):
         """
         Constructor for the nonlinear_solver object. It takes the physical
         system object as an argument and uses it in intialization and
-        evolution of the system in consideration.
+        evolution of the system in consideration. 
+
+        Additionally, a performance test flag is also passed which when true 
+        stores time which is consumed by each of the major solver routines.
+        This proves particularly useful in analyzing performance bottlenecks 
+        and obtaining benchmarks.
         
         Parameters:
         -----------
@@ -102,6 +123,8 @@ class nonlinear_solver(object):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
+
+        # Printing the backend details for each rank/device/node:
         PETSc.Sys.syncPrint(indent('Rank ' + str(self._comm.rank) + ' of ' + str(self._comm.size-1)))
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
@@ -115,31 +138,41 @@ class nonlinear_solver(object):
         if(performance_test_flag == True):
         
             self.time_ts                 = 0
+
             self.time_interp2            = 0
+            self.time_sourcets           = 0
+
             self.time_fvm_ts             = 0
+            
             self.time_fieldstep          = 0
             self.time_fieldsolver        = 0
             self.time_interp3            = 0
-            self.time_sourcets           = 0
+            
             self.time_apply_bcs_f        = 0
             self.time_apply_bcs_fields   = 0
             self.time_communicate_f      = 0
             self.time_communicate_fields = 0
 
-        petsc_bc_in_q1 = 'periodic'
-        petsc_bc_in_q2 = 'periodic'
+        petsc_bc_in_q1 = 'ghosted'
+        petsc_bc_in_q2 = 'ghosted'
 
-        if(self.boundary_conditions.in_q1 != 'periodic'):
-            petsc_bc_in_q1 = 'ghosted'
+        # Only for periodic boundary conditions do the boundary
+        # conditions passed to the DA need to be changed. PETSc
+        # automatically handles the application of periodic 
+        # boundary conditions when running in parallel. In all other
+        # cases, ghosted boundaries are used.
 
-        if(self.boundary_conditions.in_q2 != 'periodic'):
-            petsc_bc_in_q2 = 'ghosted'
+        if(self.boundary_conditions.in_q1 == 'periodic'):
+            petsc_bc_in_q1 = 'periodic'
 
-        # The DA structure is used in domain decomposition:
-        # The following DA is used in the communication routines where
-        # information about the data of the distribution function needs
-        # to be communicated amongst processes. Additionally this structure
-        # automatically takes care of applying periodic boundary conditions.
+        if(self.boundary_conditions.in_q2 == 'periodic'):
+            petsc_bc_in_q2 = 'periodic'
+
+        # DMDA is a data structure to handle a distributed structure 
+        # grid and its related core algorithms. It stores metadata of
+        # how the grid is partitioned when run in parallel which is 
+        # utilized by the methods of the solver.
+
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof           = (  self.N_p1 
                                                           * self.N_p2 
@@ -173,8 +206,10 @@ class nonlinear_solver(object):
                                               comm          = self._comm
                                              )
 
-        # Additionally, a DA object also needs to be created for the KSP solver
-        # with a DOF of 1:
+        # Additionally, a DMDA object also needs to be created for 
+        # the KSP/SNES solver with a DOF of 1. This is used to solve for
+        # the electrostatic case:
+
         self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                             stencil_width = self.N_ghost,
                                             boundary_type = (petsc_bc_in_q1,
@@ -184,8 +219,10 @@ class nonlinear_solver(object):
                                                              PETSc.DECIDE
                                                             ),
                                             stencil_type  = 1,
-                                            comm          = self._comm)
+                                            comm          = self._comm
+                                          )
 
+        # This DA is used by the FileIO routine dump_moments():
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof        = len(self.
                                                                      physical_system.
@@ -210,15 +247,14 @@ class nonlinear_solver(object):
         # The following vector is used to dump the data to file:
         self._glob_moments = self._da_dump_moments.createGlobalVec()
 
-        # Accessing the values of the global and local Vectors:
-        self._local_value_f = self._da_f.getVecArray(self._local_f)
-        self._glob_value_f  = self._da_f.getVecArray(self._glob_f)
+        # Getting the arrays for the above vectors:
+        self._glob_f_array  = self._glob_f.getArray()
+        self._local_f_array = self._local_f.getArray()
 
-        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
-        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+        self._glob_fields_array  = self._glob_fields.getArray()
+        self._local_fields_array = self._local_fields.getArray()
 
-        self._glob_moments_value = self._da_dump_moments.\
-                                   getVecArray(self._glob_moments)
+        self._glob_moments_array  = self._glob_moments.getArray()
 
         # Setting names for the objects which will then be
         # used as the key identifiers for the HDF5 files:
@@ -231,39 +267,56 @@ class nonlinear_solver(object):
 
         # Assigning the function object to a method of nonlinear solver:
         self._initialize(physical_system.params)
+    
+        # Obtaining start coordinates for the local zone
+        # Additionally, we also obtain the size of the local zone
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
         # Applying dirichlet boundary conditions:        
         if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
 
-            self.f[:N_g] = self.physical_system.boundary_conditions.\
-                           f_left(self.q1_center, self.q2_center,
-                                  self.p1, self.p2, self.p3, 
-                                  self.physical_system.params
-                                 )[:N_g]
+            # If local zone includes the left physical boundary:
+            if(i_q1_start == 0):
 
-            self.f[-N_g:] = self.physical_system.boundary_conditions.\
-                            f_right(self.q1_center, self.q2_center,
-                                    self.p1, self.p2, self.p3, 
-                                    self.physical_system.params
-                                   )[-N_g:]
+                self.f[:, :N_g] = self.physical_system.boundary_conditions.\
+                                  f_left(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3, 
+                                         self.physical_system.params
+                                        )[:, :N_g]
+    
+            # If local zone includes the right physical boundary:
+            if(i_q1_end == self.N_q1 - 1):
+
+                self.f[:, -N_g:] = self.physical_system.boundary_conditions.\
+                                   f_right(self.q1_center, self.q2_center,
+                                           self.p1, self.p2, self.p3, 
+                                           self.physical_system.params
+                                          )[:, -N_g:]
 
         if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
             
-            self.f[:, :N_g] = self.physical_system.boundary_conditions.\
-                              f_bot(self.q1_center, self.q2_center,
-                                    self.p1, self.p2, self.p3, 
-                                    self.physical_system.params
-                                   )[:, :N_g]
-            
-            self.f[:, -N_g:] = self.physical_system.boundary_conditions.\
-                               f_top(self.q1_center, self.q2_center,
-                                     self.p1, self.p2, self.p3, 
-                                     self.physical_system.params
-                                    )[:, -N_g:]
+            # If local zone includes the bottom physical boundary:
+            if(i_q2_start == 0):
+
+                self.f[:, :, :N_g] = self.physical_system.boundary_conditions.\
+                                     f_bot(self.q1_center, self.q2_center,
+                                           self.p1, self.p2, self.p3, 
+                                           self.physical_system.params
+                                          )[:, :, :N_g]
+
+            # If local zone includes the top physical boundary:
+            if(i_q2_end == self.N_q2 - 1):
+
+                self.f[:, :, -N_g:] = self.physical_system.boundary_conditions.\
+                                      f_top(self.q1_center, self.q2_center,
+                                            self.p1, self.p2, self.p3, 
+                                            self.physical_system.params
+                                           )[:, :, -N_g:]
 
         # Assigning the value to the PETSc Vecs(for dump at t = 0):
-        self._local_value_f[:] = np.array(self.f)
-        self._glob_value_f[:]  = np.array(self.f)[N_g:-N_g,N_g:-N_g]
+        (af.flat(self.f)).to_ndarray(self._local_f_array)
+        (af.flat(self.f[:, N_g:-N_g, N_g:-N_g])).to_ndarray(self._glob_value_f)
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
@@ -280,6 +333,8 @@ class nonlinear_solver(object):
         self._source = physical_system.source
 
         # Initializing a variable to track time-elapsed:
+        # This becomes necessary when applying shearing wall
+        # boundary conditions(WIP):
         self.time_elapsed = 0
 
     def _convert_to_q_expanded(self, array):
@@ -289,21 +344,20 @@ class nonlinear_solver(object):
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        q_expanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        p_expanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
+        q_expanded form:(N_p1 * N_p2 * N_p3, N_q1, N_q2)
+        p_expanded form:(N_p1, N_p2, N_p3, N_q1 * N_q2)
         
         This function converts the input array from
         p_expanded to q_expanded form.
         """
-        # Obtaining the left-bottom corner coordinates
-        # (lowest values of the canonical coordinates in the local zone)
+        # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
-
+     
         array = af.moddims(array,
+                           self.N_p1 * self.N_p2 * self.N_p3,
                            (N_q1_local + 2 * self.N_ghost),
-                           (N_q2_local + 2 * self.N_ghost),
-                           self.N_p1 * self.N_p2 * self.N_p3
+                           (N_q2_local + 2 * self.N_ghost)
                           )
 
         af.eval(array)
@@ -316,22 +370,20 @@ class nonlinear_solver(object):
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        q_expanded form:(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        p_expanded form:(N_q1 * N_q2, N_p1, N_p2, N_p3)
+        q_expanded form:(N_p1 * N_p2 * N_p3, N_q1, N_q2)
+        p_expanded form:(N_p1, N_p2, N_p3, N_q1 * N_q2)
         
         This function converts the input array from
         q_expanded to p_expanded form.
         """
-
-        # Obtaining the left-bottom corner coordinates
-        # (lowest values of the canonical coordinates in the local zone)
+        # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
         
         array = af.moddims(array,
+                           self.N_p1, self.N_p2, self.N_p3,
                              (N_q1_local + 2 * self.N_ghost)
-                           * (N_q2_local + 2 * self.N_ghost),
-                           self.N_p1, self.N_p2, self.N_p3
+                           * (N_q2_local + 2 * self.N_ghost)
                           )
 
         af.eval(array)
@@ -346,8 +398,7 @@ class nonlinear_solver(object):
         Returns in q_expanded form.
         """
 
-        # Obtaining the left-bottom corner coordinates
-        # (lowest values of the canonical coordinates in the local zone)
+        # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
@@ -367,6 +418,9 @@ class nonlinear_solver(object):
 
         q2_center, q1_center = np.meshgrid(q2_center, q1_center)
         q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
+
+        q1_center = af.reorder(q1_center, 1, 2, 0, 3)
+        q2_center = af.reorder(q2_center, 1, 2, 0, 3)
 
         af.eval(q1_center, q2_center)
         return (q1_center, q2_center)
@@ -393,12 +447,6 @@ class nonlinear_solver(object):
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
 
-        # Reordering such that velocity variation is along
-        # axis 2:
-        p1_center = af.reorder(p1_center, 2, 3, 0, 1)
-        p2_center = af.reorder(p2_center, 2, 3, 0, 1)
-        p3_center = af.reorder(p3_center, 2, 3, 0, 1)
-
         af.eval(p1_center, p2_center, p3_center)
         return (p1_center, p2_center, p3_center)
 
@@ -418,8 +466,7 @@ class nonlinear_solver(object):
                               self.p1, self.p2, self.p3, params
                               )
 
-        # Obtaining the left-bottom corner coordinates
-        # (lowest values of the canonical coordinates in the local zone)
+        # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
@@ -428,100 +475,101 @@ class nonlinear_solver(object):
         # That is at (i + 0.5, j + 0.5):
 
         # Electric fields are defined at n-th timestep:
-        self.E1 = af.constant(0, 
+        self.E1 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
-        self.E2 = af.constant(0, 
+        self.E2 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
-        self.E3 = af.constant(0, 
+        self.E3 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
         # Magnetic fields are defined at the (n+0.5)-th timestep:
-        self.B1 = af.constant(0, 
+        self.B1 = af.constant(0, 1
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
-        self.B2 = af.constant(0, 
+        self.B2 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
-        self.B3 = af.constant(0, 
+        self.B3 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64
                              )
 
         # Arrays which hold the magnetic field quantities for the n-th timestep:
-        self.B1_n = af.constant(0, 
+        self.B1_n = af.constant(0, 1,
                                 N_q1_local + 2 * self.N_ghost,
                                 N_q2_local + 2 * self.N_ghost,
                                 dtype=af.Dtype.f64
                                )
 
-        self.B2_n = af.constant(0, 
+        self.B2_n = af.constant(0, 1,
                                 N_q1_local + 2 * self.N_ghost,
                                 N_q2_local + 2 * self.N_ghost,
                                 dtype=af.Dtype.f64
                                )
 
-        self.B3_n = af.constant(0, 
+        self.B3_n = af.constant(0, 1,
                                 N_q1_local + 2 * self.N_ghost,
                                 N_q2_local + 2 * self.N_ghost,
                                 dtype=af.Dtype.f64
                                )
 
         # Declaring the arrays which store data on the FDTD grid:
-        self.E1_fdtd = af.constant(0, 
+        self.E1_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
-        self.E2_fdtd = af.constant(0, 
+        self.E2_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
-        self.E3_fdtd = af.constant(0, 
+        self.E3_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
-        self.B1_fdtd = af.constant(0, 
+        self.B1_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
-        self.B2_fdtd = af.constant(0, 
+        self.B2_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
-        self.B3_fdtd = af.constant(0, 
+        self.B3_fdtd = af.constant(0, 1,
                                    N_q1_local + 2 * self.N_ghost,
                                    N_q2_local + 2 * self.N_ghost,
                                    dtype=af.Dtype.f64
                                   )
 
         if(self.physical_system.params.charge_electron != 0):
+            
             if (self.physical_system.params.fields_initialize == 'fft'):
                 fft_poisson(self)
 
@@ -547,9 +595,17 @@ class nonlinear_solver(object):
                 raise NotImplementedError('Method not valid/not implemented')
 
             # Getting the values at the FDTD grid points:
-            self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 1))  # (i+1/2, j)
-            self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 1, 0))  # (i, j+1/2)
+            self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 0, 1))  # (i+1/2, j)
+            self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 0, 1, 0))  # (i, j+1/2)
+            self.E3_fdtd = 0.25 * (  self.E3 
+                                   + af.shift(self.E3, 0, 1, 0)
+                                   + af.shift(self.E3, 0, 0, 1) 
+                                   + af.shift(self.E3, 0, 1, 1)
+                                  )  # (i, j)
 
+            self.B1_fdtd = 0.5 * (self.B1 + af.shift(self.B1, 0, 1, 0)) # (i, j+1/2)
+            self.B2_fdtd = 0.5 * (self.B2 + af.shift(self.B2, 0, 0, 1)) # (i+1/2, j)
+            self.B3_fdtd = self.B3 # (i+1/2, j+1/2)
             return
 
         
@@ -572,3 +628,5 @@ class nonlinear_solver(object):
 
     dump_distribution_function = dump.dump_distribution_function
     dump_moments               = dump.dump_moments
+
+    load_distribution_function = load.load_distribution_function
