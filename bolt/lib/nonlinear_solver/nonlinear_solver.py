@@ -316,7 +316,7 @@ class nonlinear_solver(object):
 
         # Assigning the value to the PETSc Vecs(for dump at t = 0):
         (af.flat(self.f)).to_ndarray(self._local_f_array)
-        (af.flat(self.f[:, N_g:-N_g, N_g:-N_g])).to_ndarray(self._glob_value_f)
+        (af.flat(self.f[:, N_g:-N_g, N_g:-N_g])).to_ndarray(self._glob_f_array)
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
@@ -606,7 +606,6 @@ class nonlinear_solver(object):
             self.B1_fdtd = 0.5 * (self.B1 + af.shift(self.B1, 0, 1, 0)) # (i, j+1/2)
             self.B2_fdtd = 0.5 * (self.B2 + af.shift(self.B2, 0, 0, 1)) # (i+1/2, j)
             self.B3_fdtd = self.B3 # (i+1/2, j+1/2)
-            return
 
         
     # Injection of solver functions into class as methods:
