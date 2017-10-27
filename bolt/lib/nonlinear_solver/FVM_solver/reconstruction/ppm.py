@@ -48,24 +48,24 @@ def get_LR_states_ppm(input_array, dim):
                        af.minof(af.abs(D3),af.minof(af.abs(d2),af.abs(d3)))
   
     # Base high-order PPM reconstruction
-    leftV  = 0.5 * (y2 + y1) - (DQ2-DQ1)/6
-    rightV = 0.5 * (y3 + y2) - (DQ3-DQ2)/6
+    left_value  = 0.5 * (y2 + y1) - (DQ2-DQ1)/6
+    right_value = 0.5 * (y3 + y2) - (DQ3-DQ2)/6
   
     # Corrections
-    corr1 = ((rightV - y2) * (y2 - leftV) <= 0)
-    qd    = rightV - leftV
-    qe    = 6 * (y2 - 0.5 * (rightV + leftV))
+    corr1 = ((right_value - y2) * (y2 - left_value) <= 0)
+    qd    = right_value - left_value
+    qe    = 6 * (y2 - 0.5 * (right_value + left_value))
     corr2 = (qd * (qd - qe) < 0)
     corr3 = (qd * (qd + qe) < 0)
     
-    leftV  = leftV  * (1 - corr1) + corr1 * y2;
-    rightV = rightV * (1 - corr1) + corr1 * y2;
+    left_value  = left_value  * (1 - corr1) + corr1 * y2;
+    right_value = right_value * (1 - corr1) + corr1 * y2;
   
-    leftV  = leftV  * (1 - corr2) + corr2 * (3 * y2 - 2 * rightV)
-    rightV = rightV * corr2 + (1 - corr2) * rightV * (1 - corr3) + \
-             (1 - corr2) * corr3 * (3 * y2 - 2 * leftV)
+    left_value  = left_value  * (1 - corr2) + corr2 * (3 * y2 - 2 * right_value)
+    right_value = right_value * corr2 + (1 - corr2) * right_value * (1 - corr3) + \
+                  (1 - corr2) * corr3 * (3 * y2 - 2 * left_value)
 
-    return(leftV, rightV)
+    return(left_value, right_value)
 
 def reconstruct_ppm(f, C_q1, C_q2):
 

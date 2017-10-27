@@ -30,8 +30,8 @@ def communicate_f(self):
     # Converting back from PETSc.Vec to af.Array:
     f_flattened = af.to_array(self._local_f_array)
     self.f      = af.moddims(f_flattened,
-                             self.N_p1 * self.N_p2 * self.N_p3 
-                             N_q1_local + 2 * N_g
+                             self.N_p1 * self.N_p2 * self.N_p3,
+                             N_q1_local + 2 * N_g,
                              N_q2_local + 2 * N_g
                             )
 

@@ -1,10 +1,24 @@
 import arrayfire as af
 
-from .reconstruction.minmod import reconstruct_minmod
-from .reconstruction.ppm import reconstruct_ppm
-from .reconstruction.weno5 import reconstruct_weno5
+def upwind_flux(left_flux, right_flux, velocity):
+    
+    flux = af.select(velocity > 0, 
+                     left_flux,
+                     right_flux
+                    )
+    
+    af.eval(flux)
+    return(flux)
 
-def riemann_solver(f, C_q1, C_q2):
+def lax_friedrichs_flux(left_flux, right_flux, left_f, right_f, c_lax):
+    
+    flux = 0.5 * (left_flux + right_flux) - 0.5 * c_lax * (right_f - left_f)
+
+    af.eval(flux)
+    return(flux)
+
+
+def riemann_solver(left_flux, right_flux, left_f, right_f):
     
     # left_plus_eps_flux, right_minus_eps_flux,\
     # bot_plus_eps_flux,  top_minus_eps_flux     = reconstruct_ppm(f, C_q1, C_q2)
@@ -31,15 +45,6 @@ def riemann_solver(f, C_q1, C_q2):
     top_flux = 0.5 * (top_minus_eps_flux + top_plus_eps_flux)
 
     # Upwind fluxes
-    # left_flux = af.select(af.broadcast(multiply, f, C_q1) > 0, 
-    #                       left_minus_eps_flux,
-    #                       left_plus_eps_flux
-    #                      )
-
-    # right_flux = af.select(af.broadcast(multiply, f, C_q1) > 0, 
-    #                        right_minus_eps_flux,
-    #                        right_plus_eps_flux,
-    #                       )
 
     # bot_flux = af.select(af.broadcast(multiply, f, C_q2) > 0, 
     #                      bot_minus_eps_flux,

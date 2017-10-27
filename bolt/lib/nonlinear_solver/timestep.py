@@ -12,17 +12,9 @@ from .FVM_solver.df_dt import df_dt
 from .interpolation_routines import f_interp_2d
 from .EM_fields_solver.fields_step import fields_step
 
-# Making the source term only take the value of f as an argument
-# This is done to comply with the format that the integrators accept:
-def source(f):
-    return(self._source(f, self.q1_center, self.q2_center,
-                        self.p1, self.p2, self.p3, 
-                        self.compute_moments, 
-                        self.physical_system.params
-                       )
-          )
 
-# Defining the operation when using FVM:
+# Defining the operators:
+# When using FVM:
 def op_fvm_q(self, source, dt):
     
     self._communicate_f()
@@ -35,6 +27,7 @@ def op_fvm_q(self, source, dt):
     return
 
 # When using advective SL method:
+# Advection in q-space:
 def op_advect_q(self, dt):
     
     self._communicate_f()
@@ -42,6 +35,25 @@ def op_advect_q(self, dt):
     f_interp_2d(self, dt)
 
     return
+
+# Used to solve the source term:
+# df/dt = source
+def op_solve_src(self, dt):
+
+    self.f = integrators.RK2(self._source, self.f, dt,
+                             self.q1_center, self.q2_center,
+                             self.p1, self.p2, self.p3, 
+                             self.compute_moments, 
+                             self.physical_system.params
+                            )
+
+    return
+
+# Used to solve the Maxwell's equations and
+# perform the advections in p-space:
+def op_fields(self, dt):
+    
+    return(fields_step(self, dt))
 
 def strang_step(self, dt):
     """
@@ -55,8 +67,16 @@ def strang_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    op_fields    = fields_step
-    op_solve_src = integrators.RK2(source, self.f, dt)
+    # Making the source term only take the value of f as an argument
+    # This is done to comply with the format that the integrators accept:
+    def source(f):
+        return(self._source(f, self.q1_center, self.q2_center,
+                            self.p1, self.p2, self.p3, 
+                            self.compute_moments, 
+                            self.physical_system.params
+                           )
+              )
+
 
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
@@ -85,7 +105,6 @@ def strang_step(self, dt):
 
     return
 
-
 def lie_step(self, dt):
     """
     Advances the system using a lie-split 
@@ -99,32 +118,41 @@ def lie_step(self, dt):
          Time-step size to evolve the system
     """
 
-    # Advection in position space:
+    # Making the source term only take the value of f as an argument
+    # This is done to comply with the format that the integrators accept:
+    def source(f):
+        return(self._source(f, self.q1_center, self.q2_center,
+                            self.p1, self.p2, self.p3, 
+                            self.compute_moments, 
+                            self.physical_system.params
+                           )
+              )
 
-    def op_advect_q(self, dt):
-        self._communicate_f()
-        self._apply_bcs_f()
-        f_interp_2d(self, dt)
 
-        return
+    if(self.physical_system.params.solver_method_in_q == 'FVM'):
+        
+        if(self.physical_system.params.charge_electron == 0):
+            op_fvm_q(self, source, dt)
 
-    # Solving the source/sink terms:
-    op_solve_src = RK2_step 
-    # Solving for fields/advection in velocity space:
-    op_fields    = fields_step
+        else:
+            split.lie(self, op_fvm_q, op_fields, dt)
 
-    # Cases which lack fields:
-    if(self.physical_system.params.charge_electron == 0):
-        split.lie(self, op_advect_q, op_solve_src, dt)
-    
-    
-    else:
-        def compound_op(self, dt):
-            return(split.lie(self, op1 = op_advect_q,
-                                 op2 = op_solve_src, dt = dt
+    # Advective Semi-lagrangian method
+    elif(self.physical_system.params.solver_method_in_q == 'ASL'):
+
+        if(self.physical_system.params.charge_electron == 0):
+            split.lie(self, op_advect_q, op_solve_src, dt)
+
+        else:
+            def compound_op(self, dt):
+                return(split.lie(self, 
+                                 op1 = op_advect_q,
+                                 op2 = op_solve_src, 
+                                 dt = dt
                                 )
-                  )
-        split.lie(self, compound_op, op_fields, dt)
+                      )
+            
+            split.lie(self, compound_op, op_fields, dt)
 
     return
 
@@ -141,31 +169,41 @@ def swss_step(self, dt):
          Time-step size to evolve the system
     """
 
-    # Advection in position space:
-    def op_advect_q(self, dt):
-        self._communicate_f()
-        self._apply_bcs_f()
-        f_interp_2d(self, dt)
+    # Making the source term only take the value of f as an argument
+    # This is done to comply with the format that the integrators accept:
+    def source(f):
+        return(self._source(f, self.q1_center, self.q2_center,
+                            self.p1, self.p2, self.p3, 
+                            self.compute_moments, 
+                            self.physical_system.params
+                           )
+              )
 
-        return
 
-    # Solving the source/sink terms:
-    op_solve_src = RK2_step 
-    # Solving for fields/advection in velocity space:
-    op_fields    = fields_step
+    if(self.physical_system.params.solver_method_in_q == 'FVM'):
+        
+        if(self.physical_system.params.charge_electron == 0):
+            op_fvm_q(self, source, dt)
 
-    # Cases which lack fields:
-    if(self.physical_system.params.charge_electron == 0):
-        split.swss(self, op_advect_q, op_solve_src, dt)
-    
-    
-    else:
-        def compound_op(self, dt):
-            return(split.swss(self, op1 = op_advect_q,
-                                  op2 = op_solve_src, dt = dt
+        else:
+            split.swss(self, op_fvm_q, op_fields, dt)
+
+    # Advective Semi-lagrangian method
+    elif(self.physical_system.params.solver_method_in_q == 'ASL'):
+
+        if(self.physical_system.params.charge_electron == 0):
+            split.swss(self, op_advect_q, op_solve_src, dt)
+
+        else:
+            def compound_op(self, dt):
+                return(split.swss(self, 
+                                  op1 = op_advect_q,
+                                  op2 = op_solve_src, 
+                                  dt = dt
                                  )
-                  )
-        split.swss(self, compound_op, op_fields, dt)
+                      )
+            
+            split.swss(self, compound_op, op_fields, dt)
 
     return
 
@@ -173,8 +211,8 @@ def jia_step(self, dt):
     """
     Advances the system using the Jia split scheme.
 
-    NOTE: This scheme is computationally expensive, and is 
-          primarily used for testing
+    NOTE: This scheme is computationally expensive, and 
+          should only be used for testing/debugging
 
     Parameters
     ----------
@@ -183,30 +221,40 @@ def jia_step(self, dt):
          Time-step size to evolve the system
     """
 
-    # Advection in position space:
-    def op_advect_q(self, dt):
-        self._communicate_f()
-        self._apply_bcs_f()
-        f_interp_2d(self, dt)
+    # Making the source term only take the value of f as an argument
+    # This is done to comply with the format that the integrators accept:
+    def source(f):
+        return(self._source(f, self.q1_center, self.q2_center,
+                            self.p1, self.p2, self.p3, 
+                            self.compute_moments, 
+                            self.physical_system.params
+                           )
+              )
 
-        return
 
-    # Solving the source/sink terms:
-    op_solve_src = RK4_step 
-    # Solving for fields/advection in velocity space:
-    op_fields    = fields_step
+    if(self.physical_system.params.solver_method_in_q == 'FVM'):
+        
+        if(self.physical_system.params.charge_electron == 0):
+            op_fvm_q(self, source, dt)
 
-    # Cases which lack fields:
-    if(self.physical_system.params.charge_electron == 0):
-        split.jia(self, op_advect_q, op_solve_src, dt)
-    
-    
-    else:
-        def compound_op(self, dt):
-            return(split.jia(self, op1 = op_advect_q,
-                                 op2 = op_solve_src, dt = dt
+        else:
+            split.jia(self, op_fvm_q, op_fields, dt)
+
+    # Advective Semi-lagrangian method
+    elif(self.physical_system.params.solver_method_in_q == 'ASL'):
+
+        if(self.physical_system.params.charge_electron == 0):
+            split.jia(self, op_advect_q, op_solve_src, dt)
+
+        else:
+            def compound_op(self, dt):
+                return(split.jia(self, 
+                                 op1 = op_advect_q,
+                                 op2 = op_solve_src, 
+                                 dt = dt
                                 )
-                  )
-        split.jia(self, compound_op, op_fields, dt)
+                      )
+            
+            split.jia(self, compound_op, op_fields, dt)
 
     return

@@ -20,6 +20,7 @@ The q-space has the option of using 2 different methods:
 
     - The interpolation schemes available are 
       linear and quadratic spline.
+      TODO:Check with Pavan regarding cubic spline?
 
 - Finite volume scheme(conservative):
 
@@ -37,9 +38,7 @@ import petsc4py, sys
 
 petsc4py.init(sys.argv)
 
-from mpi4py import MPI
 from petsc4py import PETSc
-from prettytable import PrettyTable
 import socket
 
 # Importing solver libraries:
@@ -142,6 +141,9 @@ class nonlinear_solver(object):
             self.time_interp2            = 0
             self.time_sourcets           = 0
 
+            self.time_fvm_solver         = 0
+            self.time_reconstruct        = 0
+            self.time_riemann            = 0
             self.time_fvm_ts             = 0
             
             self.time_fieldstep          = 0
@@ -150,6 +152,7 @@ class nonlinear_solver(object):
             
             self.time_apply_bcs_f        = 0
             self.time_apply_bcs_fields   = 0
+
             self.time_communicate_f      = 0
             self.time_communicate_fields = 0
 
@@ -171,7 +174,7 @@ class nonlinear_solver(object):
         # DMDA is a data structure to handle a distributed structure 
         # grid and its related core algorithms. It stores metadata of
         # how the grid is partitioned when run in parallel which is 
-        # utilized by the methods of the solver.
+        # utilized by the various methods of the solver.
 
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof           = (  self.N_p1 
@@ -419,8 +422,8 @@ class nonlinear_solver(object):
         q2_center, q1_center = np.meshgrid(q2_center, q1_center)
         q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
 
-        q1_center = af.reorder(q1_center, 1, 2, 0, 3)
-        q2_center = af.reorder(q2_center, 1, 2, 0, 3)
+        q1_center = af.reorder(q1_center, 2, 0, 1)
+        q2_center = af.reorder(q2_center, 2, 0, 1)
 
         af.eval(q1_center, q2_center)
         return (q1_center, q2_center)
@@ -464,7 +467,7 @@ class nonlinear_solver(object):
         self.f = af.broadcast(self.physical_system.initial_conditions.\
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, params
-                              )
+                             )
 
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
@@ -494,7 +497,7 @@ class nonlinear_solver(object):
                              )
 
         # Magnetic fields are defined at the (n+0.5)-th timestep:
-        self.B1 = af.constant(0, 1
+        self.B1 = af.constant(0, 1,
                               N_q1_local + 2 * self.N_ghost,
                               N_q2_local + 2 * self.N_ghost,
                               dtype=af.Dtype.f64

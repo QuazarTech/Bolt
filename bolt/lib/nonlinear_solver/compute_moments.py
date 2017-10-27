@@ -60,7 +60,7 @@ def compute_moments(self, moment_name):
 
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
-    moment   =   af.sum(af.broadcast(multiply, self.f, moment_variable), 2) \
+    moment   =   af.sum(af.broadcast(multiply, self.f, moment_variable), 0) \
                * self.dp3 * self.dp2 * self.dp1
 
     af.eval(moment)

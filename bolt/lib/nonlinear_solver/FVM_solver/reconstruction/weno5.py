@@ -63,10 +63,10 @@ def get_LR_states_weno5(input_array, dim):
     u3l =  1.875 * y2 - 1.25 * y3 + 0.375 * y4;
 
     # Reconstruction:
-    leftV  = (w1l * u1l + w2l * u2l + w3l * u3l) / denl;
-    rightV = (w1r * u1r + w2r * u2r + w3r * u3r) / denr;
+    left_value  = (w1l * u1l + w2l * u2l + w3l * u3l) / denl;
+    right_value = (w1r * u1r + w2r * u2r + w3r * u3r) / denr;
     
-    return(leftV, rightV)
+    return(left_value, right_value)
 
 def reconstruct_weno5(f, C_q1, C_q2):
 

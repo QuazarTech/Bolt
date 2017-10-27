@@ -1,3 +1,12 @@
+"""
+This file contains the operator splitting methods available 
+while solving a time split set of equations. 
+
+The functions in this module are descriptive of how the operator
+splitting for any 2 operators is carried out. These are then called
+in the timestep routine of the nonlinear solver. 
+"""
+
 def strang(self, op1, op2, dt):
     """
     Performs strang splitting for any 2 operators.
