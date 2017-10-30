@@ -12,6 +12,8 @@ def communicate_f(self):
     (and periodic B.C's) procedures for the distribution
     function array.
     """
+    if(self.performance_test_flag == True):
+        tic = af.time()
 
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
@@ -19,7 +21,13 @@ def communicate_f(self):
 
     N_g = self.N_ghost
 
-    af.flat(self.f).to_ndarray(self._local_f_array)
+    # Assigning the local array only when non-periodic 
+    # boundary conditions are applied:
+    if(   self.boundary_conditions.in_q1 != 'periodic'
+       or self.boundary_conditions.in_q2 != 'periodic' 
+      ):
+        af.flat(self.f).to_ndarray(self._local_f_array)
+
     # Global value is non-inclusive of the ghost-zones:
     af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
     
@@ -36,6 +44,12 @@ def communicate_f(self):
                             )
 
     af.eval(self.f)
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_communicate_f += toc - tic
+
     return
 
 
@@ -47,6 +61,12 @@ def communicate_fields(self, on_fdtd_grid=False):
     (and periodic B.C's) procedures for the EM field
     arrays.
     """
+    if(self.performance_test_flag == True):
+        tic = af.time()
+
+    # Obtaining start coordinates for the local zone
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
 
     N_g = self.N_ghost
 
@@ -54,59 +74,53 @@ def communicate_fields(self, on_fdtd_grid=False):
     # fields quantities to the PETSc.Vec:
 
     if(on_fdtd_grid is True):
-        joined_E_fields = af.join(0, self.E1_fdtd, self.E2_fdtd, self.E3_fdtd)
-        joined_B_fields = af.join(0, self.B1_fdtd, self.B2_fdtd, self.B3_fdtd)
-
-        flattened_EM_fields_array = af.flat(af.join(0, joined_E_fields, joined_B_fields))
-        flattened_EM_fields_array.to_ndarray(self._local_fields_array)
+        if(   self.boundary_conditions.in_q1 != 'periodic'
+           or self.boundary_conditions.in_q2 != 'periodic' 
+          ):
+            flattened_EM_fields_array = af.flat(self.yee_grid_EM_fields)
+            flattened_EM_fields_array.to_ndarray(self._local_fields_array)
+        
+        flattened_global_EM_fields_array = \
+            af.flat(self.yee_grid_EM_fields[:, N_g:-N_g, N_g:-N_g])
+        flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
 
     else:
-        joined_E_fields = af.join(0, self.E1, self.E2, self.E3)
-        joined_B_fields = af.join(0, self.B1, self.B2, self.B3)
+        if(   self.boundary_conditions.in_q1 != 'periodic'
+           or self.boundary_conditions.in_q2 != 'periodic' 
+          ):
+            flattened_EM_fields_array = af.flat(self.cell_centered_EM_fields)
+            flattened_EM_fields_array.to_ndarray(self._local_fields_array)
 
-        flattened_EM_fields_array = af.flat(af.join(0, joined_E_fields, joined_B_fields))
-        flattened_EM_fields_array.to_ndarray(self._local_fields_array)
-
-    # Global value is non-inclusive of the ghost-zones:
-    self._glob_fields_array = ((self._local_fields_array).\
-                               reshape(6, 
-                                       self.E1.shape[1],
-                                       self.E1.shape[2]
-                                      )[:, N_g:-N_g, N_g:-N_g]).ravel()
-    
+        flattened_global_EM_fields_array = \
+            af.flat(self.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g])
+        flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
 
     # Takes care of boundary conditions and interzonal communications:
     self._da_fields.globalToLocal(self._glob_fields, self._local_fields)
 
-    # Converting back to af.Array
-    EM_fields_array = af.moddims(af.to_array(self._local_fields_array),
-                                 6, self.E1.shape[1], self.E1.shape[2]
-                                )
 
+    # Converting back to af.Array
     if(on_fdtd_grid is True):
 
-        self.E1_fdtd = EM_fields_array[0]
-        self.E2_fdtd = EM_fields_array[1]
-        self.E3_fdtd = EM_fields_array[2]
-
-        self.B1_fdtd = EM_fields_array[3]
-        self.B2_fdtd = EM_fields_array[4]
-        self.B3_fdtd = EM_fields_array[5]
+        self.yee_grid_EM_fields = af.moddims(af.to_array(self._local_fields_array),
+                                             6, N_q1_local + 2 * N_g,
+                                             N_q2_local + 2 * N_g
+                                            )
         
-        af.eval(self.E1_fdtd, self.E2_fdtd, self.E3_fdtd,
-                self.B1_fdtd, self.B2_fdtd, self.B3_fdtd
-               )
+        af.eval(self.yee_grid_EM_fields)
 
     else:
 
-        self.E1 = EM_fields_array[0]
-        self.E2 = EM_fields_array[1]
-        self.E3 = EM_fields_array[2]
-
-        self.B1 = EM_fields_array[3]
-        self.B2 = EM_fields_array[4]
-        self.B3 = EM_fields_array[5]
-
-        af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)
+        self.cell_centered_EM_fields = af.moddims(af.to_array(self._local_fields_array),
+                                                  6, N_q1_local + 2 * N_g,
+                                                  N_q2_local + 2 * N_g
+                                                 )
+        
+        af.eval(self.cell_centered_EM_fields)
+    
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_communicate_fields += toc - tic
 
     return

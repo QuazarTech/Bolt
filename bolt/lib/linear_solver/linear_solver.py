@@ -100,8 +100,8 @@ class linear_solver(object):
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
         self.N_ghost = physical_system.N_ghost
-        self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1,\
-                                       physical_system.bc_in_q2
+        self.bc_in_q1, self.bc_in_q2 = physical_system.boundary_conditions.in_q1,\
+                                       physical_system.boundary_conditions.in_q2
 
         # Checking that periodic B.C's are utilized:
         if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):

@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import arrayfire as af
 import numpy as np
 
 def apply_bcs_f(self):
-    
+
+    if(self.performance_test_flag == True):
+        tic = af.time()
+
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
@@ -10,7 +16,7 @@ def apply_bcs_f(self):
 
     N_g = self.N_ghost
 
-    if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
+    if(self.boundary_conditions.in_q1 == 'dirichlet'):
         # A_q1 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
         A_q1 = af.tile(self._A_q1, 1,
@@ -21,7 +27,7 @@ def apply_bcs_f(self):
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):
             
-            f_left = self.physical_system.boundary_conditions.\
+            f_left = self.boundary_conditions.\
                      f_left(self.q1_center, self.q2_center,
                             self.p1, self.p2, self.p3, 
                             self.physical_system.params
@@ -35,7 +41,7 @@ def apply_bcs_f(self):
         # If local zone includes the right physical boundary:
         if(i_q1_end == self.N_q1 - 1):
             
-            f_right = self.physical_system.boundary_conditions.\
+            f_right = self.boundary_conditions.\
                       f_right(self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, 
                               self.physical_system.params
@@ -46,7 +52,7 @@ def apply_bcs_f(self):
 
             self.f[:, -N_g:] = f_right[:, -N_g:]
 
-    elif(self.physical_system.boundary_conditions.in_q1 == 'mirror'):
+    elif(self.boundary_conditions.in_q1 == 'mirror'):
 
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):
@@ -85,13 +91,13 @@ def apply_bcs_f(self):
                                            )[:, -N_g:]
 
     # This is automatically handled by the PETSc function globalToLocal()
-    elif(self.physical_system.boundary_conditions.in_q1 == 'periodic'):
+    elif(self.boundary_conditions.in_q1 == 'periodic'):
         pass
 
     else:
         raise NotImplementedError('Boundary condition invalid/not-implemented')
 
-    if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
+    if(self.boundary_conditions.in_q2 == 'dirichlet'):
 
         # _A_q2 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
@@ -103,7 +109,7 @@ def apply_bcs_f(self):
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
     
-            f_bot = self.physical_system.boundary_conditions.\
+            f_bot = self.boundary_conditions.\
                     f_bot(self.q1_center, self.q2_center,
                           self.p1, self.p2, self.p3, 
                           self.physical_system.params
@@ -117,7 +123,7 @@ def apply_bcs_f(self):
         # If local zone includes the top physical boundary:
         if(i_q2_end == self.N_q2 - 1):
             
-            f_top = self.physical_system.boundary_conditions.\
+            f_top = self.boundary_conditions.\
                     f_top(self.q1_center, self.q2_center,
                           self.p1, self.p2, self.p3, 
                           self.physical_system.params
@@ -128,7 +134,7 @@ def apply_bcs_f(self):
 
             self.f[:, :, -N_g:] = f_top[:, :, -N_g:]
 
-    elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
+    elif(self.boundary_conditions.in_q2 == 'mirror'):
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
@@ -167,16 +173,25 @@ def apply_bcs_f(self):
                                            )[:, :, -N_g:]
 
     # This is automatically handled by the PETSc function globalToLocal()
-    elif(self.physical_system.boundary_conditions.in_q2 == 'periodic'):
+    elif(self.boundary_conditions.in_q2 == 'periodic'):
         pass
 
     else:
         raise NotImplementedError('Boundary condition invalid/not-implemented')
 
     af.eval(self.f)
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_apply_bcs_f += toc - tic
+   
     return
 
 def apply_bcs_fields(self):
+
+    if(self.performance_test_flag == True):
+        tic = af.time()
 
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
@@ -185,67 +200,73 @@ def apply_bcs_fields(self):
 
     N_g = self.N_ghost
 
-    if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
+    if(self.boundary_conditions.in_q1 == 'dirichlet'):
 
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):
 
-            self.E1[:, :N_g] = self.physical_system.boundary_conditions.\
-                               E1_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
-            self.E2[:, :N_g] = self.physical_system.boundary_conditions.\
-                               E2_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
-            self.E3[:, :N_g] = self.physical_system.boundary_conditions.\
-                               E3_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
+            E1 = self.boundary_conditions.\
+                 E1_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
+            E2 = self.boundary_conditions.\
+                 E2_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
+            E3 = self.boundary_conditions.\
+                 E3_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
             
-            self.B1[:, :N_g] = self.physical_system.boundary_conditions.\
-                               B1_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
-            self.B2[:, :N_g] = self.physical_system.boundary_conditions.\
-                               B2_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
-            self.B3[:, :N_g] = self.physical_system.boundary_conditions.\
-                               B3_left(self.q1_center, self.q2_center,
-                                       self.physical_system.params
-                                      )[:, :N_g]
+            B1 = self.boundary_conditions.\
+                 B1_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
+            B2 = self.boundary_conditions.\
+                 B2_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
+            B3 = self.boundary_conditions.\
+                 B3_left(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :N_g]
+
+            self.cell_centered_EM_fields[:, :N_g] = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         # If local zone includes the right physical boundary:
         if(i_q1_end == self.N_q1 - 1):
 
-            self.E1[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                E1_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
-            self.E2[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                E2_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
-            self.E3[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                E3_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
+            E1 = self.boundary_conditions.\
+                 E1_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
+            E2 = self.boundary_conditions.\
+                 E2_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
+            E3 = self.boundary_conditions.\
+                 E3_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
             
-            self.B1[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                B1_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
-            self.B2[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                B2_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
-            self.B3[:, -N_g:] = self.physical_system.boundary_conditions.\
-                                B3_right(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, -N_g:]
+            B1 = self.boundary_conditions.\
+                 B1_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
+            B2 = self.boundary_conditions.\
+                 B2_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
+            B3 = self.boundary_conditions.\
+                 B3_right(self.q1_center, self.q2_center,
+                          self.physical_system.params
+                         )[:, -N_g:]
 
-    elif(self.physical_system.boundary_conditions.in_q1 == 'mirror'):
+            self.cell_centered_EM_fields[:, -N_g:] = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
+    elif(self.boundary_conditions.in_q1 == 'mirror'):
 
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):
@@ -255,13 +276,8 @@ def apply_bcs_fields(self):
             # For mirror boundary conditions:
             # 0 = 5; 1 = 4; 2 = 3;
 
-            self.E1[:, :N_g] = af.flip(self.E1[:, N_g:2 * N_g], 1)
-            self.E2[:, :N_g] = af.flip(self.E2[:, N_g:2 * N_g], 1)
-            self.E3[:, :N_g] = af.flip(self.E3[:, N_g:2 * N_g], 1)
-            
-            self.B1[:, :N_g] = af.flip(self.B1[:, N_g:2 * N_g], 1)
-            self.B2[:, :N_g] = af.flip(self.B2[:, N_g:2 * N_g], 1)
-            self.B3[:, :N_g] = af.flip(self.B3[:, N_g:2 * N_g], 1)
+            self.cell_centered_EM_fields[:, :N_g] = \
+                af.flip(self.cell_centered_EM_fields[:, N_g:2 * N_g], 1)
 
         # If local zone includes the right physical boundary:
         if(i_q1_end == self.N_q1 - 1):
@@ -271,82 +287,83 @@ def apply_bcs_fields(self):
             # For mirror boundary conditions:
             # -1 = -6; -2 = -5; -3 = -4;
             
-            self.E1[:, -N_g:] = af.flip(self.E1[:, -2 * N_g:-N_g], 1)
-            self.E2[:, -N_g:] = af.flip(self.E2[:, -2 * N_g:-N_g], 1)
-            self.E3[:, -N_g:] = af.flip(self.E3[:, -2 * N_g:-N_g], 1)
-
-            self.B1[:, -N_g:] = af.flip(self.B1[:, -2 * N_g:-N_g], 1)
-            self.B2[:, -N_g:] = af.flip(self.B2[:, -2 * N_g:-N_g], 1)
-            self.B3[:, -N_g:] = af.flip(self.B3[:, -2 * N_g:-N_g], 1)
+            self.cell_centered_EM_fields[:, -N_g:] = \
+                af.flip(self.cell_centered_EM_fields[:, -2 * N_g:-N_g], 1)
 
     # This is automatically handled by the PETSc function globalToLocal()
-    elif(self.physical_system.boundary_conditions.in_q1 == 'periodic'):
+    elif(self.boundary_conditions.in_q1 == 'periodic'):
         pass
 
     else:
         raise NotImplementedError('Boundary condition invalid/not-implemented')
 
-    if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
+    if(self.boundary_conditions.in_q2 == 'dirichlet'):
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
             
-            self.E1[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  E1_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
-            self.E2[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  E2_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
-            self.E3[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  E3_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
-            
-            self.B1[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  B1_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
-            self.B2[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  B2_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
-            self.B3[:, :, :N_g] = self.physical_system.boundary_conditions.\
-                                  B3_bot(self.q1_center, self.q2_center,
-                                         self.physical_system.params
-                                        )[:, :, :N_g]
+            E1 = self.boundary_conditions.\
+                 E1_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+            E2 = self.boundary_conditions.\
+                 E2_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+            E3 = self.boundary_conditions.\
+                 E3_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+           
+            B1 = self.boundary_conditions.\
+                 B1_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+            B2 = self.boundary_conditions.\
+                 B2_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+            B3 = self.boundary_conditions.\
+                 B3_bot(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, :N_g]
+
+            self.cell_centered_EM_fields[:, :, :N_g] = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         # If local zone includes the top physical boundary:
         if(i_q2_end == self.N_q2 - 1):
             
-            self.E1[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   E1_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
-            self.E2[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   E2_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
-            self.E3[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   E3_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
+            E1 = self.boundary_conditions.\
+                  E1_top(self.q1_center, self.q2_center,
+                         self.physical_system.params
+                        )[:, :, -N_g:]
+            E2 = self.boundary_conditions.\
+                 E2_top(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, -N_g:]
+            E3 = self.boundary_conditions.\
+                 E3_top(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, -N_g:]
             
-            self.B1[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   B1_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
-            self.B2[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   B2_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
-            self.B3[:, :, -N_g:] = self.physical_system.boundary_conditions.\
-                                   B3_top(self.q1_center, self.q2_center,
-                                          self.physical_system.params
-                                         )[:, :, -N_g:]
+            B1 = self.boundary_conditions.\
+                 B1_top(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, -N_g:]
+            B2 = self.boundary_conditions.\
+                 B2_top(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, -N_g:]
+            B3 = self.boundary_conditions.\
+                 B3_top(self.q1_center, self.q2_center,
+                        self.physical_system.params
+                       )[:, :, -N_g:]
+            
+            self.cell_centered_EM_fields[:, :, -N_g:] = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
-    elif(self.physical_system.boundary_conditions.in_q2 == 'mirror'):
+    elif(self.boundary_conditions.in_q2 == 'mirror'):
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
@@ -356,13 +373,8 @@ def apply_bcs_fields(self):
             # For mirror boundary conditions:
             # 0 = 5; 1 = 4; 2 = 3;
 
-            self.E1[:, :, :N_g] = af.flip(self.E1[:, :, N_g:2 * N_g], 2)
-            self.E2[:, :, :N_g] = af.flip(self.E2[:, :, N_g:2 * N_g], 2)
-            self.E3[:, :, :N_g] = af.flip(self.E3[:, :, N_g:2 * N_g], 2)
-            
-            self.B1[:, :, :N_g] = af.flip(self.B1[:, :, N_g:2 * N_g], 2)
-            self.B2[:, :, :N_g] = af.flip(self.B2[:, :, N_g:2 * N_g], 2)
-            self.B3[:, :, :N_g] = af.flip(self.B3[:, :, N_g:2 * N_g], 2)
+            self.cell_centered_EM_fields[:, :, :N_g] = \
+                af.flip(self.cell_centered_EM_fields[:, :, N_g:2 * N_g], 2)
 
         # If local zone includes the top physical boundary:
         if(i_q2_end == self.N_q2 - 1):
@@ -372,20 +384,21 @@ def apply_bcs_fields(self):
             # For mirror boundary conditions:
             # -1 = -6; -2 = -5; -3 = -4;
 
-            self.E1[:, :, -N_g:] = af.flip(self.E1[:, :, -2 * N_g:-N_g], 2)
-            self.E2[:, :, -N_g:] = af.flip(self.E2[:, :, -2 * N_g:-N_g], 2)
-            self.E3[:, :, -N_g:] = af.flip(self.E3[:, :, -2 * N_g:-N_g], 2)
-
-            self.B1[:, :, -N_g:] = af.flip(self.B1[:, :, -2 * N_g:-N_g], 2)
-            self.B2[:, :, -N_g:] = af.flip(self.B2[:, :, -2 * N_g:-N_g], 2)
-            self.B3[:, :, -N_g:] = af.flip(self.B3[:, :, -2 * N_g:-N_g], 2)
+            self.cell_centered_EM_fields[:, :, -N_g:] = \
+                af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g:-N_g], 2)
 
     # This is automatically handled by the PETSc function globalToLocal()
-    elif(self.physical_system.boundary_conditions.in_q2 == 'periodic'):
+    elif(self.boundary_conditions.in_q2 == 'periodic'):
         pass
 
     else:
         raise NotImplementedError('Boundary condition invalid/not-implemented')
 
-    af.eval(self.E1, self.E2, self.E3, self.B1, self.B2, self.B3)
+    af.eval(self.cell_centered_EM_fields)
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_apply_bcs_fields += toc - tic
+
     return

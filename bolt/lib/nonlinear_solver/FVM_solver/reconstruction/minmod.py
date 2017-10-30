@@ -39,19 +39,11 @@ def slope_minmod(input_array, dim):
 
     return(minmod(left, center, right))
 
-def reconstruct_minmod(f, C_q1, C_q2):
+def reconstruct_minmod(variable_to_reconstruct, dim):
+    
+    slope = slope_minmod(variable_to_reconstruct, dim)
 
-    multiply = lambda a, b: a * b
-    slope = slope_minmod(af.broadcast(multiply, f, C_q1), 'q1')
-
-    left_plus_eps_flux   = af.broadcast(multiply, f, C_q1) - 0.5 * slope
-    right_minus_eps_flux = af.broadcast(multiply, f, C_q1) + 0.5 * slope
-
-    slope = slope_minmod(af.broadcast(multiply, f, C_q2), 'q2')
-
-    bot_plus_eps_flux  = af.broadcast(multiply, f, C_q2) - 0.5 * slope
-    top_minus_eps_flux = af.broadcast(multiply, f, C_q2) + 0.5 * slope
-
-    return(left_plus_eps_flux, right_minus_eps_flux,
-           bot_plus_eps_flux, top_minus_eps_flux
-          )
+    left_face_value  = variable_to_reconstruct - 0.5 * slope
+    right_face_value = variable_to_reconstruct + 0.5 * slope
+   
+    return(left_face_value, right_face_value)

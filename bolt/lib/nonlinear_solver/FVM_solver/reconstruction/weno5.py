@@ -1,9 +1,8 @@
 import arrayfire as af
 
 # Adapted from grim(by Chandra et al.):
-def get_LR_states_weno5(input_array, dim):
-
-    # Using a floor
+def reconstruct_weno5(input_array, dim):
+    
     eps = 1e-17;
 
     if(dim == 'q1'):
@@ -19,11 +18,11 @@ def get_LR_states_weno5(input_array, dim):
         x3_shift = 0; y3_shift = -1
         x4_shift = 0; y4_shift = -2
   
-    y0 = af.shift(input_array, x0_shift, y0_shift)
-    y1 = af.shift(input_array, x1_shift, y1_shift)
+    y0 = af.shift(input_array, 0, x0_shift, y0_shift)
+    y1 = af.shift(input_array, 0, x1_shift, y1_shift)
     y2 = input_array;
-    y3 = af.shift(input_array, x3_shift, y3_shift)
-    y4 = af.shift(input_array, x4_shift, y4_shift)
+    y3 = af.shift(input_array, 0, x3_shift, y3_shift)
+    y4 = af.shift(input_array, 0, x4_shift, y4_shift)
 
     # Compute smoothness operators
     beta1 = (( 4/3) * y0 * y0 - (19/3) * y0 * y1 +
@@ -65,16 +64,5 @@ def get_LR_states_weno5(input_array, dim):
     # Reconstruction:
     left_value  = (w1l * u1l + w2l * u2l + w3l * u3l) / denl;
     right_value = (w1r * u1r + w2r * u2r + w3r * u3r) / denr;
-    
+  
     return(left_value, right_value)
-
-def reconstruct_weno5(f, C_q1, C_q2):
-
-    multiply = lambda a, b: a * b
-
-    left_plus_eps_flux, right_minus_eps_flux = get_LR_states_weno5(af.broadcast(multiply, f, C_q1), 'q1')
-    bot_plus_eps_flux,  top_minus_eps_flux   = get_LR_states_weno5(af.broadcast(multiply, f, C_q2), 'q2')
-
-    return(left_plus_eps_flux, right_minus_eps_flux,
-           bot_plus_eps_flux, top_minus_eps_flux
-          )

@@ -51,6 +51,7 @@ from .file_io import load
 
 from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
+from .utils.performance_timings import print_table
 from .compute_moments import compute_moments as compute_moments_imported
 from .EM_fields_solver.electrostatic \
     import fft_poisson, compute_electrostatic_fields
@@ -144,7 +145,6 @@ class nonlinear_solver(object):
             self.time_fvm_solver         = 0
             self.time_reconstruct        = 0
             self.time_riemann            = 0
-            self.time_fvm_ts             = 0
             
             self.time_fieldstep          = 0
             self.time_fieldsolver        = 0
@@ -254,10 +254,13 @@ class nonlinear_solver(object):
         self._glob_f_array  = self._glob_f.getArray()
         self._local_f_array = self._local_f.getArray()
 
+        self._glob_f_value  = self._da_f.getVecArray(self._glob_f)
+        self._local_f_value = self._da_f.getVecArray(self._local_f)
+
         self._glob_fields_array  = self._glob_fields.getArray()
         self._local_fields_array = self._local_fields.getArray()
 
-        self._glob_moments_array  = self._glob_moments.getArray()
+        self._glob_moments_value  = self._glob_moments.getArray()
 
         # Setting names for the objects which will then be
         # used as the key identifiers for the HDF5 files:
@@ -268,7 +271,7 @@ class nonlinear_solver(object):
         self.q1_center, self.q2_center = self._calculate_q_center()
         self.p1, self.p2, self.p3      = self._calculate_p_center()
 
-        # Assigning the function object to a method of nonlinear solver:
+        # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
     
         # Obtaining start coordinates for the local zone
@@ -282,7 +285,7 @@ class nonlinear_solver(object):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
 
-                self.f[:, :N_g] = self.physical_system.boundary_conditions.\
+                self.f[:, :N_g] = self.boundary_conditions.\
                                   f_left(self.q1_center, self.q2_center,
                                          self.p1, self.p2, self.p3, 
                                          self.physical_system.params
@@ -291,7 +294,7 @@ class nonlinear_solver(object):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
 
-                self.f[:, -N_g:] = self.physical_system.boundary_conditions.\
+                self.f[:, -N_g:] = self.boundary_conditions.\
                                    f_right(self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
@@ -302,7 +305,7 @@ class nonlinear_solver(object):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
 
-                self.f[:, :, :N_g] = self.physical_system.boundary_conditions.\
+                self.f[:, :, :N_g] = self.boundary_conditions.\
                                      f_bot(self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
@@ -311,7 +314,7 @@ class nonlinear_solver(object):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
 
-                self.f[:, :, -N_g:] = self.physical_system.boundary_conditions.\
+                self.f[:, :, -N_g:] = self.boundary_conditions.\
                                       f_top(self.q1_center, self.q2_center,
                                             self.p1, self.p2, self.p3, 
                                             self.physical_system.params
@@ -326,6 +329,14 @@ class nonlinear_solver(object):
                                          physical_system.params
                                         )[0]
         self._A_q2 = physical_system.A_q(self.p1, self.p2, self.p3,
+                                         physical_system.params
+                                        )[1]
+
+        # Assigning the conservative advection terms along q1 and q2
+        self._C_q1 = physical_system.C_q(self.p1, self.p2, self.p3,
+                                         physical_system.params
+                                        )[0]
+        self._C_q2 = physical_system.C_q(self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[1]
 
@@ -477,99 +488,35 @@ class nonlinear_solver(object):
         # These quantities are defined for the CK grid:
         # That is at (i + 0.5, j + 0.5):
 
-        # Electric fields are defined at n-th timestep:
-        self.E1 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
+        # Electric fields are defined at the n-th timestep:
+        # Magnetic fields are defined at the (n-1/2)-th timestep:
 
-        self.E2 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
+        self.cell_centered_EM_fields = af.constant(0, 6,
+                                                     N_q1_local 
+                                                   + 2 * self.N_ghost,
+                                                     N_q2_local 
+                                                   + 2 * self.N_ghost,
+                                                   dtype=af.Dtype.f64
+                                                  )
 
-        self.E3 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
-
-        # Magnetic fields are defined at the (n+0.5)-th timestep:
-        self.B1 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
-
-        self.B2 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
-
-        self.B3 = af.constant(0, 1,
-                              N_q1_local + 2 * self.N_ghost,
-                              N_q2_local + 2 * self.N_ghost,
-                              dtype=af.Dtype.f64
-                             )
-
-        # Arrays which hold the magnetic field quantities for the n-th timestep:
-        self.B1_n = af.constant(0, 1,
-                                N_q1_local + 2 * self.N_ghost,
-                                N_q2_local + 2 * self.N_ghost,
-                                dtype=af.Dtype.f64
-                               )
-
-        self.B2_n = af.constant(0, 1,
-                                N_q1_local + 2 * self.N_ghost,
-                                N_q2_local + 2 * self.N_ghost,
-                                dtype=af.Dtype.f64
-                               )
-
-        self.B3_n = af.constant(0, 1,
-                                N_q1_local + 2 * self.N_ghost,
-                                N_q2_local + 2 * self.N_ghost,
-                                dtype=af.Dtype.f64
-                               )
+        # All the fields are at the n-th timestep:
+        self.B_fields_at_nth_timestep = af.constant(0, 3,
+                                                    N_q1_local 
+                                                    + 2 * self.N_ghost,
+                                                      N_q2_local 
+                                                    + 2 * self.N_ghost,
+                                                    dtype=af.Dtype.f64
+                                                   )
 
         # Declaring the arrays which store data on the FDTD grid:
-        self.E1_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
+        self.yee_grid_EM_fields = af.constant(0, 6,
+                                              N_q1_local 
+                                              + 2 * self.N_ghost,
+                                              N_q2_local 
+                                              + 2 * self.N_ghost,
+                                              dtype=af.Dtype.f64
+                                             )
 
-        self.E2_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
-
-        self.E3_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
-
-        self.B1_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
-
-        self.B2_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
-
-        self.B3_fdtd = af.constant(0, 1,
-                                   N_q1_local + 2 * self.N_ghost,
-                                   N_q2_local + 2 * self.N_ghost,
-                                   dtype=af.Dtype.f64
-                                  )
 
         if(self.physical_system.params.charge_electron != 0):
             
@@ -582,33 +529,44 @@ class nonlinear_solver(object):
                 compute_electrostatic_fields(self)
 
             elif (self.physical_system.params.fields_initialize == 'user-defined'):
-                self.E1, self.E2, self.E3 = \
+                
+                E1, E2, E3 = \
                     self.physical_system.initial_conditions.initialize_E(self.q1_center,
                                                                          self.q2_center,
                                                                          params
                                                                         )
 
-                self.B1, self.B2, self.B3 = \
+                B1, B2, B3 = \
                     self.physical_system.initial_conditions.initialize_B(self.q1_center,
                                                                          self.q2_center,
                                                                          params
                                                                         )
 
+                self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
             else:
                 raise NotImplementedError('Method not valid/not implemented')
 
             # Getting the values at the FDTD grid points:
-            self.E1_fdtd = 0.5 * (self.E1 + af.shift(self.E1, 0, 0, 1))  # (i+1/2, j)
-            self.E2_fdtd = 0.5 * (self.E2 + af.shift(self.E2, 0, 1, 0))  # (i, j+1/2)
-            self.E3_fdtd = 0.25 * (  self.E3 
-                                   + af.shift(self.E3, 0, 1, 0)
-                                   + af.shift(self.E3, 0, 0, 1) 
-                                   + af.shift(self.E3, 0, 1, 1)
-                                  )  # (i, j)
+            E1 = self.cell_centered_EM_fields[0] # (i+1/2, j+1/2)
+            E2 = self.cell_centered_EM_fields[1] # (i+1/2, j+1/2)
+            E3 = self.cell_centered_EM_fields[2] # (i+1/2, j+1/2)
+            
+            B1 = self.cell_centered_EM_fields[3] # (i+1/2, j+1/2)
+            B2 = self.cell_centered_EM_fields[4] # (i+1/2, j+1/2)
+            B3 = self.cell_centered_EM_fields[5] # (i+1/2, j+1/2)
 
-            self.B1_fdtd = 0.5 * (self.B1 + af.shift(self.B1, 0, 1, 0)) # (i, j+1/2)
-            self.B2_fdtd = 0.5 * (self.B2 + af.shift(self.B2, 0, 0, 1)) # (i+1/2, j)
-            self.B3_fdtd = self.B3 # (i+1/2, j+1/2)
+            self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 1))  # (i+1/2, j)
+            self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 1, 0))  # (i, j+1/2)
+            self.yee_grid_EM_fields[2] = 0.25 * (  E3 
+                                                 + af.shift(E3, 0, 1, 0)
+                                                 + af.shift(E3, 0, 0, 1) 
+                                                 + af.shift(E3, 0, 1, 1)
+                                                )  # (i, j)
+
+            self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 1, 0)) # (i, j+1/2)
+            self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 1)) # (i+1/2, j)
+            self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
 
         
     # Injection of solver functions into class as methods:
@@ -632,3 +590,5 @@ class nonlinear_solver(object):
     dump_moments               = dump.dump_moments
 
     load_distribution_function = load.load_distribution_function
+    
+    print_performance_timings = print_table

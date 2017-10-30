@@ -131,13 +131,20 @@ def dY_dt(self, Y):
         df_hat_dt  -= fields_term
 
     # Avoiding addition of the fields term when tau != inf
-    df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, 
-                                                           self.q2_center,
-                                                           self.p1, self.p2, self.p3
-                                                          ) != np.inf,\
-                           C_f_hat,\
-                           0
-                          )
+    tau = self.physical_system.params.tau(self.q1_center, 
+                                          self.q2_center,
+                                          self.p1, self.p2, self.p3
+                                         )
+
+    df_hat_dt += C_f_hat
+
+    # df_hat_dt += af.select(self.physical_system.params.tau(self.q1_center, 
+    #                                                        self.q2_center,
+    #                                                        self.p1, self.p2, self.p3
+    #                                                       ) != np.inf,\
+    #                        C_f_hat,\
+    #                        0
+    #                       )
     
     # Obtaining the dY_dt vector by joining the derivative quantities of
     # the individual distribution function and field modes:

@@ -1,8 +1,8 @@
 import arrayfire as af
 
 # Adapted from grim(by Chandra et al.):
-def get_LR_states_ppm(input_array, dim):
-
+def reconstruct_ppm(input_array, dim):
+    
     if(dim == 'q1'):
 
         x0_shift = 2;  y0_shift = 0
@@ -16,11 +16,11 @@ def get_LR_states_ppm(input_array, dim):
         x3_shift = 0; y3_shift = -1
         x4_shift = 0; y4_shift = -2
   
-    y0 = af.shift(input_array, x0_shift, y0_shift)
-    y1 = af.shift(input_array, x1_shift, y1_shift)
+    y0 = af.shift(input_array, 0, x0_shift, y0_shift)
+    y1 = af.shift(input_array, 0, x1_shift, y1_shift)
     y2 = input_array;
-    y3 = af.shift(input_array, x3_shift, y3_shift)
-    y4 = af.shift(input_array, x4_shift, y4_shift)
+    y3 = af.shift(input_array, 0, x3_shift, y3_shift)
+    y4 = af.shift(input_array, 0, x4_shift, y4_shift)
     
     # Approximants for slopes
     d0 = 2 * (y1-y0)
@@ -64,16 +64,5 @@ def get_LR_states_ppm(input_array, dim):
     left_value  = left_value  * (1 - corr2) + corr2 * (3 * y2 - 2 * right_value)
     right_value = right_value * corr2 + (1 - corr2) * right_value * (1 - corr3) + \
                   (1 - corr2) * corr3 * (3 * y2 - 2 * left_value)
-
+    
     return(left_value, right_value)
-
-def reconstruct_ppm(f, C_q1, C_q2):
-
-    multiply = lambda a, b: a * b
-
-    left_plus_eps_flux, right_minus_eps_flux = get_LR_states_ppm(af.broadcast(multiply, f, C_q1), 'q1')
-    bot_plus_eps_flux,  top_minus_eps_flux   = get_LR_states_ppm(af.broadcast(multiply, f, C_q2), 'q2')
-
-    return(left_plus_eps_flux, right_minus_eps_flux,
-           bot_plus_eps_flux, top_minus_eps_flux
-          )

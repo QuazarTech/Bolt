@@ -170,6 +170,7 @@ class physical_system(object):
         # The following functions return the advection terms 
         # as components of a tuple
         self.A_q = advection_term.A_q
+        self.C_q = advection_term.C_q
         self.A_p = advection_term.A_p
 
         # Assigning the function which is used in computing the term on RHS:

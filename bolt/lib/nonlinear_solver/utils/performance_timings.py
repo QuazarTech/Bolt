@@ -16,8 +16,7 @@ def print_table(self, N_iters):
     # Initializing the global variables(timespent per timestep):
     time_ts = np.zeros(1) 
     time_interp2 = np.zeros(1); time_sourcets = np.zeros(1)
-    time_fvm_solver = np.zeros(1); time_reconstruct = np.zeros(1)
-    time_riemann = np.zeros(1); time_fvm_ts = np.zeros(1)
+    time_fvm_solver = np.zeros(1); time_reconstruct = np.zeros(1); time_riemann = np.zeros(1)
     time_fieldstep = np.zeros(1); time_fieldsolver = np.zeros(1); time_interp3 = np.zeros(1)
     time_communicate_f = np.zeros(1); time_communicate_fields = np.zeros(1) 
     time_apply_bcs_f = np.zeros(1); time_apply_bcs_fields = np.zeros(1)
@@ -39,9 +38,6 @@ def print_table(self, N_iters):
                       op = MPI.MAX, root = 0
                      )
     self._comm.Reduce(np.array([self.time_riemann/N_iters]), time_riemann,
-                      op = MPI.MAX, root = 0
-                     )
-    self._comm.Reduce(np.array([self.time_fvm_ts/N_iters]), time_fvm_ts,
                       op = MPI.MAX, root = 0
                      )
     self._comm.Reduce(np.array([self.time_communicate_f/N_iters]), time_communicate_f,
@@ -82,7 +78,7 @@ def print_table(self, N_iters):
                      )
 
         table.add_row(['FVM_SOLVER', time_fvm_solver[0],
-                       100 * time_fvm_solver[0]/time_ts[0]
+                       100*time_fvm_solver[0]/time_ts[0]
                       ]
                      )
 
@@ -157,8 +153,10 @@ def print_table(self, N_iters):
                           ]
                          )
 
-            table.add_row(['DFDT_INTEGRATION', time_fvm_ts[0],
-                           100*time_fvm_ts[0]/time_fvm_solver[0]
+            dfdt_integration = time_fvm_solver - time_reconstruct - time_riemann
+
+            table.add_row(['DFDT_INTEGRATION', dfdt_integration[0],
+                           100*dfdt_integration[0]/time_fvm_solver[0]
                           ]
                          )
 

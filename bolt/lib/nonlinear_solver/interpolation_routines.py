@@ -6,6 +6,9 @@ import numpy as np
 
 def f_interp_2d(self, dt):
     
+    if(self.performance_test_flag == True):
+        tic = af.time()
+
     # Defining a lambda function to perform broadcasting operations
     # This is done using af.broadcast, which allows us to perform 
     # batched operations when operating on arrays of different sizes
@@ -29,6 +32,12 @@ def f_interp_2d(self, dt):
     self.f = af.reorder(self.f, 2, 0, 1)
 
     af.eval(self.f)
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp2 += toc - tic
+
     return
 
 def f_interp_p_3d(self, dt):
@@ -42,10 +51,21 @@ def f_interp_p_3d(self, dt):
     # when operating on arrays of different sizes
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
+
+    if(self.performance_test_flag == True):
+        tic = af.time()
+    
+    E1 = self.cell_centered_EM_fields[0]
+    E2 = self.cell_centered_EM_fields[1]
+    E3 = self.cell_centered_EM_fields[2]
+
+    B1_n = self.B_fields_at_nth_timestep[0]
+    B2_n = self.B_fields_at_nth_timestep[1]
+    B3_n = self.B_fields_at_nth_timestep[2]
+
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
-                                      self.E1, self.E2, self.E3,
-                                      self.B1_n, self.B2_n, self.B3_n,
+                                      E1, E2, E3, B1_n, B2_n, B3_n,
                                       self.physical_system.params
                                      )
     
@@ -99,4 +119,10 @@ def f_interp_p_3d(self, dt):
 
     self.f = self._convert_to_q_expanded(self.f)
     af.eval(self.f)
+
+    if(self.performance_test_flag == True):
+        af.sync()
+        toc = af.time()
+        self.time_interp3 += toc - tic
+
     return
