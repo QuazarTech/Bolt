@@ -3,7 +3,6 @@
 
 import arrayfire as af
 
-
 def fdtd(self, dt):
     # E's and B's are staggered in time such that
     # B's are defined at (n + 1/2), and E's are defined at n
@@ -25,16 +24,12 @@ def fdtd(self, dt):
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
     self._communicate_fields(True)
-    
+
     if(self.performance_test_flag == True):
         tic = af.time()
     
     dq1 = self.dq1
     dq2 = self.dq2
-
-    E1 = self.yee_grid_EM_fields[0]
-    E2 = self.yee_grid_EM_fields[1]
-    E3 = self.yee_grid_EM_fields[2]
 
     B1 = self.yee_grid_EM_fields[3]
     B2 = self.yee_grid_EM_fields[4]
@@ -51,11 +46,13 @@ def fdtd(self, dt):
     B3_shifted_q1 = af.shift(B3, 0, 1, 0)
     B3_shifted_q2 = af.shift(B3, 0, 0, 1)
 
-    E1 +=   (dt / dq2) * (B3 - B3_shifted_q2) - self.J1 * dt
-    E2 +=  -(dt / dq1) * (B3 - B3_shifted_q1) - self.J2 * dt
-    E3 +=   (dt / dq1) * (B2 - B2_shifted_q1) \
-          - (dt / dq2) * (B1 - B1_shifted_q2) \
-          - dt * self.J3
+    self.yee_grid_EM_fields[0] +=   (dt / dq2) * (B3 - B3_shifted_q2) - self.J1 * dt
+    self.yee_grid_EM_fields[1] +=  -(dt / dq1) * (B3 - B3_shifted_q1) - self.J2 * dt
+    self.yee_grid_EM_fields[2] +=   (dt / dq1) * (B2 - B2_shifted_q1) \
+                                  - (dt / dq2) * (B1 - B1_shifted_q2) \
+                                  - dt * self.J3
+
+    af.eval(self.yee_grid_EM_fields)
 
     if(self.performance_test_flag == True):
         af.sync()
@@ -66,6 +63,10 @@ def fdtd(self, dt):
 
     if(self.performance_test_flag == True):
         tic = af.time()
+
+    E1 = self.yee_grid_EM_fields[0]
+    E2 = self.yee_grid_EM_fields[1]
+    E3 = self.yee_grid_EM_fields[2]
 
     # dB1/dt = - dE3/dq2
     # dB2/dt = + dE3/dq1
@@ -78,12 +79,11 @@ def fdtd(self, dt):
     E3_shifted_q1 = af.shift(E3, 0, -1, 0)
     E3_shifted_q2 = af.shift(E3, 0, 0, -1)
 
-    B1 += -(dt / dq2) * (E3_shifted_q2 - E3)
-    B2 +=  (dt / dq1) * (E3_shifted_q1 - E3)
-    B3 += - (dt / dq1) * (E2_shifted_q1 - E2) \
-          + (dt / dq2) * (E1_shifted_q2 - E1)
+    self.yee_grid_EM_fields[3] += -(dt / dq2) * (E3_shifted_q2 - E3)
+    self.yee_grid_EM_fields[4] +=  (dt / dq1) * (E3_shifted_q1 - E3)
+    self.yee_grid_EM_fields[5] += - (dt / dq1) * (E2_shifted_q1 - E2) \
+                                  + (dt / dq2) * (E1_shifted_q2 - E1)
 
-    self.yee_grid_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
     if(self.performance_test_flag == True):
         af.sync()
@@ -91,7 +91,6 @@ def fdtd(self, dt):
         self.time_fieldsolver += toc - tic
     
     return
-
 
 def fdtd_grid_to_ck_grid(self):
     

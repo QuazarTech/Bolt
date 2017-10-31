@@ -8,19 +8,22 @@ from .fdtd_explicit import fdtd, fdtd_grid_to_ck_grid
 from .. import interpolation_routines
 
 def fields_step(self, dt):
+
     if(self.performance_test_flag == True):
         tic = af.time()
     
     if (self.physical_system.params.fields_solver == 'fft'):
-        self._communicate_fields()
         fft_poisson(self)
+        self._communicate_fields()
+        self._apply_bcs_fields()
 
     elif (self.physical_system.params.fields_solver == 'electrostatic'):
-        self._communicate_fields()
         compute_electrostatic_fields(self)
+        self._communicate_fields()
+        self._apply_bcs_fields()
 
     elif (self.physical_system.params.fields_solver == 'fdtd'):
-        # Will returned a flattened array containing the values of
+        # Will return a flattened array containing the values of
         # J1,2,3 in 2D space:
         self.J1 =   self.physical_system.params.charge_electron \
                   * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
@@ -47,9 +50,9 @@ def fields_step(self, dt):
         fdtd(self, dt)
         fdtd_grid_to_ck_grid(self)
 
-        self.cell_centered_EM_fields[3:] = 0.5 * (  self.cell_centered_EM_fields[3:]
-                                                  + self.B_fields_at_nth_timestep
-                                                 )
+        self.B_fields_at_nth_timestep = 0.5 * (  self.cell_centered_EM_fields[3:]
+                                               + self.B_fields_at_nth_timestep
+                                              )
 
     else:
         raise NotImplementedError('The method specified is \

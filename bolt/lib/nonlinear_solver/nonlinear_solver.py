@@ -522,11 +522,15 @@ class nonlinear_solver(object):
             
             if (self.physical_system.params.fields_initialize == 'fft'):
                 fft_poisson(self)
+                self._communicate_fields()
+                self._apply_bcs_fields()
 
             elif (self.physical_system.params.fields_initialize ==
                   'electrostatic'
                  ):
                 compute_electrostatic_fields(self)
+                self._communicate_fields()
+                self._apply_bcs_fields()
 
             elif (self.physical_system.params.fields_initialize == 'user-defined'):
                 

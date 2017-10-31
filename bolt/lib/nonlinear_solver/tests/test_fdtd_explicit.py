@@ -150,8 +150,8 @@ def test_fdtd_mode2():
         obj = test(N[i])
         N_g = obj.N_ghost
 
-        E1_fdtd = gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
-        E2_fdtd = gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
+        obj.yee_grid_EM_fields[0, N_g:-N_g, N_g:-N_g] = gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
+        obj.yee_grid_EM_fields[1, N_g:-N_g, N_g:-N_g] = gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
 
         dt   = obj.dq1 / 2
         time = np.arange(dt, 1 + dt, dt)

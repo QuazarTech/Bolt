@@ -182,8 +182,6 @@ def fft_poisson(self):
         self.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g] = E1_physical
         self.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g] = E2_physical
 
-        # Applying B.C's:
-        # self._communicate_fields()
         af.eval(self.cell_centered_EM_fields)
 
     if(self.performance_test_flag == True):

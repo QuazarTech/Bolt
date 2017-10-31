@@ -21,10 +21,13 @@ def communicate_f(self):
 
     N_g = self.N_ghost
 
-    # Assigning the local array only when non-periodic 
-    # boundary conditions are applied:
-    if(   self.boundary_conditions.in_q1 != 'periodic'
-       or self.boundary_conditions.in_q2 != 'periodic' 
+    # Assigning the local array only when Dirichlet
+    # boundary conditions are applied. This is needed since
+    # only inflowing characteristics are to be changed by 
+    # the apply boundary conditions function.
+
+    if(   self.boundary_conditions.in_q1 == 'dirichlet'
+       or self.boundary_conditions.in_q2 == 'dirichlet' 
       ):
         af.flat(self.f).to_ndarray(self._local_f_array)
 
@@ -74,23 +77,11 @@ def communicate_fields(self, on_fdtd_grid=False):
     # fields quantities to the PETSc.Vec:
 
     if(on_fdtd_grid is True):
-        if(   self.boundary_conditions.in_q1 != 'periodic'
-           or self.boundary_conditions.in_q2 != 'periodic' 
-          ):
-            flattened_EM_fields_array = af.flat(self.yee_grid_EM_fields)
-            flattened_EM_fields_array.to_ndarray(self._local_fields_array)
-        
         flattened_global_EM_fields_array = \
             af.flat(self.yee_grid_EM_fields[:, N_g:-N_g, N_g:-N_g])
         flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
 
     else:
-        if(   self.boundary_conditions.in_q1 != 'periodic'
-           or self.boundary_conditions.in_q2 != 'periodic' 
-          ):
-            flattened_EM_fields_array = af.flat(self.cell_centered_EM_fields)
-            flattened_EM_fields_array.to_ndarray(self._local_fields_array)
-
         flattened_global_EM_fields_array = \
             af.flat(self.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g])
         flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
