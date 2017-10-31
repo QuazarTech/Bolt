@@ -1,5 +1,4 @@
 import arrayfire as af
-af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 import h5py
@@ -69,7 +68,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 200
+t_final = 50
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -82,7 +81,7 @@ def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
         N_g                    = nls.N_ghost
-        E_data_nls[time_index] = af.sum(nls.E1[N_g:-N_g, N_g:-N_g]**2)
+        E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)
         E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
                                              * af.ifft2(ls.E1_hat[:, :, 0])
                                         )

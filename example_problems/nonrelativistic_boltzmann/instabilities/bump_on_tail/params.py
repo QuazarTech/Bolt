@@ -13,6 +13,11 @@ fields_solver = 'fft'
 # Dimensionality considered in velocity space:
 p_dim = 1
 
+# Method in q-space
+solver_method_in_q = 'ASL'
+riemann_solver = 'lax-friedrichs'
+reconstruction_method = 'weno5'
+
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1
 
@@ -29,7 +34,4 @@ k_q2 = 0
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (af.constant(np.inf, q1.shape[0], q2.shape[1], 
-                        p1.shape[2], dtype = af.Dtype.f64
-                       )
-           )
+    return (np.inf)
