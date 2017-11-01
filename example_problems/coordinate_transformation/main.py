@@ -12,12 +12,11 @@ import boundary_conditions
 import params
 import initialize
 
-import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
+import bolt.src.coordinate_transformation.advection_terms as advection_terms
+import bolt.src.coordinate_transformation.collision_operator \
     as collision_operator
 
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.coordinate_transformation.moment_defs as moment_defs
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -49,11 +48,10 @@ h5f.close()
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        
         print('For Time =', t0)
-        print('MIN(f) =', af.min(nls.f[:, 3:-3, 3:-3]))
-        print('MAX(f) =', af.max(nls.f[:, 3:-3, 3:-3]))
-        print('SUM(f) =', af.sum(nls.f[:, 3:-3, 3:-3]))
+        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
+        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
+        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
         print()
 
         nls.strang_timestep(dt)

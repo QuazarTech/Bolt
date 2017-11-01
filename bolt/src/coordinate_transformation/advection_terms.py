@@ -6,14 +6,17 @@ nonrelativistic Boltzmann equation.
 # Conservative Advection terms in q-space:
 def C_q(q1, q2, p1, p2, p3, params):
     """Return the terms C_q1, C_q2."""
-    return (p1, p2)
+    import arrayfire as af
+    return (  af.tile(p2**2,   1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0]), 
+              -af.tile(p1 * p2, 1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0])
+           )
 
 def A_q(q1, q2, p1, p2, p3, params):
     """Return the terms A_q1, A_q2."""
-    return (p1, p2)
-
-# This can then be called inside A_p if needed:
-# F1 = (params.char....)(E1 + ....) + T1(q1, q2, p1, p2, p3)
+    import arrayfire as af
+    return (  af.tile(p2**2,   1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0]), 
+              -af.tile(p1 * p2, 1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0])
+           )
 
 def A_p(q1, q2, p1, p2, p3,
         E1, E2, E3, B1, B2, B3,

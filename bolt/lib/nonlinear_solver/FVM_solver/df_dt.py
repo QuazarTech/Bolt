@@ -117,12 +117,12 @@ def df_dt(f, self):
                                )
 
     df_dt = - (right_flux - left_flux)/self.dq1 \
-            - (top_flux   - bot_flux )/self.dq2 \
-            + self._source(f, self.q1_center, self.q2_center,
-                           self.p1, self.p2, self.p3, 
-                           self.compute_moments, 
-                           self.physical_system.params
-                          ) 
+            - (top_flux   - bot_flux )/self.dq2 #\
+            # + self._source(f, self.q1_center, self.q2_center,
+            #                self.p1, self.p2, self.p3, 
+            #                self.compute_moments, 
+            #                self.physical_system.params
+            #               ) 
 
     af.eval(df_dt)
     return(df_dt)

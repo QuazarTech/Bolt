@@ -1,10 +1,10 @@
 q1_start = 0
 q1_end   = 1.5
-N_q1     = 1024
+N_q1     = 128
 
 q2_start = 0
 q2_end   = 1
-N_q2     = 1024
+N_q2     = 128
 
 p1_start = -4
 p1_end   = 4

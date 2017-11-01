@@ -5,19 +5,21 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'electrostatic'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
 
-# Solver method:
-solver_method_in_q = 'ASL'
-
 # Dimensionality considered in velocity space:
 p_dim = 2
+
+# Method in q-space
+solver_method_in_q = 'ASL'
+riemann_solver = 'lax-friedrichs'
+reconstruction_method = 'weno5'
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1

@@ -32,7 +32,7 @@ def strang(self, op1, op2, dt):
          Time-step size to evolve the system
     """
     op1(self, 0.5 * dt)
-    op2(self, dt)
+    # op2(self, dt)
     op1(self, 0.5 * dt)
 
     return    

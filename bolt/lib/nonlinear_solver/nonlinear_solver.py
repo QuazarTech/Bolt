@@ -325,18 +325,22 @@ class nonlinear_solver(object):
         (af.flat(self.f[:, N_g:-N_g, N_g:-N_g])).to_ndarray(self._glob_f_array)
 
         # Assigning the advection terms along q1 and q2
-        self._A_q1 = physical_system.A_q(self.p1, self.p2, self.p3,
+        self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[0]
-        self._A_q2 = physical_system.A_q(self.p1, self.p2, self.p3,
+        self._A_q2 = physical_system.A_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[1]
 
         # Assigning the conservative advection terms along q1 and q2
-        self._C_q1 = physical_system.C_q(self.p1, self.p2, self.p3,
+        self._C_q1 = physical_system.C_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[0]
-        self._C_q2 = physical_system.C_q(self.p1, self.p2, self.p3,
+        self._C_q2 = physical_system.C_q(self.q1_center, self.q2_center,
+                                         self.p1, self.p2, self.p3,
                                          physical_system.params
                                         )[1]
 

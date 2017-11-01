@@ -37,17 +37,17 @@ t_final = 2.0
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:].reshape(134, 134)
-q2  = h5f['q2'][:].reshape(134, 134)
-n   = h5f['n'][:].reshape(134, 134)
+q1  = h5f['q1'][:].reshape(70, 70)
+q2  = h5f['q2'][:].reshape(70, 70)
+n   = h5f['n'][:].reshape(70, 70)
 h5f.close()
 
-pl.contourf(q1[3:-3, 3:-3],
-            q2[3:-3, 3:-3],
+pl.contourf(q1[3:-3, 3:-3] * np.cos(q2[3:-3, 3:-3]),
+            q1[3:-3, 3:-3] * np.sin(q2[3:-3, 3:-3]),
             n[3:-3, 3:-3],
-            100,
-            cmap = 'gist_heat'
+            100
            )
+
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -56,16 +56,17 @@ pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
+
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(134, 134)
+    n   = h5f['n'][:].reshape(70, 70)
     h5f.close()
 
-    pl.contourf(q1[3:-3, 3:-3],
-                q2[3:-3, 3:-3],
+    pl.contourf(q1[3:-3, 3:-3] * np.cos(q2[3:-3, 3:-3]),
+                q1[3:-3, 3:-3] * np.sin(q2[3:-3, 3:-3]),
                 n[3:-3, 3:-3],
-                100,
-                cmap = 'gist_heat'
+                100
                )
+
     pl.title('Time =' + str(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
