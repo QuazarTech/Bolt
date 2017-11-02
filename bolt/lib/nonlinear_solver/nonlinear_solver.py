@@ -598,5 +598,4 @@ class nonlinear_solver(object):
     dump_moments               = dump.dump_moments
 
     load_distribution_function = load.load_distribution_function
-    
-    print_performance_timings = print_table
+    print_performance_timings  = print_table

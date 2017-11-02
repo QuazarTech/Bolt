@@ -8,7 +8,7 @@ from .temporal_evolution import operator_splitting_methods as split
 from .temporal_evolution import integrators
 
 # Importing solver functions:
-from .FVM_solver.df_dt import df_dt
+from .FVM_solver.df_dt_fvm import df_dt_fvm
 from .interpolation_routines import f_interp_2d
 from .EM_fields_solver.fields_step import fields_step
 
@@ -22,7 +22,7 @@ def op_fvm_q(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    self.f = integrators.RK2(df_dt, self.f, dt, self)
+    self.f = integrators.RK2(df_dt_fvm, self.f, dt, self)
     
     af.eval(self.f)
     

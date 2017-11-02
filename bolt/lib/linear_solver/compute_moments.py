@@ -60,24 +60,31 @@ def compute_moments(self, moment_name):
                           + moment_coeffs[1] * self.p2**(moment_exponents[1]) \
                           + moment_coeffs[2] * self.p3**(moment_exponents[2])
 
-    # Since f_hat = Y[:, :, :, 0]:
-    # We sum along axis 2 which contains the variations in velocity:
-    # Defining lambda functions to perform broadcasting operations:
-    # This is done using af.broadcast, which allows us to perform 
-    # batched operations when operating on arrays of different sizes:
-    multiply   = lambda a, b:a * b
-    
-    # af.broadcast(function, *args) performs batched operations on
-    # function(*args):
-    moment_hat = af.sum(af.broadcast(multiply, self.Y[:, :, :, 0], 
-                                     moment_variable
-                                    ), 
-                        2
-                       ) * self.dp3 * self.dp2 * self.dp1
+    if(self.single_mode_evolution == True):
+        delta_moment_hat =   np.sum(self.Y[0] * moment_variable) \
+                           * self.dp3 * self.dp2 * self.dp1
+        return(delta_moment_hat)
 
-    # Scaling Appropriately:
-    moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-    moment     = af.real(af.ifft2(moment_hat))
 
-    af.eval(moment)
-    return(moment)
+    else:
+        # Since f_hat = Y[:, :, :, 0]:
+        # We sum along axis 2 which contains the variations in velocity:
+        # Defining lambda functions to perform broadcasting operations:
+        # This is done using af.broadcast, which allows us to perform 
+        # batched operations when operating on arrays of different sizes:
+        multiply   = lambda a, b:a * b
+        
+        # af.broadcast(function, *args) performs batched operations on
+        # function(*args):
+        moment_hat = af.sum(af.broadcast(multiply, self.Y[:, :, :, 0], 
+                                         moment_variable
+                                        ), 
+                            2
+                           ) * self.dp3 * self.dp2 * self.dp1
+
+        # Scaling Appropriately:
+        moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+        moment     = af.real(af.ifft2(moment_hat))
+
+        af.eval(moment)
+        return(moment)

@@ -32,7 +32,7 @@ def strang(self, op1, op2, dt):
          Time-step size to evolve the system
     """
     op1(self, 0.5 * dt)
-    # op2(self, dt)
+    op2(self, dt)
     op1(self, 0.5 * dt)
 
     return    
@@ -92,56 +92,36 @@ def swss(self, op1, op2, dt):
     
     """
     # Storing start values:
-    f_start = self.f
-
-    E1_start = self.E1
-    E2_start = self.E2
-    E3_start = self.E3
-    
-    B1_start = self.B1
-    B2_start = self.B2
-    B3_start = self.B3
+    f_start                       = self.f
+    cell_centered_EM_fields_start = self.cell_centered_EM_fields
+    yee_grid_EM_fields_start      = self.yee_grid_EM_fields
 
     # Performing e^At e^Bt
     op1(self, dt)
     op2(self, dt)
 
     # Storing values obtained in this order:
-    f_intermediate = self.f
-
-    E1_intermediate = self.E1
-    E2_intermediate = self.E2
-    E3_intermediate = self.E3
-    
-    B1_intermediate = self.B1
-    B2_intermediate = self.B2
-    B3_intermediate = self.B3
+    f_intermediate                       = self.f
+    cell_centered_EM_fields_intermediate = self.cell_centered_EM_fields
+    yee_grid_EM_fields_intermediate      = self.yee_grid_EM_fields
 
     # Reassiging starting values:
-    self.f = f_start    
-
-    self.E1 = E1_start
-    self.E2 = E2_start
-    self.E3 = E3_start
-    
-    self.B1 = B1_start
-    self.B2 = B2_start
-    self.B3 = B3_start
+    self.f                       = f_start    
+    self.cell_centered_EM_fields = cell_centered_EM_fields_start
+    self.yee_grid_EM_fields      = yee_grid_EM_fields_start
 
     # Performing e^Bt e^At:
     op2(self, dt)
     op1(self, dt)
 
     # Averaging solution:
-    self.f = 0.5 * (self.f + f_intermediate)
-    
-    self.E1 = 0.5 * (self.E1 + E1_intermediate)
-    self.E2 = 0.5 * (self.E2 + E2_intermediate)
-    self.E3 = 0.5 * (self.E3 + E3_intermediate)
-    
-    self.B1 = 0.5 * (self.B1 + B1_intermediate)
-    self.B2 = 0.5 * (self.B2 + B2_intermediate)
-    self.B3 = 0.5 * (self.B3 + B3_intermediate)
+    self.f                       = 0.5 * (self.f + f_intermediate)
+    self.cell_centered_EM_fields = 0.5 * (  self.cell_centered_EM_fields 
+                                          + cell_centered_EM_fields_intermediate
+                                         )
+    self.yee_grid_EM_fields      = 0.5 * (  self.yee_grid_EM_fields
+                                          + yee_grid_EM_fields_intermediate
+                                         )
 
     return
 
@@ -173,74 +153,42 @@ def jia(self, op1, op2, dt):
     
     """
     # Storing start values:
-    f_start = self.f
+    f_start                       = self.f
+    cell_centered_EM_fields_start = self.cell_centered_EM_fields
+    yee_grid_EM_fields_start      = self.yee_grid_EM_fields
 
-    E1_start = self.E1
-    E2_start = self.E2
-    E3_start = self.E3
-    
-    B1_start = self.B1
-    B2_start = self.B2
-    B3_start = self.B3
-
-    _strang_split_operations(self, op1, op2, dt)
+    strang(self, op1, op2, dt)
 
     # Storing values obtained in this order:
-    f_intermediate1 = self.f
-
-    E1_intermediate1 = self.E1
-    E2_intermediate1 = self.E2
-    E3_intermediate1 = self.E3
-    
-    B1_intermediate1 = self.B1
-    B2_intermediate1 = self.B2
-    B3_intermediate1 = self.B3
+    f_intermediate1                       = self.f
+    cell_centered_EM_fields_intermediate1 = self.cell_centered_EM_fields
+    yee_grid_EM_fields_intermediate1      = self.yee_grid_EM_fields
 
     # Reassiging starting values:
-    self.f = f_start    
+    self.f                       = f_start    
+    self.cell_centered_EM_fields = cell_centered_EM_fields_start
+    self.yee_grid_EM_fields      = yee_grid_EM_fields_start
 
-    self.E1 = E1_start
-    self.E2 = E2_start
-    self.E3 = E3_start
-    
-    self.B1 = B1_start
-    self.B2 = B2_start
-    self.B3 = B3_start
-
-    _strang_split_operations(self, op2, op1, dt)
+    strang(self, op2, op1, dt)
     
     # Storing values obtained in this order:
-    f_intermediate2 = self.f
-
-    E1_intermediate2 = self.E1
-    E2_intermediate2 = self.E2
-    E3_intermediate2 = self.E3
-    
-    B1_intermediate2 = self.B1
-    B2_intermediate2 = self.B2
-    B3_intermediate2 = self.B3
+    f_intermediate2                       = self.f
+    cell_centered_EM_fields_intermediate2 = self.cell_centered_EM_fields
+    yee_grid_EM_fields_intermediate2      = self.yee_grid_EM_fields
 
     # Reassiging starting values:
-    self.f = f_start    
-
-    self.E1 = E1_start
-    self.E2 = E2_start
-    self.E3 = E3_start
+    self.f                       = f_start    
+    self.cell_centered_EM_fields = cell_centered_EM_fields_start
+    self.yee_grid_EM_fields      = yee_grid_EM_fields_start
     
-    self.B1 = B1_start
-    self.B2 = B2_start
-    self.B3 = B3_start
+    swss(self, op1, op2, dt)
     
-    _swss_split_operations(self, op1, op2, dt)
-    
-    self.f = (2/3)*(f_intermediate1+f_intermediate2)-(1/3)*self.f
-    
-    self.E1 = (2/3)*(E1_intermediate1+E1_intermediate2)-(1/3)*self.E1
-    self.E2 = (2/3)*(E2_intermediate1+E2_intermediate2)-(1/3)*self.E2
-    self.E3 = (2/3)*(E3_intermediate1+E3_intermediate2)-(1/3)*self.E3
-    
-    self.B1 = (2/3)*(B1_intermediate1+B1_intermediate2)-(1/3)*self.B1
-    self.B2 = (2/3)*(B2_intermediate1+B2_intermediate2)-(1/3)*self.B2
-    self.B3 = (2/3)*(B3_intermediate1+B3_intermediate2)-(1/3)*self.B3
+    self.f                       = (2 / 3)*(f_intermediate1 + f_intermediate2)- (1 / 3) * self.f
+    self.cell_centered_EM_fields = (2 / 3)*(  cell_centered_EM_fields_intermediate1
+                                            + cell_centered_EM_fields_intermediate2
+                                           ) - (1 / 3) * self.cell_centered_EM_fields
+    self.yee_grid_EM_fields      = (2 / 3)*(  yee_grid_EM_fields_intermediate1
+                                            + yee_grid_EM_fields_intermediate2
+                                           )- (1 / 3) * self.yee_grid_EM_fields
 
     return

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
-import numpy as np
 
 def communicate_f(self):
     """
@@ -88,7 +87,6 @@ def communicate_fields(self, on_fdtd_grid=False):
 
     # Takes care of boundary conditions and interzonal communications:
     self._da_fields.globalToLocal(self._glob_fields, self._local_fields)
-
 
     # Converting back to af.Array
     if(on_fdtd_grid is True):

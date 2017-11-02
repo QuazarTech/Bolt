@@ -1,6 +1,11 @@
 import numpy as np
 import arrayfire as af
 
+single_mode_evolution = True
+
+rho_background         = 1
+temperature_background = 1
+
 # Can be defined as 'fft', 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
@@ -34,4 +39,4 @@ k_q2 = 0
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf)
+    return (0.01)
