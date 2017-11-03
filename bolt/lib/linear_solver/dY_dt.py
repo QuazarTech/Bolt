@@ -214,14 +214,14 @@ def dY_dt_singlemode_evolution(Y, self):
                                        - delta_B1_hat * self.p2
                                       ) * self.dfdp3_background
 
-    C_f = self._source(delta_f_hat,
-                       self.p1, self.p2, self.p3,
-                       self.compute_moments, 
-                       self.physical_system.params
-                      )
+    C_f_hat = self._source(delta_f_hat,
+                           self.p1, self.p2, self.p3,
+                           self.compute_moments, 
+                           self.physical_system.params
+                          )
 
     ddelta_f_hat_dt = - 1j * (k_q1 * self.p1 + k_q2 * self.p2) * delta_f_hat \
-                      - fields_term + C_f 
+                      - fields_term + C_f_hat
   
     dY_dt = np.array([ddelta_f_hat_dt,
                       ddelta_E1_hat_dt, ddelta_E1_hat_dt, ddelta_E3_hat_dt,

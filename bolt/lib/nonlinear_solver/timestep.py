@@ -88,7 +88,7 @@ def lie_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(self.physical_system.params.charge_electron == 0):
-            op_fvm_q(self, source, dt)
+            op_fvm_q(self, dt)
 
         else:
             split.lie(self, op_fvm_q, op_fields, dt)

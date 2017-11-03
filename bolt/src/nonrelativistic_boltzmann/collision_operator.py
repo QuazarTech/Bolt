@@ -80,29 +80,29 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     rho = params.rho_background
     T   = params.temperature_background
   
+    p1_b = params.p1_bulk_background
+    p2_b = params.p2_bulk_background
+    p3_b = params.p3_bulk_background
+
     tau = params.tau(0, 0, p1, p2, p3)
-
-    dp1 = p1[1, 0, 0] - p1[0, 0, 0]
-    dp2 = 1
-    dp3 = 1
-
-    if(p2.shape == 1):
-        dp2 = p2[0, 1, 0] - p2[0, 0, 0]
-    
-    if(p3.shape == 1):
-        dp3 = p3[0, 0, 1] - p3[0, 0, 0]
 
     # Obtaining the normalization constant:
     delta_rho_hat = moments('density')
     
-    delta_p1_hat = moments('mom_p1_bulk')/rho
-    delta_p2_hat = moments('mom_p2_bulk')/rho
-    delta_p3_hat = moments('mom_p3_bulk')/rho
+    delta_p1_hat = (moments('mom_p1_bulk') - p1_b * delta_rho_hat)/rho
+    delta_p2_hat = (moments('mom_p2_bulk') - p2_b * delta_rho_hat)/rho
+    delta_p3_hat = (moments('mom_p3_bulk') - p3_b * delta_rho_hat)/rho
     
     delta_T_hat =   (  (1 / params.p_dim) \
                      * moments('energy') 
-                     - np.sum(delta_f_hat) * dp1 * dp2 * dp3
+                     - delta_rho_hat * T
+                     - 2 * rho * p1_b * delta_p1_hat
+                     - 2 * rho * p2_b * delta_p2_hat
+                     - 2 * rho * p3_b * delta_p3_hat
                     ) / rho
+
+    # NOTE: Expressions for p_dim = 3 and p_dim = 2 are only valid when the 
+    # bulk velocities of the background distribution function are zero.
 
     if(params.p_dim == 3):
 
@@ -140,14 +140,17 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
                   )/tau
       
     else:
+        expr_term_1 = 2 * np.sqrt(2 * m**3) * rho * T * p1 * delta_p1_hat
+        expr_term_2 = np.sqrt(2 * m**3) * rho * (p1**2 + p1_b**2) * delta_T_hat
+        expr_term_3 = 2 * np.sqrt(2 * m) * k * T**2 * delta_rho_hat
+        expr_term_4 = - np.sqrt(2 * m) * k * rho * T * delta_T_hat 
+        expr_term_5 = - 2 * np.sqrt(2 * m**3) * rho * p1_b \
+                      * (T * delta_p1_hat + p1 * delta_T_hat)  
     
-        expr_term_1 = np.sqrt(2 * m**3) * delta_T_hat * rho * p1**2
-        expr_term_2 = 2 * np.sqrt(2 * m) * k * delta_rho_hat * T**2
-        expr_term_3 = 2 * np.sqrt(2 * m**3) * rho * delta_p1_hat * p1 * T
-        expr_term_4 = - np.sqrt(2 * m) * k * delta_T_hat * rho * T
-    
-        C_f_hat = ((  (expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4) 
-                    * np.exp(-m * p1**2/(2 * k * T))/(4 * np.sqrt(np.pi * T**5 * k**3))
+        C_f_hat = ((  (  expr_term_1 + expr_term_2 + expr_term_3 
+                       + expr_term_4 + expr_term_5 
+                      ) 
+                    * np.exp(-m * (p1 - p1_b)**2/(2 * k * T))/(4 * np.sqrt(np.pi * T**5 * k**3))
                    ) - delta_f_hat
                   )/tau
   

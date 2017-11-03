@@ -253,6 +253,32 @@ class linear_solver(object):
             self.p3 = np.array(self.p3).\
                       reshape(self.N_p1, self.N_p2, self.N_p3)
 
+            params.rho_background = self.compute_moments('density',
+                                                         self.f_background
+                                                        )
+            
+            params.p1_bulk_background = self.compute_moments('mom_p1_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            params.p2_bulk_background = self.compute_moments('mom_p2_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            params.p3_bulk_background = self.compute_moments('mom_p3_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            
+            params.T_background = ((1 / params.p_dim) * \
+                                   self.compute_moments('energy',
+                                                        self.f_background
+                                                       )
+                                   - params.rho_background * 
+                                     params.p1_bulk_background**2
+                                   - params.rho_background * 
+                                     params.p2_bulk_background**2
+                                   - params.rho_background * 
+                                     params.p3_bulk_background**2
+                                  ) / params.rho_background
+
             self.dfdp1_background = np.array(self.dfdp1_background).\
                                     reshape(self.N_p1, self.N_p2, self.N_p3)
             self.dfdp2_background = np.array(self.dfdp2_background).\
