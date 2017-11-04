@@ -11,21 +11,21 @@ from .reconstruction.weno5 import reconstruct_weno5
 # df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
 # Grid convention considered:
 
-#                  (i, j+1/2)
+#                  (i+1/2, j+1)
 #              X-------o-------X
 #              |               |
 #              |               |
-#   (i-1/2, j) o       o       o (i+1/2, j)
-#              |     (i, j)    |
+#   (i, j+1/2) o       o       o (i+1, j+1/2)
+#              | (i+1/2, j+1/2)|
 #              |               |
 #              X-------o-------X
-#                  (i, j-1/2)
+#                  (i+1/2, j)
 
 # Using the finite volume method:
-# d(f_{i, j})/dt  = ((- (C_q1 * f)_{i + 1/2, j} + (C_q1 * f)_{i - 1/2, j})/dq1
-#                   (- (C_q2 * f)_{i, j + 1/2} + (C_q2 * f)_{i, j - 1/2})/dq2
-#                    +  C[f_{i, j}]
-#                   )
+# d(f_{i+1/2, j+1/2})/dt  = ((- (C_q1 * f)_{i + 1, j + 1/2} + (C_q1 * f)_{i, j + 1/2})/dq1
+                          #  (- (C_q2 * f)_{i + 1/2, j + 1} + (C_q2 * f)_{i + 1/2, j})/dq2
+                          #  +  C[f_{i+1/2, j+1/2}]
+                          # )
 
 def df_dt_fvm(f, self):
     
@@ -45,7 +45,6 @@ def df_dt_fvm(f, self):
         f_right_minus_eps = f
         f_bot_plus_eps    = f
         f_top_minus_eps   = f
-
 
     elif(self.physical_system.params.reconstruction_method == 'minmod'):
         
@@ -86,35 +85,24 @@ def df_dt_fvm(f, self):
         self.time_reconstruct += toc - tic
 
     # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
-    # f_right_plus_eps of i-th cell is f_left_plus_eps   of the (i+1)th cell
     f_left_minus_eps = af.shift(f_right_minus_eps, 0,  1)
-    f_right_plus_eps = af.shift(f_left_plus_eps,   0, -1)
-
-    # Extending the same to bot/top:
+    # Extending the same to bot:
     f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 0,  1)
-    f_top_plus_eps   = af.shift(f_bot_plus_eps,  0, 0, -1)
 
     # Applying the shifts to the fluxes:
     left_minus_eps_flux = af.shift(right_minus_eps_flux, 0,  1)
-    right_plus_eps_flux = af.shift(left_plus_eps_flux,   0, -1)
     bot_minus_eps_flux  = af.shift(top_minus_eps_flux, 0, 0,  1)
-    top_plus_eps_flux   = af.shift(bot_plus_eps_flux,  0, 0, -1)
 
     left_flux  = riemann_solver(self, left_minus_eps_flux, left_plus_eps_flux,
                                 f_left_minus_eps, f_left_plus_eps
-                               )
-
-    right_flux = riemann_solver(self, right_minus_eps_flux, right_plus_eps_flux,
-                                f_right_minus_eps, f_right_plus_eps
                                )
 
     bot_flux   = riemann_solver(self, bot_minus_eps_flux, bot_plus_eps_flux,
                                 f_bot_minus_eps, f_bot_plus_eps
                                )
 
-    top_flux   = riemann_solver(self, top_minus_eps_flux, top_plus_eps_flux,
-                                f_top_minus_eps, f_top_plus_eps
-                               )
+    right_flux = af.shift(left_flux, 0, -1)
+    top_flux   = af.shift(bot_flux, 0, 0, -1)
 
     df_dt = - (right_flux - left_flux)/self.dq1 \
             - (top_flux   - bot_flux )/self.dq2 \

@@ -241,8 +241,43 @@ class linear_solver(object):
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
+   
+        # Scaling Appropriately:
+        # Except the case of (0, 0) the FFT returns
+        # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
+        f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
         if(self.single_mode_evolution == True):
+            # Background
+            f_hat[0, 0, :] = 0
+
+            # Finding the indices of the perturbation introduced:
+            i_q1_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
+                                        (self.N_q1, self.N_q2, 
+                                         self.N_p1 * self.N_p2 * self.N_p3
+                                        ),order = 'F'
+                                       )[0]
+
+            i_q2_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
+                                        (self.N_q1, self.N_q2, 
+                                         self.N_p1 * self.N_p2 * self.N_p3
+                                        ),order = 'F'
+                                       )[1]
+
+            delta_f_hat_real_part = af.max(af.real(  f_hat[i_q1_max, i_q2_max]
+                                                   / self.f_background
+                                                  )
+                                          )
+
+            delta_f_hat_imag_part = af.max(af.imag(  f_hat[i_q1_max, i_q2_max]
+                                                   / self.f_background
+                                                  )
+                                          )
+
+            # Taking sum to get a scalar value:
+            params.k_q1 = af.sum(self.k_q1[i_q1_max, i_q2_max])
+            params.k_q2 = af.sum(self.k_q2[i_q1_max, i_q2_max])
+
             self.f_background = np.array(self.f_background).\
                                 reshape(self.N_p1, self.N_p2, self.N_p3)
 
@@ -286,8 +321,8 @@ class linear_solver(object):
             self.dfdp3_background = np.array(self.dfdp3_background).\
                                     reshape(self.N_p1, self.N_p2, self.N_p3)
 
-            delta_f_hat =   params.pert_real * self.f_background \
-                          + params.pert_imag * self.f_background * 1j 
+            delta_f_hat =   delta_f_hat_real_part * self.f_background \
+                          + delta_f_hat_imag_part * self.f_background * 1j 
 
             self.Y = np.array([delta_f_hat])
             compute_electrostatic_fields(self)
@@ -298,12 +333,6 @@ class linear_solver(object):
                              )
 
         else:
-            
-            # Scaling Appropriately:
-            # Except the case of (0, 0) the FFT returns
-            # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
-            f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
-
             # Using a vector Y to evolve the system:
             self.Y = af.constant(0, self.N_q1, self.N_q2,
                                  self.N_p1 * self.N_p2 * self.N_p3,
@@ -380,7 +409,7 @@ class linear_solver(object):
     # Time-steppers:
     RK2_timestep = timestep.RK2_step
     RK4_timestep = timestep.RK4_step
-    RK6_timestep = timestep.RK6_step
+    RK5_timestep = timestep.RK5_step
 
     # Routine which is used in computing the 
     # moments of the distribution function:

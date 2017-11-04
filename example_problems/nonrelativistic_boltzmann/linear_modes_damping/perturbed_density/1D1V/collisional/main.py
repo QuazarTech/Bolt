@@ -76,7 +76,7 @@ ls  = linear_solver(linearized_system)
 
 
 # Time parameters:
-dt      = 0.005
+dt      = 0.001
 t_final = 0.5
 
 time_array = np.arange(0, t_final + dt, dt)
@@ -88,7 +88,7 @@ rho_data_ls   = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        print('Computing For Time =', t0)
+        # print('Computing For Time =', t0)
 
         n_nls                     = nls.compute_moments('density')
         rho_data_nls[time_index]  = af.max(n_nls[:, 3:-3, 3:-3])
@@ -101,9 +101,11 @@ def time_evolution():
             rho_data_ls[time_index]  = af.max(n_ls) 
 
         nls.lie_timestep(dt)
-        ls.RK2_timestep(dt)
-        
+        ls.RK4_timestep(dt)
+    
 time_evolution()
+
+print(af.sum(nls.f))
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')

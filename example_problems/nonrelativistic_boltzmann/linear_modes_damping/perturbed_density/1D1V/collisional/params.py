@@ -32,7 +32,7 @@ charge_electron    = 0
 rho_background         = 1
 temperature_background = 1
 
-p1_bulk_background = 1
+p1_bulk_background = 0
 p2_bulk_background = 0
 p3_bulk_background = 0
 

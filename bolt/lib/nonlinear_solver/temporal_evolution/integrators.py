@@ -27,7 +27,7 @@ def RK4(dx_dt, x_initial, dt, *args):
     af.eval(x)
     return(x)
 
-def RK6(dx_dt, x_initial, dt, *args):
+def RK5(dx_dt, x_initial, dt, *args):
 
     k1 = dx_dt(x_initial, *args)
     x  = x_initial + 0.25 * k1 * dt

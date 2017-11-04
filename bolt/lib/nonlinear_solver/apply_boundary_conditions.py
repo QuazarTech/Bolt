@@ -105,13 +105,11 @@ def apply_bcs_f(self):
 
         # _A_q2 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
+        
         A_q2 = af.tile(self._A_q2, 1, 
                        self.f.shape[1],
                        self.f.shape[2]
                       )
-
-        else:
-            A_q2 = self._A_q2
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):

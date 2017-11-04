@@ -3,6 +3,7 @@
 
 from petsc4py import PETSc
 import numpy as np
+import arrayfire as af
 
 def load_distribution_function(self, file_name):
     """
@@ -23,13 +24,9 @@ def load_distribution_function(self, file_name):
     The above statemant will load the distribution function data stored in the file
     distribution_function.h5 into self.f
     """
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', PETSc.Viewer.Mode.READ, 
-                                       comm=self._comm
-                                      )
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', PETSc.Viewer.Mode.READ)
     self._glob_f.load(viewer)
-
-    N_g = self.N_ghost
-
-    self.f[N_g:-N_g, N_g:-N_g] = self._glob_f_value[:]
+    self.Y[:, :, :, 0] =   2 * af.fft2(af.to_array(self._glob_f_value[:])) \
+                         / (self.N_q1 * self.N_q2)
 
     return

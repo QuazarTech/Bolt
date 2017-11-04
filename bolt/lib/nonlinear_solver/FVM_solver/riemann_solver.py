@@ -28,7 +28,9 @@ def riemann_solver(self, left_flux, right_flux, left_f, right_f):
         flux     = upwind_flux(left_flux, right_flux, velocity)
 
     elif(self.physical_system.params.riemann_solver == 'lax-friedrichs'):
-        flux = lax_friedrichs_flux(left_flux, right_flux, left_f, right_f, 0.016)
+        flux = lax_friedrichs_flux(left_flux, right_flux, left_f, right_f, 
+                                   self.dt/min(self.dq1, self.dq2)
+                                  )
 
     if(self.performance_test_flag == True):
         af.sync()

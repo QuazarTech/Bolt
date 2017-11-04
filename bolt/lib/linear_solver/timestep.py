@@ -4,8 +4,8 @@
 from . import integrators
 from .dY_dt import dY_dt
 
-def RK6_step(self, dt):
-    self.Y = integrators.RK6(dY_dt, self.Y, dt, self)
+def RK5_step(self, dt):
+    self.Y = integrators.RK5(dY_dt, self.Y, dt, self)
     return
 
 def RK4_step(self, dt):
