@@ -15,8 +15,10 @@ import h5py
 from petsc4py import PETSc
 
 # Importing Solver functions:
-from bolt.lib.nonlinear_solver.dump \
+from bolt.lib.nonlinear_solver.file_io.dump \
     import dump_moments, dump_distribution_function
+from bolt.lib.nonlinear_solver.file_io.load \
+    import load_distribution_function
 
 from bolt.lib.nonlinear_solver.compute_moments import \
     compute_moments as compute_moments_imported
@@ -58,9 +60,9 @@ class test(object):
                                     }
                                    )
 
-        self.f = af.randu(self.N_q1 + 2 * self.N_ghost,
+        self.f = af.randu(self.N_p1 * self.N_p2 * self.N_p3,
+                          self.N_q1 + 2 * self.N_ghost,
                           self.N_q2 + 2 * self.N_ghost,
-                          self.N_p1 * self.N_p2 * self.N_p3,
                           dtype = af.Dtype.f64
                          )
 
@@ -82,11 +84,10 @@ class test(object):
                                                    )
 
         self._glob_f       = self._da_dump_f.createGlobalVec()
-        self._glob_f_value = self._da_dump_f.getVecArray(self._glob_f)
+        self._glob_f_array = self._glob_f.getArray()
 
         self._glob_moments       = self._da_dump_moments.createGlobalVec()
-        self._glob_moments_value = self._da_dump_moments.\
-                                   getVecArray(self._glob_moments)
+        self._glob_moments_array =self._glob_moments.getArray()
 
         PETSc.Object.setName(self._glob_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
@@ -94,24 +95,19 @@ class test(object):
     compute_moments     = compute_moments_imported
     _calculate_p_center = calculate_p
 
-def test_dump_distribution_function():
-    test_obj                  = test()
-    N_g                       = test_obj.N_ghost
-    test_obj._glob_f_value[:] = np.array(test_obj.f)[N_g:-N_g, 
-                                                     N_g:-N_g
-                                                    ]
+def test_dump_load_distribution_function():
+    test_obj = test()
+    N_g      = test_obj.N_ghost
     
+    test_obj.f[:, N_g:-N_g,N_g:-N_g].to_ndarray(test_obj._glob_f_array)
+    
+    f_before_load = test_obj.f.copy()
+
     dump_distribution_function(test_obj, 'test_file')
-
-    h5f    = h5py.File('test_file.h5', 'r')
-    f_read = h5f['distribution_function'][:]
-    h5f.close()
-
-    f_read_reordered = np.swapaxes(f_read, 0, 1)
-
-    assert(np.sum(abs(  f_read_reordered 
-                      - np.array(test_obj.f[N_g:-N_g, N_g:-N_g])))\
-           /f_read_reordered.size<1e-14
+    load_distribution_function(test_obj, 'test_file')
+    assert(af.sum(af.abs(  test_obj.f[:, N_g:-N_g, N_g:-N_g] 
+                         - f_before_load[:, N_g:-N_g, N_g:-N_g]
+                        ))<1e-14
           )
 
 def test_dump_moments():
@@ -126,12 +122,19 @@ def test_dump_moments():
 
     moments_read = np.swapaxes(moments_read, 0, 1)
 
+    print(moments_read.shape)
+    print(compute_moments_imported(test_obj, 'density').shape)
+
     assert(af.sum(af.to_array(moments_read[:, :, 0]) - 
-                  compute_moments_imported(test_obj, 'density')[N_g:-N_g, N_g:-N_g]
+                  af.reorder(compute_moments_imported(test_obj, 'density'), 
+                             1, 2, 0
+                            )[N_g:-N_g, N_g:-N_g]
                  )==0
           )
 
     assert(af.sum(af.to_array(moments_read[:, :, 1]) - 
-                  compute_moments_imported(test_obj, 'energy')[N_g:-N_g, N_g:-N_g]
+                  af.reorder(compute_moments_imported(test_obj, 'energy'),
+                             1, 2, 0
+                            )[N_g:-N_g, N_g:-N_g] 
                  )==0
           )

@@ -111,7 +111,7 @@ def f_interp_p_3d(self, dt):
                             af.INTERP.CUBIC_SPLINE
                            )
 
-        self.f = af.reorder(1, 2, 0)
+        self.f = af.reorder(self.f, 1, 2, 0)
 
     self.f = af.approx2(self.f,
                         p1_interpolant,
@@ -126,7 +126,7 @@ def f_interp_p_3d(self, dt):
                             af.INTERP.CUBIC_SPLINE
                            )
 
-        self.f = af.reorder(1, 2, 0)
+        self.f = af.reorder(self.f, 1, 2, 0)
 
     self.f = self._convert_to_q_expanded(self.f)
     af.eval(self.f)

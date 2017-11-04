@@ -84,6 +84,7 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     p2_b = params.p2_bulk_background
     p3_b = params.p3_bulk_background
 
+    # (0, 0) are dummy values for q1, q2:
     tau = params.tau(0, 0, p1, p2, p3)
 
     # Obtaining the normalization constant:

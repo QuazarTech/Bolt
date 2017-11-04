@@ -12,7 +12,9 @@ from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.interpolation_routines \
     import f_interp_2d
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 
+calculate_q_center = nonlinear_solver._calculate_q_center
 
 class test(object):
     def __init__(self, N_q1, N_q2, N_ghost):
@@ -35,14 +37,7 @@ class test(object):
 
         self.q1_start = self.q2_start = 0
         
-        self.q1_center = \
-            af.to_array((-N_ghost + np.arange(N_q1 + 2 * N_ghost) + 0.5) * (1 / N_q1))
-        self.q2_center = \
-            af.to_array((-N_ghost + np.arange(N_q2 + 2 * N_ghost) + 0.5) * (1 / N_q2))
-        
-        self.q1_center = af.tile(self.q1_center, 1, N_q2 + 2 * N_ghost)
-        self.q2_center = \
-            af.tile(af.reorder(self.q2_center), N_q1 + 2 * N_ghost, 1)
+        self.q1_center, self.q2_center = calculate_q_center(self)
 
         self.f = af.sin(2 * np.pi * self.q1_center +
                         4 * np.pi * self.q2_center
@@ -60,8 +55,7 @@ def test_f_interp_2d():
         f_analytic = af.sin(2 * np.pi * (test_obj.q1_center - 0.00001) +
                             4 * np.pi * (test_obj.q2_center - 0.00001)
                            )
-        error[i] = af.sum(af.abs(test_obj.f[3:-3, 3:-3] - f_analytic[3:-3, 3:-3])) \
-                   / f_analytic[3:-3, 3:-3].elements()
+        error[i] = af.mean(af.abs(test_obj.f[:, 3:-3, 3:-3] - f_analytic[:, 3:-3, 3:-3]))
 
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
     assert (abs(poly[0] + 2) < 0.2)

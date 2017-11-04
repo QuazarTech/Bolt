@@ -83,11 +83,11 @@ class test(object):
 
 def test_fdtd_mode1():
 
-    error_B1 = np.zeros(5)
-    error_B2 = np.zeros(5)
-    error_E3 = np.zeros(5)
+    error_B1 = np.zeros(3)
+    error_B2 = np.zeros(3)
+    error_E3 = np.zeros(3)
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     for i in range(N.size):
 
@@ -132,9 +132,9 @@ def test_fdtd_mode1():
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
 
-    assert (abs(poly_B1[0] + 3) < 0.4)
-    assert (abs(poly_B2[0] + 3) < 0.4) 
-    assert (abs(poly_E3[0] + 2) < 0.4)
+    assert (abs(poly_B1[0] + 3) < 0.6)
+    assert (abs(poly_B2[0] + 3) < 0.6) 
+    assert (abs(poly_E3[0] + 2) < 0.6)
 
 
 def test_fdtd_mode2():

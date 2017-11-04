@@ -18,6 +18,9 @@ from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 from bolt.lib.nonlinear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
+from bolt.lib.nonlinear_solver.apply_boundary_conditions \
+    import apply_bcs_fields
+
 
 initialize = nonlinear_solver._initialize
 
@@ -54,6 +57,7 @@ class params:
 
 class test(object):
     def __init__(self):
+        self.performance_test_flag = False
         # Initializing object with required parameters:
         self.physical_system = type('obj', (object, ),
                                     {'initial_conditions':
@@ -73,8 +77,8 @@ class test(object):
         self.q1_end = np.random.randint(5, 10)
         self.q2_end = np.random.randint(5, 10)
 
-        self.N_q1 = np.random.randint(16, 32)
-        self.N_q2 = np.random.randint(16, 32)
+        self.N_q1 = 33 
+        self.N_q2 = 33 
 
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
         self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
@@ -114,31 +118,39 @@ class test(object):
         self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
 
-        self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
-        self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
-        
+        self._local_fields_array = self._local_fields.getArray()
+        self._glob_fields_array  = self._glob_fields.getArray()
+
+        self.boundary_conditions = type('obj', (object, ),
+                                        {'in_q1':'periodic',
+                                         'in_q2':'periodic'
+                                        }
+                                       )
+
         self.q1_center, self.q2_center = nonlinear_solver._calculate_q_center(self)
         self.p1, self.p2, self.p3      = nonlinear_solver._calculate_p_center(self)
 
     compute_moments     = compute_moments_imported
     _communicate_fields = communicate_fields
+    _apply_bcs_fields   = apply_bcs_fields
+
 
 def test_initialize():
     obj = test()
     initialize(obj, params)
 
-    q1 = af.tile(obj.q1_center, 1, 1, obj.N_p1*obj.N_p2*obj.N_p3)
-    q2 = af.tile(obj.q2_center, 1, 1, obj.N_p1*obj.N_p2*obj.N_p3)
+    q1 = af.tile(obj.q1_center, obj.N_p1*obj.N_p2*obj.N_p3)
+    q2 = af.tile(obj.q2_center, obj.N_p1*obj.N_p2*obj.N_p3)
 
     rho = 1 + af.cos(2 * np.pi * q1 + 4 * np.pi * q2)
 
-    p1 = af.tile(obj.p1, obj.N_q1 + 2, obj.N_q2 + 2)
-    p2 = af.tile(obj.p2, obj.N_q1 + 2, obj.N_q2 + 2)
-    p3 = af.tile(obj.p3, obj.N_q1 + 2, obj.N_q2 + 2)
+    p1 = af.tile(obj.p1, 1, obj.N_q1 + 2, obj.N_q2 + 2)
+    p2 = af.tile(obj.p2, 1, obj.N_q1 + 2, obj.N_q2 + 2)
+    p3 = af.tile(obj.p3, 1, obj.N_q1 + 2, obj.N_q2 + 2)
 
     f_ana = rho * (1 / (2 * np.pi))**(3 / 2) \
                 * af.exp(-0.5 * p1**2) \
                 * af.exp(-0.5 * p2**2) \
                 * af.exp(-0.5 * p3**2)
 
-    assert(af.sum(af.abs(obj.f - f_ana))<1e-13)
+    assert(af.abs(af.abs(obj.f - f_ana))<1e-13)

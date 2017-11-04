@@ -182,12 +182,9 @@ def dY_dt_singlemode_evolution(Y, self):
     else:
         raise NotImplementedError('Method invalid/not-implemented')
 
-    delta_p1_bulk =   self.compute_moments('mom_p1_bulk') \
-                    / self.physical_system.params.rho_background
-    delta_p2_bulk =   self.compute_moments('mom_p2_bulk') \
-                    / self.physical_system.params.rho_background
-    delta_p3_bulk =   self.compute_moments('mom_p3_bulk') \
-                    / self.physical_system.params.rho_background
+    delta_p1_bulk = self.compute_moments('mom_p1_bulk')
+    delta_p2_bulk = self.compute_moments('mom_p2_bulk')
+    delta_p3_bulk = self.compute_moments('mom_p3_bulk')
 
     delta_J1_hat = charge_electron * delta_p1_bulk
     delta_J2_hat = charge_electron * delta_p2_bulk

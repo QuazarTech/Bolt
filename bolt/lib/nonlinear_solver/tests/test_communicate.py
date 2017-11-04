@@ -79,6 +79,13 @@ class test_distribution_function(object):
         self._glob_f_array  = self._glob_f.getArray()
         self._local_f_array = self._local_f.getArray()
 
+        self.boundary_conditions = type('obj', (object, ),
+                                        {'in_q1':'periodic',
+                                         'in_q2':'periodic'
+                                        }
+                                       )
+
+
         self.f = af.constant(0,
                              self.N_p1 * self.N_p2 * self.N_p3,
                              self.N_q1 + 2 * self.N_ghost,
@@ -155,13 +162,14 @@ class test_fields(object):
 
         self.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g] = \
             af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2)[:, N_g:-N_g,N_g:-N_g]
+        
+        self.performance_test_flag = False
 
 def test_communicate_f():
     obj = test_distribution_function()
     communicate_f(obj)
 
     expected = af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
-
     assert (af.max(af.abs(obj.f - expected)) < 5e-14)
 
 def test_communicate_fields():

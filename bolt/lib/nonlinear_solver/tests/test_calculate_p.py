@@ -17,7 +17,6 @@ from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 
 calculate_p_center = nonlinear_solver._calculate_p_center
 
-
 class test(object):
     def __init__(self):
         self.p1_start = np.random.randint(-10, -5)
@@ -49,18 +48,10 @@ def test_calculate_p():
     p2_expected, p1_expected, p3_expected = \
         np.meshgrid(p2_expected, p1_expected, p3_expected)
 
-    p1_expected = af.reorder(af.flat(af.to_array(p1_expected)),
-                             2, 3, 0, 1
-                            )
+    p1_expected = af.flat(af.to_array(p1_expected))
+    p2_expected = af.flat(af.to_array(p2_expected))
+    p3_expected = af.flat(af.to_array(p3_expected))
 
-    p2_expected = af.reorder(af.flat(af.to_array(p2_expected)),
-                             2, 3, 0, 1
-                            )
-
-    p3_expected = af.reorder(af.flat(af.to_array(p3_expected)),
-                             2, 3, 0, 1
-                            )
-    
     assert (af.sum(af.abs(p1_expected - p1)) == 0)
     assert (af.sum(af.abs(p2_expected - p2)) == 0)
     assert (af.sum(af.abs(p3_expected - p3)) == 0)

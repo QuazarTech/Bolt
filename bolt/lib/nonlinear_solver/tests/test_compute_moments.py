@@ -77,17 +77,9 @@ class test(object):
 
         self.p2, self.p1, self.p3 = np.meshgrid(self.p2, self.p1, self.p3)
 
-        self.p1 = af.reorder(af.flat(af.to_array(self.p1)),
-                             2, 3, 0, 1
-                            )
-
-        self.p2 = af.reorder(af.flat(af.to_array(self.p2)),
-                             2, 3, 0, 1
-                            )
-
-        self.p3 = af.reorder(af.flat(af.to_array(self.p3)),
-                             2, 3, 0, 1
-                            )
+        self.p1 = af.flat(af.to_array(self.p1))
+        self.p2 = af.flat(af.to_array(self.p2))
+        self.p3 = af.flat(af.to_array(self.p3))
 
         self.q1 = (  -self.N_ghost + 0.5
                    + np.arange(self.N_q1 + 2 * self.N_ghost)
@@ -99,8 +91,8 @@ class test(object):
 
         self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
 
-        self.q1 = af.to_array(self.q1)
-        self.q2 = af.to_array(self.q2)
+        self.q1 = af.reorder(af.to_array(self.q1), 2, 0, 1)
+        self.q2 = af.reorder(af.to_array(self.q2), 2, 0, 1)
 
         rho = (1 + 0.01 * af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
         T   = (1 + 0.01 * af.cos(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
@@ -121,7 +113,7 @@ def test_compute_moments():
     rho_num = compute_moments(obj, 'density')
     rho_ana  = 1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
 
-    error_rho = af.sum(af.abs(rho_num - rho_ana))/rho_num.elements()
+    error_rho = af.mean(af.abs(rho_num - rho_ana))
 
     E_num = compute_moments(obj, 'energy')
     E_ana =   3 * (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \
@@ -129,25 +121,25 @@ def test_compute_moments():
             + 3 * (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \
                 *  (0.01 * af.exp(-10 * obj.q1**2 - 10 * obj.q2**2))**2
 
-    error_E = af.sum(af.abs(E_num - E_ana))/E_num.elements()
+    error_E = af.mean(af.abs(E_num - E_ana))
     
     mom_p1b_num = compute_moments(obj, 'mom_p1_bulk')
     mom_p1b_ana =   (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \
                   * (0.01 * af.exp(-10 * obj.q1**2 - 10 * obj.q2**2))
 
-    error_p1b = af.sum(af.abs(mom_p1b_num - mom_p1b_ana))/mom_p1b_num.elements()
+    error_p1b = af.mean(af.abs(mom_p1b_num - mom_p1b_ana))
 
     mom_p2b_num = compute_moments(obj, 'mom_p2_bulk')
     mom_p2b_ana =   (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \
                   * (0.01 * af.exp(-10 * obj.q1**2 - 10 * obj.q2**2))
 
-    error_p2b = af.sum(af.abs(mom_p2b_num - mom_p2b_ana))/mom_p2b_num.elements()
+    error_p2b = af.mean(af.abs(mom_p2b_num - mom_p2b_ana))
 
     mom_p3b_num = compute_moments(obj, 'mom_p3_bulk')
     mom_p3b_ana  =   (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \
                    * (0.01 * af.exp(-10 * obj.q1**2 - 10 * obj.q2**2))
 
-    error_p3b = af.sum(af.abs(mom_p3b_num - mom_p3b_ana))/mom_p3b_num.elements()
+    error_p3b = af.mean(af.abs(mom_p3b_num - mom_p3b_ana))
 
     assert(error_rho < 1e-13)
     assert(error_E   < 1e-13)

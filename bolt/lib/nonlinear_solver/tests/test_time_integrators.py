@@ -11,15 +11,12 @@ analytic solution f = e^t
 import numpy as np
 import arrayfire as af
 
-from bolt.lib.nonlinear_solver.timestepper_source \
-    import RK2_step, RK4_step, RK6_step
-
+from bolt.lib.nonlinear_solver.temporal_evolution.integrators \
+    import RK2, RK4, RK6
 
 class test(object):
     def __init__(self):
         self.f = af.to_array(np.array([1.0]))
-        self.performance_test_flag = False
-        self.testing_source_flag   = True
 
     def _source(self, f):
         return (f)
@@ -27,14 +24,14 @@ class test(object):
 
 # This test ensures that the RK2 implementation is 2nd order in time
 def test_RK2():
-    number_of_time_step = 10**np.arange(5)
+    number_of_time_step = 10**np.arange(4)
     time_step_sizes = 1 / number_of_time_step
     error = np.zeros(time_step_sizes.size)
 
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK2_step(test_obj, time_step_sizes[i])
+            test_obj.f = RK2(test_obj._source, test_obj.f, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
@@ -43,14 +40,14 @@ def test_RK2():
 
 # This test ensures that the RK4 implementation is 4th order in time
 def test_RK4():
-    number_of_time_step = 10**np.arange(4)
+    number_of_time_step = 10**np.arange(6)
     time_step_sizes = 1 / number_of_time_step
     error = np.zeros(time_step_sizes.size)
 
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK4_step(test_obj, time_step_sizes[i])
+            test_obj.f = RK4(test_obj._source, test_obj.f, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
@@ -66,7 +63,7 @@ def test_RK6():
     for i in range(time_step_sizes.size):
         test_obj = test()
         for j in range(number_of_time_step[i]):
-            RK6_step(test_obj, time_step_sizes[i])
+            test_obj.f = RK6(test_obj._source, test_obj.f, time_step_sizes[i])
         error[i] = abs(af.sum(test_obj.f) - np.exp(1))
 
     poly = np.polyfit(np.log10(number_of_time_step), np.log10(error), 1)
