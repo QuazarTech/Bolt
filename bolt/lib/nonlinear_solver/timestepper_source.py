@@ -4,18 +4,18 @@
 import arrayfire as af
 
 
-def RK2_step(self, dt, testing = False, performance_test_flag = False):
+def RK2_step(self, dt):
     """
     Evolves the source/sink term specified by the user
     df/dt = source_sink_term
     using RK2 time stepping.
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     f_initial = self.f  # Storing the value at the start
 
-    if (testing == False):
+    if (self.testing_source_flag == False):
         args = (self.q1_center, self.q2_center, self.p1, self.p2,
                 self.p3, self.compute_moments, self.physical_system.params
                )
@@ -29,7 +29,7 @@ def RK2_step(self, dt, testing = False, performance_test_flag = False):
 
     af.eval(self.f)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_sourcets += toc - tic
@@ -37,18 +37,18 @@ def RK2_step(self, dt, testing = False, performance_test_flag = False):
     return
 
 
-def RK4_step(self, dt, testing = False, performance_test_flag = False):
+def RK4_step(self, dt):
     """
     Evolves the source/sink term specified by the user
     df/dt = source_sink_term
     using RK4 time stepping.
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     f_initial = self.f  # Storing the value at the start
 
-    if (testing == False):
+    if (self.testing_source_flag == False):
         args = (self.q1_center, self.q2_center, self.p1, self.p2,
                 self.p3, self.compute_moments, self.physical_system.params
                )
@@ -68,7 +68,7 @@ def RK4_step(self, dt, testing = False, performance_test_flag = False):
 
     af.eval(self.f)
     
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_sourcets += toc - tic
@@ -76,18 +76,18 @@ def RK4_step(self, dt, testing = False, performance_test_flag = False):
     return
 
 
-def RK6_step(self, dt, testing=False, performance_test_flag = False):
+def RK6_step(self, dt):
     """
     Evolves the source/sink term specified by the user
     df/dt = source_sink_term
     using RK6 time stepping.
     """
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
     
     f_initial = self.f  # Storing the value at the start
 
-    if (testing == False):
+    if (self.testing_source_flag == False):
         args = (self.q1_center, self.q2_center, self.p1, self.p2,
                 self.p3, self.compute_moments, self.physical_system.params
                )
@@ -122,7 +122,7 @@ def RK6_step(self, dt, testing=False, performance_test_flag = False):
 
     af.eval(self.f)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_sourcets += toc - tic

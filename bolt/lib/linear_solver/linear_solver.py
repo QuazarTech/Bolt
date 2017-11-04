@@ -151,12 +151,14 @@ class linear_solver(object):
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = \
-            self.physical_system.A_q(self.p1, self.p2, self.p3, 
+            self.physical_system.A_q(self.q1_center, self.q2_center,
+                                     self.p1, self.p2, self.p3, 
                                      physical_system.params
                                     )[0]
 
         self._A_q2 = \
-            self.physical_system.A_q(self.p1, self.p2, self.p3,
+            self.physical_system.A_q(self.q1_center, self.q2_center,
+                                     self.p1, self.p2, self.p3,
                                      physical_system.params
                                     )[1]
 

@@ -66,7 +66,7 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.005
 t_final = 0.5
 
 time_array = np.arange(0, t_final + dt, dt)
@@ -136,7 +136,7 @@ def time_evolution():
         temp_data_ls[time_index] = af.max(T_ls)
 
         nls.strang_timestep(dt)
-        ls.RK2_timestep(dt)
+        # ls.RK2_timestep(dt)
         
 time_evolution()
 

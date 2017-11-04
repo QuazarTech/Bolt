@@ -11,17 +11,17 @@ from bolt.lib.nonlinear_solver.interpolation_routines \
     import f_interp_p_3d
 
 
-def fields_step(self, dt, performance_test_flag = False):
-    if(performance_test_flag == True):
+def fields_step(self, dt):
+    if(self.performance_test_flag == True):
         tic = af.time()
     
     if (self.physical_system.params.fields_solver == 'fft'):
-        fft_poisson(self, performance_test_flag)
-        self._communicate_fields(False, performance_test_flag)
+        fft_poisson(self)
+        self._communicate_fields()
 
     elif (self.physical_system.params.fields_solver == 'electrostatic'):
-        compute_electrostatic_fields(self, performance_test_flag)
-        self._communicate_fields(False, performance_test_flag)
+        compute_electrostatic_fields(self)
+        self._communicate_fields()
 
     elif (self.physical_system.params.fields_solver == 'fdtd'):
         # Will returned a flattened array containing the values of
@@ -50,7 +50,7 @@ def fields_step(self, dt, performance_test_flag = False):
         B2_old = self.B2.copy()
         B3_old = self.B3.copy()
 
-        fdtd(self, dt, performance_test_flag)
+        fdtd(self, dt)
         fdtd_grid_to_ck_grid(self)
 
         self.B1_n = 0.5 * (self.B1 + B1_old)
@@ -59,13 +59,13 @@ def fields_step(self, dt, performance_test_flag = False):
 
     else:
         raise NotImplementedError('The method specified is \
-                                    invalid/not-implemented'
+                                   invalid/not-implemented'
                                  )
 
-    f_interp_p_3d(self, dt, performance_test_flag)
+    f_interp_p_3d(self, dt)
     af.eval(self.f)
 
-    if(performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldstep += toc - tic

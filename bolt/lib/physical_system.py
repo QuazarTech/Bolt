@@ -71,18 +71,6 @@ class physical_system(object):
             raise TypeError('Expected attributes of boundary_conditions \
                              to be of type str')
 
-        if(boundary_conditions.in_q1 != 'periodic'):
-            if(not isinstance(boundary_conditions.left, dict) or
-               not isinstance(boundary_conditions.right, dict)):
-                raise TypeError('Expected attributes of left and right \
-                                 boundary conditions to be of type dict')
-
-        if(boundary_conditions.in_q2 != 'periodic'):
-            if(not isinstance(boundary_conditions.bottom, dict) or
-               not isinstance(boundary_conditions.top, dict)):
-                raise TypeError('Expected attributes of bottom and \
-                                 top boundary conditions to be of type dict')
-
         # Checking for type of initial_conditions:
         if(isinstance(initial_conditions, types.ModuleType) is False):
             raise TypeError('Expected initial_conditions to be \
@@ -95,8 +83,12 @@ class physical_system(object):
         # Checking for the types of the methods in advection_term:
         attributes = [a for a in dir(advection_term) if not a.startswith('_')]
         for i in range(len(attributes)):
-            if(isinstance(getattr(advection_term, attributes[i]),
-                          types.FunctionType) is False):
+            if(    isinstance(getattr(advection_term, attributes[i]),
+                              types.FunctionType) is False
+               and isinstance(getattr(advection_term, attributes[i]),
+                              types.ModuleType) is False
+                
+              ):
                 raise TypeError('Expected attributes of advection_term \
                                  to be of type function')
 
@@ -141,6 +133,7 @@ class physical_system(object):
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
         self.N_ghost                 = domain.N_ghost
+        self.boundary_conditions     = boundary_conditions
         self.bc_in_q1, self.bc_in_q2 = boundary_conditions.in_q1,\
                                        boundary_conditions.in_q2
 
