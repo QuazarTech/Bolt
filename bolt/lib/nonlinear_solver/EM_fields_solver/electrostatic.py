@@ -67,16 +67,30 @@ class poisson_eqn(object):
         N_g = self.N_ghost
 
 	# Residual assembly using numpy
+#        phi_array = self.local_phi.getArray(readonly=0)
+#        phi_array = phi_array.reshape([self.N_q2_local + 2*N_g, \
+#                                       self.N_q1_local + 2*N_g, 1], \
+#                                      order='A'
+#                                     )
+#
+#        residual_array = residual.getArray(readonly=0)
+#        residual_array = residual_array.reshape([self.N_q2_local, \
+#                                                 self.N_q1_local, 1], \
+#                                                order='A'
+#                                               )
+
         phi_array = self.local_phi.getArray(readonly=0)
-        phi_array = phi_array.reshape([self.N_q2_local + 2*N_g, \
-                                       self.N_q1_local + 2*N_g, 1], \
-                                      order='A'
+        phi_array = phi_array.reshape([self.N_q3_local + 2*N_g, \
+	                               self.N_q2_local + 2*N_g, \
+                                       self.N_q1_local + 2*N_g, 1
+				      ]
                                      )
 
         residual_array = residual.getArray(readonly=0)
-        residual_array = residual_array.reshape([self.N_q2_local, \
-                                                 self.N_q1_local, 1], \
-                                                order='A'
+        residual_array = residual_array.reshape([self.N_q3_local, \
+	                                         self.N_q2_local, \
+                                                 self.N_q1_local, 1
+						]
                                                )
 
         #phi_array[:N_g,                 :] = 0.
@@ -84,15 +98,33 @@ class poisson_eqn(object):
         #phi_array[:,                 :N_g] = 0.
         #phi_array[:, self.N_q1_local+N_g:] = 0.
 
-        phi_plus_x  = np.roll(phi_array, shift=-1, axis=1)
-        phi_minus_x = np.roll(phi_array, shift=1,  axis=1)
-        phi_plus_y  = np.roll(phi_array, shift=-1, axis=0)
-        phi_minus_y = np.roll(phi_array, shift=1,  axis=0)
+#        phi_plus_x  = np.roll(phi_array, shift=-1, axis=1)
+#        phi_minus_x = np.roll(phi_array, shift=1,  axis=1)
+#        phi_plus_y  = np.roll(phi_array, shift=-1, axis=0)
+#        phi_minus_y = np.roll(phi_array, shift=1,  axis=0)
+
+        phi_plus_x  = np.roll(phi_array, shift=-1, axis=2)
+        phi_minus_x = np.roll(phi_array, shift=1,  axis=2)
+        phi_plus_y  = np.roll(phi_array, shift=-1, axis=1)
+        phi_minus_y = np.roll(phi_array, shift=1,  axis=1)
+        phi_plus_z  = np.roll(phi_array, shift=-1, axis=0)
+        phi_minus_z = np.roll(phi_array, shift=1,  axis=0)
 
         d2phi_dx2   = (phi_minus_x - 2.*phi_array + phi_plus_x)/self.dq1**2.
         d2phi_dy2   = (phi_minus_y - 2.*phi_array + phi_plus_y)/self.dq2**2.
+        d2phi_dz2   = (phi_minus_z - 2.*phi_array + phi_plus_z)/self.dq3**2.
 	
-        laplacian_phi = d2phi_dx2 + d2phi_dy2
+        laplacian_phi = d2phi_dx2 + d2phi_dy2 + d2phi_dz2
+
+#        density_af = af.moddims(self.density,
+#                                  (self.N_q1_local+2*N_g)
+#                                * (self.N_q2_local+2*N_g)
+#                               )
+#        density_np = density_af.to_ndarray()
+#        density_np = density_np.reshape([self.N_q2_local + 2*N_g, \
+#                                         self.N_q1_local + 2*N_g, 1], \
+#                                        order='A'
+#                                       )
 
         density_af = af.moddims(self.density,
                                   (self.N_q1_local+2*N_g)
@@ -194,32 +226,32 @@ def compute_electrostatic_fields(self, performance_test_flag = False):
 
     af.eval(self.E1, self.E2)
 
-    q2_minus = 0.25
-    q2_plus  = 0.75
-
-    E2_expected = -0.5/20 * (  af.log(af.cosh(( self.q2 - q2_minus)*20)) 
-                             - af.log(af.cosh(( self.q2 - q2_plus )*20))
-                            ) 
-
-    pl.subplot(121)
-    pl.contourf(
-                #np.array(self.E2)[N_g:-N_g, N_g:-N_g], 100
-                density_np[N_g:-N_g, N_g:-N_g], 100
-               )
-    pl.colorbar()
-    #pl.axis('equal')
-    pl.title(r'Density')
-    #pl.title(r'$E^2_{numerical}$')
-    pl.subplot(122)
-    pl.contourf(
-                #np.array(E2_expected)[N_g:-N_g, N_g:-N_g], 100
-                phi_local_array[N_g:-N_g, N_g:-N_g], 100
-               )
-    pl.colorbar()
-    pl.title(r'$\phi$')
-    #pl.title(r'$E^2_{analytic}$')
-    #pl.axis('equal')
-    pl.show()
+#    q2_minus = 0.25
+#    q2_plus  = 0.75
+#
+#    E2_expected = -0.5/20 * (  af.log(af.cosh(( self.q2 - q2_minus)*20)) 
+#                             - af.log(af.cosh(( self.q2 - q2_plus )*20))
+#                            ) 
+#
+#    pl.subplot(121)
+#    pl.contourf(
+#                #np.array(self.E2)[N_g:-N_g, N_g:-N_g], 100
+#                density_np[N_g:-N_g, N_g:-N_g], 100
+#               )
+#    pl.colorbar()
+#    #pl.axis('equal')
+#    pl.title(r'Density')
+#    #pl.title(r'$E^2_{numerical}$')
+#    pl.subplot(122)
+#    pl.contourf(
+#                #np.array(E2_expected)[N_g:-N_g, N_g:-N_g], 100
+#                phi_local_array[N_g:-N_g, N_g:-N_g], 100
+#               )
+#    pl.colorbar()
+#    pl.title(r'$\phi$')
+#    #pl.title(r'$E^2_{analytic}$')
+#    #pl.axis('equal')
+#    pl.show()
 
 
     if(performance_test_flag == True):
