@@ -34,17 +34,19 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.001
-t_final = 2.5
+dt      = 0.0005
+t_final = 5.0
 
 time_array = np.arange(dt, t_final + dt, dt)
 
-n_nls = nls.compute_moments('mom_p1_bulk')/(nls.compute_moments('density')+1e-15)
+n_nls  = nls.compute_moments('density')
+p1_nls = nls.compute_moments('mom_p1_bulk')/(nls.compute_moments('density')+1e-15)
 
 h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('q1', data = nls.q1_center)
 h5f.create_dataset('q2', data = nls.q2_center)
 h5f.create_dataset('n', data = n_nls)
+h5f.create_dataset('p1', data = p1_nls)
 h5f.close()
 
 def time_evolution():
@@ -58,11 +60,13 @@ def time_evolution():
         print()
 
         nls.strang_timestep(dt)
-        n_nls = nls.compute_moments('mom_p1_bulk')/(nls.compute_moments('density')+1e-15)
+        n_nls  = nls.compute_moments('density')
+        p1_nls = nls.compute_moments('mom_p1_bulk')/(nls.compute_moments('density')+1e-15)
     
         if((time_index+1)%10 == 0):    
             h5f = h5py.File('dump/%04d'%((time_index+1)/10) + '.h5', 'w')
             h5f.create_dataset('n', data = n_nls)
+            h5f.create_dataset('p1', data = p1_nls)
             h5f.close()
 
 time_evolution()

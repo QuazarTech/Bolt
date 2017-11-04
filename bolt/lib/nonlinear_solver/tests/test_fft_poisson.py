@@ -81,6 +81,8 @@ class test(object):
 
         self._local_value_fields = self._da_fields.getVecArray(self._local_fields)
         self._glob_value_fields  = self._da_fields.getVecArray(self._glob_fields)
+        
+        self.performance_test_flag = False
 
         self.performance_test_flag = False
 

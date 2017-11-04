@@ -33,8 +33,8 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.01
-t_final = 2.0
+dt      = 1e-5
+t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 
@@ -58,8 +58,9 @@ def time_evolution():
         nls.strang_timestep(dt)
         n_nls = nls.compute_moments('density')
         
-        h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-        h5f.create_dataset('n', data = n_nls)
-        h5f.close()
+        if((time_index+1)%1000 == 0):
+            h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
+            h5f.create_dataset('n', data = n_nls)
+            h5f.close()
 
 time_evolution()

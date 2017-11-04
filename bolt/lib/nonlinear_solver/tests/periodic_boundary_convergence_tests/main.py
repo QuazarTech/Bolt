@@ -58,7 +58,7 @@ def time_evolution(nls):
     time_array = np.arange(dt, t_final + dt, dt)
 
     for time_index, t0 in enumerate(time_array):
-        nls.lie_timestep(dt)
+        nls.strang_timestep(dt)
 
     return
 

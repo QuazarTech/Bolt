@@ -1,9 +1,9 @@
 q1_start = 0
-q1_end   = 1
+q1_end   = 0.3
 N_q1     = 32
 
 q2_start = 0
-q2_end   = 1
+q2_end   = 0.3
 N_q2     = 32
 
 p1_start = -10

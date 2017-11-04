@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
-import numpy as np
 
 def apply_bcs_f(self):
 
@@ -12,6 +11,7 @@ def apply_bcs_f(self):
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+    # Obtaining the end coordinates for the local zone
     (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
     N_g = self.N_ghost
@@ -56,11 +56,14 @@ def apply_bcs_f(self):
 
         # If local zone includes the left physical boundary:
         if(i_q1_start == 0):
+            
             # x-0-x-0-x-0-|-0-x-0-x-0-x-....
             #   0   1   2   3   4   5
             # For mirror boundary conditions:
             # 0 = 5; 1 = 4; 2 = 3;
             self.f[:, :N_g] = af.flip(self.f[:, N_g:2 * N_g], 1)
+            
+            self.f[:N_g] = af.flip(self.f[N_g:2 * N_g], 0)
             
             # The points in the ghost zone need to have direction 
             # of velocity reversed as compared to the physical zones 
@@ -74,6 +77,7 @@ def apply_bcs_f(self):
 
         # If local zone includes the right physical boundary:
         if(i_q1_end == self.N_q1 - 1):
+            
             # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
             #      -6  -5  -4  -3  -2  -1
             # For mirror boundary conditions:
@@ -105,6 +109,9 @@ def apply_bcs_f(self):
                        self.f.shape[1],
                        self.f.shape[2]
                       )
+
+        else:
+            A_q2 = self._A_q2
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
@@ -138,6 +145,7 @@ def apply_bcs_f(self):
 
         # If local zone includes the bottom physical boundary:
         if(i_q2_start == 0):
+
             # x-0-x-0-x-0-|-0-x-0-x-0-x-....
             #   0   1   2   3   4   5
             # For mirror boundary conditions:
@@ -156,6 +164,7 @@ def apply_bcs_f(self):
 
         # If local zone includes the top physical boundary:
         if(i_q2_end == self.N_q2 - 1):
+            
             # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
             #      -6  -5  -4  -3  -2  -1
             # For mirror boundary conditions:
@@ -196,6 +205,7 @@ def apply_bcs_fields(self):
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+    # Obtaining the end coordinates for the local zone
     (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
     N_g = self.N_ghost

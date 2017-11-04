@@ -1,6 +1,6 @@
 import arrayfire as af
 import numpy as np
-import h5py
+import h5py 
 
 from bolt.lib.physical_system import physical_system
 
@@ -12,12 +12,13 @@ import boundary_conditions
 import params
 import initialize
 
-import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
+import bolt.src.beam_optics.advection_terms as advection_terms
 
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
+import bolt.src.beam_optics.collision_operator \
     as collision_operator
 
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.beam_optics.moment_defs as moment_defs
+
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -34,7 +35,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.01
-t_final = 2.0
+t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 

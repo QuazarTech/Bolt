@@ -4,7 +4,6 @@
 import arrayfire as af
 import numpy as np
 
-
 def compute_moments(self, moment_name):
     """
     Used in computing the moments of the distribution function.

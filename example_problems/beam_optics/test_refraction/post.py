@@ -1,7 +1,6 @@
 import numpy as np
 import pylab as pl
 import h5py
-import time
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -33,8 +32,8 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.005
-t_final = 5.0
+dt      = 0.01
+t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
@@ -47,7 +46,7 @@ pl.contourf(q1[3:-3, 3:-3],
             q2[3:-3, 3:-3],
             n[3:-3, 3:-3],
             100,
-            cmap = 'inferno',
+            cmap = 'gist_heat'
            )
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
@@ -65,9 +64,8 @@ for time_index, t0 in enumerate(time):
                 q2[3:-3, 3:-3],
                 n[3:-3, 3:-3],
                 100,
-                cmap = 'inferno'
+                cmap = 'gist_heat'
                )
-
     pl.title('Time =' + str(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')

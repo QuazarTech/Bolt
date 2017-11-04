@@ -1,7 +1,6 @@
 import numpy as np
 import pylab as pl
 import h5py
-import time
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -33,8 +32,8 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.005
-t_final = 5.0
+dt      = 0.01
+t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
@@ -47,14 +46,17 @@ pl.contourf(q1[3:-3, 3:-3],
             q2[3:-3, 3:-3],
             n[3:-3, 3:-3],
             100,
-            cmap = 'inferno',
+            cmap = 'winter'
            )
+pl.colorbar()
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
 pl.axes().set_aspect('equal')
-pl.savefig('images/0000.png')
-pl.clf()
+pl.show()
+
+# pl.savefig('images/0000.png')
+# pl.clf()
 
 for time_index, t0 in enumerate(time):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
@@ -65,31 +67,11 @@ for time_index, t0 in enumerate(time):
                 q2[3:-3, 3:-3],
                 n[3:-3, 3:-3],
                 100,
-                cmap = 'inferno'
+                cmap = 'gist_heat'
                )
-
     pl.title('Time =' + str(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
     pl.axes().set_aspect('equal')
     pl.savefig('images/%04d'%(time_index+1) + '.png')
     pl.clf()
-
-# pl.plot(q2[66, 10:-10], n[66, 10:-10])
-# pl.title('Time = 0')
-# pl.xlabel(r'$x$')
-# pl.ylabel(r'$n$')
-# pl.savefig('images/0000.png')
-# pl.clf()
-
-# for time_index, t0 in enumerate(time):
-#     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-#     n   = h5f['n'][:]
-#     h5f.close()
-
-#     pl.plot(q2[66, 10:-10], n[66, 10:-10])
-#     pl.title('Time = ' + str(t0))
-#     pl.xlabel(r'$x$')
-#     pl.ylabel(r'$n$')
-#     pl.savefig('images/%04d'%(time_index+1) + '.png')
-#     pl.clf()

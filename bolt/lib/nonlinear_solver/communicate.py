@@ -33,8 +33,8 @@ def communicate_f(self):
     # Global value is non-inclusive of the ghost-zones:
     af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
     
-    # The following function takes care of periodic boundary conditions,
-    # and interzonal communications:
+    # The following function takes care of interzonal communications
+    # Additionally, it also automatically applies periodic BCs when necessary
     self._da_f.globalToLocal(self._glob_f, self._local_f)
 
     # Converting back from PETSc.Vec to af.Array:
@@ -55,13 +55,16 @@ def communicate_f(self):
     return
 
 
-def communicate_fields(self, on_fdtd_grid=False):
+def communicate_fields(self, on_fdtd_grid = False):
     """
     Used in communicating the values at the boundary zones
     for each of the local vectors among all procs.
     This routine is called to take care of communication
     (and periodic B.C's) procedures for the EM field
-    arrays.
+    arrays. The function may be used for communicating the
+    field values at (i, j) which is used by default. Additionally,
+    it can also be used to communicate the values on the Yee-grid
+    which is used by the FDTD solver.
     """
     if(self.performance_test_flag == True):
         tic = af.time()
