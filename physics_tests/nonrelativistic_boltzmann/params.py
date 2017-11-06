@@ -14,8 +14,8 @@ fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 solver_method_in_q = 'ASL'
-riemann_solver = 'upwind-flux'
-reconstruction_method = 'minmod'
+riemann_solver = 'lax-friedrichs'
+reconstruction_method = 'weno5'
 
 # Dimensionality considered in velocity space:
 p_dim = 1

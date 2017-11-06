@@ -76,8 +76,8 @@ ls  = linear_solver(linearized_system)
 
 
 # Time parameters:
-dt      = 0.001
-t_final = 0.5
+dt      = 0.001*32/nls.N_q1
+t_final = 0.001
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -104,6 +104,21 @@ def time_evolution():
         ls.RK5_timestep(dt)
     
 time_evolution()
+
+nls.dump_distribution_function('nls_f')
+ls.dump_distribution_function('ls_f')
+
+import h5py
+h5f = h5py.File('nls_f.h5', 'r')
+nls_f = h5f['distribution_function'][:]
+h5f.close()
+
+
+h5f = h5py.File('ls_f.h5', 'r')
+ls_f = h5f['distribution_function'][:]
+h5f.close()
+
+print(np.mean(abs(nls_f-ls_f)))
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')

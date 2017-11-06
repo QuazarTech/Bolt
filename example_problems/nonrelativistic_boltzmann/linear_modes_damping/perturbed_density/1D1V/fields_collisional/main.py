@@ -100,7 +100,7 @@ def time_evolution():
         else:
             rho_data_ls[time_index]  = af.max(n_ls) 
 
-        nls.strang_timestep(dt)
+        nls.swss_timestep(dt)
         ls.RK5_timestep(dt)
     
 time_evolution()

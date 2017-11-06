@@ -48,7 +48,7 @@ def op_solve_src(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    self.f = integrators.RK2(self._source, self.f, dt,
+    self.f = integrators.RK4(self._source, self.f, dt,
                              self.q1_center, self.q2_center,
                              self.p1, self.p2, self.p3, 
                              self.compute_moments, 
