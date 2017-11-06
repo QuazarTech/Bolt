@@ -100,12 +100,10 @@ def time_evolution():
         else:
             rho_data_ls[time_index]  = af.max(n_ls) 
 
-        nls.lie_timestep(dt)
-        ls.RK4_timestep(dt)
+        nls.strang_timestep(dt)
+        ls.RK5_timestep(dt)
     
 time_evolution()
-
-print(af.sum(nls.f))
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')

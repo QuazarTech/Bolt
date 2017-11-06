@@ -95,8 +95,25 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    # Scaling Appropriately:
-    self._glob_f_value[:] =  0.5 * self.N_q2 * self.N_q1 \
-                                 * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    if(self.single_mode_evolution == True):
+        f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+
+        k_q1 = self.physical_system.params.k_q1
+        k_q2 = self.physical_system.params.k_q2
+
+        q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+        q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+
+        df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
+              * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
+             ).real
+
+        self._glob_f_value[:] = f_b + df
+
+    else:
+        # Scaling Appropriately:
+        self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 \
+                                    * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_f)

@@ -129,7 +129,7 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
         PETSc.Sys.syncPrint(indent(af.info_str(), 2))
-        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        # PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 
@@ -254,13 +254,10 @@ class nonlinear_solver(object):
         self._glob_f_array  = self._glob_f.getArray()
         self._local_f_array = self._local_f.getArray()
 
-        self._glob_f_value  = self._da_f.getVecArray(self._glob_f)
-        self._local_f_value = self._da_f.getVecArray(self._local_f)
-
         self._glob_fields_array  = self._glob_fields.getArray()
         self._local_fields_array = self._local_fields.getArray()
 
-        self._glob_moments_value  = self._glob_moments.getArray()
+        self._glob_moments_array = self._glob_moments.getArray()
 
         # Setting names for the objects which will then be
         # used as the key identifiers for the HDF5 files:

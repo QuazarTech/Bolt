@@ -32,7 +32,7 @@ def communicate_f(self):
 
     # Global value is non-inclusive of the ghost-zones:
     af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
-    
+
     # The following function takes care of interzonal communications
     # Additionally, it also automatically applies periodic BCs when necessary
     self._da_f.globalToLocal(self._glob_f, self._local_f)

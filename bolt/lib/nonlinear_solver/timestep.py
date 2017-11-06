@@ -36,7 +36,6 @@ def op_fvm_q(self, dt):
 # When using advective SL method:
 # Advection in q-space:
 def op_advect_q(self, dt):
-    
     self._communicate_f()
     self._apply_bcs_f()
     f_interp_2d(self, dt)
@@ -46,7 +45,6 @@ def op_advect_q(self, dt):
 # Used to solve the source term:
 # df/dt = source
 def op_solve_src(self, dt):
-    
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -67,7 +65,6 @@ def op_solve_src(self, dt):
 # Used to solve the Maxwell's equations and
 # perform the advections in p-space:
 def op_fields(self, dt):
-    
     return(fields_step(self, dt))
 
 def lie_step(self, dt):
@@ -82,6 +79,9 @@ def lie_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
+    self.dt            = dt
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -129,6 +129,9 @@ def strang_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
+    self.dt            = dt
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -176,6 +179,9 @@ def swss_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
+    self.dt            = dt
+    self.time_elapsed += dt 
+    
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -224,6 +230,9 @@ def jia_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
+    self.dt            = dt
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         tic = af.time()
 

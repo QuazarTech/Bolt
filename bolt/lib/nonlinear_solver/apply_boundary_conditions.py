@@ -4,6 +4,7 @@
 import arrayfire as af
 
 def apply_bcs_f(self):
+    return
 
     if(self.performance_test_flag == True):
         tic = af.time()

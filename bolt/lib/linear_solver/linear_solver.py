@@ -108,7 +108,7 @@ class linear_solver(object):
         PETSc.Sys.Print(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.Print(indent('Device Details:'))
         PETSc.Sys.Print(indent(af.info_str(), 2))
-        PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        # PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.Print()
 
         # Creating PETSc Vecs which are used in dumping to file:
@@ -264,16 +264,6 @@ class linear_solver(object):
                                         ),order = 'F'
                                        )[1]
 
-            delta_f_hat_real_part = af.max(af.real(  f_hat[i_q1_max, i_q2_max]
-                                                   / self.f_background
-                                                  )
-                                          )
-
-            delta_f_hat_imag_part = af.max(af.imag(  f_hat[i_q1_max, i_q2_max]
-                                                   / self.f_background
-                                                  )
-                                          )
-
             # Taking sum to get a scalar value:
             params.k_q1 = af.sum(self.k_q1[i_q1_max, i_q2_max])
             params.k_q2 = af.sum(self.k_q2[i_q1_max, i_q2_max])
@@ -321,8 +311,8 @@ class linear_solver(object):
             self.dfdp3_background = np.array(self.dfdp3_background).\
                                     reshape(self.N_p1, self.N_p2, self.N_p3)
 
-            delta_f_hat =   delta_f_hat_real_part * self.f_background \
-                          + delta_f_hat_imag_part * self.f_background * 1j 
+            delta_f_hat =   params.pert_real * self.f_background \
+                          + params.pert_imag * self.f_background * 1j 
 
             self.Y = np.array([delta_f_hat])
             compute_electrostatic_fields(self)
@@ -347,7 +337,7 @@ class linear_solver(object):
                                       self.N_p1 * self.N_p2 * self.N_p3, 
                                       dtype = af.Dtype.c64
                                      )
-        
+
             self.B1_hat = af.constant(0, self.N_q1, self.N_q2,
                                       self.N_p1 * self.N_p2 * self.N_p3,
                                       dtype = af.Dtype.c64

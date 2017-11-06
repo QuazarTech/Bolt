@@ -99,6 +99,9 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
+    N_g = self.N_ghost
+    
+    af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
     PETSc.Object.setName(self._glob_f, 'distribution_function')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_f)

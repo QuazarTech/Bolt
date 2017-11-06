@@ -45,7 +45,6 @@ def dY_dt_multimode_evolution(Y, self):
 
     # Scaling Appropriately:
     f       = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
-    
     C_f_hat = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
                                        self.p1, self.p2, self.p3,
                                        self.compute_moments, 
@@ -175,7 +174,8 @@ def dY_dt_singlemode_evolution(Y, self):
         compute_electrostatic_fields(self)
         delta_E1_hat = self.delta_E1_hat
         delta_E2_hat = self.delta_E1_hat
-
+        delta_E3_hat = delta_B1_hat = delta_B2_hat = delta_B3_hat = 0
+        
     elif(self.physical_system.params.fields_solver == 'fdtd'):
         pass
 
