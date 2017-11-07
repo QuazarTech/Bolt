@@ -73,11 +73,11 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(linearized_system)
+ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
-t_final = 0.1
+dt      = 0.0005
+t_final = 20.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -89,29 +89,28 @@ E_data_nls = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        print(t0)
+        if(time_index%100):
+            print(t0)
+        
         N_g                    = nls.N_ghost
         E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)
-        E1_ls                  = abs(ls.Y[1])
-                                 # af.real(0.5 * (ls.N_q1 * ls.N_q2) 
-                                 #             * af.ifft2(ls.E1_hat[:, :, 0])
-                                 #        )
+        E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
+                                             * af.ifft2(ls.E1_hat[:, :, 0])
+                                        )
 
-        E_data_ls[time_index]  = 192 * E1_ls**2
+        E_data_ls[time_index]  = af.sum(E1_ls**2)
 
         nls.strang_timestep(dt)
-        ls.RK6_timestep(dt)
+        ls.RK4_timestep(dt)
         
 time_evolution()
-
-# print(E_data_ls)
 
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)
 h5f.close()
 
-# pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, E_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'SUM($|E|^2$)')
 pl.xlabel('Time')
@@ -119,7 +118,7 @@ pl.legend()
 pl.savefig('linearplot.png')
 pl.clf()
 
-# pl.semilogy(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.semilogy(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.semilogy(time_array, E_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'SUM($|E|^2$)')
 pl.xlabel('Time')

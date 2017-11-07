@@ -23,7 +23,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Time parameters:
 t_final = 1e-3
-N       = 2**np.arange(5, 10)
+N       = 2**np.arange(5, 8)
 
 def run_cases(q_dim, p_dim, charge_electron, tau):
     params.charge_electron = charge_electron

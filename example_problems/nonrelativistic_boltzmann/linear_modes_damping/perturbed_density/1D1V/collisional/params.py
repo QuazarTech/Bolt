@@ -13,7 +13,7 @@ fields_initialize = 'fft'
 fields_solver = 'fft'
 
 # Method in q-space
-solver_method_in_q = 'ASL'
+solver_method_in_q = 'FVM'
 riemann_solver = 'lax-friedrichs'
 reconstruction_method = 'piecewise-constant'
 

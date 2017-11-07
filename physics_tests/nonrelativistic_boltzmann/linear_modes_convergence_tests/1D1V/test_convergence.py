@@ -12,17 +12,17 @@ def tau_collisional(q1, q2, p1, p2, p3):
 def tau_collisionless(q1, q2, p1, p2, p3):
     return(np.inf * q1**0 * p1**0)
 
-# def test_collisionless():
-#     run_cases(1, 1, 0, tau_collisionless)
-#     check_convergence()
+def test_collisionless():
+    run_cases(1, 1, 0, tau_collisionless)
+    check_convergence()
 
-# def test_collisional():
-#     run_cases(1, 1, 0, tau_collisional)
-#     check_convergence()
+def test_collisional():
+    run_cases(1, 1, 0, tau_collisional)
+    check_convergence()
 
-# def test_fields_collisionless():
-#     run_cases(1, 1, -10, tau_collisionless)
-#     check_convergence()
+def test_fields_collisionless():
+    run_cases(1, 1, -10, tau_collisionless)
+    check_convergence()
 
 def test_fields_collisional():
     run_cases(1, 1, -10, tau_collisional)

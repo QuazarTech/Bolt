@@ -53,8 +53,7 @@ from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
 from .utils.performance_timings import print_table
 from .compute_moments import compute_moments as compute_moments_imported
-from .EM_fields_solver.electrostatic \
-    import fft_poisson, compute_electrostatic_fields
+from .EM_fields_solver.electrostatic import fft_poisson
 
 class nonlinear_solver(object):
     """
@@ -129,7 +128,7 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
         PETSc.Sys.syncPrint(indent(af.info_str(), 2))
-        # PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 
@@ -523,13 +522,6 @@ class nonlinear_solver(object):
             
             if (self.physical_system.params.fields_initialize == 'fft'):
                 fft_poisson(self)
-                self._communicate_fields()
-                self._apply_bcs_fields()
-
-            elif (self.physical_system.params.fields_initialize ==
-                  'electrostatic'
-                 ):
-                compute_electrostatic_fields(self)
                 self._communicate_fields()
                 self._apply_bcs_fields()
 

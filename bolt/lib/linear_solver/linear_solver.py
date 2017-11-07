@@ -108,7 +108,7 @@ class linear_solver(object):
         PETSc.Sys.Print(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.Print(indent('Device Details:'))
         PETSc.Sys.Print(indent(af.info_str(), 2))
-        # PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.Print()
 
         # Creating PETSc Vecs which are used in dumping to file:
@@ -311,6 +311,9 @@ class linear_solver(object):
             self.dfdp3_background = np.array(self.dfdp3_background).\
                                     reshape(self.N_p1, self.N_p2, self.N_p3)
 
+            # Unable to recover pert_real and pert_imag accurately from the input.
+            # There seems to be some error in recovering these quantities which
+            # is dependant upon the resolution. Using user-defined quantities instead
             delta_f_hat =   params.pert_real * self.f_background \
                           + params.pert_imag * self.f_background * 1j 
 

@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-def compute_moments(self, moment_name, f_background=None):
+def compute_moments(self, moment_name, f=None):
     """
     Used in computing the moments of the distribution function.
     The moment definitions which are passed to physical system
@@ -19,6 +19,11 @@ def compute_moments(self, moment_name, f_background=None):
                    user under moment_defs under src and passed to the 
                    physical_system object.
 
+    f: np.ndarray
+       Pass this argument as well when you want to compute the 
+       moments of the input array and not the one stored by the state vector
+       of the object.
+
     Examples
     --------
     
@@ -27,6 +32,8 @@ def compute_moments(self, moment_name, f_background=None):
     The above line will lookup the definition for 'density' under the dict
     moments_exponents, and moments_coefficients and calculate the same
     accordingly
+
+    When evolving for a single mode, this function returns moment_hat
     """
     # Checking that the moment-name is defined by the user:
     try:
@@ -55,21 +62,26 @@ def compute_moments(self, moment_name, f_background=None):
                                * self.p2**(moment_exponents[i, 1]) \
                                + moment_coeffs[i, 2] \
                                * self.p3**(moment_exponents[i, 2])
+
     except BaseException:
         moment_variable =   moment_coeffs[0] * self.p1**(moment_exponents[0]) \
                           + moment_coeffs[1] * self.p2**(moment_exponents[1]) \
                           + moment_coeffs[2] * self.p3**(moment_exponents[2])
 
     if(self.single_mode_evolution == True):
-        if(f_background is None):
+        if(f is None):
             delta_moment_hat =   np.sum(self.Y[0] * moment_variable) \
                                * self.dp3 * self.dp2 * self.dp1
             return(delta_moment_hat)
+        
         else:
-            moment_background =   np.sum(f_background * moment_variable) \
-                                * self.dp3 * self.dp2 * self.dp1
-            return(moment_background)
+            
+            moment_hat =   np.sum(f * moment_variable) \
+                         * self.dp3 * self.dp2 * self.dp1
+            
+            return(moment_hat)
 
+    # When evolving for several modes:
     else:
         # Since f_hat = Y[:, :, :, 0]:
         # We sum along axis 2 which contains the variations in velocity:
@@ -80,11 +92,19 @@ def compute_moments(self, moment_name, f_background=None):
         
         # af.broadcast(function, *args) performs batched operations on
         # function(*args):
-        moment_hat = af.sum(af.broadcast(multiply, self.Y[:, :, :, 0], 
-                                         moment_variable
-                                        ), 
-                            2
-                           ) * self.dp3 * self.dp2 * self.dp1
+        if(f is None):
+            moment_hat = af.sum(af.broadcast(multiply, self.Y[:, :, :, 0], 
+                                             moment_variable
+                                            ), 
+                                2
+                               ) * self.dp3 * self.dp2 * self.dp1
+        
+        else:
+            moment_hat = af.sum(af.broadcast(multiply, f, 
+                                             moment_variable
+                                            ), 
+                                2
+                               ) * self.dp3 * self.dp2 * self.dp1
 
         # Scaling Appropriately:
         moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat

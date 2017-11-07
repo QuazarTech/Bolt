@@ -1,5 +1,4 @@
 import arrayfire as af
-af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 
@@ -86,12 +85,11 @@ rho_data_ls  = np.zeros(time_array.size)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        # print('Computing For Time =', t0)
 
         n_nls                     = nls.compute_moments('density')
         rho_data_nls[time_index]  = af.max(n_nls[:, 3:-3, 3:-3])
         
-        n_ls                     = ls.compute_moments('density')
+        n_ls = ls.compute_moments('density')
     
         if(params.single_mode_evolution == True):
             rho_data_ls[time_index]  = params.rho_background + abs(n_ls) 

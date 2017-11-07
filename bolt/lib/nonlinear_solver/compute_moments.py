@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-def compute_moments(self, moment_name):
+def compute_moments(self, moment_name, f=None):
     """
     Used in computing the moments of the distribution function.
     The moment definitions which are passed to physical system
@@ -18,6 +18,11 @@ def compute_moments(self, moment_name):
                    It must be noted that this needs to be defined by the
                    user under moment_defs under src and passed to the 
                    physical_system object.
+    
+    f: af.Array
+       Pass this argument as well when you want to compute the 
+       moments of the input array and not the one stored by the state vector
+       of the object.
 
     Examples
     --------
@@ -59,8 +64,12 @@ def compute_moments(self, moment_name):
 
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
-    moment   =   af.sum(af.broadcast(multiply, self.f, moment_variable), 0) \
-               * self.dp3 * self.dp2 * self.dp1
+    if(f is None):
+        moment   =   af.sum(af.broadcast(multiply, self.f, moment_variable), 0) \
+                   * self.dp3 * self.dp2 * self.dp1
+    else:
+        moment   =   af.sum(af.broadcast(multiply, f, moment_variable), 0) \
+                   * self.dp3 * self.dp2 * self.dp1
 
     af.eval(moment)
     return (moment)

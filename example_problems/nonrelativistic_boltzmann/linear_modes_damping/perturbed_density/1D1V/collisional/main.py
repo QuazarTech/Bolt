@@ -6,7 +6,6 @@ from bolt.lib.physical_system import physical_system
 
 from bolt.lib.nonlinear_solver.nonlinear_solver \
     import nonlinear_solver
-
 from bolt.lib.linear_solver.linear_solver import linear_solver
 
 import domain
@@ -74,26 +73,23 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 ls  = linear_solver(linearized_system)
 
-
 # Time parameters:
-dt      = 0.001*32/nls.N_q1
-t_final = 0.001
+dt      = 0.001
+t_final = 0.5
 
-time_array = np.arange(0, t_final + dt, dt)
+time_array  = np.arange(dt, t_final + dt, dt)
 
-# Initializing Arrays used in storing the data:
-rho_data_nls  = np.zeros_like(time_array)
-rho_data_ls   = np.zeros_like(time_array)
+rho_data_nls = np.zeros(time_array.size)
+rho_data_ls  = np.zeros(time_array.size)
 
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        # print('Computing For Time =', t0)
 
         n_nls                     = nls.compute_moments('density')
         rho_data_nls[time_index]  = af.max(n_nls[:, 3:-3, 3:-3])
         
-        n_ls                     = ls.compute_moments('density')
+        n_ls = ls.compute_moments('density')
     
         if(params.single_mode_evolution == True):
             rho_data_ls[time_index]  = params.rho_background + abs(n_ls) 
@@ -101,24 +97,9 @@ def time_evolution():
             rho_data_ls[time_index]  = af.max(n_ls) 
 
         nls.strang_timestep(dt)
-        ls.RK5_timestep(dt)
+        ls.RK4_timestep(dt)
     
 time_evolution()
-
-nls.dump_distribution_function('nls_f')
-ls.dump_distribution_function('ls_f')
-
-import h5py
-h5f = h5py.File('nls_f.h5', 'r')
-nls_f = h5f['distribution_function'][:]
-h5f.close()
-
-
-h5f = h5py.File('ls_f.h5', 'r')
-ls_f = h5f['distribution_function'][:]
-h5f.close()
-
-print(np.mean(abs(nls_f-ls_f)))
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')

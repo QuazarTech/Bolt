@@ -3,7 +3,7 @@
 
 import arrayfire as af
 
-from .electrostatic import fft_poisson, compute_electrostatic_fields
+from .electrostatic import fft_poisson
 from .fdtd_explicit import fdtd, fdtd_grid_to_ck_grid
 from .. import interpolation_routines
 
@@ -14,11 +14,6 @@ def fields_step(self, dt):
     
     if (self.physical_system.params.fields_solver == 'fft'):
         fft_poisson(self)
-        self._communicate_fields()
-        self._apply_bcs_fields()
-
-    elif (self.physical_system.params.fields_solver == 'electrostatic'):
-        compute_electrostatic_fields(self)
         self._communicate_fields()
         self._apply_bcs_fields()
 

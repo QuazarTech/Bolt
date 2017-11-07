@@ -35,17 +35,17 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
 
 def BGK(f, q1, q2, p1, p2, p3, moments, params):
     """Return BGK operator -(f-f0)/tau."""
-    n = moments('density')
+    n = moments('density', f)
 
     # Floor used to avoid 0/0 limit:
     eps = 1e-15
 
-    p1_bulk = moments('mom_p1_bulk') / (n + eps)
-    p2_bulk = moments('mom_p2_bulk') / (n + eps)
-    p3_bulk = moments('mom_p3_bulk') / (n + eps)
+    p1_bulk = moments('mom_p1_bulk', f) / (n + eps)
+    p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
+    p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
 
     T =   (1 / params.p_dim) \
-        * (  moments('energy') 
+        * (  moments('energy', f) 
            - n * p1_bulk**2
            - n * p2_bulk**2
            - n * p3_bulk**2
@@ -88,14 +88,14 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     tau = params.tau(0, 0, p1, p2, p3)
 
     # Obtaining the normalization constant:
-    delta_rho_hat = moments('density')
+    delta_rho_hat = moments('density', delta_f_hat)
     
-    delta_p1_hat = (moments('mom_p1_bulk') - p1_b * delta_rho_hat)/rho
-    delta_p2_hat = (moments('mom_p2_bulk') - p2_b * delta_rho_hat)/rho
-    delta_p3_hat = (moments('mom_p3_bulk') - p3_b * delta_rho_hat)/rho
+    delta_p1_hat = (moments('mom_p1_bulk', delta_f_hat) - p1_b * delta_rho_hat)/rho
+    delta_p2_hat = (moments('mom_p2_bulk', delta_f_hat) - p2_b * delta_rho_hat)/rho
+    delta_p3_hat = (moments('mom_p3_bulk', delta_f_hat) - p3_b * delta_rho_hat)/rho
     
     delta_T_hat =   (  (1 / params.p_dim) \
-                     * moments('energy') 
+                     * moments('energy', delta_f_hat) 
                      - delta_rho_hat * T
                      - 2 * rho * p1_b * delta_p1_hat
                      - 2 * rho * p2_b * delta_p2_hat
