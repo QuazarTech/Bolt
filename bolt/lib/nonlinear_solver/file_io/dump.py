@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import arrayfire as af
-import numpy as np
 from petsc4py import PETSc
-import h5py
-
+import numpy as np
+import arrayfire as af
 
 def dump_moments(self, file_name):
     """
@@ -47,16 +45,22 @@ def dump_moments(self, file_name):
     
     >> h5f.close()
     """
-    i = 0
-    
-    for key in self.physical_system.moment_exponents:
-        self._glob_moments_value[:][:, :, i] = \
-        np.array(self.compute_moments(key))
-        i += 1
-    
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
-    viewer(self._glob_moments)
+    N_g = self.N_ghost
 
+    i = 0
+    for key in self.physical_system.moment_exponents:
+        if(i == 0):
+            array_to_dump = self.compute_moments(key)[:, N_g:-N_g,N_g:-N_g]
+        else:
+            array_to_dump = af.join(0, array_to_dump,
+                                    self.compute_moments(key)[:, N_g:-N_g,N_g:-N_g]
+                                   )
+        i += 1
+
+    af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
+    PETSc.Object.setName(self._glob_moments, 'moments')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer(self._glob_moments)
 
 def dump_distribution_function(self, file_name):
     """
@@ -95,8 +99,11 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    # Scaling Appropriately:
-    self._glob_f_value[:] =   0.5 * self.N_q2 * self.N_q1 \
-                                  * np.array(af.ifft2(self.Y[:, :, :, 0])).real
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    N_g = self.N_ghost
+    
+    af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
+    PETSc.Object.setName(self._glob_f, 'distribution_function')
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_f)
+
+    return

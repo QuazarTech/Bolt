@@ -70,15 +70,17 @@ class test(object):
                                      }
                                     )
 
+        self.single_mode_evolution = False
+
         self.q1_start = np.random.randint(0, 5)
         self.q2_start = np.random.randint(0, 5)
 
         self.q1_end = np.random.randint(5, 10)
         self.q2_end = np.random.randint(5, 10)
 
-        self.N_q1 = np.random.randint(16, 32)
-        self.N_q2 = np.random.randint(16, 32)
-
+        self.N_q1 = 33
+        self.N_q2 = 33 
+        
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
         self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
 

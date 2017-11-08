@@ -11,12 +11,15 @@ are carried out as expected.
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
+
 import h5py
 from petsc4py import PETSc
 
 # Importing Solver functions:
-from bolt.lib.linear_solver.dump \
+from bolt.lib.linear_solver.file_io.dump \
     import dump_moments, dump_distribution_function
+from bolt.lib.linear_solver.file_io.load \
+    import load_distribution_function
 
 from bolt.lib.linear_solver.compute_moments import \
     compute_moments as compute_moments_imported
@@ -35,8 +38,8 @@ moment_coeffs = dict(density = [1, 0, 0],
 class test(object):
     
     def __init__(self):
-        self.N_q1 = 2
-        self.N_q2 = 3
+        self.N_q1 = 32
+        self.N_q2 = 32
         self.N_p1 = 4
         self.N_p2 = 5
         self.N_p3 = 6
@@ -55,6 +58,8 @@ class test(object):
                                      'moment_coeffs':    moment_coeffs
                                     }
                                    )
+
+        self.single_mode_evolution = False
 
         self.f = af.randu(self.N_q1, self.N_q2,
                           self.N_p1 * self.N_p2 * self.N_p3,
@@ -90,16 +95,13 @@ class test(object):
 
 def test_dump_distribution_function():
     test_obj = test()
+
+    f_before_load = test_obj.Y.copy()
+
     dump_distribution_function(test_obj, 'test_file')
+    load_distribution_function(test_obj, 'test_file')
 
-    h5f = h5py.File('test_file.h5', 'r')
-    f_read = h5f['distribution_function'][:]
-    h5f.close()
-
-    f_read_reordered = np.swapaxes(f_read, 0, 1)
-
-    assert(np.sum(abs(f_read_reordered - np.array(test_obj.f)))\
-           /f_read_reordered.size<1e-14)
+    assert(af.mean(af.abs(test_obj.Y - f_before_load)) < 1e-14)
 
 def test_dump_moments():
     test_obj = test()

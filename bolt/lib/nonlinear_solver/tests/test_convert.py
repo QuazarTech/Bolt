@@ -58,9 +58,9 @@ def test_convert_to_p_expanded():
     modified = convert_to_p_expanded(obj, test_array)
 
     expected = af.moddims(test_array,
+                          obj.N_p1, obj.N_p2, obj.N_p3,
                           (obj.N_q1 + 2 * obj.N_ghost) *
-                          (obj.N_q2 + 2 * obj.N_ghost),
-                          obj.N_p1, obj.N_p2, obj.N_p3
+                          (obj.N_q2 + 2 * obj.N_ghost)
                          )
 
     assert (af.sum(modified - expected) == 0)
@@ -75,9 +75,10 @@ def test_convert_to_q_expanded():
 
     modified = convert_to_q_expanded(obj, test_array)
 
-    expected = af.moddims(test_array, (obj.N_q1 + 2 * obj.N_ghost),
-                          (obj.N_q2 + 2 * obj.N_ghost),
-                          obj.N_p1 * obj.N_p2 * obj.N_p3
+    expected = af.moddims(test_array, 
+                          obj.N_p1 * obj.N_p2 * obj.N_p3,
+                          (obj.N_q1 + 2 * obj.N_ghost),
+                          (obj.N_q2 + 2 * obj.N_ghost)
                          )
 
     assert (af.sum(modified - expected) == 0)

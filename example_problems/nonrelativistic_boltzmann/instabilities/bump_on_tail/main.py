@@ -1,5 +1,4 @@
 import arrayfire as af
-af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 import h5py
@@ -54,6 +53,15 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 # Defining the physical system to be solved:
+linearized_system = physical_system(domain,
+                                    boundary_conditions,
+                                    params,
+                                    initialize,
+                                    advection_terms,
+                                    collision_operator.linearized_BGK,
+                                    moment_defs
+                                   )
+
 system = physical_system(domain,
                          boundary_conditions,
                          params,
@@ -68,8 +76,8 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
-t_final = 200
+dt      = 0.0005
+t_final = 0.1
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -81,8 +89,10 @@ E_data_nls = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
+        print(t0)
+        
         N_g                    = nls.N_ghost
-        E_data_nls[time_index] = af.sum(nls.E1[N_g:-N_g, N_g:-N_g]**2)
+        E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)
         E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
                                              * af.ifft2(ls.E1_hat[:, :, 0])
                                         )
@@ -90,7 +100,7 @@ def time_evolution():
         E_data_ls[time_index]  = af.sum(E1_ls**2)
 
         nls.strang_timestep(dt)
-        ls.RK2_timestep(dt)
+        ls.RK4_timestep(dt)
         
 time_evolution()
 

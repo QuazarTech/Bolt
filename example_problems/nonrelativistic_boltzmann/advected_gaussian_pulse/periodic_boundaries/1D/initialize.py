@@ -19,7 +19,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     f[:] = 0
 
-    f[:, :, 2] = rho
+    f[2] = rho
     
     af.eval(f)
     return (f)

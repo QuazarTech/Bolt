@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from petsc4py import PETSc
+import arrayfire as af
 import numpy as np
+from petsc4py import PETSc
+import h5py
+
 
 def dump_moments(self, file_name):
     """
@@ -48,15 +51,12 @@ def dump_moments(self, file_name):
     
     for key in self.physical_system.moment_exponents:
         self._glob_moments_value[:][:, :, i] = \
-        np.array(self.compute_moments(key)[self.N_ghost:-self.N_ghost,
-                                           self.N_ghost:-self.N_ghost
-                                          ]
-                )
+        np.array(self.compute_moments(key))
         i += 1
     
-    PETSc.Object.setName(self._glob_moments, 'moments')
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_moments)
+
 
 def dump_distribution_function(self, file_name):
     """
@@ -95,8 +95,25 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    PETSc.Object.setName(self._glob_f, 'distribution_function')
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-    viewer(self._glob_f)
+    if(self.single_mode_evolution == True):
+        f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
-    return
+        k_q1 = self.physical_system.params.k_q1
+        k_q2 = self.physical_system.params.k_q2
+
+        q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+        q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+
+        df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
+              * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
+             ).real
+
+        self._glob_f_value[:] = f_b + df
+
+    else:
+        # Scaling Appropriately:
+        self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 \
+                                    * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    viewer(self._glob_f)

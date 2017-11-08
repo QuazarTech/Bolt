@@ -37,9 +37,9 @@ t_final = 2.0
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:]
-q2  = h5f['q2'][:]
-n   = h5f['n'][:]
+q1  = h5f['q1'][:].reshape(134, 134)
+q2  = h5f['q2'][:].reshape(134, 134)
+n   = h5f['n'][:].reshape(134, 134)
 h5f.close()
 
 pl.contourf(q1[3:-3, 3:-3],
@@ -57,7 +57,7 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:]
+    n   = h5f['n'][:].reshape(134, 134)
     h5f.close()
 
     pl.contourf(q1[3:-3, 3:-3],

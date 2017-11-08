@@ -13,6 +13,9 @@ fields_solver = 'fdtd'
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
 
+# Solver method:
+solver_method_in_q = 'ASL'
+
 # Dimensionality considered in velocity space:
 p_dim = 2
 
@@ -29,7 +32,4 @@ rho_background  = 1
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (af.constant(np.inf, q1.shape[0], q2.shape[1], 
-                        p1.shape[2], dtype = af.Dtype.f64
-                       )
-           )
+    return (np.inf)

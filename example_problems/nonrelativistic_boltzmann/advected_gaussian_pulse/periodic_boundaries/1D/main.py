@@ -49,10 +49,11 @@ h5f.close()
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
+        
         print('For Time =', t0)
-        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
-        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
-        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
+        print('MIN(f) =', af.min(nls.f[:, 3:-3, 3:-3]))
+        print('MAX(f) =', af.max(nls.f[:, 3:-3, 3:-3]))
+        print('SUM(f) =', af.sum(nls.f[:, 3:-3, 3:-3]))
         print()
 
         nls.strang_timestep(dt)

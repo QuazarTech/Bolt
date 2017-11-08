@@ -23,7 +23,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Time parameters:
 t_final = 1e-3
-N       = 2**np.arange(5, 10)
+N       = 2**np.arange(5, 8)
 
 def run_cases(q_dim, p_dim, charge_electron, tau):
     params.charge_electron = charge_electron
@@ -59,21 +59,27 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                                  collision_operator.BGK,
                                  moment_defs
                                 )
+        
+        linearized_system = physical_system(domain,
+                                            boundary_conditions,
+                                            params,
+                                            initialize,
+                                            advection_terms,
+                                            collision_operator.linearized_BGK,
+                                            moment_defs
+                                           )
 
         # Declaring a linear system object which will 
         # evolve the defined physical system:
         nls = nonlinear_solver(system)
-        ls  = linear_solver(system)
+        ls  = linear_solver(linearized_system)
 
         time_array = np.arange(dt, t_final + dt, dt)
 
         for time_index, t0 in enumerate(time_array):
 
             nls.strang_timestep(dt)
-            ls.RK2_timestep(dt)
+            ls.RK5_timestep(dt)
 
         nls.dump_distribution_function('dump_files/nlsf_' + str(N[i]))
         ls.dump_distribution_function('dump_files/lsf_' + str(N[i]))
-
-        nls.dump_moments('dump_files/nlsm_' + str(N[i]))
-        ls.dump_moments('dump_files/lsm_' + str(N[i]))
