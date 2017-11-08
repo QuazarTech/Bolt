@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-def compute_moments(self, moment_name, f=None):
+def compute_moments(self, moment_name, f=None, f_hat=None):
     """
     Used in computing the moments of the distribution function.
     The moment definitions which are passed to physical system
@@ -19,10 +19,10 @@ def compute_moments(self, moment_name, f=None):
                    user under moment_defs under src and passed to the 
                    physical_system object.
 
-    f: np.ndarray
-       Pass this argument as well when you want to compute the 
-       moments of the input array and not the one stored by the state vector
-       of the object.
+    f/f_hat: np.ndarray
+             Pass this argument as well when you want to compute the 
+             moments of the input array and not the one stored by the state vector
+             of the object.
 
     Examples
     --------
@@ -92,23 +92,37 @@ def compute_moments(self, moment_name, f=None):
         
         # af.broadcast(function, *args) performs batched operations on
         # function(*args):
-        if(f is None):
+        if(f_hat is None and f is None):
             moment_hat = af.sum(af.broadcast(multiply, self.Y[:, :, :, 0], 
                                              moment_variable
                                             ), 
                                 2
                                ) * self.dp3 * self.dp2 * self.dp1
+
+            # Scaling Appropriately:
+            moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+            moment     = af.real(af.ifft2(moment_hat))
         
-        else:
-            moment_hat = af.sum(af.broadcast(multiply, f, 
+        elif(f_hat is not None and f is None):
+            moment_hat = af.sum(af.broadcast(multiply, f_hat, 
                                              moment_variable
                                             ), 
                                 2
                                ) * self.dp3 * self.dp2 * self.dp1
 
-        # Scaling Appropriately:
-        moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-        moment     = af.real(af.ifft2(moment_hat))
+            # Scaling Appropriately:
+            moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+            moment     = af.real(af.ifft2(moment_hat))
+
+        elif(f_hat is None and f is not None):
+                moment = af.sum(af.broadcast(multiply, f, 
+                                             moment_variable
+                                            ), 2 
+                               ) * self.dp3 * self.dp2 * self.dp1
+        else:
+            raise BaseException('Invalid Option: Both f and f_hat cannot \
+                                 be provided as arguments'
+                               )
 
         af.eval(moment)
         return(moment)

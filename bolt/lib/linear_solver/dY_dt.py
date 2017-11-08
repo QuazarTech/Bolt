@@ -56,7 +56,7 @@ def dY_dt_multimode_evolution(Y, self):
     if(   self.physical_system.params.fields_solver == 'electrostatic'
        or self.physical_system.params.fields_solver == 'fft'
       ):
-        compute_electrostatic_fields(self, f_hat)
+        compute_electrostatic_fields(self, f_hat=f_hat)
 
     # When method is FDTD, this function returns the timederivatives
     # of the field quantities which is stepped using a numerical integrator:
@@ -66,9 +66,9 @@ def dY_dt_multimode_evolution(Y, self):
     else:
         raise NotImplementedError('Method invalid/not-implemented')
     
-    mom_bulk_p1 = self.compute_moments('mom_p1_bulk', f_hat)
-    mom_bulk_p2 = self.compute_moments('mom_p2_bulk', f_hat)
-    mom_bulk_p3 = self.compute_moments('mom_p3_bulk', f_hat)
+    mom_bulk_p1 = self.compute_moments('mom_p1_bulk', f_hat=f_hat)
+    mom_bulk_p2 = self.compute_moments('mom_p2_bulk', f_hat=f_hat)
+    mom_bulk_p3 = self.compute_moments('mom_p3_bulk', f_hat=f_hat)
 
     J1_hat = 2 * af.fft2(  self.physical_system.params.charge_electron 
                          * mom_bulk_p1

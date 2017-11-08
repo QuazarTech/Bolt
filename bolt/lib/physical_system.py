@@ -76,13 +76,15 @@ class physical_system(object):
                                  to be of type int or float'
                                )
 
-        # Checking that boundary-conditions mentioned are strings:
-        if(not isinstance(boundary_conditions.in_q1, str) or
-           not isinstance(boundary_conditions.in_q2, str)
-          ):
-            raise TypeError('Expected attributes of boundary_conditions \
-                             to be of type str'
-                           )
+        attributes = [a for a in dir(boundary_conditions) if not a.startswith('__')]
+        
+        for i in range(len(attributes)):
+            if(not (isinstance(getattr(boundary_conditions, attributes[i]), str) 
+               or   isinstance(getattr(boundary_conditions, attributes[i]), types.FunctionType))
+              ):
+                raise TypeError('Expected attributes of boundary_conditions \
+                                 to be of type string or functions'
+                               )
 
         # Checking for type of initial_conditions:
         if(isinstance(initial_conditions, types.ModuleType) is False):

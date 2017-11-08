@@ -79,8 +79,11 @@ class linear_solver(object):
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
         # Checking that periodic B.C's are utilized:
-        if(   physical_system.boundary_conditions.in_q1 != 'periodic' 
-           or physical_system.boundary_conditions.in_q2 != 'periodic'):
+        if(    physical_system.boundary_conditions.in_q1_left   != 'periodic' 
+           and physical_system.boundary_conditions.in_q1_right  != 'periodic'
+           and physical_system.boundary_conditions.in_q2_bottom != 'periodic'
+           and physical_system.boundary_conditions.in_q2_top    != 'periodic'
+          ):
             raise Exception('Only systems with periodic boundary conditions \
                              can be solved using the linear solver'
                            )

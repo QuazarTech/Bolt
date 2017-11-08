@@ -1,7 +1,7 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
+single_mode_evolution = False
 
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -15,7 +15,7 @@ fields_solver = 'fft'
 # Method in q-space
 solver_method_in_q = 'FVM'
 riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'minmod'
+reconstruction_method = 'weno5'
 
 # Dimensionality considered in velocity space:
 p_dim = 1

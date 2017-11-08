@@ -1,7 +1,7 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
+single_mode_evolution = False
 
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize

@@ -71,7 +71,7 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(linearized_system)
+ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
@@ -95,7 +95,7 @@ def time_evolution():
             rho_data_ls[time_index]  = params.rho_background + abs(n_ls) 
         else:
             rho_data_ls[time_index]  = af.max(n_ls) 
-
+        
         nls.strang_timestep(dt)
         ls.RK4_timestep(dt)
     

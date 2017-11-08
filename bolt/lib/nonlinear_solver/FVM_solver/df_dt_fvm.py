@@ -2,10 +2,7 @@ import arrayfire as af
 
 # Importing Riemann solver used in calculating fluxes:
 from .riemann_solver import riemann_solver
-
-from .reconstruction.minmod import reconstruct_minmod
-from .reconstruction.ppm import reconstruct_ppm
-from .reconstruction.weno5 import reconstruct_weno5
+from .reconstruct import reconstruct
 
 # Equation to solve:
 # df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
@@ -34,51 +31,14 @@ def df_dt_fvm(f, self):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    if(self.physical_system.params.reconstruction_method == 'piecewise-constant'):
+    left_plus_eps_flux, right_minus_eps_flux = \
+        reconstruct(self, af.broadcast(multiply, self._C_q1, f), 'q1')
+    bot_plus_eps_flux, top_minus_eps_flux = \
+        reconstruct(self, af.broadcast(multiply, self._C_q2, f), 'q2')
 
-        left_plus_eps_flux   = af.broadcast(multiply, self._C_q1, f)
-        right_minus_eps_flux = af.broadcast(multiply, self._C_q1, f)
-        bot_plus_eps_flux    = af.broadcast(multiply, self._C_q2, f)
-        top_minus_eps_flux   = af.broadcast(multiply, self._C_q2, f)
+    f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 'q1')
+    f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 'q2')
 
-        f_left_plus_eps   = f
-        f_right_minus_eps = f
-        f_bot_plus_eps    = f
-        f_top_minus_eps   = f
-
-    elif(self.physical_system.params.reconstruction_method == 'minmod'):
-        
-        left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct_minmod(af.broadcast(multiply, self._C_q1, f), 'q1')
-        bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct_minmod(af.broadcast(multiply, self._C_q2, f), 'q2')
-
-        f_left_plus_eps, f_right_minus_eps = reconstruct_minmod(f, 'q1')
-        f_bot_plus_eps, f_top_minus_eps    = reconstruct_minmod(f, 'q2')
-        
-    elif(self.physical_system.params.reconstruction_method == 'ppm'):
-        
-        left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct_ppm(af.broadcast(multiply, self._C_q1, f), 'q1')
-        bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct_ppm(af.broadcast(multiply, self._C_q2, f), 'q2')
-
-        f_left_plus_eps, f_right_minus_eps = reconstruct_ppm(f, 'q1')
-        f_bot_plus_eps, f_top_minus_eps    = reconstruct_ppm(f, 'q2')
-
-    elif(self.physical_system.params.reconstruction_method == 'weno5'):
-        
-        left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct_weno5(af.broadcast(multiply, self._C_q1, f), 'q1')
-        bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct_weno5(af.broadcast(multiply, self._C_q2, f), 'q2')
-
-        f_left_plus_eps, f_right_minus_eps = reconstruct_weno5(f, 'q1')
-        f_bot_plus_eps, f_top_minus_eps    = reconstruct_weno5(f, 'q2')
-
-    else:
-        raise NotImplementedError('Reconstruction method invalid/not-implemented')
-    
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()

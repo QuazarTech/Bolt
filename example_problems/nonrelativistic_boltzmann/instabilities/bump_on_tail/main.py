@@ -77,7 +77,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.0005
-t_final = 20.0
+t_final = 0.1
 
 time_array = np.arange(0, t_final + dt, dt)
 
@@ -89,8 +89,7 @@ E_data_nls = np.zeros_like(time_array)
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
-        if(time_index%100):
-            print(t0)
+        print(t0)
         
         N_g                    = nls.N_ghost
         E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)

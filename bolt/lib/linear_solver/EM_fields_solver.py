@@ -3,7 +3,7 @@
 
 import arrayfire as af
 
-def compute_electrostatic_fields(self, f=None):
+def compute_electrostatic_fields(self, f=None, f_hat=None):
     """
     Computes the electrostatic fields by making use of the
     Poisson equation: div^2 phi = rho
@@ -28,7 +28,7 @@ def compute_electrostatic_fields(self, f=None):
 
     else:
 
-        rho_hat = 2 * af.fft2(self.compute_moments('density'), f) \
+        rho_hat = 2 * af.fft2(self.compute_moments('density', f=f, f_hat=f_hat)) \
                     / (self.N_q1 * self.N_q2) # Scaling Appropriately
 
         # Defining lambda functions to perform broadcasting operations:

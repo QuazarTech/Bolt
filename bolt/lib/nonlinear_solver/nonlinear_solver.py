@@ -164,10 +164,10 @@ class nonlinear_solver(object):
         # boundary conditions when running in parallel. In all other
         # cases, ghosted boundaries are used.
 
-        if(self.boundary_conditions.in_q1 == 'periodic'):
+        if(self.boundary_conditions.in_q1_left == 'periodic'):
             petsc_bc_in_q1 = 'periodic'
 
-        if(self.boundary_conditions.in_q2 == 'periodic'):
+        if(self.boundary_conditions.in_q2_bottom == 'periodic'):
             petsc_bc_in_q2 = 'periodic'
 
         # DMDA is a data structure to handle a distributed structure 
@@ -276,40 +276,36 @@ class nonlinear_solver(object):
         (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
         # Applying dirichlet boundary conditions:        
-        if(self.physical_system.boundary_conditions.in_q1 == 'dirichlet'):
-
+        if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
-
                 self.f[:, :N_g] = self.boundary_conditions.\
                                   f_left(self.q1_center, self.q2_center,
                                          self.p1, self.p2, self.p3, 
                                          self.physical_system.params
                                         )[:, :N_g]
     
+        if(self.physical_system.boundary_conditions.in_q1_right == 'dirichlet'):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
-
                 self.f[:, -N_g:] = self.boundary_conditions.\
                                    f_right(self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, -N_g:]
 
-        if(self.physical_system.boundary_conditions.in_q2 == 'dirichlet'):
-            
+        if(self.physical_system.boundary_conditions.in_q2_bottom == 'dirichlet'):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
-
                 self.f[:, :, :N_g] = self.boundary_conditions.\
                                      f_bot(self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, :, :N_g]
 
+        if(self.physical_system.boundary_conditions.in_q2_top == 'dirichlet'):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
-
                 self.f[:, :, -N_g:] = self.boundary_conditions.\
                                       f_top(self.q1_center, self.q2_center,
                                             self.p1, self.p2, self.p3, 

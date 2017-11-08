@@ -25,8 +25,10 @@ def communicate_f(self):
     # only inflowing characteristics are to be changed by 
     # the apply boundary conditions function.
 
-    if(   self.boundary_conditions.in_q1 == 'dirichlet'
-       or self.boundary_conditions.in_q2 == 'dirichlet' 
+    if(   self.boundary_conditions.in_q1_left   == 'dirichlet'
+       or self.boundary_conditions.in_q1_right  == 'dirichlet' 
+       or self.boundary_conditions.in_q2_bottom == 'dirichlet' 
+       or self.boundary_conditions.in_q2_top    == 'dirichlet' 
       ):
         af.flat(self.f).to_ndarray(self._local_f_array)
 
