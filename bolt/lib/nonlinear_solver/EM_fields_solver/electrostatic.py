@@ -5,7 +5,7 @@ import arrayfire as af
 import numpy as np
 from numpy.fft import fftfreq
 
-def fft_poisson(self):
+def fft_poisson(self, f=None):
     """
     Solves the Poisson Equation using the FFTs:
 
@@ -22,7 +22,7 @@ def fft_poisson(self):
     else:
         N_g = self.N_ghost
         rho = af.reorder(  self.physical_system.params.charge_electron \
-                         * self.compute_moments('density')[:, N_g:-N_g, N_g:-N_g],
+                         * self.compute_moments('density', f)[:, N_g:-N_g, N_g:-N_g],
                          1, 2, 0
                         )
 

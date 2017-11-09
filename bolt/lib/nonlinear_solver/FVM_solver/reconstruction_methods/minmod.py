@@ -15,14 +15,19 @@ def minmod(x, y, z):
     af.eval(result)
     return result
 
-def slope_minmod(input_array, dim):
+def slope_minmod(input_array, axis):
+    
+    if(axis == 0):
+        
+        f_i_plus_one  = af.shift(input_array, -1)
+        f_i_minus_one = af.shift(input_array,  1)
   
-    if(dim == 'q1'):
+    elif(axis == 1):
         
         f_i_plus_one  = af.shift(input_array, 0, -1)
         f_i_minus_one = af.shift(input_array, 0,  1)
 
-    elif(dim == 'q2'):
+    elif(axis == 2):
 
         f_i_plus_one  = af.shift(input_array, 0, 0, -1)
         f_i_minus_one = af.shift(input_array, 0, 0,  1)

@@ -1,28 +1,39 @@
 import arrayfire as af
 
 # Adapted from grim(by Chandra et al.):
-def reconstruct_weno5(input_array, dim):
+def reconstruct_weno5(input_array, axis):
     
     eps = 1e-17;
 
-    if(dim == 'q1'):
+    if(axis == 0):
 
-        x0_shift = 2;  y0_shift = 0
-        x1_shift = 1;  y1_shift = 0
-        x3_shift = -1; y3_shift = 0
-        x4_shift = -2; y4_shift = 0
+        x0_shift = 2;  y0_shift = 0; z0_shift = 0
+        x1_shift = 1;  y1_shift = 0; z1_shift = 0
+        x3_shift = -1; y3_shift = 0; z3_shift = 0
+        x4_shift = -2; y4_shift = 0; z4_shift = 0
 
-    elif(dim == 'q2'):
-        x0_shift = 0; y0_shift = 2
-        x1_shift = 0; y1_shift = 1
-        x3_shift = 0; y3_shift = -1
-        x4_shift = 0; y4_shift = -2
+    elif(axis == 1):
+
+        x0_shift = 0; y0_shift = 2;  z0_shift = 0
+        x1_shift = 0; y1_shift = 1;  z1_shift = 0
+        x3_shift = 0; y3_shift = -1; z3_shift = 0
+        x4_shift = 0; y4_shift = -2; z4_shift = 0
   
-    y0 = af.shift(input_array, 0, x0_shift, y0_shift)
-    y1 = af.shift(input_array, 0, x1_shift, y1_shift)
+    elif(axis == 2):
+
+        x0_shift = 0; y0_shift = 0; z0_shift = 2
+        x1_shift = 0; y1_shift = 0; z1_shift = 1
+        x3_shift = 0; y3_shift = 0; z3_shift = -1
+        x4_shift = 0; y4_shift = 0; z4_shift = -2
+
+    else:
+        raise Exception('Invalid choice for axis')
+
+    y0 = af.shift(input_array, x0_shift, y0_shift, z0_shift)
+    y1 = af.shift(input_array, x1_shift, y1_shift, z1_shift)
     y2 = input_array;
-    y3 = af.shift(input_array, 0, x3_shift, y3_shift)
-    y4 = af.shift(input_array, 0, x4_shift, y4_shift)
+    y3 = af.shift(input_array, x3_shift, y3_shift, z3_shift)
+    y4 = af.shift(input_array, x4_shift, y4_shift, z4_shift)
 
     # Compute smoothness operators
     beta1 = (( 4/3) * y0 * y0 - (19/3) * y0 * y1 +
