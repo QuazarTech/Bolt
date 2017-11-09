@@ -77,14 +77,26 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.0005
-t_final = 0.1
+t_final = 20.0
 
 time_array = np.arange(0, t_final + dt, dt)
 
 # Initializing Arrays used in storing the data:
-
 E_data_ls  = np.zeros_like(time_array)
 E_data_nls = np.zeros_like(time_array)
+
+nls.dump_distribution_function('nls_f')
+ls.dump_distribution_function('ls_f')
+
+h5f = h5py.File('nls_f.h5', 'r')
+nls_f = h5f['distribution_function'][:]
+h5f.close()
+
+h5f = h5py.File('ls_f.h5', 'r')
+ls_f = h5f['distribution_function'][:]
+h5f.close()
+
+print(np.mean(abs(nls_f - ls_f)))
 
 def time_evolution():
 

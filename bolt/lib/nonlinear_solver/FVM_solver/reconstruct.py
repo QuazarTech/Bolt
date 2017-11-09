@@ -15,7 +15,7 @@ def reconstruct(self, input_array, dim):
         left_face_value, right_face_value = reconstruct_ppm(input_array, dim)
 
     elif(self.physical_system.params.reconstruction_method == 'weno5'):
-        left_face_value, right_face_value = reconstruct_minmod(input_array, dim)
+        left_face_value, right_face_value = reconstruct_weno5(input_array, dim)
 
     else:
         raise NotImplementedError('Reconstruction method invalid/not-implemented')

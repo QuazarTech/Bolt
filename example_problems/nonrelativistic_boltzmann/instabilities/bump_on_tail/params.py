@@ -21,7 +21,7 @@ p_dim = 1
 # Method in q-space
 solver_method_in_q = 'ASL'
 riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'weno5'
+reconstruction_method = 'minmod'
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1

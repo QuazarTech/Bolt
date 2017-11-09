@@ -5,11 +5,11 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'electrostatic'
+fields_initialize = 'fft'
 
 solver_method_in_q = 'FVM'
-riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'minmod'
+riemann_solver = 'upwind-flux'
+reconstruction_method = 'weno5'
 
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
