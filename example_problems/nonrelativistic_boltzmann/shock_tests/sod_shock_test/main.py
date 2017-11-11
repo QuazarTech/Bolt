@@ -29,24 +29,48 @@ system = physical_system(domain,
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 n_nls = nls.compute_moments('density')
+p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
+p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_ls
+p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_ls
+T_nls = (  nls.compute_moments('energy')
+         - n_nls * p1_bulk_nls**2
+         - n_nls * p2_bulk_nls**2
+         - n_nls * p3_bulk_nls**2
+        ) / n_nls
 
 h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('q1', data = nls.q1_center)
 h5f.create_dataset('q2', data = nls.q2_center)
 h5f.create_dataset('n', data = n_nls)
+h5f.create_dataset('p1', data = p1_bulk_nls)
+h5f.create_dataset('T', data = T_nls)
 h5f.close()
 
 # Time parameters:
-dt      = 0.0005
+dt      = 0.00005
 t_final = 0.2
 
 time_array  = np.arange(dt, t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
+    
+    if(time_index%100 == 0):
+        print('Computing for Time =', t0)
 
     nls.strang_timestep(dt)
+    
     n_nls = nls.compute_moments('density')
+    p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
+    p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
+    p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
+    T_nls = (  nls.compute_moments('energy')
+             - n_nls * p1_bulk_nls**2
+             - n_nls * p2_bulk_nls**2
+             - n_nls * p3_bulk_nls**2
+            ) / n_nls
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
     h5f.create_dataset('n', data = n_nls)
+    h5f.create_dataset('p1', data = p1_bulk_nls)
+    h5f.create_dataset('T', data = T_nls)
     h5f.close()

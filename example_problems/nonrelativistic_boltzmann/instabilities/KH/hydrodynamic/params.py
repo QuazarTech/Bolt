@@ -4,13 +4,19 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'electrostatic'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
 
-# Can be defined as 'strang' and 'lie'
-time_splitting = 'strang'
+# Method in q-space
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'ASL'
+
+reconstruction_method_in_q = 'weno5'
+reconstruction_method_in_p = 'weno5'
+
+riemann_solver = 'upwind-flux'
 
 # Constants:
 mass_particle      = 1
@@ -22,7 +28,4 @@ num_devices = 1
 
 # Variation of collisional-timescale parameter through phase space:
 def tau(q1, q2, p1, p2, p3):
-    return (af.constant(1e-5, q1.shape[0], q2.shape[1], 
-                        p1.shape[2], dtype = af.Dtype.f64
-                       )
-           )
+    return(0 * q1**0 * p1**0)
