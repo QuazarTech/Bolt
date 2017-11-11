@@ -3,7 +3,7 @@ import pylab as pl
 import h5py
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 10, 14
+pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -33,49 +33,42 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.0005
-t_final = 0.2
+t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
-h5f  = h5py.File('dump/0000.h5', 'r')
-q1   = h5f['q1'][:].reshape(134, 9)
-q2   = h5f['q2'][:].reshape(134, 9)
-n    = h5f['n'][:].reshape(134, 9)
-p1   = h5f['p1'][:].reshape(134, 9)
-T    = h5f['T'][:].reshape(134, 9)
+h5f = h5py.File('dump/0000.h5', 'r')
+q1  = h5f['q1'][:].reshape(70, 134)
+q2  = h5f['q2'][:].reshape(70, 134)
+n   = h5f['n'][:].reshape(70, 134)
 h5f.close()
 
-pl.plot(q1[3:-3, 3:-3], n[3:-3, 3:-3])
+pl.contourf(q1[3:-3, 3:-3],
+            q2[3:-3, 3:-3],
+            n[3:-3, 3:-3],
+            100,
+           )
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
-pl.ylabel(r'$n$')
+pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
+pl.colorbar()
 pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
-    
-    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n    = h5f['n'][:].reshape(134, 9)
-    p1   = h5f['p1'][:].reshape(134, 9)
-    T    = h5f['T'][:].reshape(134, 9)
+    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    n   = h5f['n'][:].reshape(70, 134)
     h5f.close()
 
-    fig = pl.figure()
-
-    ax1 = fig.add_subplot(3,1,1)
-    ax1.plot(q1[3:-3, 3], n[3:-3, 3])
-    ax1.set_ylabel(r'$\rho$')
-
-    ax2 = fig.add_subplot(3,1,2)
-    ax2.plot(q1[3:-3, 3], p1[3:-3, 3])
-    ax2.set_ylabel(r'$v_x$')
-    ax2.set_ylim([0, 1])
-
-    ax3 = fig.add_subplot(3,1,3)
-    ax3.plot(q1[3:-3, 3], n[3:-3, 3] * T[3:-3, 3]/3)
-    ax3.set_ylabel(r'$p$')
-    ax3.set_xlabel('$x$')
-
-    fig.suptitle('Time = ' + str(t0))
-    pl.savefig('images/' + '%04d'%time_index + '.png')
-    pl.close(fig)
+    pl.contourf(q1[3:-3, 3:-3],
+                q2[3:-3, 3:-3],
+                n[3:-3, 3:-3],
+                100,
+               )
+    pl.title('Time =' + str(t0))
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.colorbar()
+    pl.axes().set_aspect('equal')
+    pl.savefig('images/%04d'%(time_index+1) + '.png')
     pl.clf()
