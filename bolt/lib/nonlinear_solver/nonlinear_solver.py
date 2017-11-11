@@ -280,7 +280,7 @@ class nonlinear_solver(object):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
                 self.f[:, :N_g] = self.boundary_conditions.\
-                                  f_left(self.q1_center, self.q2_center,
+                                  f_left(self.f, self.q1_center, self.q2_center,
                                          self.p1, self.p2, self.p3, 
                                          self.physical_system.params
                                         )[:, :N_g]
@@ -289,7 +289,7 @@ class nonlinear_solver(object):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
                 self.f[:, -N_g:] = self.boundary_conditions.\
-                                   f_right(self.q1_center, self.q2_center,
+                                   f_right(self.f, self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, -N_g:]
@@ -298,7 +298,7 @@ class nonlinear_solver(object):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
                 self.f[:, :, :N_g] = self.boundary_conditions.\
-                                     f_bot(self.q1_center, self.q2_center,
+                                     f_bot(self.f, self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, :, :N_g]
@@ -307,7 +307,7 @@ class nonlinear_solver(object):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
                 self.f[:, :, -N_g:] = self.boundary_conditions.\
-                                      f_top(self.q1_center, self.q2_center,
+                                      f_top(self.f, self.q1_center, self.q2_center,
                                             self.p1, self.p2, self.p3, 
                                             self.physical_system.params
                                            )[:, :, -N_g:]

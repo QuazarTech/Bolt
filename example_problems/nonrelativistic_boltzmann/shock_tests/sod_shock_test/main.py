@@ -37,7 +37,7 @@ h5f.create_dataset('n', data = n_nls)
 h5f.close()
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.0005
 t_final = 0.2
 
 time_array  = np.arange(dt, t_final + dt, dt)
