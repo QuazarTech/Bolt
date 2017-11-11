@@ -13,7 +13,6 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-
     if (params.p_dim == 3):
         f0 = n * (m / (2 * np.pi * k * T))**(3 / 2)  \
                * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \
@@ -33,7 +32,7 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     return (f0)
 
 
-def BGK(f, q1, q2, p1, p2, p3, moments, params):
+def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     """Return BGK operator -(f-f0)/tau."""
     n = moments('density', f)
 
@@ -51,21 +50,30 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params):
            - n * p3_bulk**2
           ) / (n + eps) + eps
 
-    C_f = -(  f
-            - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
-           ) / params.tau(q1, q2, p1, p2, p3)
-
-    # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
-    # WORKAROUND:
-    if(isinstance(params.tau(q1, q2, p1, p2, p3), af.Array) is True):
-        C_f = af.select(params.tau(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
-        af.eval(C_f)
-    
+    if(af.any_true(params.tau(q1, q2, p1, p2, p3) == 0)):
+        if(flag == True):
+            return(f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params))
+        else:
+            return(0)
+            
     else:
-        if(params.tau(q1, q2, p1, p2, p3) == np.inf):
-            C_f = 0
 
-    return(C_f)
+        C_f = -(  f
+                - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
+               ) / params.tau(q1, q2, p1, p2, p3)
+
+        # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
+        # Setting when tau is zero we assign f = f0 manually
+        # WORKAROUND:
+        if(isinstance(params.tau(q1, q2, p1, p2, p3), af.Array) is True):
+            C_f = af.select(params.tau(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
+            af.eval(C_f)
+        
+        else:
+            if(params.tau(q1, q2, p1, p2, p3) == np.inf):
+                C_f = 0
+
+        return(C_f)
 
 def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     """

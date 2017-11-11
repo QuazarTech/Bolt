@@ -31,7 +31,15 @@ def op_fvm_q(self, dt):
 
     else:
         self.f = integrators.RK2(df_dt_fvm, self.f, dt, self)
-    
+        
+        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, self.p1, self.p2, self.p3) == 0)):
+            self.f = self._source(self.f, self.q1_center, self.q2_center,
+                                  self.p1, self.p2, self.p3, 
+                                  self.compute_moments, 
+                                  self.physical_system.params, 
+                                  True
+                                 ) 
+
     af.eval(self.f)
     
     if(self.performance_test_flag == True):
