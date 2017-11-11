@@ -3,7 +3,6 @@ import numpy as np
 import h5py
 
 from bolt.lib.physical_system import physical_system
-
 from bolt.lib.nonlinear_solver.nonlinear_solver \
     import nonlinear_solver
 
@@ -29,6 +28,7 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
+n_nls = nls.compute_moments('density')
 
 h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('q1', data = nls.q1_center)
@@ -43,12 +43,6 @@ t_final = 0.2
 time_array  = np.arange(dt, t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-    
-    print('For Time =', t0)
-    print('MIN(f) =', af.min(nls.f[:, 3:-3, 3:-3]))
-    print('MAX(f) =', af.max(nls.f[:, 3:-3, 3:-3]))
-    print('SUM(f) =', af.sum(nls.f[:, 3:-3, 3:-3]))
-    print()
 
     nls.strang_timestep(dt)
     n_nls = nls.compute_moments('density')

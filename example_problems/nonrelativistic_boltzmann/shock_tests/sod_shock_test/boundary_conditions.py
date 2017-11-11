@@ -15,8 +15,10 @@ def f_left(f, q1, q2, p1, p2, p3, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    f = rho * af.sqrt(m / (2 * np.pi * k * T)) \
-            * af.exp(-m * p1**2 / (2 * k * T))
+    f = rho * af.sqrt(m / (2 * np.pi * k * T))**3 \
+            * af.exp(-m * p1**2 / (2 * k * T)) \
+            * af.exp(-m * p2**2 / (2 * k * T)) \
+            * af.exp(-m * p3**2 / (2 * k * T))
 
     return(f)
 
@@ -28,7 +30,9 @@ def f_right(f, q1, q2, p1, p2, p3, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    f = rho * af.sqrt(m / (2 * np.pi * k * T)) \
-            * af.exp(-m * p1**2 / (2 * k * T))
+    f = rho * af.sqrt(m / (2 * np.pi * k * T))**3 \
+            * af.exp(-m * p1**2 / (2 * k * T)) \
+            * af.exp(-m * p2**2 / (2 * k * T)) \
+            * af.exp(-m * p3**2 / (2 * k * T))
 
     return(f)
