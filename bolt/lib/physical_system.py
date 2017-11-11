@@ -80,7 +80,8 @@ class physical_system(object):
         
         for i in range(len(attributes)):
             if(not (isinstance(getattr(boundary_conditions, attributes[i]), str) 
-               or   isinstance(getattr(boundary_conditions, attributes[i]), types.FunctionType))
+               or   isinstance(getattr(boundary_conditions, attributes[i]), types.FunctionType)
+               or   isinstance(getattr(boundary_conditions, attributes[i]), types.ModuleType))
               ):
                 raise TypeError('Expected attributes of boundary_conditions \
                                  to be of type string or functions'
