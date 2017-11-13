@@ -1,6 +1,6 @@
 q1_start = 0
 q1_end   = 1
-N_q1     = 1024
+N_q1     = 512
 
 q2_start = 0
 q2_end   = 1

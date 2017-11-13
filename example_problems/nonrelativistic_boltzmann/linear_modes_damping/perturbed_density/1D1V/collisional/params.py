@@ -13,7 +13,7 @@ fields_initialize = 'fft'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'FVM'
+solver_method_in_q = 'ASL'
 solver_method_in_p = 'ASL'
 
 reconstruction_method_in_q = 'weno5'
@@ -47,4 +47,4 @@ k_q2 = 0
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1e-5 * p1**0 * q1**0)
+    return (0.01 * p1**0 * q1**0)

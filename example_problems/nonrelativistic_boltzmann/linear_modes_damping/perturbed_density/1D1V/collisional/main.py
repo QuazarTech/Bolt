@@ -74,7 +74,7 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(linearized_system)
 
 # Time parameters:
-dt      = 1e-5
+dt      = 0.001
 t_final = 0.5
 
 time_array  = np.arange(dt, t_final + dt, dt)
@@ -96,13 +96,13 @@ def time_evolution():
         else:
             rho_data_ls[time_index]  = af.max(n_ls) 
 
-        # nls.strang_timestep(dt)
+        nls.strang_timestep(dt)
         ls.RK4_timestep(dt)
     
 time_evolution()
 
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
+pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
