@@ -60,17 +60,17 @@ T       = (  moments[:, :, 4]
 
 fig = pl.figure()
 
-ax1 = fig.add_subplot(3,1,1)
-ax1.plot(q1, n[N_g:-N_g, N_g])
+ax1 = fig.add_subplot(3, 1, 1)
+ax1.plot(q1, n[:, 0])
 ax1.set_ylabel(r'$\rho$')
 
-ax2 = fig.add_subplot(3,1,2)
-ax2.plot(q1, p1_bulk[N_g:-N_g, N_g])
+ax2 = fig.add_subplot(3, 1, 2)
+ax2.plot(q1, p1_bulk[:, 0])
 ax2.set_ylabel(r'$v_x$')
 ax2.set_ylim([0, 1])
 
-ax3 = fig.add_subplot(3,1,3)
-ax3.plot(q1, n[N_g:-N_g, N_g] * T[N_g:-N_g, N_g])
+ax3 = fig.add_subplot(3, 1, 3)
+ax3.plot(q1, n[:, 0] * T[:, 0])
 ax3.set_ylabel(r'$p$')
 ax3.set_xlabel('$x$')
 
@@ -97,17 +97,17 @@ for time_index, t0 in enumerate(time):
 
     fig = pl.figure()
 
-    ax1 = fig.add_subplot(3,1,1)
-    ax1.plot(q1, n[N_g:-N_g, N_g])
+    ax1 = fig.add_subplot(3, 1, 1)
+    ax1.plot(q1, n[:, 0])
     ax1.set_ylabel(r'$\rho$')
 
-    ax2 = fig.add_subplot(3,1,2)
-    ax2.plot(q1, p1[N_g:-N_g, N_g])
+    ax2 = fig.add_subplot(3, 1, 2)
+    ax2.plot(q1, p1[:, 0])
     ax2.set_ylabel(r'$v_x$')
     ax2.set_ylim([0, 1])
 
-    ax3 = fig.add_subplot(3,1,3)
-    ax3.plot(q1, n[N_g:-N_g, N_g] * T[N_g:-N_g, N_g])
+    ax3 = fig.add_subplot(3, 1, 3)
+    ax3.plot(q1, n[:, 0] * T[:, 0])
     ax3.set_ylabel(r'$p$')
     ax3.set_xlabel('$x$')
 
