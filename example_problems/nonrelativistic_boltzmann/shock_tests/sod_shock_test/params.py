@@ -25,7 +25,7 @@ riemann_solver = 'upwind-flux'
 p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 4
 
 # Constants:
 mass_particle      = 1
