@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import h5py
+from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear_solver.nonlinear_solver \
@@ -39,7 +40,7 @@ time_array  = np.arange(dt, t_final + dt, dt)
 for time_index, t0 in enumerate(time_array):
     
     if(time_index%100 == 0):
-        print('Computing for Time =', t0)
+        PETSc.Sys.Print('Computing for Time =', t0)
 
     nls.strang_timestep(dt)
     nls.dump_moments('dump/%04d'%(time_index+1))

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+import numpy as np
 
 # Importing functions used used for time-splitting and time-stepping:
 from .temporal_evolution import operator_splitting_methods as split
@@ -31,7 +32,6 @@ def op_fvm_q(self, dt):
 
     else:
         self.f = integrators.RK2(df_dt_fvm, self.f, dt, self)
-        
         if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, self.p1, self.p2, self.p3) == 0)):
             self.f = self._source(self.f, self.q1_center, self.q2_center,
                                   self.p1, self.p2, self.p3, 
@@ -64,12 +64,21 @@ def op_solve_src(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    self.f = integrators.RK2(self._source, self.f, dt,
-                             self.q1_center, self.q2_center,
-                             self.p1, self.p2, self.p3, 
-                             self.compute_moments, 
-                             self.physical_system.params
-                            )
+    if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, self.p1, self.p2, self.p3) == 0)):
+        self.f = self._source(self.f, self.q1_center, self.q2_center,
+                              self.p1, self.p2, self.p3, 
+                              self.compute_moments, 
+                              self.physical_system.params, 
+                              True
+                             ) 
+
+    else:
+        self.f = integrators.RK2(self._source, self.f, dt,
+                                 self.q1_center, self.q2_center,
+                                 self.p1, self.p2, self.p3, 
+                                 self.compute_moments, 
+                                 self.physical_system.params
+                                )
     
     if(self.performance_test_flag == True):
         af.sync()
@@ -82,6 +91,12 @@ def op_solve_src(self, dt):
 # perform the advections in p-space:
 def op_fields(self, dt):
     return(fields_step(self, dt))
+
+def check_divergence(self):
+    if(   af.any_true(self.f == np.inf)
+       or af.any_true(self.f == np.nan)
+      ):
+        raise Exception('Solver Diverging!')
 
 def lie_step(self, dt):
     """
@@ -96,7 +111,6 @@ def lie_step(self, dt):
          Time-step size to evolve the system
     """
     self.dt            = dt
-    self.time_elapsed += dt 
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -129,6 +143,9 @@ def lie_step(self, dt):
 
             split.lie(self, op_advect_q_and_solve_src, op_fields, dt)
 
+    check_divergence(self)
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
@@ -149,7 +166,6 @@ def strang_step(self, dt):
          Time-step size to evolve the system
     """
     self.dt            = dt
-    self.time_elapsed += dt 
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -181,6 +197,9 @@ def strang_step(self, dt):
 
             split.strang(self, op_advect_q_and_solve_src, op_fields, dt)
     
+    check_divergence(self)
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
@@ -201,7 +220,6 @@ def swss_step(self, dt):
          Time-step size to evolve the system
     """
     self.dt            = dt
-    self.time_elapsed += dt 
     
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -233,6 +251,9 @@ def swss_step(self, dt):
                       )
 
             split.swss(self, op_advect_q_and_solve_src, op_fields, dt)
+
+    check_divergence(self)
+    self.time_elapsed += dt 
     
     if(self.performance_test_flag == True):
         af.sync()
@@ -255,7 +276,6 @@ def jia_step(self, dt):
          Time-step size to evolve the system
     """
     self.dt            = dt
-    self.time_elapsed += dt 
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -287,6 +307,9 @@ def jia_step(self, dt):
 
             split.jia(self, op_advect_q_and_solve_src, op_fields, dt)
     
+    check_divergence(self)
+    self.time_elapsed += dt 
+
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
