@@ -68,7 +68,7 @@ for time_index, t0 in enumerate(time):
     n = moments[:, :, 0]
 
     pl.contourf(q1, q2, n, 100)
-    pl.title('Time =' + str(t0))
+    pl.title('Time = ' + "%.2f"%(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
     pl.colorbar()

@@ -111,7 +111,7 @@ for time_index, t0 in enumerate(time):
     ax3.set_ylabel(r'$p$')
     ax3.set_xlabel('$x$')
 
-    fig.suptitle('Time = ' + str(t0))
+    fig.suptitle('Time = ' + "%.2f"%(t0))
     pl.savefig('images/' + '%04d'%(time_index+1) + '.png')
     pl.close(fig)
     pl.clf()
