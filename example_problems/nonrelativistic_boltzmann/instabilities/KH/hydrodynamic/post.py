@@ -1,6 +1,7 @@
 import numpy as np
 import pylab as pl
 import h5py
+import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -61,18 +62,16 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
     
-    if((time_index+1)%10 == 0):
+    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
+    h5f.close()
+    
+    n = moments[:, :, 0]
 
-        h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
-        
-        n = moments[:, :, 0]
-
-        pl.contourf(q1, q2, n, 100)
-        pl.title('Time = ' + "%.2f"%(t0))
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
-        pl.colorbar()
-        pl.savefig('images/%04d'%(time_index+1) + '.png')
-        pl.clf()
+    pl.contourf(q1, q2, n, 100)
+    pl.title('Time = ' + "%.2f"%(t0))
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.colorbar()
+    pl.savefig('images/%04d'%(time_index+1) + '.png')
+    pl.clf()

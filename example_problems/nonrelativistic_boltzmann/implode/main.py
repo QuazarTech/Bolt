@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import h5py
+from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 
@@ -31,36 +32,19 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
+nls.dump_moments('dump/0000')
 
 # Time parameters:
-dt      = 1e-5
+dt      = 0.001
 t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 
-n_nls = nls.compute_moments('density')
+for time_index, t0 in enumerate(time_array):
+    if(time_index%100 == 0):
+        PETSc.Sys.Print('Computing for Time =', t0)
 
-h5f = h5py.File('dump/0000.h5', 'w')
-h5f.create_dataset('q1', data = nls.q1_center)
-h5f.create_dataset('q2', data = nls.q2_center)
-h5f.create_dataset('n', data = n_nls)
-h5f.close()
-
-def time_evolution():
-
-    for time_index, t0 in enumerate(time_array):
-        print('For Time =', t0)
-        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
-        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
-        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
-        print()
-
-        nls.strang_timestep(dt)
-        n_nls = nls.compute_moments('density')
-        
-        if((time_index+1)%1000 == 0):
-            h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-            h5f.create_dataset('n', data = n_nls)
-            h5f.close()
-
+    nls.strang_timestep(dt)
+    nls.dump_moments('dump/%04d'%(time_index+1))
+    
 time_evolution()
