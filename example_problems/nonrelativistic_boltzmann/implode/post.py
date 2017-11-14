@@ -34,7 +34,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.001
+dt      = 0.0001
 t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -51,60 +51,30 @@ h5f     = h5py.File('dump/0000.h5', 'r')
 moments = np.swapaxes(h5f['moments'][:], 0, 1)
 h5f.close()
 
-n       = moments[:, :, 0]
-p1_bulk = moments[:, :, 1] / n
-p2_bulk = moments[:, :, 2] / n
-p3_bulk = moments[:, :, 3] / n
-T       = (  moments[:, :, 4]
-           - n * p1_bulk**2
-           - n * p2_bulk**2
-           - n * p3_bulk**2
-          ) / (params.p_dim * n)
+n = moments[:, :, 0]
 
 pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 100))
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
 pl.colorbar()
-pl.savefig('images_rho/0000.png')
-pl.clf()
-
-pl.contourf(q1, q2, n * T, 100)
-pl.title('Time = 0')
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.colorbar()
-pl.savefig('images_T/0000.png')
+pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
     
-    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
-    
-    n = moments[:, :, 0]
-    p1_bulk = moments[:, :, 1] / n
-    p2_bulk = moments[:, :, 2] / n
-    p3_bulk = moments[:, :, 3] / n
-    T       = (  moments[:, :, 4]
-               - n * p1_bulk**2
-               - n * p2_bulk**2
-               - n * p3_bulk**2
-              ) / (params.p_dim * n)
+    if((time_index+1)%100 == 0):
+        
+        h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+        
+        n = moments[:, :, 0]
 
-    pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 100))
-    pl.title('Time = ' + "%.2f"%(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.colorbar()
-    pl.savefig('images_rho/%04d'%(time_index+1) + '.png')
-    pl.clf()
-
-    pl.contourf(q1, q2, n * T, 100)
-    pl.title('Time = ' + "%.2f"%(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.colorbar()
-    pl.savefig('images_T/%04d'%(time_index+1) + '.png')
-    pl.clf()
+        pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 100))
+        pl.title('Time = ' + "%.2f"%(t0))
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
+        pl.colorbar()
+        pl.savefig('images/%04d'%((time_index+1)/100) + '.png')
+        pl.clf()

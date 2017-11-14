@@ -1,8 +1,11 @@
 import numpy as np
 import arrayfire as af
 
-in_q1 = 'dirichlet'
-in_q2 = 'periodic'
+in_q1_left  = 'dirichlet'
+in_q1_right = 'dirichlet'
+
+in_q2_bottom = 'periodic'
+in_q2_top    = 'periodic'
 
 @af.broadcast
 def f_left(q1, q2, p1, p2, p3, params):

@@ -35,12 +35,13 @@ nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.0001
 t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
+    
     if((time_index+1)%100 == 0):
         PETSc.Sys.Print('Computing for Time =', t0)
 
