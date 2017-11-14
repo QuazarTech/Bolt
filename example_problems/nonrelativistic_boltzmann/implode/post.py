@@ -2,6 +2,7 @@ import numpy as np
 import pylab as pl
 import h5py
 import domain
+import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -50,14 +51,30 @@ h5f     = h5py.File('dump/0000.h5', 'r')
 moments = np.swapaxes(h5f['moments'][:], 0, 1)
 h5f.close()
 
-n = moments[:, :, 0]
+n       = moments[:, :, 0]
+p1_bulk = moments[:, :, 1] / n
+p2_bulk = moments[:, :, 2] / n
+p3_bulk = moments[:, :, 3] / n
+T       = (  moments[:, :, 4]
+           - n * p1_bulk**2
+           - n * p2_bulk**2
+           - n * p3_bulk**2
+          ) / (params.p_dim * n)
 
 pl.contourf(q1, q2, n, 100)
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
 pl.colorbar()
-pl.savefig('images/0000.png')
+pl.savefig('images_rho/0000.png')
+pl.clf()
+
+pl.contourf(q1, q2, n * T, 100)
+pl.title('Time = 0')
+pl.xlabel(r'$x$')
+pl.ylabel(r'$y$')
+pl.colorbar()
+pl.savefig('images_T/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
@@ -67,11 +84,27 @@ for time_index, t0 in enumerate(time):
     h5f.close()
     
     n = moments[:, :, 0]
+    p1_bulk = moments[:, :, 1] / n
+    p2_bulk = moments[:, :, 2] / n
+    p3_bulk = moments[:, :, 3] / n
+    T       = (  moments[:, :, 4]
+               - n * p1_bulk**2
+               - n * p2_bulk**2
+               - n * p3_bulk**2
+              ) / (params.p_dim * n)
 
     pl.contourf(q1, q2, n, 100)
     pl.title('Time = ' + "%.2f"%(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
     pl.colorbar()
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
+    pl.savefig('images_rho/%04d'%(time_index+1) + '.png')
+    pl.clf()
+
+    pl.contourf(q1, q2, n * T, 100)
+    pl.title('Time = ' + "%.2f"%(t0))
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.colorbar()
+    pl.savefig('images_T/%04d'%(time_index+1) + '.png')
     pl.clf()

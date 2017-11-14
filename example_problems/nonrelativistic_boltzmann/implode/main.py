@@ -41,7 +41,7 @@ t_final = 2.5
 time_array = np.arange(dt, t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-    if(time_index%100 == 0):
+    if((time_index+1)%100 == 0):
         PETSc.Sys.Print('Computing for Time =', t0)
 
     nls.strang_timestep(dt)
