@@ -43,7 +43,7 @@ N_q2 = domain.N_q2
 N_g  = domain.N_ghost
 
 q1 = (0.5 + np.arange(N_q1)) * 1/N_q1
-q2 = (0.5 + np.arange(N_q2)) * 2/N_q2
+q2 = (0.5 + np.arange(N_q2)) * 1/N_q2
 
 q2, q1 = np.meshgrid(q2, q1)
 
@@ -61,7 +61,7 @@ T       = (  moments[:, :, 4]
            - n * p3_bulk**2
           ) / (params.p_dim * n)
 
-pl.contourf(q1, q2, n, 100)
+pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 100))
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -93,7 +93,7 @@ for time_index, t0 in enumerate(time):
                - n * p3_bulk**2
               ) / (params.p_dim * n)
 
-    pl.contourf(q1, q2, n, 100)
+    pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 100))
     pl.title('Time = ' + "%.2f"%(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
