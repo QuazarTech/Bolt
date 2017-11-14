@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import h5py
+from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear_solver.nonlinear_solver \

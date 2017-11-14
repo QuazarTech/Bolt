@@ -61,16 +61,18 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
     
-    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
-    
-    n = moments[:, :, 0]
+    if((time_index+1)%10 == 0):
 
-    pl.contourf(q1, q2, n, 100)
-    pl.title('Time = ' + "%.2f"%(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.colorbar()
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
-    pl.clf()
+        h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+        
+        n = moments[:, :, 0]
+
+        pl.contourf(q1, q2, n, 100)
+        pl.title('Time = ' + "%.2f"%(t0))
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
+        pl.colorbar()
+        pl.savefig('images/%04d'%(time_index+1) + '.png')
+        pl.clf()
