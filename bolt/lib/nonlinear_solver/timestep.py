@@ -93,8 +93,8 @@ def op_fields(self, dt):
     return(fields_step(self, dt))
 
 def check_divergence(self):
-    if(   af.any_true(self.f == np.inf)
-       or af.any_true(self.f == np.nan)
+    if(   af.any_true(af.isinf(self.f))
+       or af.any_true(af.isnan(self.f))
       ):
         raise Exception('Solver Diverging!')
 
