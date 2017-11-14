@@ -78,6 +78,8 @@ def apply_dirichlet_bcs_f(self, boundary):
 
 def apply_mirror_bcs_f(self, boundary):
 
+    N_g = self.N_ghost
+
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
@@ -364,6 +366,8 @@ def apply_dirichlet_bcs_fields(self, boundary):
     return
 
 def apply_mirror_bcs_fields(self, boundary):
+    
+    N_g = self.N_ghost
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
