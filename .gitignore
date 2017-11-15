@@ -70,3 +70,7 @@ README_nontex.md
 
 \.idea/
 
+# Files Native to Savio:
+########################
+submit*
+*.out

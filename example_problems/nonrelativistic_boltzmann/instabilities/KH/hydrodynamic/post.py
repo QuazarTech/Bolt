@@ -4,7 +4,7 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 6, 7.5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -52,16 +52,17 @@ h5f.close()
 
 n = moments[:, :, 0]
 
-pl.contourf(q1, q2, n, 100)
+pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 120))
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
+pl.gca().set_aspect('equal')
 pl.colorbar()
 pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
-    if((time_index+1)%20):
+    if((time_index+1)%20 == 0):
         
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
         moments = np.swapaxes(h5f['moments'][:], 0, 1)
@@ -69,10 +70,11 @@ for time_index, t0 in enumerate(time):
         
         n = moments[:, :, 0]
 
-        pl.contourf(q1, q2, n, 100)
+        pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 120))
         pl.title('Time = ' + "%.2f"%(t0))
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')
+        pl.gca().set_aspect('equal')
         pl.colorbar()
         pl.savefig('images/%04d'%((time_index+1)/20) + '.png')
         pl.clf()

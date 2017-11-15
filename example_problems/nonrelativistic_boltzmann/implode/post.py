@@ -34,7 +34,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.0001
+dt      = 0.0005
 t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -63,7 +63,7 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
     
-    if((time_index+1)%100 == 0):
+    if((time_index+1)%20 == 0):
         
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
         moments = np.swapaxes(h5f['moments'][:], 0, 1)
@@ -76,5 +76,5 @@ for time_index, t0 in enumerate(time):
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')
         pl.colorbar()
-        pl.savefig('images/%04d'%((time_index+1)/100) + '.png')
+        pl.savefig('images/%04d'%((time_index+1)/20) + '.png')
         pl.clf()

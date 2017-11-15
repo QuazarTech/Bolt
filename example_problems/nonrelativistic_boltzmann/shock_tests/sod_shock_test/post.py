@@ -81,7 +81,7 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
 
-    if((time_index + 1)%20 == 0):
+    if((time_index + 1)%10 == 0):
       
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
         moments = np.swapaxes(h5f['moments'][:], 0, 1)
@@ -114,6 +114,6 @@ for time_index, t0 in enumerate(time):
         ax3.set_xlabel('$x$')
 
         fig.suptitle('Time = ' + "%.2f"%(t0))
-        pl.savefig('images/' + '%04d'%((time_index+1)/20) + '.png')
+        pl.savefig('images/' + '%04d'%((time_index+1)/10) + '.png')
         pl.close(fig)
         pl.clf()
