@@ -10,11 +10,14 @@ fields_initialize = 'electrostatic'
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
 
-# Can be defined as 'strang' and 'lie'
-time_splitting = 'strang'
-
 # Solver method:
-solver_method_in_q = 'ASL'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'ASL'
+
+reconstruction_method_in_q = 'piecewise-constant'
+reconstruction_method_in_p = 'weno5'
+
+riemann_solver = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 2
@@ -31,5 +34,6 @@ charge_electron    = 0
 rho_background  = 1
 
 # Variation of collisional-timescale parameter through phase space:
+@af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf)
+    return (np.inf * p1**0 * q1**0)

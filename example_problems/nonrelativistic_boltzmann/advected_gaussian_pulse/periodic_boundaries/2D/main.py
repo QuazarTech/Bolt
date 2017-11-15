@@ -46,13 +46,15 @@ h5f.create_dataset('q2', data = nls.q2_center)
 h5f.create_dataset('n', data = n_nls)
 h5f.close()
 
+init_sum = af.sum(nls.f[3:-3, 3:-3])
+
 def time_evolution():
 
     for time_index, t0 in enumerate(time_array):
         print('For Time =', t0)
         print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
         print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
-        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
+        print('d(SUM(f)) =', af.sum(nls.f[3:-3, 3:-3]) - init_sum)
         print()
 
         nls.strang_timestep(dt)

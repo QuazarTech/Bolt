@@ -32,7 +32,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.0003125
+dt      = 0.001
 t_final = 2.0
 time    = np.arange(dt, t_final + dt, dt)
 
