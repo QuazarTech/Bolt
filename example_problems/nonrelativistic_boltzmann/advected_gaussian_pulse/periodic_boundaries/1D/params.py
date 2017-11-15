@@ -11,7 +11,7 @@ fields_initialize = 'fft'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'ASL'
 
-reconstruction_method_in_q = 'piecewise-constant'
+reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
 riemann_solver = 'upwind-flux'

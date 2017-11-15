@@ -1,6 +1,7 @@
 import numpy as np
 import pylab as pl
 import h5py
+import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -33,16 +34,19 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 2.0
+t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
+N_q1 = domain.N_q1
+N_q2 = domain.N_q2
+
 h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:].reshape(134, 9)
-q2  = h5f['q2'][:].reshape(134, 9)
-n   = h5f['n'][:].reshape(134, 9)
+q1  = h5f['q1'][:].reshape(N_q1, N_q2)
+q2  = h5f['q2'][:].reshape(N_q1,N_q2)
+n   = h5f['n'][:].reshape(N_q1, N_q2)
 h5f.close()
 
-pl.plot(q1[3:-3, 3:-3], n[3:-3, 3:-3])
+pl.plot(q1, n)
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$n$')
@@ -53,11 +57,12 @@ pl.clf()
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(134, 9)
+    n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
     if((time_index+1)%10==0):
-        pl.plot(q1[3:-3, 3:-3], n[3:-3, 3:-3])
+
+        pl.plot(q1, n)
         pl.title('Time =' + str(t0))
         pl.xlabel(r'$x$')
         pl.ylabel(r'$n$')

@@ -10,7 +10,7 @@ from .temporal_evolution import integrators
 
 # Importing solver functions:
 from .FVM_solver.df_dt_fvm import df_dt_fvm
-from .FVM_solver.timestep_fdtd_df_dt import timestep_fdtd_RK2
+from .FVM_solver.timestep_df_dt import fvm_timestep_RK2
 
 from .interpolation_routines import f_interp_2d
 from .EM_fields_solver.fields_step import fields_step
@@ -25,37 +25,19 @@ def op_fvm_q(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    if(    self.physical_system.params.solver_method_in_p == 'FVM'
-       and self.physical_system.params.fields_solver == 'fdtd'
+    fvm_timestep_RK2(self, dt)
+    # Solving for tau = 0 systems
+    if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
+                                                   self.p1, self.p2, self.p3
+                                                  ) == 0
+                  )
       ):
-        timestep_fdtd_RK2(self, dt)
-        # Solving for tau = 0 systems
-        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                                       self.p1, self.p2, self.p3
-                                                      ) == 0
-                      )
-          ):
-            self.f = self._source(self.f, self.q1_center, self.q2_center,
-                                  self.p1, self.p2, self.p3, 
-                                  self.compute_moments, 
-                                  self.physical_system.params, 
-                                  True
-                                 ) 
-
-    else:
-        self.f = integrators.RK2(df_dt_fvm, self.f, dt, self)
-        # Solving for tau = 0 systems
-        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                                       self.p1, self.p2, self.p3
-                                                      ) == 0
-                      )
-          ):
-            self.f = self._source(self.f, self.q1_center, self.q2_center,
-                                  self.p1, self.p2, self.p3, 
-                                  self.compute_moments, 
-                                  self.physical_system.params, 
-                                  True
-                                 ) 
+        self.f = self._source(self.f, self.q1_center, self.q2_center,
+                              self.p1, self.p2, self.p3, 
+                              self.compute_moments, 
+                              self.physical_system.params, 
+                              True
+                             ) 
 
     af.eval(self.f)
     

@@ -32,39 +32,3 @@ pl.rcParams['ytick.minor.pad']  = 8
 pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
-
-dt      = 0.001
-t_final = 1.0
-time    = np.arange(dt, t_final + dt, dt)
-
-N_q1 = domain.N_q1
-N_q2 = domain.N_q2
-
-h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:].reshape(N_q1, N_q2)
-q2  = h5f['q2'][:].reshape(N_q1, N_q2)
-n   = h5f['n'][:].reshape(N_q1, N_q2)
-h5f.close()
-
-pl.contourf(q1, q2, n, 100,cmap = 'gist_heat')
-pl.title('Time = 0')
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.axes().set_aspect('equal')
-pl.savefig('images/0000.png')
-pl.clf()
-
-for time_index, t0 in enumerate(time):
-    
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(N_q1, N_q2)
-    h5f.close()
-
-    if((time_index + 1)%10 == 0):
-        pl.contourf(q1, q2, n, 100,cmap = 'gist_heat')
-        pl.title('Time =' + str(t0))
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
-        pl.axes().set_aspect('equal')
-        pl.savefig('images/%04d'%(time_index+1) + '.png')
-        pl.clf()
