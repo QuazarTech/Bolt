@@ -31,7 +31,6 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     af.eval(f0)
     return (f0)
 
-
 def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     """Return BGK operator -(f-f0)/tau."""
     n = moments('density', f)
@@ -51,10 +50,13 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
           ) / (n + eps) + eps
 
     if(af.any_true(params.tau(q1, q2, p1, p2, p3) == 0)):
-        if(flag == True):
-            return(f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params))
-        else:
-            return(0)
+
+        f_MB = f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
+      
+        if(flag == False):
+            f_MB[:] = 0        
+
+        return(f_MB)
             
     else:
 

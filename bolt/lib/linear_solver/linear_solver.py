@@ -21,6 +21,7 @@ import arrayfire as af
 from numpy.fft import fftfreq
 import socket
 from petsc4py import PETSc
+from inspect import signature
 
 # Importing solver functions:
 from .EM_fields_solver import compute_electrostatic_fields
@@ -88,9 +89,6 @@ class linear_solver(object):
                              can be solved using the linear solver'
                            )
 
-        # Obtaining the parameter whether it is a single or multimode evolution:
-        self.single_mode_evolution = physical_system.params.single_mode_evolution
-
         # Initializing DAs which will be used in file-writing:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof=(  self.N_p1 
@@ -145,12 +143,18 @@ class linear_solver(object):
                                      physical_system.params
                                     )[1]
 
-        # Initializing f, f_hat and the other EM field quantities:
-        self._initialize(physical_system.params)
-
         # Assigning the function objects to methods of the solver:
         self._A_p    = self.physical_system.A_p
         self._source = self.physical_system.source
+
+        if(len(signature(self._source).parameters) == 6):
+            self.single_mode_evolution = True
+        else:
+            self.single_mode_evolution = False
+
+        # Initializing f, f_hat and the other EM field quantities:
+        self._initialize(physical_system.params)
+
 
     def _calculate_q_center(self):
         """

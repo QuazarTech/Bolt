@@ -29,10 +29,27 @@ def op_fvm_q(self, dt):
        and self.physical_system.params.fields_solver == 'fdtd'
       ):
         timestep_fdtd_RK2(self, dt)
+        # Solving for tau = 0 systems
+        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
+                                                       self.p1, self.p2, self.p3
+                                                      ) == 0
+                      )
+          ):
+            self.f = self._source(self.f, self.q1_center, self.q2_center,
+                                  self.p1, self.p2, self.p3, 
+                                  self.compute_moments, 
+                                  self.physical_system.params, 
+                                  True
+                                 ) 
 
     else:
         self.f = integrators.RK2(df_dt_fvm, self.f, dt, self)
-        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, self.p1, self.p2, self.p3) == 0)):
+        # Solving for tau = 0 systems
+        if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
+                                                       self.p1, self.p2, self.p3
+                                                      ) == 0
+                      )
+          ):
             self.f = self._source(self.f, self.q1_center, self.q2_center,
                                   self.p1, self.p2, self.p3, 
                                   self.compute_moments, 
@@ -64,7 +81,12 @@ def op_solve_src(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, self.p1, self.p2, self.p3) == 0)):
+    # Solving for tau = 0 systems
+    if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
+                                                   self.p1, self.p2, self.p3
+                                                  ) == 0
+                  )
+      ):
         self.f = self._source(self.f, self.q1_center, self.q2_center,
                               self.p1, self.p2, self.p3, 
                               self.compute_moments, 
