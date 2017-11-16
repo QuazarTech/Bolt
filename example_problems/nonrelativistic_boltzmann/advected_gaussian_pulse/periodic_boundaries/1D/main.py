@@ -34,7 +34,7 @@ nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.01
 t_final = 1.0
 
 time_array = np.arange(dt, t_final + dt, dt)

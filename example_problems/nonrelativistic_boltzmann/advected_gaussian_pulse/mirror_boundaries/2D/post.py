@@ -66,5 +66,5 @@ for time_index, t0 in enumerate(time):
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')
         pl.axes().set_aspect('equal')
-        pl.savefig('images/%04d'%(time_index+1) + '.png')
+        pl.savefig('images/%04d'%((time_index+1)/10) + '.png')
         pl.clf()

@@ -33,7 +33,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.001
+dt      = 0.0025
 t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -60,12 +60,12 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    if((time_index+1)%10==0):
+    if((time_index+1)%4==0):
 
         pl.plot(q1, n)
         pl.title('Time =' + str(t0))
         pl.xlabel(r'$x$')
         pl.ylabel(r'$n$')
         pl.ylim(-0.005, 0.02)
-        pl.savefig('images/%04d'%((time_index+1)/10) + '.png')
+        pl.savefig('images/%04d'%((time_index+1)/4) + '.png')
         pl.clf()
