@@ -10,11 +10,11 @@ fields_initialize = 'fft'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'ASL'
-solver_method_in_p = 'ASL'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver = 'upwind-flux'
 

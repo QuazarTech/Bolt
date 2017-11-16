@@ -19,50 +19,42 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
-# Defining the physical system to be solved:
-system = physical_system(domain,
-                         boundary_conditions,
-                         params,
-                         initialize,
-                         advection_terms,
-                         collision_operator.BGK,
-                         moment_defs
-                        )
+N     = 2**np.arange(5, 10)
+error = np.zeros(N.size)
 
-# Declaring a linear system object which will evolve the defined physical system:
-nls = nonlinear_solver(system)
-N_g = nls.N_ghost
-
-# Time parameters:
-dt      = 0.0025
-t_final = 1.0
-
-time_array = np.arange(dt, t_final + dt, dt)
-
-n_nls = nls.compute_moments('density')
-
-f_initial = nls.f
-
-h5f = h5py.File('dump/0000.h5', 'w')
-h5f.create_dataset('q1', data = nls.q1_center[:, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('q2', data = nls.q2_center[:, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('n', data = n_nls[:, N_g:-N_g, N_g:-N_g])
-h5f.close()
-
-init_sum = af.sum(nls.f[:, N_g:-N_g, N_g:-N_g])
-
-for time_index, t0 in enumerate(time_array):
-
-    # Used to debug:    
-    print('For Time =', t0)
-    print('MIN(f) =', af.min(nls.f[:, N_g:-N_g, N_g:-N_g]))
-    print('MAX(f) =', af.max(nls.f[:, N_g:-N_g, N_g:-N_g]))
-    print('d(SUM(f)) =', af.sum(nls.f[:, N_g:-N_g, N_g:-N_g]) - init_sum)
-    print()
-
-    nls.strang_timestep(dt)
-    n_nls = nls.compute_moments('density')
+for i in range(N.size):
     
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-    h5f.create_dataset('n', data = n_nls[:, N_g:-N_g, N_g:-N_g])
-    h5f.close()
+    domain.N_q1 = int(N[i])
+    domain.N_q2 = int(N[i])
+
+    # Defining the physical system to be solved:
+    system = physical_system(domain,
+                             boundary_conditions,
+                             params,
+                             initialize,
+                             advection_terms,
+                             collision_operator.BGK,
+                             moment_defs
+                            )
+
+    # Declaring a linear system object which will evolve the defined physical system:
+    nls = nonlinear_solver(system)
+    N_g = nls.N_ghost
+
+    # Time parameters:
+    dt      = 0.01 * 32/nls.N_q1
+    t_final = 1.0
+
+    time_array = np.arange(dt, t_final + dt, dt)
+    f_initial  = nls.f
+
+    for time_index, t0 in enumerate(time_array):
+        nls.strang_timestep(dt)
+
+    error[i] = af.mean(af.abs(  nls.f[:, N_g:-N_g, N_g:-N_g] 
+                              - f_initial[:, N_g:-N_g, N_g:-N_g]
+                             )
+                      )
+
+print(error)
+print(np.polyfit(np.log10(N), np.log10(error), 1))
