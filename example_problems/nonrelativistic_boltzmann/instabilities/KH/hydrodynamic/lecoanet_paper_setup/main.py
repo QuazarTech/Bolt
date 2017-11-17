@@ -34,7 +34,7 @@ nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.0005
 t_final = 5.0
 
 time_array = np.arange(dt, t_final + dt, dt)

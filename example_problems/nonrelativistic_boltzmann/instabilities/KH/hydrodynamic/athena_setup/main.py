@@ -34,7 +34,7 @@ nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
 # Time parameters:
-dt      = 0.0005
+dt      = 0.00025
 t_final = 5.0
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -46,4 +46,3 @@ for time_index, t0 in enumerate(time_array):
 
     nls.strang_timestep(dt)
     nls.dump_moments('dump/%04d'%(time_index+1))
-

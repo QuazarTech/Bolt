@@ -15,8 +15,9 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     p1_bulk  =   af.select(af.abs(q2)>0.25, -0.5 * q1**0, 0.5) \
    
-    p1_bulk = af.reorder(p1_bulk, 1, 2, 0, 3)
+    
     # Seeding the instability
+    p1_bulk = af.reorder(p1_bulk, 1, 2, 0, 3)
     p1_bulk +=  af.to_array(  np.random.rand(1, q1.shape[1], q1.shape[2])
                             * np.random.choice([-1, 1], size = (1, q1.shape[1], q1.shape[2]))
                            ) * 0.005
@@ -24,7 +25,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     p2_bulk = af.to_array(  np.random.rand(1, q1.shape[1], q1.shape[2])
                           * np.random.choice([-1, 1], size = (1, q1.shape[1], q1.shape[2]))
                          ) * 0.005
-
+    
     p1_bulk = af.reorder(p1_bulk, 2, 0, 1, 3)
     p2_bulk = af.reorder(p2_bulk, 2, 0, 1, 3)
 

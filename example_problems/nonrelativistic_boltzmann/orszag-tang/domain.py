@@ -1,10 +1,10 @@
 q1_start = 0
-q1_end   = 0.3
-N_q1     = 256
+q1_end   = 1
+N_q1     = 64
 
 q2_start = 0
-q2_end   = 0.3
-N_q2     = 256 
+q2_end   = 1
+N_q2     = 64
 
 p1_start = -10
 p1_end   = 10
