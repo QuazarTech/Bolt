@@ -9,13 +9,14 @@ fields_initialize = 'electrostatic'
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
 
-# Can be defined as 'strang' and 'lie'
-time_splitting = 'strang'
-
 # Method in q-space
 solver_method_in_q = 'FVM'
-riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'weno5'
+solver_method_in_p = 'FVM'
+
+reconstruction_method_in_q = 'weno5'
+reconstruction_method_in_p = 'weno5'
+
+riemann_solver = 'upwind-flux'
 
 # Constants:
 mass_particle      = 1
@@ -26,5 +27,6 @@ p_dim       = 3
 num_devices = 4
 
 # Variation of collisional-timescale parameter through phase space:
+@af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1e-3)
+    return(1e-3 * q1**0 * p1**0)

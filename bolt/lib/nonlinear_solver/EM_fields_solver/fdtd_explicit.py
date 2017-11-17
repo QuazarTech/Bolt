@@ -4,6 +4,7 @@
 import arrayfire as af
 
 def fdtd_evolve_E(self, dt):
+    
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -41,6 +42,7 @@ def fdtd_evolve_E(self, dt):
     return
 
 def fdtd_evolve_B(self, dt):
+    
     if(self.performance_test_flag == True):
         tic = af.time()
 

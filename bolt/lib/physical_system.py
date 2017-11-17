@@ -206,6 +206,7 @@ class physical_system(object):
                         ',',domain.N_p1, ',', domain.N_p2, ',', domain.N_p3, ')'
                        )
         PETSc.Sys.Print('Solver Method in q-space           :', params.solver_method_in_q.upper())
+        PETSc.Sys.Print('Solver Method in p-space           :', params.solver_method_in_p.upper())
         PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
         PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Charge Electron                    :', params.charge_electron)

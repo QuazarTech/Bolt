@@ -20,6 +20,7 @@ def fvm_timestep_RK2(self, dt):
     if(    self.physical_system.params.charge_electron != 0
        and self.physical_system.params.fields_solver == 'fdtd'
       ):
+        
         # Will return a flattened array containing the values of
         # J1,2,3 in 2D space:
         self.J1 =   self.physical_system.params.charge_electron \
