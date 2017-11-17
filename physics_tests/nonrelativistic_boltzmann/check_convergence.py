@@ -38,6 +38,7 @@ def check_convergence():
     error = np.zeros(N.size)
     
     for i in range(N.size):
+        
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
         nls_f = h5f['distribution_function'][:]
         h5f.close()    

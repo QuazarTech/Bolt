@@ -16,8 +16,6 @@ def initialize_E(q1, q2, params):
 
 def initialize_B(q1, q2, params):
 
-    Bx = -B0Sin(2πy) and By = B0Sin(4πx)
-    
     B1 = -(1/np.sqrt(4 * np.pi)) * af.sin(2 * np.pi * q2)
     B2 =  (1/np.sqrt(4 * np.pi)) * af.sin(4 * np.pi * q1)
     B3 = 0 * q1**0
@@ -30,7 +28,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     k = params.boltzmann_constant
 
     rho = 25/(36 * np.pi)
-    Vx = - Sin(2πy) and Vy = Sin(2πx)
 
     p1_bulk = - af.sin(2 * np.pi * q2)
     p2_bulk =   af.sin(2 * np.pi * q1)

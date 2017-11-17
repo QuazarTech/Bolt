@@ -1,8 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
-
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
@@ -14,8 +12,12 @@ fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 solver_method_in_q = 'ASL'
-riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'weno5'
+solver_method_in_p = 'ASL'
+
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
+
+riemann_solver = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -37,7 +39,7 @@ p2_bulk_background = 0
 p3_bulk_background = 0
 
 pert_real = 0.01
-pert_imag = 0
+pert_imag = 0.02
 
 k_q1 = 2 * np.pi
 k_q2 = 0
