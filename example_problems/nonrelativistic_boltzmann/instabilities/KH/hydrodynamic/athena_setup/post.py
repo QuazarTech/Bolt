@@ -52,7 +52,7 @@ h5f.close()
 
 n = moments[:, :, 0]
 
-pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 120))
+pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 200))
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -70,7 +70,7 @@ for time_index, t0 in enumerate(time):
         
         n = moments[:, :, 0]
 
-        pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 120))
+        pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 200))
         pl.title('Time = ' + "%.2f"%(t0))
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')

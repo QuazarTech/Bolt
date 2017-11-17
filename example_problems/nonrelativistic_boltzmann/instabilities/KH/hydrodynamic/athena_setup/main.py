@@ -46,3 +46,4 @@ for time_index, t0 in enumerate(time_array):
 
     nls.strang_timestep(dt)
     nls.dump_moments('dump/%04d'%(time_index+1))
+

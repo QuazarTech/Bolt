@@ -42,8 +42,8 @@ N_q1 = domain.N_q1
 N_q2 = domain.N_q2
 N_g  = domain.N_ghost
 
-q1 = (0.5 + np.arange(N_q1)) * 1/N_q1
-q2 = (0.5 + np.arange(N_q2)) * 1/N_q2
+q1 = (0.5 + np.arange(N_q1)) * 0.3/N_q1
+q2 = (0.5 + np.arange(N_q2)) * 0.3/N_q2
 
 q2, q1 = np.meshgrid(q2, q1)
 
@@ -64,7 +64,7 @@ pl.clf()
 
 for time_index, t0 in enumerate(time):
     
-    if((time_index+1)%50 == 0):
+    if((time_index+1)%5 == 0):
         
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
         moments = np.swapaxes(h5f['moments'][:], 0, 1)
@@ -78,5 +78,5 @@ for time_index, t0 in enumerate(time):
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')
         pl.colorbar()
-        pl.savefig('images/%04d'%((time_index+1)/50) + '.png')
+        pl.savefig('images/%04d'%((time_index+1)/5) + '.png')
         pl.clf()

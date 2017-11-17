@@ -13,7 +13,7 @@ fields_solver = 'fdtd'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'minmod'
 
 riemann_solver = 'upwind-flux'

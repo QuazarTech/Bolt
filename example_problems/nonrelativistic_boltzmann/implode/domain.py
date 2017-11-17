@@ -4,7 +4,7 @@ N_q1     = 128
 
 q2_start = 0
 q2_end   = 0.3
-N_q2     = 128
+N_q2     = 128 
 
 p1_start = -10
 p1_end   = 10
