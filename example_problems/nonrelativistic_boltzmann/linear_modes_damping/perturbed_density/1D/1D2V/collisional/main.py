@@ -82,7 +82,7 @@ ls  = linear_solver(linearized_system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.00025
+t_final = 0.0005
 
 time_array  = np.arange(0, t_final + dt, dt)
 

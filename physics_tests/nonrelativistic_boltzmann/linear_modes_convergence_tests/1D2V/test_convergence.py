@@ -20,10 +20,10 @@ def test_collisional():
     run_cases(1, 2, 0, tau_collisional)
     check_convergence()
 
-# def test_fields_collisionless():
-#     run_cases(1, 2, -10, tau_collisionless)
-#     check_convergence()
+def test_fields_collisionless():
+    run_cases(1, 2, -10, tau_collisionless)
+    check_convergence()
 
-# def test_fields_collisional():
-#     run_cases(1, 2, -10, tau_collisional)
-#     check_convergence()
+def test_fields_collisional():
+    run_cases(1, 2, -10, tau_collisional)
+    check_convergence()
