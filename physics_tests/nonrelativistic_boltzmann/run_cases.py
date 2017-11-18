@@ -39,14 +39,26 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
             domain.N_q2 = int(N[i])
             params.k_q2 = 4 * np.pi
 
+        if(p_dim == 2):
+            domain.N_p2 = 32
+
+        if(p_dim == 3):
+            domain.N_p3 = 32
+
         if(charge_electron != 0):
             domain.N_p1 = int(N[i])
 
             if(p_dim == 2):
                 domain.N_p2 = int(N[i])
+                
+                domain.p2_start = -10
+                domain.p2_end   = 10
 
             if(p_dim == 2):
                 domain.N_p3 = int(N[i])
+
+                domain.p3_start = -10
+                domain.p3_end   = 10
 
         params.p_dim = p_dim
         dt           = 1e-3/(2**i)
@@ -78,7 +90,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         time_array = np.arange(dt, t_final + dt, dt)
 
         for time_index, t0 in enumerate(time_array):
-
+            print(t0)
             nls.strang_timestep(dt)
             ls.RK5_timestep(dt)
 
