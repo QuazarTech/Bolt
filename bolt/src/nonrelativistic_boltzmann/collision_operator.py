@@ -127,13 +127,11 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
         expr_term_8 = (2 * np.sqrt(2) * T - 3 * np.sqrt(2) * delta_T_hat) * T * k * rho * m**(3/2)
         expr_term_9 = -2 * np.sqrt(2) * rho * k * T**2 * m**(3/2)
 
-        C_f_hat = ((((  expr_term_1 + expr_term_2 + expr_term_3 
-                      + expr_term_4 + expr_term_5 + expr_term_6 
-                      + expr_term_7 + expr_term_8 + expr_term_9
-                     ) * np.exp(-m/(2*k*T) * (p1**2 + p1**2 + p3**2))
-                    )/(8 * np.pi**1.5 * T**3.5 * k**2.5)
-                   ) - delta_f_hat
-                  )/tau
+        C_f = ((((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4 +\
+                  expr_term_5 + expr_term_6 + expr_term_7 + expr_term_8 + expr_term_9
+                )*np.exp(-m/(2*k*T) * (p1**2 + p2**2 + p3**2)))/\
+                  (8 * np.pi**1.5 * T**3.5 * k**2.5)
+               ) - delta_f_hat)/tau
   
     elif(params.p_dim == 2):
 
