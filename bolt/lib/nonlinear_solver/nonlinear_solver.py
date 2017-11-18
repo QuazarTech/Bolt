@@ -535,8 +535,9 @@ class nonlinear_solver(object):
                                                                          params
                                                                         )
 
-                self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-
+                self.B_fields_at_nth_timestep = af.join(0, B1, B2, B3)
+                self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            
             else:
                 raise NotImplementedError('Method not valid/not implemented')
 
