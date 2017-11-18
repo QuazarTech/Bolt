@@ -1,4 +1,5 @@
 import arrayfire as af
+af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 
@@ -81,7 +82,7 @@ ls  = linear_solver(linearized_system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 0.00025
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -114,11 +115,17 @@ for time_index, t0 in enumerate(time_array[1:]):
     else:
         rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-    
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho.png')
-pl.clf()
+
+nls.dump_distribution_function('nls')
+ls.dump_distribution_function('ls')
+
+import h5py
+h5f   = h5py.File('nls.h5', 'r')
+nls_f = h5f['distribution_function'][:]
+h5f.close()
+
+h5f  = h5py.File('ls.h5', 'r')
+ls_f = h5f['distribution_function'][:]
+h5f.close()
+
+print(np.mean(abs(ls_f-nls_f)))
