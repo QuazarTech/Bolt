@@ -66,18 +66,18 @@ N_g = system.N_ghost
 # a single mode only needs to be evolved. This solver
 # would only evolve the single mode, and hence requires
 # much lower time and memory for the computations:
-# linearized_system = physical_system(domain,
-#                                     boundary_conditions,
-#                                     params,
-#                                     initialize,
-#                                     advection_terms,
-#                                     collision_operator.linearized_BGK,
-#                                     moment_defs
-#                                    )
+linearized_system = physical_system(domain,
+                                    boundary_conditions,
+                                    params,
+                                    initialize,
+                                    advection_terms,
+                                    collision_operator.linearized_BGK,
+                                    moment_defs
+                                   )
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+# ls  = linear_solver(linearized_system)
 
 # Time parameters:
 dt      = 0.001
