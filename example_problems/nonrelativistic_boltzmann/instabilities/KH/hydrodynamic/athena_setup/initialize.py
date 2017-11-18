@@ -36,5 +36,13 @@ def initialize_f(q1, q2, p1, p2, p3, params):
             * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T)) \
             * af.exp(-m * (p3)**2 / (2 * k * T))
 
+    f  = af.moddims(f, 32**2, 16, 16, 16)
+    p1 = af.moddims(f, 32**2, 16, 16, 16)
+
+    import pylab as pl 
+    pl.plot(np.swapaxes(np.array(f)[0, :, 0, 0], 0, 1), np.swapaxes(np.array(f)[0, :, 0, 0], 0, 1))
+    pl.savefig(plot.png)
+    exit()
+
     af.eval(f)
     return (f)
