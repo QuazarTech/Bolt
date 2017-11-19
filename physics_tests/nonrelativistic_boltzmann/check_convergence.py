@@ -34,7 +34,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 8)
+    N     = 2**np.arange(5, 9)
     error = np.zeros(N.size)
     
     for i in range(N.size):
@@ -51,6 +51,10 @@ def check_convergence():
         print(nls_f.shape)
 
         error[i] = np.mean(abs(nls_f - ls_f))
+
+    print(error)
+    poly = np.polyfit(np.log10(N), np.log10(error), 1)
+    print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 

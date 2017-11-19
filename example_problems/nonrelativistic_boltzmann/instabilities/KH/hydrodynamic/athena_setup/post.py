@@ -34,7 +34,7 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.00025
-t_final = 5.0
+t_final = 10.0
 time    = np.arange(dt, t_final + dt, dt)
 
 N_q1 = domain.N_q1
@@ -52,7 +52,7 @@ h5f.close()
 
 n = moments[:, :, 0]
 
-pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 200))
+pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 500))
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -70,11 +70,11 @@ for time_index, t0 in enumerate(time):
         
         n = moments[:, :, 0]
 
-        pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 200))
+        pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 500))
         pl.title('Time = ' + "%.2f"%(t0))
         pl.xlabel(r'$x$')
         pl.ylabel(r'$y$')
         pl.gca().set_aspect('equal')
         pl.colorbar()
-        pl.savefig('images/%04d'%((time_index+1)/20) + '.png')
+        pl.savefig('images/%04d'%((time_index+1)/40) + '.png')
         pl.clf()

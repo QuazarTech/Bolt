@@ -22,8 +22,8 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Time parameters:
-t_final = 1e-3
-N       = 2**np.arange(5, 8)
+t_final = 1e-5
+N       = 2**np.arange(5, 9)
 
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
@@ -62,7 +62,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                 domain.N_p3 = int(N[i])
 
         params.p_dim = p_dim
-        dt           = 1e-3/(2**i)
+        dt           = 1e-6/(2**i)
 
         # Defining the physical system to be solved:
         system = physical_system(domain,
