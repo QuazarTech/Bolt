@@ -1,8 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
-
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
@@ -13,8 +11,8 @@ fields_initialize = 'fft'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'ASL'
-solver_method_in_p = 'ASL'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
@@ -26,6 +24,10 @@ p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
+
+# Time parameters:
+N_cfl   = 0.64
+t_final = 1.0
 
 # Constants:
 mass_particle      = 1

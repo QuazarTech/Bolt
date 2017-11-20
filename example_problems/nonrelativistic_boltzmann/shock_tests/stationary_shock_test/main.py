@@ -31,16 +31,16 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
-# Time parameters:
-dt      = 0.001
-t_final = 0.2
+dt      =   params.N_cfl * min(nls.dq1, nls.dq2) \
+          / max(params.p1_end,
+                params.p2_end,
+                params.p3_end
+               )
 
-time_array  = np.arange(dt, t_final + dt, dt)
+time_array  = np.arange(dt, params.t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-    
-    if(time_index%100 == 0):
-        PETSc.Sys.Print('Computing for Time =', t0)
 
+    PETSc.Sys.Print('Computing for Time =', t0)
     nls.strang_timestep(dt)
     nls.dump_moments('dump/%04d'%(time_index+1))
