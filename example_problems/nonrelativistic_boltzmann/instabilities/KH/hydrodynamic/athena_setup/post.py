@@ -62,6 +62,7 @@ pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
+    
     if((time_index+1)%40 == 0):
         
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
