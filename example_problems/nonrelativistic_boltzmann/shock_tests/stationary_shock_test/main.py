@@ -32,9 +32,9 @@ nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
 dt      =   params.N_cfl * min(nls.dq1, nls.dq2) \
-          / max(params.p1_end,
-                params.p2_end,
-                params.p3_end
+          / max(domain.p1_end,
+                domain.p2_end,
+                domain.p3_end
                )
 
 time_array  = np.arange(dt, params.t_final + dt, dt)

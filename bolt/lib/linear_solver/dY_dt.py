@@ -221,7 +221,7 @@ def dY_dt_singlemode_evolution(Y, self):
                            self.physical_system.params
                           )
 
-    ddelta_f_hat_dt = - 1j * (k_q1 * self.p1 + k_q2 * self.p2) * delta_f_hat \
+    ddelta_f_hat_dt = - 0 * 1j * (k_q1 * self.p1 + k_q2 * self.p2) * delta_f_hat \
                       - fields_term + C_f_hat
   
     dY_dt = np.array([ddelta_f_hat_dt,

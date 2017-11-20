@@ -34,12 +34,9 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      =   params.N_cfl * min(nls.dq1, nls.dq2) \
-          / max(params.p1_end,
-                params.p2_end,
-                params.p3_end
-               )
 
+
+dt = 0.0005
 time_array  = np.arange(dt, params.t_final + dt, dt)
 
 N_q1 = domain.N_q1
@@ -71,7 +68,6 @@ ax1.set_ylabel(r'$\rho$')
 ax2 = fig.add_subplot(3, 1, 2)
 ax2.plot(q1, p1_bulk[:, 0])
 ax2.set_ylabel(r'$v_x$')
-ax2.set_ylim([0, 1])
 
 ax3 = fig.add_subplot(3, 1, 3)
 ax3.plot(q1, n[:, 0] * T[:, 0])
@@ -83,7 +79,7 @@ pl.savefig('images/0000.png')
 pl.close(fig)
 pl.clf()
 
-for time_index, t0 in enumerate(time):
+for time_index, t0 in enumerate(time_array):
 
     h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
@@ -108,7 +104,6 @@ for time_index, t0 in enumerate(time):
     ax2 = fig.add_subplot(3, 1, 2)
     ax2.plot(q1, p1_bulk[:, 0])
     ax2.set_ylabel(r'$v_x$')
-    ax2.set_ylim([0, 1])
 
     ax3 = fig.add_subplot(3, 1, 3)
     ax3.plot(q1, n[:, 0] * T[:, 0])
@@ -116,6 +111,6 @@ for time_index, t0 in enumerate(time):
     ax3.set_xlabel('$x$')
 
     fig.suptitle('Time = ' + "%.2f"%(t0))
-    pl.savefig('images/' + '%04d'%((time_index+1)/10) + '.png')
+    pl.savefig('images/' + '%04d'%((time_index+1)/1) + '.png')
     pl.close(fig)
     pl.clf()
