@@ -66,22 +66,22 @@ N_g = system.N_ghost
 # a single mode only needs to be evolved. This solver
 # would only evolve the single mode, and hence requires
 # much lower time and memory for the computations:
-# linearized_system = physical_system(domain,
-#                                     boundary_conditions,
-#                                     params,
-#                                     initialize,
-#                                     advection_terms,
-#                                     collision_operator.linearized_BGK,
-#                                     moment_defs
-#                                    )
+linearized_system = physical_system(domain,
+                                    boundary_conditions,
+                                    params,
+                                    initialize,
+                                    advection_terms,
+                                    collision_operator.linearized_BGK,
+                                    moment_defs
+                                   )
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+ls  = linear_solver(linearized_system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 0.1
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -114,7 +114,6 @@ for time_index, t0 in enumerate(time_array[1:]):
     else:
         rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-    
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')

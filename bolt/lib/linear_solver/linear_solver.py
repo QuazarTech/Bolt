@@ -285,6 +285,11 @@ class linear_solver(object):
             self.p3 = np.array(self.p3).\
                       reshape(self.N_p1, self.N_p2, self.N_p3)
 
+            self._A_q1 = np.array(self._A_q1).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+            self._A_q2 = np.array(self._A_q2).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+
             params.rho_background = self.compute_moments('density',
                                                          self.f_background
                                                         )

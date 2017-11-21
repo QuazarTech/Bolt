@@ -64,12 +64,12 @@ def df_dt_fvm(f, self):
     right_flux = af.shift(left_flux, 0, -1)
     top_flux   = af.shift(bot_flux,  0,  0, -1)
     
-    df_dt = - 0*(right_flux - left_flux)/self.dq1 \
-            - 0*(top_flux   - bot_flux )/self.dq2 \
+    df_dt = - (right_flux - left_flux)/self.dq1 \
+            - (top_flux   - bot_flux )/self.dq2 \
             + self._source(f, self.q1_center, self.q2_center,
                            self.p1, self.p2, self.p3, 
                            self.compute_moments, 
-                           self.physical_system.params
+                           self.physical_system.params, False
                           ) 
 
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 

@@ -5,12 +5,12 @@ nonrelativistic Boltzmann equation.
 
 def A_q(q1, q2, p1, p2, p3, params):
     """Return the terms A_q1, A_q2."""
-    return (0*p1, 0*p2)
+    return (p1, p2)
 
 # Conservative Advection terms in q-space:
 def C_q(q1, q2, p1, p2, p3, params):
     """Return the terms C_q1, C_q2."""
-    return (0*p1, 0*p2)
+    return (p1, p2)
 
 
 # This can then be called inside A_p if needed:

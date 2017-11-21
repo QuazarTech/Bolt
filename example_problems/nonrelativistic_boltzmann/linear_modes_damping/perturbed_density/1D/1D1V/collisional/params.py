@@ -44,4 +44,4 @@ k_q1 = 2 * np.pi
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0 * p1**0 * q1**0)
+    return (1 * p1**0 * q1**0)

@@ -69,6 +69,7 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
                           + moment_coeffs[2] * self.p3**(moment_exponents[2])
 
     if(self.single_mode_evolution == True):
+        
         if(f is None):
             delta_moment_hat =   np.sum(self.Y[0] * moment_variable) \
                                * self.dp3 * self.dp2 * self.dp1

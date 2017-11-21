@@ -36,7 +36,7 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     n = moments('density', f)
 
     # Floor used to avoid 0/0 limit:
-    eps = 1e-15
+    eps = 1e-30
 
     p1_bulk = moments('mom_p1_bulk', f) / (n + eps)
     p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
@@ -160,7 +160,7 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
                        + expr_term_4 + expr_term_5 
                       ) 
                     * np.exp(-m * (p1 - p1_b)**2/(2 * k * T))/(4 * np.sqrt(np.pi * T**5 * k**3))
-                   ) - delta_f_hat
+                   ) -delta_f_hat
                   )/tau
   
     return C_f_hat
