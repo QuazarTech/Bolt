@@ -87,12 +87,12 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    rho = params.rho_background
-    T   = params.temperature_background
+    rho = 1 #params.rho_background
+    T   = 1 #params.temperature_background
   
-    p1_b = params.p1_bulk_background
-    p2_b = params.p2_bulk_background
-    p3_b = params.p3_bulk_background
+    p1_b = 0 #params.p1_bulk_background
+    p2_b = 0 #params.p2_bulk_background
+    p3_b = 0 #params.p3_bulk_background
 
     # (0, 0) are dummy values for q1, q2:
     tau = params.tau(0, 0, p1, p2, p3)
@@ -160,7 +160,7 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
                        + expr_term_4 + expr_term_5 
                       ) 
                     * np.exp(-m * (p1 - p1_b)**2/(2 * k * T))/(4 * np.sqrt(np.pi * T**5 * k**3))
-                   ) -delta_f_hat
+                   ) - delta_f_hat
                   )/tau
   
     return C_f_hat
