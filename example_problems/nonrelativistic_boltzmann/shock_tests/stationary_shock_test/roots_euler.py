@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.optimize import root
 
+gamma = 5/3
+
 def solve(right, left):
 
     v_right   = right[0]
@@ -30,9 +32,13 @@ def solve(right, left):
 
 def flux(v,rho,T):
     
+    p = rho * T
+    e = T/(gamma - 1)
+    E = rho * e + (1/2)*rho*v**2
+
     fluxContinuity = rho*v
-    fluxMomentum   = rho*T + rho*v**2  
-    fluxEnergy     = ((5/2)*rho*T + (1/2)*rho*v**2)*v
+    fluxMomentum   = p + rho*v**2  
+    fluxEnergy     = (E + p)*v
     
     return([fluxContinuity, fluxMomentum, fluxEnergy])
 
