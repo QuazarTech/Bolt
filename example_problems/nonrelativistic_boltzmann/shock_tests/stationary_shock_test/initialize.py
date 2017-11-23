@@ -11,9 +11,9 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    rho  = af.select(q1<0.5, q1**0, 0.92307692)
-    T    = af.select(q1<0.5, 2/3 * q1**0, 0.63194444)
-    p1_b = af.select(q1<0.5, q1**0, 1.08333333)
+    rho  = af.select(q1<0.5, q1**0, 2/3)
+    T    = af.select(q1<0.5, 2/3 * q1**0, 1/4)
+    p1_b = af.select(q1<0.5, q1**0, 1.5)
 
     f = rho * af.sqrt(m / (2 * np.pi * k * T))**3 \
             * af.exp(-m * (p1-p1_b)**2 / (2 * k * T)) \

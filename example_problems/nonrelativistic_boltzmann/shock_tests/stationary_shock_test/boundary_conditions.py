@@ -25,9 +25,9 @@ def f_left(f, q1, q2, p1, p2, p3, params):
 
 @af.broadcast
 def f_right(f, q1, q2, p1, p2, p3, params):
-    rho  = 0.92307692 * q1**0
-    T    = 0.63194444 * q1**0
-    p1_b = 1.08333333 * q1**0
+    rho  = 2/3 * q1**0
+    T    = 1/4 * q1**0
+    p1_b = 1.5 * q1**0
 
     m = params.mass_particle
     k = params.boltzmann_constant

@@ -80,37 +80,38 @@ pl.close(fig)
 pl.clf()
 
 for time_index, t0 in enumerate(time_array):
+    if(t0%0.01==0):
+        print(t0)
+        h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+        
+        n       = moments[:, :, 0]
+        p1_bulk = moments[:, :, 1] / n
+        p2_bulk = moments[:, :, 2] / n
+        p3_bulk = moments[:, :, 3] / n
+        T       = (  moments[:, :, 4]
+                   - n * p1_bulk**2
+                   - n * p2_bulk**2
+                   - n * p3_bulk**2
+                  ) / (params.p_dim * n)
 
-    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
-    
-    n       = moments[:, :, 0]
-    p1_bulk = moments[:, :, 1] / n
-    p2_bulk = moments[:, :, 2] / n
-    p3_bulk = moments[:, :, 3] / n
-    T       = (  moments[:, :, 4]
-               - n * p1_bulk**2
-               - n * p2_bulk**2
-               - n * p3_bulk**2
-              ) / (params.p_dim * n)
+        fig = pl.figure()
 
-    fig = pl.figure()
+        ax1 = fig.add_subplot(3, 1, 1)
+        ax1.plot(q1, n[:, 0])
+        ax1.set_ylabel(r'$\rho$')
 
-    ax1 = fig.add_subplot(3, 1, 1)
-    ax1.plot(q1, n[:, 0])
-    ax1.set_ylabel(r'$\rho$')
+        ax2 = fig.add_subplot(3, 1, 2)
+        ax2.plot(q1, p1_bulk[:, 0])
+        ax2.set_ylabel(r'$v_x$')
 
-    ax2 = fig.add_subplot(3, 1, 2)
-    ax2.plot(q1, p1_bulk[:, 0])
-    ax2.set_ylabel(r'$v_x$')
+        ax3 = fig.add_subplot(3, 1, 3)
+        ax3.plot(q1, n[:, 0] * T[:, 0])
+        ax3.set_ylabel(r'$p$')
+        ax3.set_xlabel('$x$')
 
-    ax3 = fig.add_subplot(3, 1, 3)
-    ax3.plot(q1, n[:, 0] * T[:, 0])
-    ax3.set_ylabel(r'$p$')
-    ax3.set_xlabel('$x$')
-
-    fig.suptitle('Time = ' + "%.2f"%(t0))
-    pl.savefig('images/' + '%04d'%((time_index+1)/1) + '.png')
-    pl.close(fig)
-    pl.clf()
+        fig.suptitle('Time = ' + "%.2f"%(t0))
+        pl.savefig('images/' + '%04d'%((time_index+1)/1) + '.png')
+        pl.close(fig)
+        pl.clf()

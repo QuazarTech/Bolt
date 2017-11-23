@@ -40,7 +40,7 @@ dt      =   params.N_cfl * min(nls.dq1, nls.dq2) \
 time_array  = np.arange(dt, params.t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-
-    PETSc.Sys.Print('Computing for Time =', t0)
     nls.strang_timestep(dt)
-    nls.dump_moments('dump/%04d'%(time_index+1))
+    
+    if(t0%0.01==0):
+        nls.dump_moments('dump/%04d'%(time_index+1))

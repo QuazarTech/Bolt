@@ -25,6 +25,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 t_final = 0.1
 N       = 2**np.arange(5, 8)
 
+
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
     params.charge_electron = charge_electron
@@ -86,7 +87,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         # Declaring a linear system object which will 
         # evolve the defined physical system:
         nls = nonlinear_solver(system)
-        ls  = linear_solver(linearized_system)
+        ls  = linear_solver(system)
 
         time_array = np.arange(dt, t_final + dt, dt)
 

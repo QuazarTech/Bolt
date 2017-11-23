@@ -27,7 +27,7 @@ num_devices = 4
 
 # Time parameters:
 N_cfl   = 0.64
-t_final = 1.0
+t_final = 10.0
 
 # Constants:
 mass_particle      = 1
