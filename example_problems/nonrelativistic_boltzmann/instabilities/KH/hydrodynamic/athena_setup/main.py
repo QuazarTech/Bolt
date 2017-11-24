@@ -38,11 +38,12 @@ dt = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 if(params.t_restart == 0):
     time_elapsed = 0
-    nls.dump_distribution_function('nls_dump_f/t=0.000')
+    nls.dump_distribution_function('dump_f/t=0.000')
+    nls.dump_moments('dump_moments/t=0.000')
 
 else:
     time_elapsed = params.t_restart
-    nls.load_distribution_function('nls_dump_f/t=' + '%.3f'%time_elapsed)
+    nls.load_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
 while(time_elapsed < params.t_final):
     
