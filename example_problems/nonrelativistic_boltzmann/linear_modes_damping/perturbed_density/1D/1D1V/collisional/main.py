@@ -77,13 +77,13 @@ linearized_system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(linearized_system)
+ls  = linear_solver(system)
 
-# Time parameters:
-dt      = 0.001
-t_final = 0.1
+# Timestep as set by the CFL condition:
+dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array  = np.arange(0, t_final + dt, dt)
+time_array  = np.arange(0, params.t_final + dt, dt)
 
 rho_data_nls = np.zeros(time_array.size)
 rho_data_ls  = np.zeros(time_array.size)

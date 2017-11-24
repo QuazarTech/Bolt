@@ -1,5 +1,6 @@
 import arrayfire as af
 import numpy as np
+import math
 from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
@@ -31,19 +32,37 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-nls.dump_moments('dump/0000')
+# Timestep as set by the CFL condition:
+dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-# Time parameters:
-dt      = 0.0001
-t_final = 2.5
+if(params.t_restart == 0):
+    time_elapsed = 0
+    nls.dump_distribution_function('nls_dump_f/t=0.000')
 
-time_array = np.arange(dt, t_final + dt, dt)
+else:
+    time_elapsed = params.t_restart
+    nls.load_distribution_function('nls_dump_f/t=' + '%.3f'%time_elapsed)
 
-for time_index, t0 in enumerate(time_array):
+while(time_elapsed < params.t_final):
     
-    if((time_index+1)%100 == 0):
-        PETSc.Sys.Print('Computing for Time =', t0)
-
     nls.strang_timestep(dt)
-    nls.dump_moments('dump/%04d'%(time_index+1))
+    time_elapsed += dt
 
+    if(params.dt_dump_moments != 0):
+        # Checking that the file writing intervals are greater than dt:
+        assert(params.dt_dump_moments > dt)
+
+        # We step by delta_dt to get the values at dt_dump
+        delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
+                   * params.dt_dump_moments
+
+        if(delta_dt<dt):
+            nls.strang_timestep(delta_dt)
+            nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
+            time_elapsed += delta_dt
+
+    if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
+        nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
+
+    PETSc.Sys.Print('Time = %.5f'%time_elapsed)

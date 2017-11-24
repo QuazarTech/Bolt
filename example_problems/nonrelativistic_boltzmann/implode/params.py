@@ -5,7 +5,7 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'electrostatic'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
@@ -15,7 +15,7 @@ solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'minmod'
+reconstruction_method_in_p = 'weno5'
 
 riemann_solver = 'upwind-flux'
 
@@ -29,6 +29,18 @@ num_devices = 4
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
+
+# Restart(Set to zero for no-restart):
+t_restart = 0
+
+# File-writing Parameters:
+# Set to zero for no file-writing
+dt_dump_f       = 0.1
+dt_dump_moments = 0.01 
+
+# Time parameters:
+N_cfl   = 0.96
+t_final = 2.5
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

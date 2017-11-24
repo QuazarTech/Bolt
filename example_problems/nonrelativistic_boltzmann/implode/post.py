@@ -34,49 +34,32 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.0001
-t_final = 2.5
-time    = np.arange(dt, t_final + dt, dt)
+time = np.arange(0, params.t_final + params.dt_dump_moments, 
+                 params.dt_dump_moments
+                )
 
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
 N_g  = domain.N_ghost
 
-q1 = (0.5 + np.arange(N_q1)) * 0.3/N_q1
-q2 = (0.5 + np.arange(N_q2)) * 0.3/N_q2
+q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * (domain.q1_end - domain.q1_start)/N_q1
+q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_start)/N_q2
 
 q2, q1 = np.meshgrid(q2, q1)
 
-h5f     = h5py.File('dump/0000.h5', 'r')
-moments = np.swapaxes(h5f['moments'][:], 0, 1)
-h5f.close()
-
-n = moments[:, :, 0]
-
-pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 500))
-pl.title('Time = 0')
-pl.axes().set_aspect('equal')
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.colorbar()
-pl.savefig('images/0000.png')
-pl.clf()
-
 for time_index, t0 in enumerate(time):
     
-    if((time_index+1)%20 == 0):
-        
-        h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
-        
-        n = moments[:, :, 0]
+    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
+    h5f.close()
+    
+    n = moments[:, :, 0]
 
-        pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 500))
-        pl.title('Time = ' + "%.2f"%(t0))
-        pl.axes().set_aspect('equal')
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
-        pl.colorbar()
-        pl.savefig('images/%04d'%((time_index+1)/20) + '.png')
-        pl.clf()
+    pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 500))
+    pl.title('Time = ' + "%.2f"%(t0))
+    pl.axes().set_aspect('equal')
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.colorbar()
+    pl.savefig('images/%04d'%time_index + '.png')
+    pl.clf()

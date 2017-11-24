@@ -14,28 +14,32 @@ solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'minmod'
+reconstruction_method_in_p = 'weno5'
 
 riemann_solver = 'upwind-flux'
-
-# Restart Simulation:
-t_restart = 0 # 0 when the simulation is to be started from t = 0
-
-# Intervals of time for which the date is dumped to file:
-t_dump_moments = 0.01
-t_dump_f       = 1.0
-
-# Timestepping parameters:
-cfl_number = 0.9
-t_final    = 2.5
 
 # Constants:
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
 
-p_dim       = 3
+# Dimensionality considered in velocity space:
+p_dim = 3
+
+# Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
+
+# Restart(Set to zero for no-restart):
+t_restart = 0
+
+# File-writing Parameters:
+# Set to zero for no file-writing
+dt_dump_f       = 0.1
+dt_dump_moments = 0.01 
+
+# Time parameters:
+N_cfl   = 0.4
+t_final = 10
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

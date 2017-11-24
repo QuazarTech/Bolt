@@ -24,11 +24,13 @@ def MB_dist(q1, q2, p1, p2, p3, p_dim):
 
     # Calculating the perturbed density:
     rho = 1 + 0.01 * af.cos(2 * np.pi * q1)
+    T   = 1 + 0.01 * af.cos(2 * np.pi * q1)
+    p1b = 0.01 * af.cos(2 * np.pi * q1)
 
-    f = rho * (1 / (2 * np.pi))**(p_dim / 2) \
-            * af.exp(-0.5 * p1**2) \
-            * af.exp(-0.5 * p2) \
-            * af.exp(-0.5 * p3) 
+    f = rho * (1 / (2 * np.pi * T))**(p_dim / 2) \
+            * af.exp(-0.5 * (p1-p1b)**2/T) \
+            * af.exp(-0.5 * p2**2/T) \
+            * af.exp(-0.5 * p3**2/T) 
 
     af.eval(f)
     return (f)
@@ -131,23 +133,6 @@ def test_1V():
     delta_f_hat = 0.01 * (1 / (2 * np.pi))**(1 / 2) \
                        * np.exp(-0.5 * obj.p1**2)
 
-    f_b = ((1 / (2 * np.pi))**(1 / 2) * np.exp(-0.5 * obj.p1**2)).reshape(1, 1, 
-                                                                        obj.N_p1 
-                                                                      * obj.N_p2 
-                                                                      * obj.N_p3
-                                                                     )
-
-    obj.q1_center = obj.q1_center.to_ndarray().reshape(obj.N_q1, obj.N_q2, 1)
-    obj.q2_center = obj.q2_center.to_ndarray().reshape(obj.N_q1, obj.N_q2, 1)
-
-    df = (  delta_f_hat.reshape(1, 1, obj.N_p1 * obj.N_p2 * obj.N_p3) \
-          * np.exp(1j * (2 * np.pi * obj.q1_center))
-         ).real
-
-    f_single_mode = af.to_array(f_b + df)
-
-    print(af.mean(af.abs(f_generalized - f_single_mode)))
-    
     obj.single_mode_evolution = True
 
     C_f_hat_single_mode = collision_operator.linearized_BGK(delta_f_hat, obj.p1, obj.p2, obj.p3, 
@@ -157,11 +142,8 @@ def test_1V():
 
 
 
-    print(af.mean(af.abs(  af.flat(C_f_hat_generalized[i_q1_max, i_q2_max]) 
-                         - af.to_array(C_f_hat_single_mode.flatten())
-                        )
-                 )
-         )
-
-test_1V()
-
+    assert(af.mean(af.abs(  af.flat(C_f_hat_generalized[i_q1_max, i_q2_max]) 
+                          - af.to_array(C_f_hat_single_mode.flatten())
+                         )
+                  ) < 1e-14
+          )
