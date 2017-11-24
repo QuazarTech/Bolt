@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import root
 
-gamma = 5/3
+gamma = 1.4
 
 def solve(right, left):
 
@@ -42,7 +42,7 @@ def flux(v,rho,T):
     
     return([fluxContinuity, fluxMomentum, fluxEnergy])
 
-leftValues        = np.array([1,1,2/3])
+leftValues        = np.array([1,1,1])
 rightValuesGuess  = np.array([1,0.1,0.1])
 
 sol = root(solve, rightValuesGuess, leftValues, method='lm')

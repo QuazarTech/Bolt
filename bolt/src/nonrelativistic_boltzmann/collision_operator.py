@@ -43,7 +43,7 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
 
     T =   (1 / params.p_dim) \
-        * (  moments('energy', f) 
+        * (  2 * moments('energy', f) 
            - n * p1_bulk**2
            - n * p2_bulk**2
            - n * p3_bulk**2
@@ -87,12 +87,12 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     m = params.mass_particle
     k = params.boltzmann_constant
 
-    rho = 1 #params.rho_background
-    T   = 1 #params.temperature_background
+    rho = params.rho_background
+    T   = params.temperature_background
   
-    p1_b = 0 #params.p1_bulk_background
-    p2_b = 0 #params.p2_bulk_background
-    p3_b = 0 #params.p3_bulk_background
+    p1_b = params.p1_bulk_background
+    p2_b = params.p2_bulk_background
+    p3_b = params.p3_bulk_background
 
     # (0, 0) are dummy values for q1, q2:
     tau = params.tau(0, 0, p1, p2, p3)
@@ -104,7 +104,7 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     delta_p2_hat = (moments('mom_p2_bulk', delta_f_hat) - p2_b * delta_rho_hat)/rho
     delta_p3_hat = (moments('mom_p3_bulk', delta_f_hat) - p3_b * delta_rho_hat)/rho
     
-    delta_T_hat =   (  (1 / params.p_dim) \
+    delta_T_hat =   (  (2 / params.p_dim) \
                      * moments('energy', delta_f_hat) 
                      - delta_rho_hat * T
                      - 2 * rho * p1_b * delta_p1_hat

@@ -46,7 +46,7 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
                 np.array(
                          self.physical_system.moment_coeffs[moment_name]
                         )
-
+  
     except BaseException:
         raise KeyError('moment_name not defined under physical system')
 

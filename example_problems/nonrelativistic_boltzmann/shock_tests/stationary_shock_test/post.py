@@ -80,6 +80,7 @@ pl.close(fig)
 pl.clf()
 
 for time_index, t0 in enumerate(time_array):
+
     if(t0%0.01==0):
         print(t0)
         h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
