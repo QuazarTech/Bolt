@@ -2,6 +2,7 @@ import numpy as np
 import pylab as pl
 import h5py
 import domain
+import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -48,7 +49,7 @@ q2, q1 = np.meshgrid(q2, q1)
 
 for time_index, t0 in enumerate(time):
     
-    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    h5f  = h5py.File('dump/t=%.3f'%(t0) + '.h5', 'r')
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
     
