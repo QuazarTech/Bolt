@@ -1,6 +1,5 @@
 import arrayfire as af
 import numpy as np
-import h5py
 from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
@@ -32,7 +31,7 @@ nls = nonlinear_solver(system)
 nls.dump_moments('dump/0000')
 
 # Time parameters:
-dt      = 0.0001
+dt      = 0.00005
 t_final = 0.2
 
 time_array  = np.arange(dt, t_final + dt, dt)

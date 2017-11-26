@@ -49,7 +49,7 @@ q2, q1 = np.meshgrid(q2, q1)
 
 for time_index, t0 in enumerate(time):
     
-    h5f  = h5py.File('dump/t=%.3f'%(t0) + '.h5', 'r')
+    h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
     

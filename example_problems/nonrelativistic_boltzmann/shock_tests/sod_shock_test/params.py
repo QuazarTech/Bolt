@@ -1,8 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
-
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
@@ -13,8 +11,8 @@ fields_initialize = 'fft'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'ASL'
-solver_method_in_p = 'ASL'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
@@ -31,6 +29,7 @@ num_devices = 4
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
+gamma              = 1.4
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
