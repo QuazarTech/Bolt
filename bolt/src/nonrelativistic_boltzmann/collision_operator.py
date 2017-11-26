@@ -43,11 +43,11 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
     p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
 
-    T = ((params.gamma - 1) * moments('energy', f) 
-         - 0.5 * n * p1_bulk**2
-         - 0.5 * n * p2_bulk**2
-         - 0.5 * n * p3_bulk**2
-        ) / (n + eps) + eps
+    T = (params.gamma - 1) * (  moments('energy', f) 
+                              - 0.5 * n * p1_bulk**2
+                              - 0.5 * n * p2_bulk**2
+                              - 0.5 * n * p3_bulk**2
+                             ) / (n + eps) + eps
 
     if(af.any_true(params.tau(q1, q2, p1, p2, p3) == 0)):
 

@@ -28,8 +28,9 @@ def f_right(f, q1, q2, p1, p2, p3, params):
     rho = 0.125 * q1**0
     T   = 0.8   * q1**0
 
-    m = params.mass_particle
-    k = params.boltzmann_constant
+    m     = params.mass_particle
+    k     = params.boltzmann_constant
+    gamma = params.gamma
 
     f = rho * af.sqrt(3 * m * (gamma - 1) / (4 * np.pi * k * T))**3 \
             * af.exp(-3 * m * (gamma - 1) * p1**2 / (4 * k * T)) \
