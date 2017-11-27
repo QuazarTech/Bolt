@@ -108,7 +108,7 @@ def check_divergence(self):
     if(   af.any_true(af.isinf(self.f))
        or af.any_true(af.isnan(self.f))
       ):
-        raise Exception('Solver Diverging!')
+        raise SystemExit('Solver Diverging!')
 
 def lie_step(self, dt):
     """
