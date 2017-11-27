@@ -35,7 +35,7 @@ nls.dump_moments('dump/0000')
 
 # Time parameters:
 dt      = 0.001
-t_final = 1.0
+t_final = 0.5
 
 time_array = np.arange(dt, t_final + dt, dt)
 

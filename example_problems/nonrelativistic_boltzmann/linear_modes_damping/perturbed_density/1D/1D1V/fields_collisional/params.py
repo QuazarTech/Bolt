@@ -41,6 +41,10 @@ pert_imag = 0.02
 
 k_q1 = 2 * np.pi
 
+# Time parameters:
+N_cfl   = 0.32
+t_final = 1.0
+
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):

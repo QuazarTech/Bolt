@@ -5,7 +5,7 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'fft'
+fields_initialize = 'user-defined'
 
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
@@ -40,6 +40,10 @@ pert_real = 0.01
 pert_imag = 0.02
 
 k_q1 = 2 * np.pi
+
+# Time parameters:
+N_cfl   = 0.32
+t_final = 0.5
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
