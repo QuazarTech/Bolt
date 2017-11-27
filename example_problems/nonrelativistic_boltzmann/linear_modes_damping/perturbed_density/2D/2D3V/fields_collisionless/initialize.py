@@ -16,7 +16,7 @@ def initialize_E(q1, q2, params):
             + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
            )
 
-    E1 =   params.charge_electron * k_q2/(k_q1**2 + k_q2**2) \
+    E2 =   params.charge_electron * k_q2/(k_q1**2 + k_q2**2) \
          * (  params.pert_real * af.sin(k_q1 * q1 + k_q2 * q2) 
             + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
            )

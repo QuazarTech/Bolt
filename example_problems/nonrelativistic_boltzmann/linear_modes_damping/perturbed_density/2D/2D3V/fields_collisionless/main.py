@@ -100,7 +100,7 @@ else:
     rho_data_ls[0] = af.max(n_ls) 
 
 for time_index, t0 in enumerate(time_array[1:]):
-
+    print(t0)
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
 
