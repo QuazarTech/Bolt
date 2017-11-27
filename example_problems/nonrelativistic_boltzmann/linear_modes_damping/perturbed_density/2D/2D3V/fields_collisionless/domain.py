@@ -8,14 +8,14 @@ N_q2     = 32
 
 p1_start = -10
 p1_end   = 10
-N_p1     = 32
+N_p1     = 20
 
 p2_start = -10
 p2_end   = 10
-N_p2     = 32
+N_p2     = 20
 
 p3_start = -10
 p3_end   = 10
-N_p3     = 32
+N_p3     = 20
 
 N_ghost = 3
