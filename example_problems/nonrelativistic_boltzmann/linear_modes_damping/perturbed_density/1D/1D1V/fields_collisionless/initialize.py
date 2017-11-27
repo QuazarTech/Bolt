@@ -13,15 +13,15 @@ def initialize_E(q1, q2, params):
     E1 =   params.charge_electron/params.k_q1 \
          * (params.pert_real * af.sin(k_q1 * q1) + params.pert_imag * af.cos(k_q1 * q1))
 
-    E2 = 0 * q1**0
-    E3 = 0 * q1**0
+    E2 = E1
+    E3 = 1 * q1**0
 
     return(E1, E2, E3)
 
 def initialize_B(q1, q2, params):
 
-    B1 = 0 * q1**0
-    B2 = 0 * q1**0
+    B1 = 1 * q1**0
+    B2 = 2 * q1**0
     B3 =   params.pert_real * af.cos(params.k_q1 * q1) \
          - params.pert_imag * af.sin(params.k_q1 * q1)
 

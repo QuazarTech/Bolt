@@ -21,7 +21,7 @@ def initialize_E(q1, q2, params):
             + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
            )
 
-    E3 = 0 * q1**0
+    E3 = 5 * q1**0
 
     return(E1, E2, E3)
 
@@ -30,10 +30,9 @@ def initialize_B(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
 
-    B1 = 0 * q1**0
-    B2 = 0 * q1**0
-    B3 =   af.cos(k_q1 * q1 + k_q2 * q2) * k_q2 \
-         - af.cos(k_q1 * q1 + k_q2 * q2) * k_q1
+    B1 = 1 * q1**0
+    B2 = 2 * q1**0
+    B3 = af.cos(2 * np.pi * q1 + 4 * np.pi * q2)
 
     return(B1, B2, B3)
 
