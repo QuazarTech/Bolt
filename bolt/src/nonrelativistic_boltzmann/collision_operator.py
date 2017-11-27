@@ -12,22 +12,21 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     """Return the Local MB distribution."""
     m     = params.mass_particle
     k     = params.boltzmann_constant
-    gamma = params.gamma 
 
     if (params.p_dim == 3):
-        f0 = n * (3 * m * (gamma - 1) / (4 * np.pi * k * T))**(3 / 2)  \
-               * af.exp(-3 * m * (gamma - 1) * (p1 - p1_bulk)**2 / (4 * k * T)) \
-               * af.exp(-3 * m * (gamma - 1) * (p2 - p2_bulk)**2 / (4 * k * T)) \
-               * af.exp(-3 * m * (gamma - 1) * (p3 - p3_bulk)**2 / (4 * k * T))
+        f0 = n * (m / (2 * np.pi * k * T))**(3 / 2)  \
+               * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \
+               * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T)) \
+               * af.exp(-m * (p3 - p3_bulk)**2 / (2 * k * T))
 
     elif (params.p_dim == 2):
-        f0 = n * (3 * m * (gamma - 1) / (4 * np.pi * k * T)) \
-               * af.exp(-3 * m * (gamma - 1) * (p1 - p1_bulk)**2 / (4 * k * T)) \
-               * af.exp(-3 * m * (gamma - 1) * (p2 - p2_bulk)**2 / (4 * k * T))
+        f0 = n * (m / (2 * np.pi * k * T)) \
+               * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \
+               * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T))
 
     else:
-        f0 = n * af.sqrt(3 * m * (gamma - 1) / (4 * np.pi * k * T)) \
-               * af.exp(-3 * m * (gamma - 1) * (p1 - p1_bulk)**2 / (4 * k * T))
+        f0 = n * af.sqrt(m / (2 * np.pi * k * T)) \
+               * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T))
 
     af.eval(f0)
     return (f0)
@@ -43,10 +42,10 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
     p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
 
-    T = (params.gamma - 1) * (  moments('energy', f) 
-                              - 0.5 * n * p1_bulk**2
-                              - 0.5 * n * p2_bulk**2
-                              - 0.5 * n * p3_bulk**2
+    T = (1 / params.p_dim) * (  2 * moments('energy', f) 
+                              - n * p1_bulk**2
+                              - n * p2_bulk**2
+                              - n * p3_bulk**2
                              ) / (n + eps) + eps
 
     if(af.any_true(params.tau(q1, q2, p1, p2, p3) == 0)):

@@ -29,7 +29,6 @@ num_devices = 1
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
-gamma              = 3
 
 # Initial Conditions used in initialize:
 rho_background         = 1

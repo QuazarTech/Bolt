@@ -29,7 +29,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
                               ) - 0.5
                      )
     
-    T = (2.5 / rho)
+    T = (0.8 / rho)
 
     f = rho * (m / (2 * np.pi * k * T))**(3 / 2) \
             * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \

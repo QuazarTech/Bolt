@@ -38,7 +38,7 @@ dt_dump_f       = 0.1
 dt_dump_moments = 0.01 
 
 # Time parameters:
-N_cfl   = 0.4
+N_cfl   = 0.45
 t_final = 10
 
 # Variation of collisional-timescale parameter through phase space:

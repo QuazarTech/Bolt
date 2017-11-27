@@ -29,7 +29,6 @@ num_devices = 4
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
-gamma              = 1.4
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
