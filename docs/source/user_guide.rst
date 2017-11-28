@@ -42,7 +42,7 @@ Building PETSc:
 
 - Clone the `petsc <https://bitbucket.org/petsc/petsc>`_ repository
 - We suggest that you install PETSc using the following::
-    ./configure --prefix=/path/to/petsc_installation/ --with-debugging=0 COPTFLAGS="-O3 -march=native" CXXOPTFLAG S="-O3 -march=native" --with-hdf5=1 --download-hdf5 --with-clean=1 --with-memalign=64 --known-level1-dcache-size=32768 --known-level1-dcache-linesize=64 --known-level1-dcache-assoc=8 --download-mpich=1
+    ./configure --prefix=/path/to/petsc_installation/ --with-debugging=0 COPTFLAGS="-O3 -march=native" CXXOPTFLAG S="-O3 -march=native" --with-hdf5=1 --download-hdf5 --with-clean=1 --with-memalign=64 --known-level1-dcache-size=32768 --known-level1-dcache-linesize=64 --known-level1-dcache-assoc=8 --download-mpich=1 --with-64-bit-indices
 
 - If you are keen on modifying the above build parameters, detailed instructions for the same may be found `here <http://www.mcs.anl.gov/petsc/documentation/installation.html>`_
 

@@ -3,31 +3,11 @@
 
 import arrayfire as af
 
-def fdtd(self, dt):
-    # E's and B's are staggered in time such that
-    # B's are defined at (n + 1/2), and E's are defined at n
-
-    # Positions of grid point where field quantities are defined:
-    # B1 --> (i, j + 1/2)
-    # B2 --> (i + 1/2, j)
-    # B3 --> (i + 1/2, j + 1/2)
-
-    # E1 --> (i + 1/2, j)
-    # E2 --> (i, j + 1/2)
-    # E3 --> (i, j)
-
-    # J1 --> (i + 1/2, j)
-    # J2 --> (i, j + 1/2)
-    # J3 --> (i, j)
-
-    # The communicate function transfers the data from the local vectors
-    # to the global vectors, in addition to dealing with the
-    # boundary conditions:
-    self._communicate_fields(True)
-
+def fdtd_evolve_E(self, dt):
+    
     if(self.performance_test_flag == True):
         tic = af.time()
-    
+
     dq1 = self.dq1
     dq2 = self.dq2
 
@@ -58,11 +38,16 @@ def fdtd(self, dt):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
-    
-    self._communicate_fields(True)
 
+    return
+
+def fdtd_evolve_B(self, dt):
+    
     if(self.performance_test_flag == True):
         tic = af.time()
+
+    dq1 = self.dq1
+    dq2 = self.dq2
 
     E1 = self.yee_grid_EM_fields[0]
     E2 = self.yee_grid_EM_fields[1]
@@ -84,12 +69,39 @@ def fdtd(self, dt):
     self.yee_grid_EM_fields[5] += - (dt / dq1) * (E2_shifted_q1 - E2) \
                                   + (dt / dq2) * (E1_shifted_q2 - E1)
 
+    af.eval(self.yee_grid_EM_fields)
 
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
-    
+
+    return
+
+def fdtd(self, dt):
+    # E's and B's are staggered in time such that
+    # B's are defined at (n + 1/2), and E's are defined at n
+
+    # Positions of grid point where field quantities are defined:
+    # B1 --> (i, j + 1/2)
+    # B2 --> (i + 1/2, j)
+    # B3 --> (i + 1/2, j + 1/2)
+
+    # E1 --> (i + 1/2, j)
+    # E2 --> (i, j + 1/2)
+    # E3 --> (i, j)
+
+    # J1 --> (i + 1/2, j)
+    # J2 --> (i, j + 1/2)
+    # J3 --> (i, j)
+
+    # The communicate function transfers the data from the local vectors
+    # to the global vectors, in addition to dealing with the
+    # boundary conditions:
+    self._communicate_fields(True)
+    fdtd_evolve_E(self, dt)
+    self._communicate_fields(True)
+    fdtd_evolve_B(self, dt)
     return
 
 def fdtd_grid_to_ck_grid(self):

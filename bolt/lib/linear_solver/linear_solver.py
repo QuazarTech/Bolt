@@ -21,6 +21,7 @@ import arrayfire as af
 from numpy.fft import fftfreq
 import socket
 from petsc4py import PETSc
+from inspect import signature
 
 # Importing solver functions:
 from .EM_fields_solver import compute_electrostatic_fields
@@ -88,9 +89,6 @@ class linear_solver(object):
                              can be solved using the linear solver'
                            )
 
-        # Obtaining the parameter whether it is a single or multimode evolution:
-        self.single_mode_evolution = physical_system.params.single_mode_evolution
-
         # Initializing DAs which will be used in file-writing:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof=(  self.N_p1 
@@ -145,12 +143,18 @@ class linear_solver(object):
                                      physical_system.params
                                     )[1]
 
-        # Initializing f, f_hat and the other EM field quantities:
-        self._initialize(physical_system.params)
-
         # Assigning the function objects to methods of the solver:
         self._A_p    = self.physical_system.A_p
         self._source = self.physical_system.source
+
+        if(len(signature(self._source).parameters) == 6):
+            self.single_mode_evolution = True
+        else:
+            self.single_mode_evolution = False
+
+        # Initializing f, f_hat and the other EM field quantities:
+        self._initialize(physical_system.params)
+
 
     def _calculate_q_center(self):
         """
@@ -281,6 +285,11 @@ class linear_solver(object):
             self.p3 = np.array(self.p3).\
                       reshape(self.N_p1, self.N_p2, self.N_p3)
 
+            self._A_q1 = np.array(self._A_q1).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+            self._A_q2 = np.array(self._A_q2).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+
             params.rho_background = self.compute_moments('density',
                                                          self.f_background
                                                         )
@@ -368,19 +377,19 @@ class linear_solver(object):
             # If option is given as user-defined:
             elif(self.physical_system.params.fields_initialize == 'user-defined'):
                 E1, E2, E3 = \
-                    self.initial_conditions.initialize_E(self.physical_system.params)
+                    self.physical_system.initial_conditions.initialize_E(self.q1_center, self.q2_center, self.physical_system.params)
                 
                 B1, B2, B3 = \
-                    self.initial_conditions.initialize_B(self.physical_system.params)
+                    self.physical_system.initial_conditions.initialize_B(self.q1_center, self.q2_center, self.physical_system.params)
 
                 # Scaling Appropriately
-                self.E1_hat = 2 * af.fft2(E1) / (self.N_q1 * self.N_q2)
-                self.E2_hat = 2 * af.fft2(E2) / (self.N_q1 * self.N_q2)
-                self.E3_hat = 2 * af.fft2(E3) / (self.N_q1 * self.N_q2)
-                self.B1_hat = 2 * af.fft2(B1) / (self.N_q1 * self.N_q2)
-                self.B2_hat = 2 * af.fft2(B2) / (self.N_q1 * self.N_q2)
-                self.B3_hat = 2 * af.fft2(B3) / (self.N_q1 * self.N_q2)
-
+                self.E1_hat = af.tile(2 * af.fft2(E1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.E2_hat = af.tile(2 * af.fft2(E2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.E3_hat = af.tile(2 * af.fft2(E3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B1_hat = af.tile(2 * af.fft2(B1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B2_hat = af.tile(2 * af.fft2(B2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B3_hat = af.tile(2 * af.fft2(B3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                
             else:
                 raise NotImplementedError('Method invalid/not-implemented')
 

@@ -27,3 +27,5 @@ def test_fields_collisionless():
 def test_fields_collisional():
     run_cases(1, 1, -10, tau_collisional)
     check_convergence()
+
+test_collisional()

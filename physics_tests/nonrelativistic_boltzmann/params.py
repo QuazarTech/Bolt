@@ -1,21 +1,23 @@
 import numpy as np
 import arrayfire as af
 
-single_mode_evolution = True
-
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'fft'
+fields_initialize = 'user-defined'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fft'
+fields_solver = 'fdtd'
 
 # Can be defined as 'strang' and 'lie'
-solver_method_in_q = 'ASL'
-riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'weno5'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
+
+reconstruction_method_in_q = 'weno5'
+reconstruction_method_in_p = 'weno5'
+
+riemann_solver = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 1

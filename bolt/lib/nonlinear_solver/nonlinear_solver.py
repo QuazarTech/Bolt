@@ -280,7 +280,7 @@ class nonlinear_solver(object):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
                 self.f[:, :N_g] = self.boundary_conditions.\
-                                  f_left(self.q1_center, self.q2_center,
+                                  f_left(self.f, self.q1_center, self.q2_center,
                                          self.p1, self.p2, self.p3, 
                                          self.physical_system.params
                                         )[:, :N_g]
@@ -289,7 +289,7 @@ class nonlinear_solver(object):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
                 self.f[:, -N_g:] = self.boundary_conditions.\
-                                   f_right(self.q1_center, self.q2_center,
+                                   f_right(self.f, self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, -N_g:]
@@ -298,7 +298,7 @@ class nonlinear_solver(object):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
                 self.f[:, :, :N_g] = self.boundary_conditions.\
-                                     f_bot(self.q1_center, self.q2_center,
+                                     f_bot(self.f, self.q1_center, self.q2_center,
                                            self.p1, self.p2, self.p3, 
                                            self.physical_system.params
                                           )[:, :, :N_g]
@@ -307,7 +307,7 @@ class nonlinear_solver(object):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
                 self.f[:, :, -N_g:] = self.boundary_conditions.\
-                                      f_top(self.q1_center, self.q2_center,
+                                      f_top(self.f, self.q1_center, self.q2_center,
                                             self.p1, self.p2, self.p3, 
                                             self.physical_system.params
                                            )[:, :, -N_g:]
@@ -486,7 +486,6 @@ class nonlinear_solver(object):
 
         # Electric fields are defined at the n-th timestep:
         # Magnetic fields are defined at the (n-1/2)-th timestep:
-
         self.cell_centered_EM_fields = af.constant(0, 6,
                                                      N_q1_local 
                                                    + 2 * self.N_ghost,
@@ -495,20 +494,30 @@ class nonlinear_solver(object):
                                                    dtype=af.Dtype.f64
                                                   )
 
-        # All the fields are at the n-th timestep:
-        self.B_fields_at_nth_timestep = af.constant(0, 3,
-                                                    N_q1_local 
-                                                    + 2 * self.N_ghost,
-                                                      N_q2_local 
-                                                    + 2 * self.N_ghost,
-                                                    dtype=af.Dtype.f64
-                                                   )
+        # Field values at n-th timestep:
+        self.cell_centered_EM_fields_at_n = af.constant(0, 6,
+                                                          N_q1_local 
+                                                        + 2 * self.N_ghost,
+                                                          N_q2_local 
+                                                        + 2 * self.N_ghost,
+                                                        dtype=af.Dtype.f64
+                                                       )
+
+        # Field values at (n+1/2)-th timestep:
+        self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6,
+                                                                    N_q1_local 
+                                                                  + 2 * self.N_ghost,
+                                                                    N_q2_local 
+                                                                  + 2 * self.N_ghost,
+                                                                  dtype=af.Dtype.f64
+                                                                 )
+
 
         # Declaring the arrays which store data on the FDTD grid:
         self.yee_grid_EM_fields = af.constant(0, 6,
-                                              N_q1_local 
+                                                N_q1_local 
                                               + 2 * self.N_ghost,
-                                              N_q2_local 
+                                                N_q2_local 
                                               + 2 * self.N_ghost,
                                               dtype=af.Dtype.f64
                                              )
@@ -535,8 +544,8 @@ class nonlinear_solver(object):
                                                                          params
                                                                         )
 
-                self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-
+                self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            
             else:
                 raise NotImplementedError('Method not valid/not implemented')
 
@@ -561,6 +570,11 @@ class nonlinear_solver(object):
             self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 1)) # (i+1/2, j)
             self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
 
+            # At t = 0, we take the value of B_{0} = B{1/2}:
+            self.cell_centered_EM_fields_at_n = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            self.cell_centered_EM_fields_at_n_plus_half = \
+                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
         
     # Injection of solver functions into class as methods:
     _communicate_f      = communicate.\

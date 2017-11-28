@@ -10,9 +10,8 @@ import arrayfire as af
 @af.broadcast
 def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     """Return the Local MB distribution."""
-    m = params.mass_particle
-    k = params.boltzmann_constant
-
+    m     = params.mass_particle
+    k     = params.boltzmann_constant
 
     if (params.p_dim == 3):
         f0 = n * (m / (2 * np.pi * k * T))**(3 / 2)  \
@@ -32,40 +31,50 @@ def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     af.eval(f0)
     return (f0)
 
-
-def BGK(f, q1, q2, p1, p2, p3, moments, params):
+def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     """Return BGK operator -(f-f0)/tau."""
     n = moments('density', f)
 
     # Floor used to avoid 0/0 limit:
-    eps = 1e-15
+    eps = 1e-30
 
     p1_bulk = moments('mom_p1_bulk', f) / (n + eps)
     p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
     p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
 
-    T =   (1 / params.p_dim) \
-        * (  moments('energy', f) 
-           - n * p1_bulk**2
-           - n * p2_bulk**2
-           - n * p3_bulk**2
-          ) / (n + eps) + eps
+    T = (1 / params.p_dim) * (  2 * moments('energy', f) 
+                              - n * p1_bulk**2
+                              - n * p2_bulk**2
+                              - n * p3_bulk**2
+                             ) / (n + eps) + eps
 
-    C_f = -(  f
-            - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
-           ) / params.tau(q1, q2, p1, p2, p3)
+    if(af.any_true(params.tau(q1, q2, p1, p2, p3) == 0)):
 
-    # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
-    # WORKAROUND:
-    if(isinstance(params.tau(q1, q2, p1, p2, p3), af.Array) is True):
-        C_f = af.select(params.tau(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
-        af.eval(C_f)
-    
+        f_MB = f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
+      
+        if(flag == False):
+            f_MB[:] = 0        
+
+        return(f_MB)
+            
     else:
-        if(params.tau(q1, q2, p1, p2, p3) == np.inf):
-            C_f = 0
 
-    return(C_f)
+        C_f = -(  f
+                - f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params)
+               ) / params.tau(q1, q2, p1, p2, p3)
+
+        # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
+        # Setting when tau is zero we assign f = f0 manually
+        # WORKAROUND:
+        if(isinstance(params.tau(q1, q2, p1, p2, p3), af.Array) is True):
+            C_f = af.select(params.tau(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
+            af.eval(C_f)
+        
+        else:
+            if(params.tau(q1, q2, p1, p2, p3) == np.inf):
+                C_f = 0
+
+        return(C_f)
 
 def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     """
@@ -94,7 +103,7 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
     delta_p2_hat = (moments('mom_p2_bulk', delta_f_hat) - p2_b * delta_rho_hat)/rho
     delta_p3_hat = (moments('mom_p3_bulk', delta_f_hat) - p3_b * delta_rho_hat)/rho
     
-    delta_T_hat =   (  (1 / params.p_dim) \
+    delta_T_hat =   (  (2 / params.p_dim) \
                      * moments('energy', delta_f_hat) 
                      - delta_rho_hat * T
                      - 2 * rho * p1_b * delta_p1_hat
@@ -117,14 +126,12 @@ def linearized_BGK(delta_f_hat, p1, p2, p3, moments, params):
         expr_term_8 = (2 * np.sqrt(2) * T - 3 * np.sqrt(2) * delta_T_hat) * T * k * rho * m**(3/2)
         expr_term_9 = -2 * np.sqrt(2) * rho * k * T**2 * m**(3/2)
 
-        C_f_hat = ((((  expr_term_1 + expr_term_2 + expr_term_3 
-                      + expr_term_4 + expr_term_5 + expr_term_6 
-                      + expr_term_7 + expr_term_8 + expr_term_9
-                     ) * np.exp(-m/(2*k*T) * (p1**2 + p1**2 + p3**2))
-                    )/(8 * np.pi**1.5 * T**3.5 * k**2.5)
-                   ) - delta_f_hat
-                  )/tau
-  
+        C_f_hat = ((((expr_term_1 + expr_term_2 + expr_term_3 + expr_term_4 +\
+                    expr_term_5 + expr_term_6 + expr_term_7 + expr_term_8 + expr_term_9
+                  )*np.exp(-m/(2*k*T) * (p1**2 + p2**2 + p3**2)))/\
+                    (8 * np.pi**1.5 * T**3.5 * k**2.5)
+                 ) - delta_f_hat)/tau
+    
     elif(params.p_dim == 2):
 
         expr_term_1 = delta_T_hat * m**2 * rho * p1**2 

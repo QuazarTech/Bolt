@@ -96,6 +96,7 @@ def dump_distribution_function(self, file_name):
     >> h5f.close()
     """
     if(self.single_mode_evolution == True):
+        
         f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
         k_q1 = self.physical_system.params.k_q1
