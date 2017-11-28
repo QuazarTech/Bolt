@@ -36,18 +36,30 @@ def fields_step(self, dt):
                           + af.shift(self.J3, 0, 1, 1)
                          )  # (i, j)
 
-        # Storing the values for the previous half-time step:
-        # We do this since the B values on the CK grid are defined at
-        # time t = n. While the B values on the FDTD grid are defined
-        # at t = n + 1/2:
-        self.B_fields_at_nth_timestep = self.cell_centered_EM_fields[3:]
+        # Here:
+        # cell_centered_EM_fields[:3] is at n
+        # cell_centered_EM_fields[3:] is at n+1/2
+        # cell_centered_EM_fields_at_n_plus_half[3:] is at n-1/2
+
+        self.cell_centered_EM_fields_at_n[:3] = self.cell_centered_EM_fields[:3]
+        self.cell_centered_EM_fields_at_n[3:] = \
+            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[3:] 
+                   + self.cell_centered_EM_fields[3:]
+                  )
+
+        self.cell_centered_EM_fields_at_n_plus_half[3:] = self.cell_centered_EM_fields[3:]
 
         fdtd(self, dt)
         fdtd_grid_to_ck_grid(self)
 
-        self.B_fields_at_nth_timestep = 0.5 * (  self.cell_centered_EM_fields[3:]
-                                               + self.B_fields_at_nth_timestep
-                                              )
+        # Here
+        # cell_centered_EM_fields[:3] is at n+1
+        # cell_centered_EM_fields[3:] is at n+3/2
+
+        self.cell_centered_EM_fields_at_n_plus_half[:3] = \
+            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[:3] 
+                   + self.cell_centered_EM_fields[:3]
+                  )
 
     else:
         raise NotImplementedError('The method specified is \

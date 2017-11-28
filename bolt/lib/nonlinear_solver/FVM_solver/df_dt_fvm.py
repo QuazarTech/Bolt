@@ -25,7 +25,7 @@ from .reconstruct import reconstruct
                           #  +  C[f_{i+1/2, j+1/2}]
                           # )
 
-def df_dt_fvm(f, self):
+def df_dt_fvm(f, self, at_n = True):
     
     multiply = lambda a, b: a * b
 
@@ -91,17 +91,43 @@ def df_dt_fvm(f, self):
                                        invalid/not-implemented'
                                      )
 
-        E1 = self.cell_centered_EM_fields[0]
-        E2 = self.cell_centered_EM_fields[1]
-        E3 = self.cell_centered_EM_fields[2]
+        if(    self.physical_system.params.fields_solver == 'fdtd'
+           and at_n == True
+          ):
 
-        B1_n = self.B_fields_at_nth_timestep[0]
-        B2_n = self.B_fields_at_nth_timestep[1]
-        B3_n = self.B_fields_at_nth_timestep[2]
+            E1 = self.cell_centered_EM_fields_at_n[0]
+            E2 = self.cell_centered_EM_fields_at_n[1]
+            E3 = self.cell_centered_EM_fields_at_n[2]
+
+            B1 = self.cell_centered_EM_fields_at_n[3]
+            B2 = self.cell_centered_EM_fields_at_n[4]
+            B3 = self.cell_centered_EM_fields_at_n[5]
+
+        elif(    self.physical_system.params.fields_solver == 'fdtd'
+             and at_n != False
+            ):
+
+            E1 = self.cell_centered_EM_fields_at_n_plus_half[0]
+            E2 = self.cell_centered_EM_fields_at_n_plus_half[1]
+            E3 = self.cell_centered_EM_fields_at_n_plus_half[2]
+
+            B1 = self.cell_centered_EM_fields_at_n_plus_half[3]
+            B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
+            B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
+
+        else:
+
+            E1 = self.cell_centered_EM_fields[0]
+            E2 = self.cell_centered_EM_fields[1]
+            E3 = self.cell_centered_EM_fields[2]
+
+            B1 = self.cell_centered_EM_fields[3]
+            B2 = self.cell_centered_EM_fields[4]
+            B3 = self.cell_centered_EM_fields[5]
 
         (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                           self.p1, self.p2, self.p3,
-                                          E1, E2, E3, B1_n, B2_n, B3_n,
+                                          E1, E2, E3, B1, B2, B3,
                                           self.physical_system.params
                                          )
 
@@ -116,7 +142,7 @@ def df_dt_fvm(f, self):
             reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, A_p3, f)), 2, method_in_p)
 
         left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
-        bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2, 0, 1)
+        bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
         back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
         # Obtaining the fluxes by face-averaging:
@@ -125,8 +151,8 @@ def df_dt_fvm(f, self):
         back_flux_p3  = 0.5 * (back_minus_eps_flux_p3 + back_plus_eps_flux_p3)
 
         right_flux_p1 = af.shift(left_flux_p1, -1)
-        top_flux_p2   = af.shift(bot_flux_p2, 0, -1)
-        front_flux_p3 = af.shift(back_flux_p3, 0, 0, -1)
+        top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
+        front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
 
         left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
         right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)

@@ -11,8 +11,8 @@ fields_initialize = 'user-defined'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'FVM'
-solver_method_in_p = 'FVM'
+solver_method_in_q = 'ASL'
+solver_method_in_p = 'ASL'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
@@ -43,7 +43,7 @@ k_q1 = 2 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 0.5
+t_final = 0.05
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

@@ -55,17 +55,17 @@ def f_interp_p_3d(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
     
-    E1 = self.cell_centered_EM_fields[0]
-    E2 = self.cell_centered_EM_fields[1]
-    E3 = self.cell_centered_EM_fields[2]
+    E1 = self.cell_centered_EM_fields_at_n[0]
+    E2 = self.cell_centered_EM_fields_at_n[1]
+    E3 = self.cell_centered_EM_fields_at_n[2]
 
-    B1_n = self.B_fields_at_nth_timestep[0]
-    B2_n = self.B_fields_at_nth_timestep[1]
-    B3_n = self.B_fields_at_nth_timestep[2]
+    B1 = self.cell_centered_EM_fields_at_n[3]
+    B2 = self.cell_centered_EM_fields_at_n[4]
+    B3 = self.cell_centered_EM_fields_at_n[5]
 
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
-                                      E1, E2, E3, B1_n, B2_n, B3_n,
+                                      E1, E2, E3, B1, B2, B3,
                                       self.physical_system.params
                                      )
     
