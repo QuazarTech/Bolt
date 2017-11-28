@@ -5,14 +5,14 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'user-defined'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'ASL'
-solver_method_in_p = 'ASL'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
