@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import arrayfire as af
 
 def apply_bcs_f(self):
@@ -81,6 +82,40 @@ def apply_bcs_f(self):
                                                    )
                                            )[:N_g]
 
+            f_left = self.physical_system.boundary_conditions.\
+                     f_left(self.q1_center, self.q2_center,
+                            self.p1, self.p2, self.p3, 
+                            self.physical_system.params
+                           )
+
+            if(self._A_q1.shape[0] == 1):
+                A_q1 = af.tile(self._A_q1, 
+                               self.f.shape[0],
+                               self.f.shape[1]
+                              )
+        
+            else:
+                A_q1 = self._A_q1
+
+            # Only changing inflowing characteristics:
+            f_left = af.select(A_q1>0, f_left, self.f)
+
+
+            # Inflow between y = [y_center(j_inflow_start), y_center(j_inflow_end)]
+            N_q2               = self.N_q2
+            size_of_inflow     = 0.25
+            offset_from_center = 0.
+            length_y           = self.q2_end - self.q2_start
+            N_inflow_zones     = (int)(size_of_inflow/length_y*N_q2)
+            N_offset           = (int)(abs(offset_from_center)/length_y*N_q2)
+            j_inflow_start     =   N_g + N_q2/2 - N_inflow_zones/2 \
+                                 + np.sign(offset_from_center)*N_offset
+            j_inflow_end       =   N_g + N_q2/2 + N_inflow_zones/2 \
+                                 + np.sign(offset_from_center)*N_offset
+
+            self.f[:N_g, j_inflow_start:j_inflow_end] = \
+                f_left[:N_g, j_inflow_start:j_inflow_end]
+
         # If local zone includes the right physical boundary:
         if(i_q1_end == self.N_q1 - 1):
             
@@ -101,6 +136,41 @@ def apply_bcs_f(self):
                                                     1
                                                    )
                                            )[-N_g:]
+
+            f_right = self.physical_system.boundary_conditions.\
+                      f_right(self.q1_center, self.q2_center,
+                              self.p1, self.p2, self.p3, 
+                              self.physical_system.params
+                             )
+
+            if(self._A_q1.shape[0] == 1):
+                A_q1 = af.tile(self._A_q1, 
+                               self.f.shape[0],
+                               self.f.shape[1]
+                              )
+        
+            else:
+                A_q1 = self._A_q1
+
+
+            # Only changing inflowing characteristics:
+            f_right = af.select(A_q1<0, f_right, self.f)
+
+            # Outflow between y = [y_center(j_outflow_start), y_center(j_outflow_end)]
+            N_q2               = self.N_q2
+            size_of_outflow    = 0.25
+            offset_from_center = 0.
+            length_y           = self.q2_end - self.q2_start
+            N_outflow_zones    = (int)(size_of_outflow/length_y*N_q2)
+            N_offset           = (int)(abs(offset_from_center)/length_y*N_q2)
+            j_outflow_start    =   N_g + N_q2/2 - N_outflow_zones/2 \
+                                 + np.sign(offset_from_center)*N_offset
+            j_outflow_end      =   N_g + N_q2/2 + N_outflow_zones/2 \
+                                 + np.sign(offset_from_center)*N_offset
+
+            self.f[-N_g:, j_outflow_start:j_outflow_end] = \
+                f_right[-N_g:, j_outflow_start:j_outflow_end]
+
 
     # This is automatically handled by the PETSc function globalToLocal()
     elif(self.physical_system.boundary_conditions.in_q1 == 'periodic'):

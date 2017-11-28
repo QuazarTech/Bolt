@@ -29,7 +29,7 @@ from bolt.lib.nonlinear_solver.tests.performance.bandwidth_test import bandwidth
 from bolt.lib.nonlinear_solver.compute_moments \
     import compute_moments as compute_moments_imported
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic \
-    import fft_poisson, compute_electrostatic_fields
+    import fft_poisson, poisson_eqn_3D, compute_electrostatic_fields
 
 # The following function is used in formatting for print:
 def indent(txt, stops=1):
@@ -157,19 +157,50 @@ class nonlinear_solver(object):
                                               comm          = self._comm
                                              )
 
-        # Additionally, a DA object also needs to be created for the KSP solver
+        # Additionally, a DA object also needs to be created for the SNES solver
         # with a DOF of 1:
-        self._da_snes = PETSc.DMDA().create([self.N_q1, self.N_q2],
+	# TODO: Remove the following hardcoded values
+        self.length_multiples_q1 = 1
+        self.length_multiples_q2 = 1
+        self.q3_3D_start =  0.; self.q3_3D_end = 2.
+        self.dq3 = physical_system.dq1
+
+        self.N_q1_poisson = (2*self.length_multiples_q1+1)*self.N_q1
+        self.N_q2_poisson = (2*self.length_multiples_q2+1)*self.N_q2
+        self.N_q3_poisson = (int)((self.q3_3D_end - self.q3_3D_start) / self.dq3)
+
+        self._da_snes = PETSc.DMDA().create([self.N_q1_poisson, 
+	                                     self.N_q2_poisson,
+					     self.N_q3_poisson],
                                              stencil_width = self.N_ghost,
-                                             boundary_type = (self.bc_in_q1,
-                                                              self.bc_in_q2
+                                             boundary_type = (petsc_bc_in_q1,
+                                                              petsc_bc_in_q2,
+							      'periodic'
                                                              ),
                                              proc_sizes    = (PETSc.DECIDE,
+                                                              PETSc.DECIDE,
                                                               PETSc.DECIDE
                                                              ),
                                              stencil_type  = 1,
                                              dof = 1,
-                                             comm          = self._comm)
+                                             comm          = self._comm
+                                           )
+        self.snes = PETSc.SNES().create()
+        self.poisson = poisson_eqn_3D(self)
+        self.snes.setFunction(self.poisson.compute_residual,
+	                      self.poisson.glob_residual
+			     )
+    
+        self.snes.setDM(self._da_snes)
+        self.snes.setFromOptions()
+
+        # Obtaining the left-bottom corner coordinates
+        # (lowest values of the canonical coordinates in the local zone)
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        self.i_q1_start = i_q1_start
+        self.i_q2_start = i_q2_start
+        self.N_q1_local = N_q1_local
+        self.N_q2_local = N_q2_local
 
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof        = len(self.
@@ -192,12 +223,6 @@ class nonlinear_solver(object):
         self._glob_fields  = self._da_fields.createGlobalVec()
         self._local_fields = self._da_fields.createLocalVec()
     
-        self.glob_phi      = self._da_snes.createGlobalVec()
-        self.glob_residual = self._da_snes.createGlobalVec()
-        self.glob_phi.set(0.)
-        self.glob_residual.set(0.)
-
-
         # The following vector is used to dump the data to file:
         self._glob_moments = self._da_dump_moments.createGlobalVec()
 

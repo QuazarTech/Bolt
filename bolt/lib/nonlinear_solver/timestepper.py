@@ -359,18 +359,29 @@ def lie_step(self, dt):
     # Solving for fields/advection in velocity space:
     op_fields    = fields_step
 
-    # Cases which lack fields:
-    if(self.physical_system.params.charge_electron == 0):
-        _lie_split_operations(self, op_advect_q, op_solve_src, dt)
+#    # Cases which lack fields:
+#    if(self.physical_system.params.charge_electron == 0):
+#        _lie_split_operations(self, op_advect_q, op_solve_src, dt)
+#    
+#    
+#    else:
+#        def compound_op(self, dt):
+#            return(_lie_split_operations(self, op1 = op_advect_q,
+#                                         op2 = op_solve_src, dt = dt
+#                                        )
+#                  )
+#        _lie_split_operations(self, compound_op, op_fields, dt)
+
+    op_advect_q(self, 0.25*dt)
+    RK2_step(self,    0.5 *dt)
+    op_advect_q(self, 0.25*dt)
+
+    fields_step(self, dt)
+
+    op_advect_q(self, 0.25*dt)
+    RK2_step(self,    0.5 *dt)
+    op_advect_q(self, 0.25*dt)
     
-    
-    else:
-        def compound_op(self, dt):
-            return(_lie_split_operations(self, op1 = op_advect_q,
-                                         op2 = op_solve_src, dt = dt
-                                        )
-                  )
-        _lie_split_operations(self, compound_op, op_fields, dt)
 
     self.time_elapsed += dt
 

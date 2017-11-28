@@ -24,7 +24,7 @@ def RK2_step(self, dt):
         args = ()
 
     # Obtaining value at midpoint(dt/2)
-    self.f = self.f + self._source(self.f, *args) * (dt / 2)
+    #self.f = self.f + self._source(self.f, *args) * (dt / 2)
     self.f = f_initial + self._source(self.f, *args) * dt
 
     af.eval(self.f)
