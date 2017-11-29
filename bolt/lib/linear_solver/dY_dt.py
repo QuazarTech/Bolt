@@ -91,7 +91,6 @@ def dY_dt_multimode_evolution(Y, self):
     
     # af.broadcast(function, *args) performs batched operations on
     # function(*args):
-
     dE1_hat_dt = af.broadcast(addition, 
                               af.broadcast(multiply, self.B3_hat, 1j * self.k_q2),
                               - J1_hat

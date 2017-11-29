@@ -77,11 +77,6 @@ linearized_system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-
-print(af.sum(nls.cell_centered_EM_fields))
-print(af.sum(nls.cell_centered_EM_fields_at_n))
-print(af.sum(nls.cell_centered_EM_fields_at_n_plus_half))
-
 ls  = linear_solver(system)
 
 # Timestep as set by the CFL condition:

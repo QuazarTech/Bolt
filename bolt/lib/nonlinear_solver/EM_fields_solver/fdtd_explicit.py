@@ -78,6 +78,7 @@ def fdtd_evolve_B(self, dt):
 
     return
 
+
 def fdtd(self, dt):
     # E's and B's are staggered in time such that
     # B's are defined at (n + 1/2), and E's are defined at n
@@ -106,13 +107,13 @@ def fdtd(self, dt):
 
 def fdtd_grid_to_ck_grid(self):
     
-    E1_yee = self.yee_grid_EM_fields[0]
-    E2_yee = self.yee_grid_EM_fields[1]
-    E3_yee = self.yee_grid_EM_fields[2]
+    E1_yee = self.yee_grid_EM_fields[0] # (i + 1/2, j)
+    E2_yee = self.yee_grid_EM_fields[1] # (i, j + 1/2)
+    E3_yee = self.yee_grid_EM_fields[2] # (i, j)
 
-    B1_yee = self.yee_grid_EM_fields[3]
-    B2_yee = self.yee_grid_EM_fields[4]
-    B3_yee = self.yee_grid_EM_fields[5]
+    B1_yee = self.yee_grid_EM_fields[3] # (i, j + 1/2)
+    B2_yee = self.yee_grid_EM_fields[4] # (i + 1/2, j)
+    B3_yee = self.yee_grid_EM_fields[5] # (i + 1/2, j + 1/2)
 
     # Interpolating at the (i + 1/2, j + 1/2) point of the grid to use for the
     # nonlinear solver:

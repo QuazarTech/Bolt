@@ -15,9 +15,28 @@ from .FVM_solver.timestep_df_dt import fvm_timestep_RK2
 from .interpolation_routines import f_interp_2d
 from .EM_fields_solver.fields_step import fields_step
 
+
+def check_maxwells_constraint_equations(self):
+    
+    N_g = self.N_ghost
+
+    rhoc =    self.physical_system.params.charge_electron \
+           * (self.compute_moments('density') - 1)
+
+    rho = 0.25 * (rhoc + af.shift(rhoc, 0, 1) + af.shift(rhoc, 0, 0, 1) + af.shift(rhoc, 0, 1, 1))
+
+    gradE = + (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, 1))/self.dq1 \
+            + (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, 1))/self.dq2
+
+    gradB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 1))/self.dq1 \
+            + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 1))/self.dq2
+
+    print('MEAN(|gradB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
+    print('MEAN(|gradE - rho|) =', af.mean(af.abs(gradE - rho)[0, N_g:-N_g, N_g:-N_g]))
+
 # Defining the operators:
 # When using FVM:
-def op_fvm_q(self, dt):
+def op_fvm(self, dt):
     
     self._communicate_f()
     self._apply_bcs_f()
@@ -132,10 +151,10 @@ def lie_step(self, dt):
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
            and self.physical_system.params.charge_electron != 0
           ):
-            split.strang(self, op_fvm_q, op_fields, dt)
+            split.lie(self, op_fvm, op_fields, dt)
 
         else:
-            op_fvm_q(self, dt)
+            op_fvm(self, dt)
 
 
     # Advective Semi-lagrangian method
@@ -153,7 +172,11 @@ def lie_step(self, dt):
                                 )
                       )
 
-            split.lie(self, op_advect_q_and_solve_src, op_fields, dt)
+            if(self.physical_system.params.solver_method_in_p == 'ASL'):
+                split.lie(self, op_advect_q_and_solve_src, op_fields, dt)
+
+            else: # For FVM:
+                split.lie(self, op_advect_q_and_solve_src, op_fvm, dt)
 
     check_divergence(self)
     self.time_elapsed += dt 
@@ -177,7 +200,8 @@ def strang_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    self.dt            = dt
+    check_maxwells_constraint_equations(self)
+    self.dt = dt
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -187,10 +211,10 @@ def strang_step(self, dt):
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
            and self.physical_system.params.charge_electron != 0
           ):
-            split.strang(self, op_fvm_q, op_fields, dt)
+            split.strang(self, op_fvm, op_fields, dt)
 
         else:
-            op_fvm_q(self, dt)
+            op_fvm(self, dt)
 
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
@@ -206,9 +230,13 @@ def strang_step(self, dt):
                                     dt = dt
                                    )
                       )
+            
+            if(self.physical_system.params.solver_method_in_p == 'ASL'):
+                split.strang(self, op_advect_q_and_solve_src, op_fields, dt)
 
-            split.strang(self, op_advect_q_and_solve_src, op_fields, dt)
-    
+            else: # For FVM:
+                split.strang(self, op_advect_q_and_solve_src, op_fvm, dt)
+
     check_divergence(self)
     self.time_elapsed += dt 
 
@@ -241,10 +269,10 @@ def swss_step(self, dt):
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
            and self.physical_system.params.charge_electron != 0
           ):
-            split.strang(self, op_fvm_q, op_fields, dt)
+            split.swss(self, op_fvm, op_fields, dt)
 
         else:
-            op_fvm_q(self, dt)
+            op_fvm(self, dt)
 
 
     # Advective Semi-lagrangian method
@@ -262,7 +290,11 @@ def swss_step(self, dt):
                                  )
                       )
 
-            split.swss(self, op_advect_q_and_solve_src, op_fields, dt)
+            if(self.physical_system.params.solver_method_in_p == 'ASL'):
+                split.swss(self, op_advect_q_and_solve_src, op_fields, dt)
+
+            else: # For FVM:
+                split.swss(self, op_advect_q_and_solve_src, op_fvm, dt)
 
     check_divergence(self)
     self.time_elapsed += dt 
@@ -297,10 +329,10 @@ def jia_step(self, dt):
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
            and self.physical_system.params.charge_electron != 0
           ):
-            split.strang(self, op_fvm_q, op_fields, dt)
+            split.jia(self, op_fvm, op_fields, dt)
 
         else:
-            op_fvm_q(self, dt)
+            op_fvm(self, dt)
 
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
@@ -317,7 +349,11 @@ def jia_step(self, dt):
                                 )
                       )
 
-            split.jia(self, op_advect_q_and_solve_src, op_fields, dt)
+            if(self.physical_system.params.solver_method_in_p == 'ASL'):
+                split.jia(self, op_advect_q_and_solve_src, op_fields, dt)
+
+            else: # For FVM:
+                split.jia(self, op_advect_q_and_solve_src, op_fvm, dt)
     
     check_divergence(self)
     self.time_elapsed += dt 

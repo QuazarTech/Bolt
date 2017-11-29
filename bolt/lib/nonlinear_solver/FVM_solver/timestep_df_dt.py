@@ -10,7 +10,6 @@ from bolt.lib.nonlinear_solver.EM_fields_solver.fdtd_explicit \
     import fdtd, fdtd_grid_to_ck_grid
 
 def fvm_timestep_RK2(self, dt):
-    
     f_initial = self.f
     self.f    = self.f + df_dt_fvm(self.f, self, True) * (dt / 2)
 
@@ -20,9 +19,6 @@ def fvm_timestep_RK2(self, dt):
     if(    self.physical_system.params.charge_electron != 0
        and self.physical_system.params.fields_solver == 'fdtd'
       ):
-        
-        # Will return a flattened array containing the values of
-        # J1,2,3 in 2D space:
         self.J1 =   self.physical_system.params.charge_electron \
                   * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
         self.J2 =   self.physical_system.params.charge_electron \
@@ -50,7 +46,6 @@ def fvm_timestep_RK2(self, dt):
                    + self.cell_centered_EM_fields[3:]
                   )
 
-
         self.cell_centered_EM_fields_at_n_plus_half[3:] = self.cell_centered_EM_fields[3:]
 
         fdtd(self, dt)
@@ -61,7 +56,7 @@ def fvm_timestep_RK2(self, dt):
         # cell_centered_EM_fields[3:] is at n+3/2
 
         self.cell_centered_EM_fields_at_n_plus_half[:3] = \
-            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[:3] 
+            0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
                    + self.cell_centered_EM_fields[:3]
                   )
     

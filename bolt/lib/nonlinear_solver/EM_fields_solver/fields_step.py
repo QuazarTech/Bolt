@@ -18,8 +18,7 @@ def fields_step(self, dt):
         self._apply_bcs_fields()
 
     elif (self.physical_system.params.fields_solver == 'fdtd'):
-        # Will return a flattened array containing the values of
-        # J1,2,3 in 2D space:
+        
         self.J1 =   self.physical_system.params.charge_electron \
                   * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
         self.J2 =   self.physical_system.params.charge_electron \
@@ -57,9 +56,10 @@ def fields_step(self, dt):
         # cell_centered_EM_fields[3:] is at n+3/2
 
         self.cell_centered_EM_fields_at_n_plus_half[:3] = \
-            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[:3] 
+            0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
                    + self.cell_centered_EM_fields[:3]
                   )
+
 
     else:
         raise NotImplementedError('The method specified is \
