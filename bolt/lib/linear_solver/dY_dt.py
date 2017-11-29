@@ -70,15 +70,15 @@ def dY_dt_multimode_evolution(Y, self):
     mom_bulk_p2 = self.compute_moments('mom_p2_bulk', f_hat=f_hat)
     mom_bulk_p3 = self.compute_moments('mom_p3_bulk', f_hat=f_hat)
 
-    J1_hat = 2 * af.fft2(  self.physical_system.params.charge_electron 
+    J1_hat = 0 * af.fft2(  self.physical_system.params.charge_electron 
                          * mom_bulk_p1
                         )/(self.N_q1 * self.N_q2)
     
-    J2_hat = 2 * af.fft2(  self.physical_system.params.charge_electron
+    J2_hat = 0 * af.fft2(  self.physical_system.params.charge_electron
                          * mom_bulk_p2
                         )/(self.N_q1 * self.N_q2)
 
-    J3_hat = 2 * af.fft2(  self.physical_system.params.charge_electron
+    J3_hat = 0 * af.fft2(  self.physical_system.params.charge_electron
                          * mom_bulk_p3
                         )/(self.N_q1 * self.N_q2)
 
