@@ -40,6 +40,7 @@ pert_real = 0.01
 pert_imag = 0.02
 
 k_q1 = 2 * np.pi
+k_q2 = 0 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32
