@@ -83,11 +83,11 @@ class test(object):
 
 def test_fdtd_mode1():
 
-    error_B1 = np.zeros(3)
-    error_B2 = np.zeros(3)
-    error_E3 = np.zeros(3)
+    error_B1 = np.zeros(5)
+    error_B2 = np.zeros(5)
+    error_E3 = np.zeros(5)
 
-    N = 2**np.arange(5, 8)
+    N = 2**np.arange(5, 10)
 
     for i in range(N.size):
 
@@ -95,8 +95,8 @@ def test_fdtd_mode1():
 
         N_g = obj.N_ghost
 
-        B1_fdtd = gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
-        B2_fdtd = gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
+        B1_fdtd = af.sin(4 * np.pi * obj.q2[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
+        B2_fdtd = af.sin(2 * np.pi * obj.q1[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
 
         obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] = B1_fdtd
         obj.yee_grid_EM_fields[4, N_g:-N_g, N_g:-N_g] = B2_fdtd
@@ -131,6 +131,10 @@ def test_fdtd_mode1():
     poly_B1 = np.polyfit(np.log10(N), np.log10(error_B1), 1)
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
+
+    print(poly_B1)
+    print(poly_B2)
+    print(poly_E3)
 
     assert (abs(poly_B1[0] + 3) < 0.6)
     assert (abs(poly_B2[0] + 3) < 0.6) 
@@ -189,9 +193,4 @@ def test_fdtd_mode2():
     assert (abs(poly_B3[0] + 2) < 0.4)
 
 print('Testing Mode 1')
-
 test_fdtd_mode1()
-
-print('Testing Mode 1')
-
-test_fdtd_mode2()
