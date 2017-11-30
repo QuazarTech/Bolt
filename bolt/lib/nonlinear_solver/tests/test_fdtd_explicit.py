@@ -108,7 +108,7 @@ def test_fdtd_mode1():
         N_g = obj.N_ghost
 
         B1_fdtd = 2 * af.sin(2 * np.pi * obj.q1_left_center + 4 * np.pi * obj.q2_left_center)
-        B2_fdtd = - af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
+        B2_fdtd = - af.sin(2 * np.pi * obj.q1_center_bot + 4 * np.pi * obj.q2_center_bot)
 
         obj.yee_grid_EM_fields[3] = B1_fdtd
         obj.yee_grid_EM_fields[4] = B2_fdtd
