@@ -95,8 +95,8 @@ def test_fdtd_mode1():
 
         N_g = obj.N_ghost
 
-        B1_fdtd = af.sin(4 * np.pi * obj.q2[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
-        B2_fdtd = af.sin(2 * np.pi * obj.q1[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
+        B1_fdtd = 2 * af.sin(2 * np.pi * obj.q1[:, N_g:-N_g, N_g:-N_g] + 4 * np.pi * obj.q2[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q2[:, N_g:-N_g, N_g:-N_g], 0.1)
+        B2_fdtd = -af.sin(2 * np.pi * obj.q1[:, N_g:-N_g, N_g:-N_g] + 4 * np.pi * obj.q2[:, N_g:-N_g, N_g:-N_g]) #gauss1D(obj.q1[:, N_g:-N_g, N_g:-N_g], 0.1)
 
         obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] = B1_fdtd
         obj.yee_grid_EM_fields[4, N_g:-N_g, N_g:-N_g] = B2_fdtd
