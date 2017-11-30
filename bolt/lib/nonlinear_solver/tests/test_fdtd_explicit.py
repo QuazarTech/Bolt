@@ -187,3 +187,11 @@ def test_fdtd_mode2():
     assert (abs(poly_E1[0] + 3) < 0.4)
     assert (abs(poly_E2[0] + 3) < 0.4)
     assert (abs(poly_B3[0] + 2) < 0.4)
+
+print('Testing Mode 1')
+
+test_fdtd_mode1()
+
+print('Testing Mode 1')
+
+test_fdtd_mode2()

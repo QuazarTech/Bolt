@@ -3,6 +3,24 @@
 
 import arrayfire as af
 
+def check_maxwells_constraint_equations(self):
+    
+    N_g = self.N_ghost
+
+    # rhoc =    self.physical_system.params.charge_electron \
+    #        * (self.compute_moments('density') - 1)
+
+    # rho = 0.25 * (rhoc + af.shift(rhoc, 0, 1) + af.shift(rhoc, 0, 0, 1) + af.shift(rhoc, 0, 1, 1))
+
+    gradE = + (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, 1))/self.dq1 \
+            + (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, 1))/self.dq2
+
+    gradB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 1))/self.dq1 \
+            + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 1))/self.dq2
+
+    print('MEAN(|gradB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
+    print('MEAN(|gradE|) =', af.mean(af.abs(gradE[0, N_g:-N_g, N_g:-N_g])))
+
 def fdtd_evolve_E(self, dt):
     
     if(self.performance_test_flag == True):
@@ -99,6 +117,7 @@ def fdtd(self, dt):
     # The communicate function transfers the data from the local vectors
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
+    check_maxwells_constraint_equations(self)
     self._communicate_fields(True)
     fdtd_evolve_E(self, dt)
     self._communicate_fields(True)
