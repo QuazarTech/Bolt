@@ -10,7 +10,7 @@ def check_maxwells_constraint_equations(self):
     divB =  - (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, -1))/self.dq1 \
             - (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, -1))/self.dq2
 
-    print('MEAN(|divB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
+    print('MEAN(|divB|) =', af.mean(af.abs(divB[0, N_g:-N_g, N_g:-N_g])))
 
 def fdtd_evolve_E(self, dt):
     
