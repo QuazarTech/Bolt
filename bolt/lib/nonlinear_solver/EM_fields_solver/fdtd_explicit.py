@@ -12,6 +12,8 @@ def check_maxwells_constraint_equations(self):
 
     print('MEAN(|divB|) =', af.mean(af.abs(divB[0, N_g:-N_g, N_g:-N_g])))
 
+    return(af.mean(af.abs(divB[0, N_g:-N_g, N_g:-N_g])))
+
 def fdtd_evolve_E(self, dt):
     
     if(self.performance_test_flag == True):
@@ -108,7 +110,7 @@ def fdtd(self, dt):
     # The communicate function transfers the data from the local vectors
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
-    check_maxwells_constraint_equations(self)
+    self.data[self.time_index] = check_maxwells_constraint_equations(self)
     self._communicate_fields(True)
     fdtd_evolve_E(self, dt)
     self._communicate_fields(True)

@@ -20,6 +20,36 @@ from petsc4py import PETSc
 from bolt.lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
+# Optimized plot parameters to make beautiful plots:
+pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.dpi']      = 300
+pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['lines.linewidth'] = 1.5
+pl.rcParams['font.family']     = 'serif'
+pl.rcParams['font.weight']     = 'bold'
+pl.rcParams['font.size']       = 20
+pl.rcParams['font.sans-serif'] = 'serif'
+pl.rcParams['text.usetex']     = True
+pl.rcParams['axes.linewidth']  = 1.5
+pl.rcParams['axes.titlesize']  = 'medium'
+pl.rcParams['axes.labelsize']  = 'medium'
+
+pl.rcParams['xtick.major.size'] = 8
+pl.rcParams['xtick.minor.size'] = 4
+pl.rcParams['xtick.major.pad']  = 8
+pl.rcParams['xtick.minor.pad']  = 8
+pl.rcParams['xtick.color']      = 'k'
+pl.rcParams['xtick.labelsize']  = 'medium'
+pl.rcParams['xtick.direction']  = 'in'
+
+pl.rcParams['ytick.major.size'] = 8
+pl.rcParams['ytick.minor.size'] = 4
+pl.rcParams['ytick.major.pad']  = 8
+pl.rcParams['ytick.minor.pad']  = 8
+pl.rcParams['ytick.color']      = 'k'
+pl.rcParams['ytick.labelsize']  = 'medium'
+pl.rcParams['ytick.direction']  = 'in'
+
 def gauss1D(x, spread):
     return af.exp(-((x - 0.5)**2) / (2 * spread**2))
 
@@ -95,19 +125,21 @@ def test_fdtd_mode1():
 
         N_g = obj.N_ghost
 
-        Az = af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
+        Az = af.sin(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
         B1_fdtd = (af.shift(Az, 0, 0, -1) - Az) / obj.dq2
         B2_fdtd = -(af.shift(Az, 0, -1) - Az) / obj.dq1
 
-        E3_fdtd = 6 * np.pi * np.sqrt(5/9) * af.sin(2 * np.pi * obj.q1_left_bot + 2 * np.pi * obj.q2_left_bot)
+        E3_fdtd = -6 * np.pi * np.sqrt(5/9) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
         obj.yee_grid_EM_fields[2] = E3_fdtd
         obj.yee_grid_EM_fields[3] = B1_fdtd
         obj.yee_grid_EM_fields[4] = B2_fdtd
 
         dt   = obj.dq1 * np.sqrt(9/5) / 4
-        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
+        time = np.arange(dt, 100 * np.sqrt(9/5) + dt, dt)
+
+        obj.data = np.zeros(time.size)
 
         E3_initial = obj.yee_grid_EM_fields[2].copy()
         B1_initial = obj.yee_grid_EM_fields[3].copy()
@@ -121,6 +153,7 @@ def test_fdtd_mode1():
         # pl.clf()
 
         for time_index, t0 in enumerate(time):
+            obj.time_index = time_index
             fdtd(obj, dt)
 
             # pl.contourf(np.array(af.reorder(obj.yee_grid_EM_fields[2, N_g:-N_g, N_g:-N_g], 1, 2, 0)), 100)
@@ -128,7 +161,12 @@ def test_fdtd_mode1():
             # pl.title('Time = %.2f'%t0)
             # pl.savefig('images/%04d'%(time_index+1)+'.png')
             # pl.clf()
-
+        
+        pl.plot(time * np.sqrt(5/9), obj.data)
+        pl.xlabel('Number of Time Periods')
+        pl.ylabel(r'MEAN($|\nabla \cdot B|$)')
+        pl.savefig('plot.png')
+        
         error_B1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] -
                                     B1_initial[0, N_g:-N_g, N_g:-N_g]
                                    )
