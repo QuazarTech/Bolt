@@ -7,8 +7,8 @@ def check_maxwells_constraint_equations(self):
     
     N_g = self.N_ghost
 
-    divB =  - (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, -1))/self.dq1 \
-            - (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, -1))/self.dq2
+    divB =  - (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, -1))/self.dq1 \
+            - (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, -1))/self.dq2
 
     print('MEAN(|divB|) =', af.mean(af.abs(divB[0, N_g:-N_g, N_g:-N_g])))
 
@@ -111,6 +111,18 @@ def fdtd(self, dt):
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
     self.data[self.time_index] = check_maxwells_constraint_equations(self)
+
+    # dE3_dq2 = (af.shift(self.yee_grid_EM_fields[2], 0, 0, -1) - self.yee_grid_EM_fields[2])/self.dq2
+    # dE3_dq1 = (af.shift(self.yee_grid_EM_fields[2], 0, -1)    - self.yee_grid_EM_fields[2])/self.dq1
+
+    # d_dE3_dq2_dq1 = (af.shift(dE3_dq2, 0, -1) - dE3_dq2)/self.dq1
+    # d_dE3_dq1_dq2 = (af.shift(dE3_dq1, 0, 0, -1) - dE3_dq1)/self.dq2
+
+    # change_to_divB = d_dE3_dq1_dq2 - d_dE3_dq2_dq1
+
+    # print('Change to divB =', af.mean(af.abs(change_to_divB[:, 3:-3, 3:-3])) * dt)
+    # print('change =', abs(self.data[self.time_index-1] - self.data[self.time_index - 2]))
+
     self._communicate_fields(True)
     fdtd_evolve_E(self, dt)
     self._communicate_fields(True)
