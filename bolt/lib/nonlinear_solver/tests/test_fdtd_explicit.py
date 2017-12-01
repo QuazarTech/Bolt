@@ -14,15 +14,14 @@ We check the fall off in error with the increase in resolution
 
 import numpy as np
 import arrayfire as af
+import pylab as pl
 from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
-
 def gauss1D(x, spread):
     return af.exp(-((x - 0.5)**2) / (2 * spread**2))
-
 
 class test(object):
     def __init__(self, N):
@@ -38,7 +37,7 @@ class test(object):
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
         self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
 
-        self.N_ghost = np.random.randint(3, 5)
+        self.N_ghost = 3 #np.random.randint(3, 5)
 
         self.q1_left = self.q1_start \
             + (np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
@@ -84,11 +83,11 @@ class test(object):
 
 def test_fdtd_mode1():
 
-    error_B1 = np.zeros(5)
-    error_B2 = np.zeros(5)
-    error_E3 = np.zeros(5)
+    error_B1 = np.zeros(3)
+    error_B2 = np.zeros(3)
+    error_E3 = np.zeros(3)
 
-    N = 2**np.arange(5, 10)
+    N = np.array([128]) #2**np.arange(5, 8)
 
     for i in range(N.size):
 
@@ -96,25 +95,39 @@ def test_fdtd_mode1():
 
         N_g = obj.N_ghost
 
-        Az = -1 / (2 * np.pi) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
+        Az = af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
         B1_fdtd = (af.shift(Az, 0, 0, -1) - Az) / obj.dq2
         B2_fdtd = -(af.shift(Az, 0, -1) - Az) / obj.dq1
 
+        E3_fdtd = 6 * np.pi * np.sqrt(5/9) * af.sin(2 * np.pi * obj.q1_left_bot + 2 * np.pi * obj.q2_left_bot)
+
+        obj.yee_grid_EM_fields[2] = E3_fdtd
         obj.yee_grid_EM_fields[3] = B1_fdtd
         obj.yee_grid_EM_fields[4] = B2_fdtd
 
-        dt   = obj.dq1 / 2
-        time = np.arange(dt, 1 + dt, dt)
+        dt   = obj.dq1 * np.sqrt(9/5) / 4
+        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
 
         E3_initial = obj.yee_grid_EM_fields[2].copy()
         B1_initial = obj.yee_grid_EM_fields[3].copy()
         B2_initial = obj.yee_grid_EM_fields[4].copy()
 
         obj.J1, obj.J2, obj.J3 = 0, 0, 0
+    
+        # pl.contourf(np.array(af.reorder(obj.yee_grid_EM_fields[2, N_g:-N_g, N_g:-N_g], 1, 2, 0)), 100)
+        # pl.colorbar()
+        # pl.savefig('images/0000.png')
+        # pl.clf()
 
         for time_index, t0 in enumerate(time):
             fdtd(obj, dt)
+
+            # pl.contourf(np.array(af.reorder(obj.yee_grid_EM_fields[2, N_g:-N_g, N_g:-N_g], 1, 2, 0)), 100)
+            # pl.colorbar()
+            # pl.title('Time = %.2f'%t0)
+            # pl.savefig('images/%04d'%(time_index+1)+'.png')
+            # pl.clf()
 
         error_B1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] -
                                     B1_initial[0, N_g:-N_g, N_g:-N_g]
@@ -134,6 +147,10 @@ def test_fdtd_mode1():
     poly_B1 = np.polyfit(np.log10(N), np.log10(error_B1), 1)
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
+
+    print(error_B1)
+    print(error_B2)
+    print(error_E3)
 
     print(poly_B1)
     print(poly_B2)
