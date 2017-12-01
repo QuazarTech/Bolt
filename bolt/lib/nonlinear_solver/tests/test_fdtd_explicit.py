@@ -40,31 +40,20 @@ class test(object):
 
         self.N_ghost = np.random.randint(3, 5)
 
-        self.q1_center = self.q1_start \
-            + (0.5 + np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
-        
-        self.q2_center = self.q2_start \
-            + (0.5 + np.arange(-self.N_ghost,self.N_q2 + self.N_ghost)) * self.dq2
-
         self.q1_left = self.q1_start \
             + (np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
         
         self.q2_bot = self.q2_start \
             + (np.arange(-self.N_ghost,self.N_q2 + self.N_ghost)) * self.dq2
 
-        self.q2_center_bot, self.q1_center_bot   = np.meshgrid(self.q2_bot, self.q1_center)
-        self.q2_left_center, self.q1_left_center = np.meshgrid(self.q2_center, self.q1_left)
+        self.q2_left_bot, self.q1_left_bot = np.meshgrid(self.q2_bot, self.q1_left)
+        self.q2_left_bot, self.q1_left_bot = af.to_array(self.q2_left_bot), af.to_array(self.q1_left_bot)
 
-        self.q2_center_bot, self.q1_center_bot   = af.to_array(self.q2_center_bot), af.to_array(self.q1_center_bot)
-        self.q2_left_center, self.q1_left_center = af.to_array(self.q2_left_center), af.to_array(self.q1_left_center)
+        self.q1_left_bot = af.reorder(self.q1_left_bot, 2, 0, 1)
+        self.q2_left_bot = af.reorder(self.q2_left_bot, 2, 0, 1)
 
-        self.q1_left_center = af.reorder(self.q1_left_center, 2, 0, 1)
-        self.q2_left_center = af.reorder(self.q2_left_center, 2, 0, 1)
-
-        self.q1_center_bot = af.reorder(self.q1_center_bot, 2, 0, 1)
-        self.q2_center_bot = af.reorder(self.q2_center_bot, 2, 0, 1)
-
-        self.yee_grid_EM_fields = af.constant(0, 6, self.q1_center_bot.shape[1], self.q1_center_bot.shape[2],
+        self.yee_grid_EM_fields = af.constant(0, 6, self.q1_left_bot.shape[1], 
+                                              self.q2_left_bot.shape[2],
                                               dtype=af.Dtype.f64
                                              )
 
@@ -107,8 +96,10 @@ def test_fdtd_mode1():
 
         N_g = obj.N_ghost
 
-        B1_fdtd = 2 * af.sin(2 * np.pi * obj.q1_left_center + 4 * np.pi * obj.q2_left_center)
-        B2_fdtd = - af.sin(2 * np.pi * obj.q1_center_bot + 4 * np.pi * obj.q2_center_bot)
+        Az = -1 / (2 * np.pi) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
+
+        B1_fdtd = (af.shift(Az, 0, 0, -1) - Az) / obj.dq2
+        B2_fdtd = -(af.shift(Az, 0, -1) - Az) / obj.dq1
 
         obj.yee_grid_EM_fields[3] = B1_fdtd
         obj.yee_grid_EM_fields[4] = B2_fdtd
