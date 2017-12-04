@@ -76,7 +76,7 @@ class poisson_eqn_3D(object):
         self.N_q2_3D_local = N_q2_3D_local
         self.N_q3_3D_local = N_q3_3D_local
 
-        location_in_q3 = 1.
+        location_in_q3 = 10.
         N_g = self.N_ghost
 
         self.density_np = np.zeros([N_q2_2D_local + 2*N_g,
@@ -141,8 +141,8 @@ class poisson_eqn_3D(object):
                                                N_q1_3D_local + 2*N_g
                                               ]
                                              )
-        epsilon_array[:] = 1.
-        epsilon_array[:self.q3_2D_in_3D_index_start, :, :] = 10.
+        epsilon_array[:] = params.epsilon0
+        epsilon_array[:self.q3_2D_in_3D_index_start, :, :] = 10.*params.epsilon0
         self.epsilon_array = epsilon_array
         
         q3_3D_data_structure = 0.*epsilon_array
@@ -151,7 +151,7 @@ class poisson_eqn_3D(object):
             for i in range(q3_3D_data_structure.shape[2]):
                 q3_3D_data_structure[:, j, i] = q3_3D
         
-        backgate_potential = -0.001
+        backgate_potential = -100.
 
         self.q3    = q3_3D_data_structure
         z          = self.q3
@@ -258,7 +258,8 @@ class poisson_eqn_3D(object):
                       q1_2D_in_3D_index_start:q1_2D_in_3D_index_end+1
                      ] \
                      += \
-            4.*np.pi*params.charge_electron*self.density_np[N_g:-N_g, N_g:-N_g]
+              -params.charge_electron \
+             * self.density_np[N_g:-N_g, N_g:-N_g] / self.dq3
 
         residual_array[:, :, :] = \
             laplacian_phi[N_g:-N_g, N_g:-N_g, N_g:-N_g]
@@ -307,7 +308,7 @@ class poisson_eqn_3D(object):
         mid_point_q2_index = \
             (int)((q2_2D_in_3D_index_start + q2_2D_in_3D_index_end)/2)
 
-        size_of_inflow   = 0.25
+        size_of_inflow   = 5.
         length_y         = self.obj.q2_end - self.obj.q2_start
         N_inflow_zones   = (int)(size_of_inflow/length_y*self.obj.N_q2)
         N_outflow_zones  = N_inflow_zones
@@ -354,6 +355,7 @@ def compute_electrostatic_fields(self):
                             self.N_q1_local+2*N_g
                            ]
                           )
+
     self.snes.solve(None, self.poisson.glob_phi)
 
     self._da_snes.globalToLocal(self.poisson.glob_phi, 

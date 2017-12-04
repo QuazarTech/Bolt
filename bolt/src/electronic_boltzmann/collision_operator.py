@@ -5,6 +5,78 @@ import arrayfire as af
 from .matrix_inverse import inverse_4x4_matrix
 import domain
 
+@af.broadcast
+def f0_defect_constant_T(f, p1, p2, p3, params):
+
+    mu = params.mu
+    T  = params.T
+
+    for n in range(params.collision_nonlinear_iters):
+
+        E_upper = params.E_band
+        k       = params.boltzmann_constant
+
+        tmp         = ((E_upper - mu)/(k*T))
+        denominator = (k*T**2.*(af.exp(tmp) + 2. + af.exp(-tmp)) )
+
+        # TODO: Multiply with the integral measure dp1 * dp2
+        a00 = af.sum(T  / denominator, 2)
+
+        fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
+        af.eval(fermi_dirac)
+
+        zeroth_moment = f - fermi_dirac
+    
+        eqn_mass_conservation   = af.sum(zeroth_moment, 2)
+
+        N_g = domain.N_ghost
+        error_mass_conservation = af.max(af.abs(eqn_mass_conservation)[N_g:-N_g, N_g:-N_g])
+
+        residual   = [eqn_mass_conservation]
+        error_norm = np.max([af.max(af.abs(residual[0]))])
+        print("    ||residual_defect|| = ", error_norm)
+
+        res      = eqn_mass_conservation
+        dres_dmu = -a00
+
+        delta_mu = -res/dres_dmu
+
+        mu = mu + delta_mu
+
+        af.eval(mu)
+
+    # Solved for mu. Now store in params
+    params.mu = mu
+
+    # Print final residual
+    fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
+    af.eval(fermi_dirac)
+
+    zeroth_moment = (f) - fermi_dirac
+    
+    eqn_mass_conservation   = af.sum(zeroth_moment, 2)
+
+    N_g = domain.N_ghost
+    error_mass_conservation = af.max(af.abs(eqn_mass_conservation)[N_g:-N_g, N_g:-N_g])
+
+    residual   = [eqn_mass_conservation]
+    error_norm = np.max([af.max(af.abs(residual[0]))])
+    print("    ||residual_defect|| = ", error_norm)
+
+    density_f = af.sum((f), 2)
+    fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
+    density_fermi_dirac = af.sum(fermi_dirac, 2)
+
+    print("    mu = ", af.mean(params.mu[N_g:-N_g, N_g:-N_g]),
+           "T = ", af.mean(params.T[N_g:-N_g, N_g:-N_g]),
+           "density_f = ", af.mean(density_f[N_g:-N_g, N_g:-N_g]),
+           "density_fermi_dirac = ",af.mean(density_fermi_dirac[N_g:-N_g, N_g:-N_g])
+         )
+    print("    ------------------")
+
+    return(fermi_dirac)
+
+
 # Using af.broadcast, since p1, p2, p3 are of size (1, 1, Np1*Np2*Np3)
 # All moment quantities are of shape (Nq1, Nq2)
 # By wrapping with af.broadcast, we can perform batched operations
@@ -90,6 +162,15 @@ def f0_defect(f, p1, p2, p3, params):
                          af.max(af.abs(residual[1]))]
                        )
     print("    ||residual_defect|| = ", error_norm)
+    density_f = af.sum(f, 2)
+    fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
+    density_fermi_dirac = af.sum(fermi_dirac, 2)
+
+    print("    mu = ", af.mean(params.mu[N_g:-N_g, N_g:-N_g]),
+           "T = ", af.mean(params.T[N_g:-N_g, N_g:-N_g]),
+           "density_f = ", af.mean(density_f[N_g:-N_g, N_g:-N_g]),
+           "density_fermi_dirac = ",af.mean(density_fermi_dirac[N_g:-N_g, N_g:-N_g])
+         )
     print("    ------------------")
 
     return(fermi_dirac)
@@ -253,7 +334,7 @@ def f0_ee(f, p1, p2, p3, params):
 def RTA(f, q1, q2, p1, p2, p3, moments, params):
     """Return BGK operator -(f-f0)/tau."""
     
-    C_f = -(  f - f0_defect(f, p1, p2, p3, params)
+    C_f = -(  f - f0_defect_constant_T(f, p1, p2, p3, params)
            ) / params.tau_defect(q1, q2, p1, p2, p3) \
 #          -(  f - f0_ee(f, p1, p2, p3, params)
 #           ) / params.tau_ee(q1, q2, p1, p2, p3)

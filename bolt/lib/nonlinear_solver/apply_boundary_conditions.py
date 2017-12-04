@@ -103,7 +103,7 @@ def apply_bcs_f(self):
 
             # Inflow between y = [y_center(j_inflow_start), y_center(j_inflow_end)]
             N_q2               = self.N_q2
-            size_of_inflow     = 0.25
+            size_of_inflow     = 5.
             offset_from_center = 0.
             length_y           = self.q2_end - self.q2_start
             N_inflow_zones     = (int)(size_of_inflow/length_y*N_q2)
@@ -158,7 +158,7 @@ def apply_bcs_f(self):
 
             # Outflow between y = [y_center(j_outflow_start), y_center(j_outflow_end)]
             N_q2               = self.N_q2
-            size_of_outflow    = 0.25
+            size_of_outflow    = 5.
             offset_from_center = 0.
             length_y           = self.q2_end - self.q2_start
             N_outflow_zones    = (int)(size_of_outflow/length_y*N_q2)

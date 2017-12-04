@@ -24,13 +24,13 @@ def A_p(q1, q2, p1, p2, p3,
 #    dp2_dt = e*(E2 + (p3*B1 - p1*B3) / c) # p2 = hcross * k2
 #    dp3_dt = e*(E3 + (p1*B2 - p2*B1) / c) # p3 = hcross * k3
 
-    dp1_dt = e*E1
-    dp2_dt = e*E2
+    dp1_dt = 0.*-e*E1
+    dp2_dt = 0.*-e*E2
     dp3_dt = 0.
 
     #dp1_dt = 1e-5*e*0.5*(-af.tanh(100.*(q1 - 0.9)) - af.tanh(100.*(q1 - 0.1)) )
-#    amplitude   = 0.1
-#    E1_analytic = amplitude * -(q1 - 0.5)
-#    dp1_dt      = E1_analytic
+    amplitude   = 1e-3
+    E1_analytic = amplitude * -(q1 - 5.)
+    dp1_dt      = E1_analytic
     
     return (dp1_dt, dp2_dt, dp3_dt)

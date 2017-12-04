@@ -162,7 +162,7 @@ class nonlinear_solver(object):
 	# TODO: Remove the following hardcoded values
         self.length_multiples_q1 = 1
         self.length_multiples_q2 = 1
-        self.q3_3D_start =  0.; self.q3_3D_end = 2.
+        self.q3_3D_start =  0.; self.q3_3D_end = 20.
         self.dq3 = physical_system.dq1
 
         self.N_q1_poisson = (2*self.length_multiples_q1+1)*self.N_q1

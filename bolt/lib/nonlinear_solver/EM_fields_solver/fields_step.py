@@ -20,7 +20,7 @@ def fields_step(self, dt):
         self._communicate_fields()
 
     elif (self.physical_system.params.fields_solver == 'electrostatic'):
-        compute_electrostatic_fields(self)
+        #compute_electrostatic_fields(self)
         self._communicate_fields()
 
     elif (self.physical_system.params.fields_solver == 'fdtd'):
