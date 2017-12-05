@@ -12,13 +12,12 @@ given by the FFT solver
 
 import numpy as np
 import arrayfire as af
-af.set_backend('cpu')
 from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
 from bolt.lib.nonlinear_solver.communicate import communicate_fields
 
-def compute_moments_sinusoidal(self, *args):
+def compute_moments(self, *args):
     return (1 + af.sin(2 * np.pi * self.q1 + 4 * np.pi * self.q2))
 
 class test(object):
@@ -58,19 +57,14 @@ class test(object):
                     ) * self.dq2
 
         self.q2, self.q1 = np.meshgrid(self.q2, self.q1)
-        self.q2, self.q1 = af.to_array(self.q2), af.to_array(self.q1)
+        self.q2, self.q1 = af.reorder(af.to_array(self.q2), 2, 0, 1),\
+                           af.reorder(af.to_array(self.q1), 2, 0, 1)
 
         # Assigning initial values to zero:
-        self.E1 = af.constant(0, self.q1.shape[0], self.q1.shape[1],
-                              dtype=af.Dtype.f64
-                             )
-
-        self.E2 = self.E1.copy()
-        self.E3 = self.E1.copy()
-
-        self.B1 = self.E1.copy()
-        self.B2 = self.E1.copy()
-        self.B3 = self.E1.copy()
+        self.cell_centered_EM_fields = af.constant(0, 6, self.q1.shape[1],
+                                                   self.q1.shape[2],
+                                                   dtype=af.Dtype.f64
+                                                  )
 
         self._comm = PETSc.COMM_WORLD.tompi4py()
 
@@ -90,10 +84,13 @@ class test(object):
         
         self.performance_test_flag = False
 
+        self.performance_test_flag = False
+
     _communicate_fields = communicate_fields
-    compute_moments     = compute_moments_sinusoidal
+    compute_moments     = compute_moments
 
 def test_fft_poisson():
+    
     obj = test()
     fft_poisson(obj)
 
@@ -105,7 +102,16 @@ def test_fft_poisson():
                                          + 4 * np.pi * obj.q2
                                         )
 
-    error_E1 = af.sum(af.abs(obj.E1 - E1_expected)) / (obj.E1.elements())
-    error_E2 = af.sum(af.abs(obj.E2 - E2_expected)) / (obj.E2.elements())
+    N_g = obj.N_ghost
+
+    error_E1 = af.mean(af.abs(  obj.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g] 
+                              - E1_expected[0, N_g:-N_g, N_g:-N_g]
+                             )
+                      )
+
+    error_E2 = af.mean(af.abs(  obj.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g] 
+                              - E2_expected[0, N_g:-N_g, N_g:-N_g]
+                             )
+                      )
 
     assert (error_E1 < 1e-14 and error_E2 < 1e-14)

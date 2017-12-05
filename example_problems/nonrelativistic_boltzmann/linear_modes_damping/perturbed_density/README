@@ -11,3 +11,13 @@ We broadly consider 4 different cases for this setup:
 - Collisional, No EM fields
 - Purely collisionless, Electrostatic Case(Landau Damping)
 - Collisional, Electrostatic Case
+
+We solve for all possible combinations of dimesionality in position and velocity space:
+
+- 1D1V - 1D perturbation with a 1V distribution function
+- 1D2V - 1D perturbation with a 2V distribution function
+- 1D3V - 1D perturbation with a 3V distribution function
+
+- 2D1V - 2D perturbation with a 1V distribution function
+- 2D2V - 2D perturbation with a 2V distribution function
+- 2D3V - 2D perturbation with a 3V distribution function

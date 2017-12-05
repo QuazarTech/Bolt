@@ -32,13 +32,12 @@ system = physical_system(domain,
                         )
 
 # Defining a nonlinear solver object:
-nls = nonlinear_solver(system)
-
+nls = nonlinear_solver(system, True)
 nls.strang_timestep(0.001)
 af.sync()
 
 for i in range(100):
-    nls.strang_timestep(0.001, True)
+    nls.strang_timestep(0.001)
 af.sync()
 
-nls.print_performance_timings(100)
+nls.print_performance_timings(101)

@@ -34,10 +34,12 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 10)
+    N     = 2**np.arange(5, 8)
     error = np.zeros(N.size)
     
     for i in range(N.size):
+        
+
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
         nls_f = h5f['distribution_function'][:]
         h5f.close()    
@@ -46,7 +48,13 @@ def check_convergence():
         ls_f = h5f['distribution_function'][:]
         h5f.close()
 
+        print(nls_f.shape)
+
         error[i] = np.mean(abs(nls_f - ls_f))
+
+    print(error)
+    poly = np.polyfit(np.log10(N), np.log10(error), 1)
+    print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 

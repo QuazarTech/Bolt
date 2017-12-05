@@ -2,7 +2,6 @@ import arrayfire as af
 import numpy as np
 import pylab as pl
 import h5py
-import time
 
 from bolt.lib.physical_system import physical_system
 
@@ -67,41 +66,45 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.0005
 t_final = 2.0
 
 time_array    = np.arange(0, t_final + dt, dt)
 temp_data_nls = np.zeros_like(time_array)
 
-def time_evolution():
+n_nls = nls.compute_moments('density')
 
-    for time_index, t0 in enumerate(time_array):
-        print('Computing For Time =', t0)
+p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
+p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
+p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
 
-        n_nls = nls.compute_moments('density')
+T_nls = (  nls.compute_moments('energy')
+         - n_nls * p1_bulk_nls**2
+         - n_nls * p2_bulk_nls**2
+         - n_nls * p3_bulk_nls**2
+        ) / n_nls
 
-        p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
-        p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
-        p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
+temp_data_nls[0] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
 
-        E_nls = nls.compute_moments('energy')
+for time_index, t0 in enumerate(time_array):
 
-        T_nls = (  nls.compute_moments('energy')
-                 - n_nls * p1_bulk_nls**2
-                 - n_nls * p2_bulk_nls**2
-                 - n_nls * p3_bulk_nls**2
-                ) / n_nls
+    print('Computing For Time =', t0)
 
-        af.display(T_nls[:3, 3:-3])
-        af.display(T_nls[-3:, 3:-3])
+    n_nls = nls.compute_moments('density')
 
-        time.sleep(5)
-        temp_data_nls[time_index] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
-        nls.strang_timestep(dt)
+    p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
+    p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
+    p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
+
+    T_nls = (  nls.compute_moments('energy')
+             - n_nls * p1_bulk_nls**2
+             - n_nls * p2_bulk_nls**2
+             - n_nls * p3_bulk_nls**2
+            ) / n_nls
+
+    temp_data_nls[time_index] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
+    nls.strang_timestep(dt)
         
-
-time_evolution()
-
 h5f = h5py.File('numerical.h5', 'w')
 h5f.create_dataset('temperature', data = temp_data_nls)
 h5f.create_dataset('time', data = time_array)

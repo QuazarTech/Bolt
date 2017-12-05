@@ -56,6 +56,9 @@ class test(object):
                                      'moment_coeffs'   : moment_coeffs
                                     }
                                    )
+
+        self.single_mode_evolution = False
+
         self.p1_start = -10
         self.p2_start = -10
         self.p3_start = -10
@@ -125,7 +128,7 @@ def test_compute_moments():
     rho_num = compute_moments(obj, 'density')
     rho_ana  = 1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
 
-    error_rho = af.sum(af.abs(rho_num - rho_ana))/rho_num.elements()
+    error_rho = af.mean(af.abs(rho_num - rho_ana))
 
     E_num = compute_moments(obj, 'energy')
     E_ana =   3 * (1 + 0.01 * af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)) \

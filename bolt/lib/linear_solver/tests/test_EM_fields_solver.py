@@ -28,6 +28,8 @@ class test(object):
         self.N_q1 = 32
         self.N_q2 = 64
 
+        self.single_mode_evolution = False
+
         self.N_p1 = 2
         self.N_p2 = 3
         self.N_p3 = 4
@@ -77,8 +79,8 @@ def test_compute_electrostatic_fields():
 
     add = lambda a,b:a+b
 
-    error_E1 = af.sum(af.abs(af.broadcast(add, E1_analytical, - E1)))/E1.elements()
-    error_E2 = af.sum(af.abs(af.broadcast(add, E2_analytical, - E2)))/E2.elements()
+    error_E1 = af.mean(af.abs(af.broadcast(add, E1_analytical, - E1)))
+    error_E2 = af.mean(af.abs(af.broadcast(add, E2_analytical, - E2)))
 
     assert(error_E1 < 1e-14)
     assert(error_E2 < 1e-14)

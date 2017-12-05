@@ -49,13 +49,10 @@ def test_calculate_q():
     q2_expected = obj.q2_start + \
         (0.5 + np.arange(-obj.N_ghost, obj.N_q2 + obj.N_ghost)) * obj.dq2
 
-    q1_expected = af.tile(af.to_array(q1_expected), 1,
-                          obj.N_q2 + 2 * obj.N_ghost,
-                         )
+    q2_expected, q1_expected = np.meshgrid(q2_expected, q1_expected)
 
-    q2_expected = af.tile(af.reorder(af.to_array(q2_expected)),
-                          obj.N_q1 + 2 * obj.N_ghost, 1,
-                         )
+    q1_expected = af.reorder(af.to_array(q1_expected), 2, 0, 1)
+    q2_expected = af.reorder(af.to_array(q2_expected), 2, 0, 1)
 
     assert (af.sum(af.abs(q1_expected - q1)) == 0)
     assert (af.sum(af.abs(q2_expected - q2)) == 0)

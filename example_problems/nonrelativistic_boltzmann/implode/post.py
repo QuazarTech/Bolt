@@ -1,6 +1,8 @@
 import numpy as np
 import pylab as pl
 import h5py
+import domain
+import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -32,46 +34,32 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.01
-t_final = 2.5
-time    = np.arange(dt, t_final + dt, dt)
+time = np.arange(0, params.t_final + params.dt_dump_moments, 
+                 params.dt_dump_moments
+                )
 
-h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:]
-q2  = h5f['q2'][:]
-n   = h5f['n'][:]
-h5f.close()
+N_q1 = domain.N_q1
+N_q2 = domain.N_q2
+N_g  = domain.N_ghost
 
-pl.contourf(q1[3:-3, 3:-3],
-            q2[3:-3, 3:-3],
-            n[3:-3, 3:-3],
-            100,
-            cmap = 'winter'
-           )
-pl.colorbar()
-pl.title('Time = 0')
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.axes().set_aspect('equal')
-pl.show()
+q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * (domain.q1_end - domain.q1_start)/N_q1
+q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_start)/N_q2
 
-# pl.savefig('images/0000.png')
-# pl.clf()
+q2, q1 = np.meshgrid(q2, q1)
 
 for time_index, t0 in enumerate(time):
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:]
+    
+    h5f  = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
+    
+    n = moments[:, :, 0]
 
-    pl.contourf(q1[3:-3, 3:-3],
-                q2[3:-3, 3:-3],
-                n[3:-3, 3:-3],
-                100,
-                cmap = 'gist_heat'
-               )
-    pl.title('Time =' + str(t0))
+    pl.contourf(q1, q2, n, np.linspace(0.1, 1.5, 500))
+    pl.title('Time = ' + "%.2f"%(t0))
+    pl.axes().set_aspect('equal')
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
-    pl.axes().set_aspect('equal')
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
+    pl.colorbar()
+    pl.savefig('images/%04d'%time_index + '.png')
     pl.clf()

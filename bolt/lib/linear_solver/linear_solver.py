@@ -21,35 +21,17 @@ import arrayfire as af
 from numpy.fft import fftfreq
 import socket
 from petsc4py import PETSc
+from inspect import signature
 
 # Importing solver functions:
-from bolt.lib.linear_solver.dY_dt import dY_dt
+from .EM_fields_solver import compute_electrostatic_fields
+from .calculate_dfdp_background import calculate_dfdp_background
+from .compute_moments import compute_moments as compute_moments_imported
+from .file_io import dump, load
+from .utils.bandwidth_test import bandwidth_test
+from .utils.print_with_indent import indent
 
-import bolt.lib.linear_solver.timestepper as timestepper
-
-from bolt.lib.linear_solver.EM_fields_solver \
-    import compute_electrostatic_fields
-
-from bolt.lib.linear_solver.calculate_dfdp_background \
-    import calculate_dfdp_background
-
-from bolt.lib.linear_solver.compute_moments \
-    import compute_moments as compute_moments_imported
-
-import bolt.lib.linear_solver.dump as dump
-
-from bolt.lib.linear_solver.tests.performance.bandwidth_test\
-    import bandwidth_test
-
-
-# The following function is used in formatting for print:
-def indent(txt, stops=1):
-    """
-    This function indents every line of the input as a multiple of
-    4 spaces.
-    """
-    return '\n'.join(" " * 4 * stops + line for line in  txt.splitlines())
-
+from . import timestep
 
 class linear_solver(object):
     """
@@ -97,16 +79,15 @@ class linear_solver(object):
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
-        # Getting number of ghost zones, and the boundary conditions that are
-        # utilized
-        self.N_ghost = physical_system.N_ghost
-        self.bc_in_q1, self.bc_in_q2 = physical_system.bc_in_q1,\
-                                       physical_system.bc_in_q2
-
         # Checking that periodic B.C's are utilized:
-        if(self.bc_in_q1 != 'periodic' or self.bc_in_q2 != 'periodic'):
-            raise Exception('Only systems with periodic boundary conditions\
-                             can be solved using the linear solver')
+        if(    physical_system.boundary_conditions.in_q1_left   != 'periodic' 
+           and physical_system.boundary_conditions.in_q1_right  != 'periodic'
+           and physical_system.boundary_conditions.in_q2_bottom != 'periodic'
+           and physical_system.boundary_conditions.in_q2_top    != 'periodic'
+          ):
+            raise Exception('Only systems with periodic boundary conditions \
+                             can be solved using the linear solver'
+                           )
 
         # Initializing DAs which will be used in file-writing:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
@@ -162,12 +143,18 @@ class linear_solver(object):
                                      physical_system.params
                                     )[1]
 
-        # Initializing f, f_hat and the other EM field quantities:
-        self._initialize(physical_system.params)
-
         # Assigning the function objects to methods of the solver:
         self._A_p    = self.physical_system.A_p
         self._source = self.physical_system.source
+
+        if(len(signature(self._source).parameters) == 6):
+            self.single_mode_evolution = True
+        else:
+            self.single_mode_evolution = False
+
+        # Initializing f, f_hat and the other EM field quantities:
+        self._initialize(physical_system.params)
+
 
     def _calculate_q_center(self):
         """
@@ -261,98 +248,181 @@ class linear_solver(object):
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
-
+   
         # Scaling Appropriately:
         # Except the case of (0, 0) the FFT returns
         # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
         f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
 
-        # Using a vector Y to evolve the system:
-        self.Y = af.constant(0, self.N_q1, self.N_q2,
-                             self.N_p1 * self.N_p2 * self.N_p3,
-                             7, dtype = af.Dtype.c64
-                            )
+        if(self.single_mode_evolution == True):
+            # Background
+            f_hat[0, 0, :] = 0
 
-        # Assigning the 0th indice along axis 3 to the f_hat:
-        self.Y[:, :, :, 0] = f_hat
+            # Finding the indices of the perturbation introduced:
+            i_q1_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
+                                        (self.N_q1, self.N_q2, 
+                                         self.N_p1 * self.N_p2 * self.N_p3
+                                        ),order = 'F'
+                                       )[0]
 
-        # Initializing the EM field quantities:
-        self.E3_hat = af.constant(0, self.N_q1, self.N_q2,
-                                  self.N_p1 * self.N_p2 * self.N_p3, 
-                                  dtype = af.Dtype.c64
-                                 )
-    
-        self.B1_hat = af.constant(0, self.N_q1, self.N_q2,
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64
-                                 )
-        
-        self.B2_hat = af.constant(0, self.N_q1, self.N_q2,
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64
-                                 ) 
-        
-        self.B3_hat = af.constant(0, self.N_q1, self.N_q2,
-                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                  dtype = af.Dtype.c64
-                                 )
-        
-        # Initializing EM fields using Poisson Equation:
-        if(self.physical_system.params.fields_initialize == 'electrostatic' or
-           self.physical_system.params.fields_initialize == 'fft'
-           ):
-            compute_electrostatic_fields(self)
+            i_q2_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
+                                        (self.N_q1, self.N_q2, 
+                                         self.N_p1 * self.N_p2 * self.N_p3
+                                        ),order = 'F'
+                                       )[1]
 
-        # If option is given as user-defined:
-        elif(self.physical_system.params.fields_initialize == 'user-defined'):
-            E1, E2, E3 = \
-                self.initial_conditions.initialize_E(self.physical_system.params)
+            # Taking sum to get a scalar value:
+            params.k_q1 = af.sum(self.k_q1[i_q1_max, i_q2_max])
+            params.k_q2 = af.sum(self.k_q2[i_q1_max, i_q2_max])
+
+            self.f_background = np.array(self.f_background).\
+                                reshape(self.N_p1, self.N_p2, self.N_p3)
+
+            self.p1 = np.array(self.p1).\
+                      reshape(self.N_p1, self.N_p2, self.N_p3)
+            self.p2 = np.array(self.p2).\
+                      reshape(self.N_p1, self.N_p2, self.N_p3)
+            self.p3 = np.array(self.p3).\
+                      reshape(self.N_p1, self.N_p2, self.N_p3)
+
+            self._A_q1 = np.array(self._A_q1).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+            self._A_q2 = np.array(self._A_q2).\
+                         reshape(self.N_p1, self.N_p2, self.N_p3)
+
+            params.rho_background = self.compute_moments('density',
+                                                         self.f_background
+                                                        )
             
-            B1, B2, B3 = \
-                self.initial_conditions.initialize_B(self.physical_system.params)
+            params.p1_bulk_background = self.compute_moments('mom_p1_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            params.p2_bulk_background = self.compute_moments('mom_p2_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            params.p3_bulk_background = self.compute_moments('mom_p3_bulk',
+                                                             self.f_background
+                                                            ) / params.rho_background
+            
+            params.T_background = ((1 / params.p_dim) * \
+                                   self.compute_moments('energy',
+                                                        self.f_background
+                                                       )
+                                   - params.rho_background * 
+                                     params.p1_bulk_background**2
+                                   - params.rho_background * 
+                                     params.p2_bulk_background**2
+                                   - params.rho_background * 
+                                     params.p3_bulk_background**2
+                                  ) / params.rho_background
 
-            # Scaling Appropriately
-            self.E1_hat = 2 * af.fft2(E1) / (self.N_q1 * self.N_q2)
-            self.E2_hat = 2 * af.fft2(E2) / (self.N_q1 * self.N_q2)
-            self.E3_hat = 2 * af.fft2(E3) / (self.N_q1 * self.N_q2)
-            self.B1_hat = 2 * af.fft2(B1) / (self.N_q1 * self.N_q2)
-            self.B2_hat = 2 * af.fft2(B2) / (self.N_q1 * self.N_q2)
-            self.B3_hat = 2 * af.fft2(B3) / (self.N_q1 * self.N_q2)
+            self.dfdp1_background = np.array(self.dfdp1_background).\
+                                    reshape(self.N_p1, self.N_p2, self.N_p3)
+            self.dfdp2_background = np.array(self.dfdp2_background).\
+                                    reshape(self.N_p1, self.N_p2, self.N_p3)
+            self.dfdp3_background = np.array(self.dfdp3_background).\
+                                    reshape(self.N_p1, self.N_p2, self.N_p3)
+
+            # Unable to recover pert_real and pert_imag accurately from the input.
+            # There seems to be some error in recovering these quantities which
+            # is dependant upon the resolution. Using user-defined quantities instead
+            delta_f_hat =   params.pert_real * self.f_background \
+                          + params.pert_imag * self.f_background * 1j 
+
+            self.Y = np.array([delta_f_hat])
+            compute_electrostatic_fields(self)
+            self.Y = np.array([delta_f_hat, 
+                               self.delta_E1_hat, self.delta_E2_hat, self.delta_E3_hat,
+                               self.delta_B1_hat, self.delta_B2_hat, self.delta_B3_hat
+                              ]
+                             )
 
         else:
-            raise NotImplementedError('Method invalid/not-implemented')
+            # Using a vector Y to evolve the system:
+            self.Y = af.constant(0, self.N_q1, self.N_q2,
+                                 self.N_p1 * self.N_p2 * self.N_p3,
+                                 7, dtype = af.Dtype.c64
+                                )
 
-        # Assigning other indices along axis 3 to be
-        # the EM field quantities:
-        self.Y[:, :, :, 1] = self.E1_hat
-        self.Y[:, :, :, 2] = self.E2_hat
-        self.Y[:, :, :, 3] = self.E3_hat
-        self.Y[:, :, :, 4] = self.B1_hat
-        self.Y[:, :, :, 5] = self.B2_hat
-        self.Y[:, :, :, 6] = self.B3_hat
+            # Assigning the 0th indice along axis 3 to the f_hat:
+            self.Y[:, :, :, 0] = f_hat
 
-        af.eval(self.Y)
+            # Initializing the EM field quantities:
+            self.E3_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      self.N_p1 * self.N_p2 * self.N_p3, 
+                                      dtype = af.Dtype.c64
+                                     )
+
+            self.B1_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      self.N_p1 * self.N_p2 * self.N_p3,
+                                      dtype = af.Dtype.c64
+                                     )
+            
+            self.B2_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      self.N_p1 * self.N_p2 * self.N_p3,
+                                      dtype = af.Dtype.c64
+                                     ) 
+            
+            self.B3_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      self.N_p1 * self.N_p2 * self.N_p3,
+                                      dtype = af.Dtype.c64
+                                     )
+            
+            # Initializing EM fields using Poisson Equation:
+            if(self.physical_system.params.fields_initialize == 'electrostatic' or
+               self.physical_system.params.fields_initialize == 'fft'
+              ):
+                compute_electrostatic_fields(self)
+
+            # If option is given as user-defined:
+            elif(self.physical_system.params.fields_initialize == 'user-defined'):
+                E1, E2, E3 = \
+                    self.physical_system.initial_conditions.initialize_E(self.q1_center, self.q2_center, self.physical_system.params)
+                
+                B1, B2, B3 = \
+                    self.physical_system.initial_conditions.initialize_B(self.q1_center, self.q2_center, self.physical_system.params)
+
+                # Scaling Appropriately
+                self.E1_hat = af.tile(2 * af.fft2(E1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.E2_hat = af.tile(2 * af.fft2(E2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.E3_hat = af.tile(2 * af.fft2(E3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B1_hat = af.tile(2 * af.fft2(B1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B2_hat = af.tile(2 * af.fft2(B2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.B3_hat = af.tile(2 * af.fft2(B3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                
+            else:
+                raise NotImplementedError('Method invalid/not-implemented')
+
+            # Assigning other indices along axis 3 to be
+            # the EM field quantities:
+            self.Y[:, :, :, 1] = self.E1_hat
+            self.Y[:, :, :, 2] = self.E2_hat
+            self.Y[:, :, :, 3] = self.E3_hat
+            self.Y[:, :, :, 4] = self.B1_hat
+            self.Y[:, :, :, 5] = self.B2_hat
+            self.Y[:, :, :, 6] = self.B3_hat
+
+            af.eval(self.Y)
+
         return
 
     # Injection of solver methods from other files:
-    
     # Assigning function that is used in computing the derivatives
     # of the background distribution function:
     _calculate_dfdp_background = calculate_dfdp_background
 
-    # Derivative of the vector Y which is indicative of the state 
-    # of the system w.r.t time:
-    _dY_dt = dY_dt
-
     # Time-steppers:
-    RK2_timestep = timestepper.RK2_step
-    RK4_timestep = timestepper.RK4_step
-    RK6_timestep = timestepper.RK6_step
+    RK2_timestep = timestep.RK2_step
+    RK4_timestep = timestep.RK4_step
+    RK5_timestep = timestep.RK5_step
 
-    # Routine which is used in computing the moments of the
-    # distribution function:
+    # Routine which is used in computing the 
+    # moments of the distribution function:
     compute_moments = compute_moments_imported
 
     # Methods used in writing the data to dump-files:
     dump_distribution_function = dump.dump_distribution_function
     dump_moments               = dump.dump_moments
+
+    # Used to read the data from file
+    load_distribution_function = load.load_distribution_function

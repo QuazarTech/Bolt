@@ -26,7 +26,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     n_p = 0.9/np.sqrt(2*np.pi)
     n_b = 0.2/np.sqrt(2*np.pi)
   
-    f = rho \
+    f =   rho \
         * (  n_p * af.exp(-0.5*p1**2) 
            + n_b * af.exp(-0.5*((p1 - 4.5)/0.5)**2)
           )

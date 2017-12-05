@@ -12,6 +12,10 @@ from petsc4py import PETSc
 
 from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 from bolt.lib.nonlinear_solver.interpolation_routines import f_interp_p_3d
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+
+calculate_q_center = nonlinear_solver._calculate_q_center
+calculate_p_center = nonlinear_solver._calculate_p_center
 
 convert_p_imported = nonlinear_solver._convert_to_p_expanded
 convert_q_imported = nonlinear_solver._convert_to_q_expanded
@@ -32,41 +36,17 @@ class test(object):
 
         self.p1_start = self.p2_start = self.p3_start = -10
 
-        p1_center = \
-            self.p1_start + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
-        p2_center = \
-            self.p2_start + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-        p3_center = \
-            self.p3_start + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
-
-        p2_center, p1_center, p3_center = np.meshgrid(p2_center,
-                                                      p1_center,
-                                                      p3_center
-                                                     )
-
-        p1_center = af.flat(af.to_array(p1_center))
-        p2_center = af.flat(af.to_array(p2_center))
-        p3_center = af.flat(af.to_array(p3_center))
-
-        self.p1 = af.reorder(p1_center, 2, 3, 0, 1)
-        self.p2 = af.reorder(p2_center, 2, 3, 0, 1)
-        self.p3 = af.reorder(p3_center, 2, 3, 0, 1)
+        self.p1, self.p2, self.p3 = calculate_p_center(self)
 
         self.q1_center = self.q2_center = np.random.rand(1)
 
         # Creating Dummy Values:
-        self.E1 = self.q1_center
-        self.E2 = self.q1_center
-        self.E3 = self.q1_center
-
-        self.B1_n = self.q1_center
-        self.B2_n = self.q1_center
-        self.B3_n = self.q1_center
-
+        self.cell_centered_EM_fields  = np.random.rand(6)
+        self.B_fields_at_nth_timestep = np.random.rand(3)
         self.f = af.exp(-self.p1**2 - 2*self.p2**2 - 3*self.p3**2)
 
         self.physical_system = type('obj', (object, ),
-                                    {'params': 'placeHolder'}
+                                    {'params': type('obj', (object, ),{'p_dim':3})}
                                    )
 
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
@@ -86,7 +66,7 @@ class test(object):
 
 
 def test_f_interp_p_3d():
-    N     = 2**np.arange(5, 9)#np.array([16, 24, 32, 48, 64, 80, 96, 112, 128])
+    N     = 2**np.arange(5, 9)
     error = np.zeros(N.size)
 
     for i in range(N.size):

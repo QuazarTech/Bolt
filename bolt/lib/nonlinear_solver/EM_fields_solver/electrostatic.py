@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import petsc4py, sys 
-petsc4py.init(sys.argv)
-from petsc4py import PETSc
 import arrayfire as af
 import numpy as np
 from numpy.fft import fftfreq
@@ -418,7 +415,7 @@ def compute_electrostatic_fields(self):
     return
 
 
-def fft_poisson(self):
+def fft_poisson(self, f=None):
     """
     Solves the Poisson Equation using the FFTs:
 
@@ -434,8 +431,10 @@ def fft_poisson(self):
 
     else:
         N_g = self.N_ghost
-        rho =   self.physical_system.params.charge_electron \
-              * (self.compute_moments('density')[N_g:-N_g, N_g:-N_g])
+        rho = af.reorder(  self.physical_system.params.charge_electron \
+                         * self.compute_moments('density', f)[:, N_g:-N_g, N_g:-N_g],
+                         1, 2, 0
+                        )
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)
         k_q2 = fftfreq(rho.shape[1], self.dq2)
@@ -453,12 +452,14 @@ def fft_poisson(self):
         E1_hat = -1j * 2 * np.pi * k_q1 * potential_hat
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
 
-        self.E1[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E1_hat))
-        self.E2[N_g:-N_g, N_g:-N_g] = af.real(af.ifft2(E2_hat))
+        # Non-inclusive of ghost-zones:
+        E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 0, 1)
+        E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 0, 1)
 
-        # Applying Periodic B.C's:
-        self._communicate_fields()
-        af.eval(self.E1, self.E2)
+        self.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g] = E1_physical
+        self.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g] = E2_physical
+
+        af.eval(self.cell_centered_EM_fields)
 
     if(self.performance_test_flag == True):
         af.sync()
