@@ -112,7 +112,7 @@ class physical_system(object):
         if(not isinstance(moment_defs.moment_exponents, dict) or
            not isinstance(moment_defs.moment_coeffs, dict)
           ):
-            raise TypeError('Expected attributes of boundary_conditions \
+            raise TypeError('Expected attributes of moment definitions \
                              to be of type dict'
                            )
 

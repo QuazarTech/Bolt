@@ -6,13 +6,13 @@ q2_start = 0.
 q2_end   = 10.
 N_q2     = 28
 
-p1_start = -0.02
-p1_end   =  0.02
-N_p1     =  64
+p1_start = -0.05
+p1_end   =  0.05
+N_p1     =  375
 
 p2_start = -0.02
 p2_end   =  0.02
-N_p2     =  64
+N_p2     =  150
 
 p3_start = -0.5
 p3_end   =  0.5

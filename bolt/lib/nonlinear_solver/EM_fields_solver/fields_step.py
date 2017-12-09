@@ -16,7 +16,8 @@ def fields_step(self, dt):
         if (self.physical_system.params.fields_solver == 'fft'):
             fft_poisson(self)
         elif (self.physical_system.params.fields_solver == 'SNES'):
-            compute_electrostatic_fields(self)
+            #compute_electrostatic_fields(self)
+            pass
 
         self._communicate_fields()
         self._apply_bcs_fields()

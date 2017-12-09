@@ -266,146 +266,146 @@ def apply_bcs_f(self):
 
 def apply_dirichlet_bcs_fields(self, boundary):
     
-    N_g = self.N_ghost
-
-    # These arguments are defined since they are required by all the function calls:
-    # So the functions can be called instead using function(*args)
-    args = (self.q1_center, self.q2_center, self.physical_system.params)
-    
-    if(boundary == 'left'):
-        E1 = self.boundary_conditions.\
-             E1_left(self.cell_centered_EM_fields[0],*args)[:, :N_g]
-
-        E2 = self.boundary_conditions.\
-             E2_left(self.cell_centered_EM_fields[1],*args)[:, :N_g]
-
-        E3 = self.boundary_conditions.\
-             E3_left(self.cell_centered_EM_fields[2],*args)[:, :N_g]
-        
-        B1 = self.boundary_conditions.\
-             B1_left(self.cell_centered_EM_fields[3],*args)[:, :N_g]
-
-        B2 = self.boundary_conditions.\
-             B2_left(self.cell_centered_EM_fields[4],*args)[:, :N_g]
-
-        B3 = self.boundary_conditions.\
-             B3_left(self.cell_centered_EM_fields[5],*args)[:, :N_g]
-
-        self.cell_centered_EM_fields[:, :N_g] = \
-                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-
-    elif(boundary == 'right'):
-        E1 = self.boundary_conditions.\
-             E1_right(self.cell_centered_EM_fields[0],*args)[:, -N_g:]
-        
-        E2 = self.boundary_conditions.\
-             E2_right(self.cell_centered_EM_fields[1],*args)[:, -N_g:]
-
-        E3 = self.boundary_conditions.\
-             E3_right(self.cell_centered_EM_fields[2],*args)[:, -N_g:]
-        
-        B1 = self.boundary_conditions.\
-             B1_right(self.cell_centered_EM_fields[3],*args)[:, -N_g:]
-        
-        B2 = self.boundary_conditions.\
-             B2_right(self.cell_centered_EM_fields[4],*args)[:, -N_g:]
-        
-        B3 = self.boundary_conditions.\
-             B3_right(self.cell_centered_EM_fields[5],*args)[:, -N_g:]
-
-        self.cell_centered_EM_fields[:, -N_g:] = \
-            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-
-    elif(boundary == 'bottom'):
-        E1 = self.boundary_conditions.\
-             E1_bottom(self.cell_centered_EM_fields[0],*args)[:, :, :N_g]
-
-        E2 = self.boundary_conditions.\
-             E2_bottom(self.cell_centered_EM_fields[1],*args)[:, :, :N_g]
-        
-        E3 = self.boundary_conditions.\
-             E3_bottom(self.cell_centered_EM_fields[2],*args)[:, :, :N_g]
-       
-        B1 = self.boundary_conditions.\
-             B1_bottom(self.cell_centered_EM_fields[3],*args)[:, :, :N_g]
-
-        B2 = self.boundary_conditions.\
-             B2_bottom(self.cell_centered_EM_fields[4],*args)[:, :, :N_g]
-
-        B3 = self.boundary_conditions.\
-             B3_bottom(self.cell_centered_EM_fields[5],*args)[:, :, :N_g]
-
-        self.cell_centered_EM_fields[:, :, :N_g] = \
-            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-
-    elif(boundary == 'top'):
-        E1 = self.boundary_conditions.\
-             E1_top(self.cell_centered_EM_fields[0],*args)[:, :, -N_g:]
-
-        E2 = self.boundary_conditions.\
-             E2_top(self.cell_centered_EM_fields[1],*args)[:, :, -N_g:]
-
-        E3 = self.boundary_conditions.\
-             E3_top(self.cell_centered_EM_fields[2],*args)[:, :, -N_g:]
-        
-        B1 = self.boundary_conditions.\
-             B1_top(self.cell_centered_EM_fields[3],*args)[:, :, -N_g:]
-
-        B2 = self.boundary_conditions.\
-             B2_top(self.cell_centered_EM_fields[4],*args)[:, :, -N_g:]
-
-        B3 = self.boundary_conditions.\
-             B3_top(self.cell_centered_EM_fields[5],*args)[:, :, -N_g:]
-        
-        self.cell_centered_EM_fields[:, :, -N_g:] = \
-            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-    
-    else:
-        raise Exception('Invalid choice for boundary')
+#    N_g = self.N_ghost
+#
+#    # These arguments are defined since they are required by all the function calls:
+#    # So the functions can be called instead using function(*args)
+#    args = (self.q1_center, self.q2_center, self.physical_system.params)
+#    
+#    if(boundary == 'left'):
+#        E1 = self.boundary_conditions.\
+#             E1_left(self.cell_centered_EM_fields[0],*args)[:, :N_g]
+#
+#        E2 = self.boundary_conditions.\
+#             E2_left(self.cell_centered_EM_fields[1],*args)[:, :N_g]
+#
+#        E3 = self.boundary_conditions.\
+#             E3_left(self.cell_centered_EM_fields[2],*args)[:, :N_g]
+#        
+#        B1 = self.boundary_conditions.\
+#             B1_left(self.cell_centered_EM_fields[3],*args)[:, :N_g]
+#
+#        B2 = self.boundary_conditions.\
+#             B2_left(self.cell_centered_EM_fields[4],*args)[:, :N_g]
+#
+#        B3 = self.boundary_conditions.\
+#             B3_left(self.cell_centered_EM_fields[5],*args)[:, :N_g]
+#
+#        self.cell_centered_EM_fields[:, :N_g] = \
+#                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+#
+#    elif(boundary == 'right'):
+#        E1 = self.boundary_conditions.\
+#             E1_right(self.cell_centered_EM_fields[0],*args)[:, -N_g:]
+#        
+#        E2 = self.boundary_conditions.\
+#             E2_right(self.cell_centered_EM_fields[1],*args)[:, -N_g:]
+#
+#        E3 = self.boundary_conditions.\
+#             E3_right(self.cell_centered_EM_fields[2],*args)[:, -N_g:]
+#        
+#        B1 = self.boundary_conditions.\
+#             B1_right(self.cell_centered_EM_fields[3],*args)[:, -N_g:]
+#        
+#        B2 = self.boundary_conditions.\
+#             B2_right(self.cell_centered_EM_fields[4],*args)[:, -N_g:]
+#        
+#        B3 = self.boundary_conditions.\
+#             B3_right(self.cell_centered_EM_fields[5],*args)[:, -N_g:]
+#
+#        self.cell_centered_EM_fields[:, -N_g:] = \
+#            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+#
+#    elif(boundary == 'bottom'):
+#        E1 = self.boundary_conditions.\
+#             E1_bottom(self.cell_centered_EM_fields[0],*args)[:, :, :N_g]
+#
+#        E2 = self.boundary_conditions.\
+#             E2_bottom(self.cell_centered_EM_fields[1],*args)[:, :, :N_g]
+#        
+#        E3 = self.boundary_conditions.\
+#             E3_bottom(self.cell_centered_EM_fields[2],*args)[:, :, :N_g]
+#       
+#        B1 = self.boundary_conditions.\
+#             B1_bottom(self.cell_centered_EM_fields[3],*args)[:, :, :N_g]
+#
+#        B2 = self.boundary_conditions.\
+#             B2_bottom(self.cell_centered_EM_fields[4],*args)[:, :, :N_g]
+#
+#        B3 = self.boundary_conditions.\
+#             B3_bottom(self.cell_centered_EM_fields[5],*args)[:, :, :N_g]
+#
+#        self.cell_centered_EM_fields[:, :, :N_g] = \
+#            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+#
+#    elif(boundary == 'top'):
+#        E1 = self.boundary_conditions.\
+#             E1_top(self.cell_centered_EM_fields[0],*args)[:, :, -N_g:]
+#
+#        E2 = self.boundary_conditions.\
+#             E2_top(self.cell_centered_EM_fields[1],*args)[:, :, -N_g:]
+#
+#        E3 = self.boundary_conditions.\
+#             E3_top(self.cell_centered_EM_fields[2],*args)[:, :, -N_g:]
+#        
+#        B1 = self.boundary_conditions.\
+#             B1_top(self.cell_centered_EM_fields[3],*args)[:, :, -N_g:]
+#
+#        B2 = self.boundary_conditions.\
+#             B2_top(self.cell_centered_EM_fields[4],*args)[:, :, -N_g:]
+#
+#        B3 = self.boundary_conditions.\
+#             B3_top(self.cell_centered_EM_fields[5],*args)[:, :, -N_g:]
+#        
+#        self.cell_centered_EM_fields[:, :, -N_g:] = \
+#            af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+#    
+#    else:
+#        raise Exception('Invalid choice for boundary')
 
     return
 
 def apply_mirror_bcs_fields(self, boundary):
     
-    N_g = self.N_ghost
-
-    if(boundary == 'left'):
-        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
-        #   0   1   2   3   4   5
-        # For mirror boundary conditions:
-        # 0 = 5; 1 = 4; 2 = 3;
-        self.cell_centered_EM_fields[:, :N_g] = \
-            af.flip(self.cell_centered_EM_fields[:, N_g:2 * N_g], 1)
-
-    elif(boundary == 'right'):
-        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
-        #      -6  -5  -4  -3  -2  -1
-        # For mirror boundary conditions:
-        # -1 = -6; -2 = -5; -3 = -4;
-        
-        self.cell_centered_EM_fields[:, -N_g:] = \
-            af.flip(self.cell_centered_EM_fields[:, -2 * N_g:-N_g], 1)
-
-    elif(boundary == 'bottom'):
-        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
-        #   0   1   2   3   4   5
-        # For mirror boundary conditions:
-        # 0 = 5; 1 = 4; 2 = 3;
-
-        self.cell_centered_EM_fields[:, :, :N_g] = \
-            af.flip(self.cell_centered_EM_fields[:, :, N_g:2 * N_g], 2)
-
-    elif(boundary == 'top'):
-        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
-        #      -6  -5  -4  -3  -2  -1
-        # For mirror boundary conditions:
-        # -1 = -6; -2 = -5; -3 = -4;
-
-        self.cell_centered_EM_fields[:, :, -N_g:] = \
-            af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g:-N_g], 2)
-
-    else:
-        raise Exception('Invalid choice for boundary')
+#    N_g = self.N_ghost
+#
+#    if(boundary == 'left'):
+#        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
+#        #   0   1   2   3   4   5
+#        # For mirror boundary conditions:
+#        # 0 = 5; 1 = 4; 2 = 3;
+#        self.cell_centered_EM_fields[:, :N_g] = \
+#            af.flip(self.cell_centered_EM_fields[:, N_g:2 * N_g], 1)
+#
+#    elif(boundary == 'right'):
+#        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
+#        #      -6  -5  -4  -3  -2  -1
+#        # For mirror boundary conditions:
+#        # -1 = -6; -2 = -5; -3 = -4;
+#        
+#        self.cell_centered_EM_fields[:, -N_g:] = \
+#            af.flip(self.cell_centered_EM_fields[:, -2 * N_g:-N_g], 1)
+#
+#    elif(boundary == 'bottom'):
+#        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
+#        #   0   1   2   3   4   5
+#        # For mirror boundary conditions:
+#        # 0 = 5; 1 = 4; 2 = 3;
+#
+#        self.cell_centered_EM_fields[:, :, :N_g] = \
+#            af.flip(self.cell_centered_EM_fields[:, :, N_g:2 * N_g], 2)
+#
+#    elif(boundary == 'top'):
+#        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
+#        #      -6  -5  -4  -3  -2  -1
+#        # For mirror boundary conditions:
+#        # -1 = -6; -2 = -5; -3 = -4;
+#
+#        self.cell_centered_EM_fields[:, :, -N_g:] = \
+#            af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g:-N_g], 2)
+#
+#    else:
+#        raise Exception('Invalid choice for boundary')
 
     return
 

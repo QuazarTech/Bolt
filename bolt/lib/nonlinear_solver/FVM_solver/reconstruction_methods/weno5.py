@@ -75,5 +75,6 @@ def reconstruct_weno5(input_array, axis):
     # Reconstruction:
     left_value  = (w1l * u1l + w2l * u2l + w3l * u3l) / denl;
     right_value = (w1r * u1r + w2r * u2r + w3r * u3r) / denr;
-  
+
+    af.eval(left_value, right_value)
     return(left_value, right_value)

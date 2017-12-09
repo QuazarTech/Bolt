@@ -53,7 +53,7 @@ from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
 from .utils.performance_timings import print_table
 from .compute_moments import compute_moments as compute_moments_imported
-from .EM_fields_solver.electrostatic import fft_poisson
+from .EM_fields_solver.electrostatic import fft_poisson, poisson_eqn_3D
 
 class nonlinear_solver(object):
     """
@@ -615,10 +615,10 @@ class nonlinear_solver(object):
     _apply_bcs_f      = apply_boundary_conditions.apply_bcs_f
     _apply_bcs_fields = apply_boundary_conditions.apply_bcs_fields
 
-    strang_timestep = timestep.strang_step
-    lie_timestep    = timestep.lie_step
-    swss_timestep   = timestep.swss_step
-    jia_timestep    = timestep.jia_step
+    strang_timestep  = timestep.strang_step
+    lie_timestep     = timestep.lie_step
+    swss_timestep    = timestep.swss_step
+    jia_timestep     = timestep.jia_step
 
     compute_moments = compute_moments_imported
 

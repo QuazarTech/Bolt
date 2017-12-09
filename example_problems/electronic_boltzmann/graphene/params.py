@@ -8,10 +8,32 @@ import arrayfire as af
 fields_initialize = 'user-defined'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'electrostatic'
+fields_type   = 'electrostatic'
+fields_solver = 'SNES'
 
 # Can be defined as 'strang' and 'lie'
 time_splitting = 'strang'
+
+# Method in q-space
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
+
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
+
+riemann_solver = 'upwind-flux'
+
+# Restart(Set to zero for no-restart):
+t_restart = 0
+
+# File-writing Parameters:
+# Set to zero for no file-writing
+dt_dump_f       = 0.1
+dt_dump_moments = 0.01 
+
+# Time parameters:
+N_cfl   = 0.45
+t_final = 10
 
 # Dimensionality considered in velocity space:
 p_dim = 2
@@ -24,7 +46,7 @@ mass_particle      = 0.910938356 # x 1e-30 kg
 h_bar              = 1.0545718e-4 # x aJ ps
 boltzmann_constant = 1
 charge_electron    = -0.160217662 # x aC
-speed_of_light     = 300 # x [um/ps]
+speed_of_light     = 300. # x [um/ps]
 fermi_velocity     = speed_of_light/300
 epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
 
@@ -44,23 +66,22 @@ vel_band = None
 collision_nonlinear_iters = 5
 
 # Variation of collisional-timescale parameter through phase space:
+@af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return (af.constant(1., q1.shape[0], q2.shape[1], 
-                        p1.shape[2], dtype = af.Dtype.f64
-                       )
-           )
+    return(1. * q1**0 * p1**0)
 
+@af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
-    return (af.constant(np.inf, q1.shape[0], q2.shape[1], 
-                        p1.shape[2], dtype = af.Dtype.f64
-                       )
-           )
+    return(np.inf * q1**0 * p1**0)
 
 def band_energy(p_x, p_y):
     
     p = af.sqrt(p_x**2. + p_y**2.)
+    
+    E_upper = p*fermi_velocity
 
-    return(p*fermi_velocity)
+    af.eval(E_upper)
+    return(E_upper)
 
 def band_velocity(p_x, p_y):
 
@@ -71,5 +92,6 @@ def band_velocity(p_x, p_y):
 
     upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
 
+    af.eval(upper_band_velocity[0], upper_band_velocity[1])
     return(upper_band_velocity)
 

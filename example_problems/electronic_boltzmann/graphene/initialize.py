@@ -5,13 +5,15 @@ the system.
 
 import arrayfire as af
 import numpy as np
+from petsc4py import PETSc
 
 def initialize_f(q1, q2, p1, p2, p3, params):
    
-    print("Initializing f")
+    PETSc.Sys.Print("Initializing f")
+
     k = params.boltzmann_constant
     
-    params.mu          = 0.*q1 + 0.01
+    params.mu          = 0.*q1 + 0.*0.01
     params.T           = 0.*q1 + 3e-4*4.
     params.vel_drift_x = 0.*q1
     params.vel_drift_y = 0.*q1
@@ -28,14 +30,15 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     E_upper = params.E_band + params.charge_electron*params.phi
 
     f = (1./(af.exp( (E_upper - params.vel_drift_x*p1 
-                             - params.vel_drift_y*p2 
-                             - params.mu
+                              - params.vel_drift_y*p2 
+                              - params.mu
                     )/(k*params.T) 
                   ) + 1.
            ))
 
     af.eval(f)
     return(f)
+
 
 def initialize_E(q1, q2, params):
     

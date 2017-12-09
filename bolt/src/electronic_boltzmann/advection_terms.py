@@ -1,13 +1,20 @@
-import numpy as np
-import arrayfire as af
+#import numpy as np
+#import arrayfire as af
 
-@af.broadcast
+#@af.broadcast
 def A_q(q1, q2, p1, p2, p3, params):
     """Return the terms A_q1, A_q2."""
     
     A_q1, A_q2 = params.vel_band
 
     return (A_q1, A_q2)
+
+def C_q(q1, q2, p1, p2, p3, params):
+    """Return the terms A_q1, A_q2."""
+    
+    C_q1, C_q2 = params.vel_band
+
+    return (C_q1, C_q2)
 
 # This can then be called inside A_p if needed:
 # F1 = (params.char....)(E1 + ....) + T1(q1, q2, p1, p2, p3)
@@ -29,8 +36,11 @@ def A_p(q1, q2, p1, p2, p3,
     dp3_dt = 0.
 
     #dp1_dt = 1e-5*e*0.5*(-af.tanh(100.*(q1 - 0.9)) - af.tanh(100.*(q1 - 0.1)) )
-    amplitude   = 1e-3
+    amplitude   = 1e-2
     E1_analytic = amplitude * -(q1 - 5.)
     dp1_dt      = E1_analytic
+
+    #E2_analytic = amplitude * -(q2 - 5.)
+    #dp2_dt      = E2_analytic
     
     return (dp1_dt, dp2_dt, dp3_dt)
