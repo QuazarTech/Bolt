@@ -106,25 +106,22 @@ def test_fdtd_mode1():
 
         obj = test(N[i])
 
-        dt   = obj.dq1 * np.sqrt(9/5) / 2
-        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
+        dt   = obj.dq1 / 2
+        time = np.arange(dt, 1 + dt, dt)
 
         N_g = obj.N_ghost
 
-        A3 = af.sin(  2 * np.pi * (obj.q1_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                    + 4 * np.pi * (obj.q2_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                   )
+        A3 = af.sin(2 * np.pi * (obj.q1_left_bot - 0.5 * dt) + 4 * np.pi * (obj.q2_left_bot - 0.5 * dt))
 
         B1_fdtd = (af.shift(A3, 0, 0, -1) - A3) / obj.dq2
         B2_fdtd = -(af.shift(A3, 0, -1) - A3) / obj.dq1
 
-        E3_fdtd = -6 * np.pi * np.sqrt(5/9) * af.cos(  2 * np.pi * obj.q1_left_bot
-                                                     + 4 * np.pi * obj.q2_left_bot
-                                                    )
+        E3_fdtd = 6 * np.pi * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
         obj.yee_grid_EM_fields[2] = E3_fdtd
         obj.yee_grid_EM_fields[3] = B1_fdtd
         obj.yee_grid_EM_fields[4] = B2_fdtd
+
 
         E3_initial = obj.yee_grid_EM_fields[2].copy()
         B1_initial = obj.yee_grid_EM_fields[3].copy()
@@ -133,6 +130,9 @@ def test_fdtd_mode1():
         obj.J1, obj.J2, obj.J3 = 0, 0, 0
     
         for time_index, t0 in enumerate(time):
+            obj.J3 = -16 * np.pi**2 * af.sin(  2 * np.pi * (obj.q1_left_bot - t0 + 0.5 * dt) 
+                                             + 4 * np.pi * (obj.q2_left_bot - t0 + 0.5 * dt)
+                                            )
             fdtd(obj, dt)
         
         error_B1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] -
@@ -154,39 +154,35 @@ def test_fdtd_mode1():
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
 
-    assert (abs(poly_B1[0] + 2) < 0.2)
-    assert (abs(poly_B2[0] + 2) < 0.2) 
-    assert (abs(poly_E3[0] + 2) < 0.2)
+    assert (abs(poly_B1[0] + 2) < 0.25)
+    assert (abs(poly_B2[0] + 2) < 0.25) 
+    assert (abs(poly_E3[0] + 2) < 0.25)
 
 
 def test_fdtd_mode2():
 
-    error_E1 = np.zeros(5)
-    error_E2 = np.zeros(5)
-    error_B3 = np.zeros(5)
+    error_E1 = np.zeros(3)
+    error_E2 = np.zeros(3)
+    error_B3 = np.zeros(3)
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     for i in range(N.size):
 
         obj = test(N[i])
-
-        dt   = obj.dq1 * np.sqrt(9/5) / 2
-        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
-
         N_g = obj.N_ghost
 
         E1_fdtd = 6 * np.pi * np.sqrt(5/9) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
         E2_fdtd = -3 * np.pi * np.sqrt(5/9) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
-        B3_fdtd = -5 * np.pi * af.cos(  2 * np.pi * (obj.q1_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                                      + 4 * np.pi * (obj.q2_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                                     )
+        B3_fdtd = -5 * np.pi * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
 
         obj.yee_grid_EM_fields[0, N_g:-N_g, N_g:-N_g] = E1_fdtd[:, N_g:-N_g, N_g:-N_g]
         obj.yee_grid_EM_fields[1, N_g:-N_g, N_g:-N_g] = E2_fdtd[:, N_g:-N_g, N_g:-N_g]
         obj.yee_grid_EM_fields[5, N_g:-N_g, N_g:-N_g] = B3_fdtd[:, N_g:-N_g, N_g:-N_g]
 
+        dt   = obj.dq1 * np.sqrt(9/5) / 2
+        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
         
         B3_initial = obj.yee_grid_EM_fields[5].copy()
         E1_initial = obj.yee_grid_EM_fields[0].copy()
@@ -219,3 +215,5 @@ def test_fdtd_mode2():
     assert (abs(poly_E1[0] + 2) < 0.2)
     assert (abs(poly_E2[0] + 2) < 0.2)
     assert (abs(poly_B3[0] + 2) < 0.2)
+
+test_fdtd_mode1()
