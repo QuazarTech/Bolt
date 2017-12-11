@@ -94,7 +94,7 @@ class test(object):
     _communicate_fields = communicate_fields
 
 
-def test_fdtd_mode1():
+def test_fdtd_modeTM():
 
     error_B1 = np.zeros(3)
     error_B2 = np.zeros(3)
@@ -159,7 +159,7 @@ def test_fdtd_mode1():
     assert (abs(poly_E3[0] + 2) < 0.25)
 
 
-def test_fdtd_mode2():
+def test_fdtd_modeTE():
 
     error_E1 = np.zeros(3)
     error_E2 = np.zeros(3)
