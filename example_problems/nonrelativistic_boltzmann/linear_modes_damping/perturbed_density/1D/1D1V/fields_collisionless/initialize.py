@@ -11,7 +11,7 @@ def initialize_E(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
     
-    E1 =   params.charge_electron * k_q1/(k_q1**2 + k_q2**2) \
+    E1 =   params.charge_electron * k_q2/(k_q1**2 + k_q2**2) \
          * (  params.pert_real * af.sin(k_q1 * q1 + k_q2 * q2) 
             + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
            )
@@ -44,14 +44,15 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     pert_imag = params.pert_imag
 
     k_q1 = params.k_q1
+    k_q2 = params.k_q2
 
     # Calculating the perturbed density:
-    rho = rho_b + (  pert_real * af.cos(k_q1 * q1)
-                   - pert_imag * af.sin(k_q1 * q1)
+    rho = rho_b + (  pert_real * af.cos(k_q1 * q1 + k_q2 * q2)
+                   - pert_imag * af.sin(k_q1 * q1 + k_q2 * q2)
                   )
 
     f = rho * np.sqrt(m / (2 * np.pi * k * T_b)) \
-            * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b))
+            * af.exp(-m * (p2 - p1_bulk)**2 / (2 * k * T_b))
 
     af.eval(f)
     return (f)
