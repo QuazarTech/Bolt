@@ -26,11 +26,11 @@ def fdtd_evolve_E(self, dt):
     B3_shifted_q1 = af.shift(B3, 0, 1, 0)
     B3_shifted_q2 = af.shift(B3, 0, 0, 1)
 
-    self.yee_grid_EM_fields[0] +=   (dt / dq2) * (B3 - B3_shifted_q2) - self.J1 * dt
-    self.yee_grid_EM_fields[1] +=  -(dt / dq1) * (B3 - B3_shifted_q1) - self.J2 * dt
+    self.yee_grid_EM_fields[0] +=   (dt / dq2) * (B3 - B3_shifted_q2) - 0 * self.J1 * dt
+    self.yee_grid_EM_fields[1] +=  -(dt / dq1) * (B3 - B3_shifted_q1) - 0 * self.J2 * dt
     self.yee_grid_EM_fields[2] +=   (dt / dq1) * (B2 - B2_shifted_q1) \
                                   - (dt / dq2) * (B1 - B1_shifted_q2) \
-                                  - dt * self.J3
+                                  - 0 * dt * self.J3
 
     af.eval(self.yee_grid_EM_fields)
 

@@ -48,8 +48,8 @@ def fvm_timestep_RK2(self, dt):
 
         self.cell_centered_EM_fields_at_n_plus_half[3:] = self.cell_centered_EM_fields[3:]
 
-        # fdtd(self, dt)
-        # fdtd_grid_to_ck_grid(self)
+        fdtd(self, dt)
+        fdtd_grid_to_ck_grid(self)
 
         # Here
         # cell_centered_EM_fields[:3] is at n+1
