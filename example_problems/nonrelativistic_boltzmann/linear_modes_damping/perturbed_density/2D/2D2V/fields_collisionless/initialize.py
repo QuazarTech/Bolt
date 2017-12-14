@@ -30,9 +30,9 @@ def initialize_B(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
 
-    B1 = 0.01 * af.sin(k_q1 * q1 + k_q2 * q2)
-    B2 = -0.005 * af.sin(k_q1 * q1 + k_q2 * q2) 
-    B3 = af.cos(2 * np.pi * q1 + 4 * np.pi * q2)
+    B1 = 0.01 * q1**0
+    B2 = 0.02 * q1**0 
+    B3 = 0.03 * q1**0
 
     return(B1, B2, B3)
 
