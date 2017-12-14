@@ -38,8 +38,8 @@ p1_bulk_background = 0
 p2_bulk_background = 0
 p3_bulk_background = 0
 
-pert_real = 0.01
-pert_imag = 0.02
+pert_real = 0.00001
+pert_imag = 0.00002
 
 k_q1 = 2 * np.pi
 k_q2 = 4 * np.pi
