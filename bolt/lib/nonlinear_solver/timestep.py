@@ -16,23 +16,23 @@ from .interpolation_routines import f_interp_2d
 from .EM_fields_solver.fields_step import fields_step
 
 
-def check_maxwells_constraint_equations(self):
+# def check_maxwells_constraint_equations(self):
     
-    N_g = self.N_ghost
+#     N_g = self.N_ghost
 
-    rhoc =    self.physical_system.params.charge_electron \
-           * (self.compute_moments('density') - 1)
+#     rhoc =    self.physical_system.params.charge_electron \
+#            * (self.compute_moments('density') - 1)
 
-    rho = 0.25 * (rhoc + af.shift(rhoc, 0, 1) + af.shift(rhoc, 0, 0, 1) + af.shift(rhoc, 0, 1, 1))
+#     rho = 0.25 * (rhoc + af.shift(rhoc, 0, 1) + af.shift(rhoc, 0, 0, 1) + af.shift(rhoc, 0, 1, 1))
 
-    gradE = + (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, 1))/self.dq1 \
-            + (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, 1))/self.dq2
+#     gradE = + (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, 1))/self.dq1 \
+#             + (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, 1))/self.dq2
 
-    gradB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 1))/self.dq1 \
-            + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 1))/self.dq2
+#     gradB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 1))/self.dq1 \
+#             + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 1))/self.dq2
 
-    print('MEAN(|gradB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
-    print('MEAN(|gradE - rho|) =', af.mean(af.abs(gradE - rho)[0, N_g:-N_g, N_g:-N_g]))
+#     print('MEAN(|gradB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
+#     print('MEAN(|gradE - rho|) =', af.mean(af.abs(gradE - rho)[0, N_g:-N_g, N_g:-N_g]))
 
 # Defining the operators:
 # When using FVM:
@@ -200,7 +200,7 @@ def strang_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    check_maxwells_constraint_equations(self)
+    # check_maxwells_constraint_equations(self)
     self.dt = dt
 
     if(self.performance_test_flag == True):

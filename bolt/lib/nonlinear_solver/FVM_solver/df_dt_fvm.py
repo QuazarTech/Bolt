@@ -129,10 +129,6 @@ def df_dt_fvm(f, self, at_n = True):
             B2 = self.cell_centered_EM_fields[4]
             B3 = self.cell_centered_EM_fields[5]
 
-        print(af.mean(B1))
-        print(af.mean(B2))
-        print(af.mean(B3))
-
         (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                           self.p1, self.p2, self.p3,
                                           E1, E2, E3, B1, B2, B3,

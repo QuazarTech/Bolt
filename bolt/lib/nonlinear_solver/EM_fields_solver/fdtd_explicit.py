@@ -99,10 +99,10 @@ def fdtd(self, dt):
     # The communicate function transfers the data from the local vectors
     # to the global vectors, in addition to dealing with the
     # boundary conditions:
+    self._communicate_fields(True)
     fdtd_evolve_E(self, dt)
     self._communicate_fields(True)
     fdtd_evolve_B(self, dt)
-    self._communicate_fields(True)
     return
 
 def fdtd_grid_to_ck_grid(self):
