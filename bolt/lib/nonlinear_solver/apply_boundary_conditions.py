@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+import time
 
 def apply_shearing_box_bcs_f(self, boundary):
     
@@ -13,51 +14,61 @@ def apply_shearing_box_bcs_f(self, boundary):
     L_q2  = self.q2_end - self.q2_start
 
     if(boundary == 'left'):
-        
         sheared_coordinates = self.q2_center[:, :N_g] - q * omega * L_q1 * self.time_elapsed
-
+        
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
-            sheared_coordinates = af.select(sheared_coordinates>self.self.q2_end,
+            sheared_coordinates = af.select(sheared_coordinates>self.q2_end,
                                             sheared_coordinates - L_q2,
                                             sheared_coordinates
                                            )
 
         while(af.sum(sheared_coordinates<self.q2_start) != 0):
-            sheared_coordinates = af.select(sheared_coordinates<self.self.q2_start,
+            sheared_coordinates = af.select(sheared_coordinates<self.q2_start,
                                             sheared_coordinates + L_q2,
                                             sheared_coordinates
                                            )
 
-        self.f[:, :N_g] = af.reorder(af.approx1(af.reorder(self.f[:, :N_g]),
-                                                af.reorder(sheared_coordinates),
-                                                af.INTERP.CUBIC_SPLINE,
-                                                xp = self.q2_center
-                                               )
+        # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
+        # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
+
+        self.f[:, :N_g] = af.reorder(af.approx2(af.reorder(self.f[:, :N_g], 1, 2, 0),
+                                                af.reorder(self.q1_center[:, :N_g], 1, 2, 0),
+                                                af.reorder(sheared_coordinates, 1, 2, 0),
+                                                af.INTERP.BICUBIC_SPLINE,
+                                                xp = af.reorder(self.q1_center[:, :N_g], 1, 2, 0),
+                                                yp = af.reorder(self.q2_center[:, :N_g], 1, 2, 0)
+                                               ),
+                                     2, 0, 1
                                     )
-
+        
     elif(boundary == 'right'):
-
         sheared_coordinates = self.q2_center[:, -N_g:] + q * omega * L_q1 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
-            sheared_coordinates = af.select(sheared_coordinates>self.self.q2_end,
+            sheared_coordinates = af.select(sheared_coordinates>self.q2_end,
                                             sheared_coordinates - L_q2,
                                             sheared_coordinates
                                            )
 
         while(af.sum(sheared_coordinates<self.q2_start) != 0):
-            sheared_coordinates = af.select(sheared_coordinates<self.self.q2_start,
+            sheared_coordinates = af.select(sheared_coordinates<self.q2_start,
                                             sheared_coordinates + L_q2,
                                             sheared_coordinates
                                            )
 
-        self.f[:, -N_g:] = af.reorder(af.approx1(af.reorder(self.f[:, -N_g:]),
-                                                 af.reorder(sheared_coordinates),
-                                                 af.INTERP.CUBIC_SPLINE,
-                                                 xp = self.q2_center
-                                                )
+        # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
+        # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
+
+        self.f[:, -N_g:] = af.reorder(af.approx2(af.reorder(self.f[:, -N_g:], 1, 2, 0),
+                                                 af.reorder(self.q1_center[:, -N_g:], 1, 2, 0),
+                                                 af.reorder(sheared_coordinates, 1, 2, 0),
+                                                 af.INTERP.BICUBIC_SPLINE,
+                                                 xp = af.reorder(self.q1_center[:, -N_g:], 1, 2, 0),
+                                                 yp = af.reorder(self.q2_center[:, -N_g:], 1, 2, 0)
+                                                ),
+                                      2, 0, 1
                                      )
 
     elif(boundary == 'bottom'):
@@ -66,23 +77,27 @@ def apply_shearing_box_bcs_f(self, boundary):
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
-            sheared_coordinates = af.select(sheared_coordinates>self.self.q1_end,
+            sheared_coordinates = af.select(sheared_coordinates>self.q1_end,
                                             sheared_coordinates - L_q1,
                                             sheared_coordinates
                                            )
 
         while(af.sum(sheared_coordinates<self.q1_start) != 0):
-            sheared_coordinates = af.select(sheared_coordinates<self.self.q1_start,
+            sheared_coordinates = af.select(sheared_coordinates<self.q1_start,
                                             sheared_coordinates + L_q1,
                                             sheared_coordinates
                                            )
 
-        self.f[:, :, :N_g] = af.reorder(af.approx1(af.reorder(self.f[:, :, :N_g], 2, 1, 0),
-                                                   af.reorder(sheared_coordinates, 2, 1, 0),
-                                                   af.INTERP.CUBIC_SPLINE,
-                                                   xp = self.q1_center
+        # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
+        # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
+        self.f[:, :, :N_g] = af.reorder(af.approx2(af.reorder(self.f[:, :, :N_g], 1, 2, 0),
+                                                   af.reorder(sheared_coordinates, 1, 2, 0),
+                                                   af.reorder(self.q2_center[:, :, :N_g], 1, 2, 0),
+                                                   af.INTERP.BICUBIC_SPLINE,
+                                                   xp = af.reorder(self.q1_center[:, :, :N_g], 1, 2, 0),
+                                                   yp = af.reorder(self.q2_center[:, :, :N_g], 1, 2, 0)
                                                   ),
-                                        2, 1, 0
+                                        2, 0, 1
                                        )
 
     elif(boundary == 'top'):
@@ -91,23 +106,27 @@ def apply_shearing_box_bcs_f(self, boundary):
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
-            sheared_coordinates = af.select(sheared_coordinates>self.self.q1_end,
+            sheared_coordinates = af.select(sheared_coordinates>self.q1_end,
                                             sheared_coordinates - L_q1,
                                             sheared_coordinates
                                            )
 
         while(af.sum(sheared_coordinates<self.q1_start) != 0):
-            sheared_coordinates = af.select(sheared_coordinates<self.self.q1_start,
+            sheared_coordinates = af.select(sheared_coordinates<self.q1_start,
                                             sheared_coordinates + L_q1,
                                             sheared_coordinates
                                            )
-
-        self.f[:, :, -N_g:] = af.reorder(af.approx1(af.reorder(self.f[:, :, -N_g:], 2, 1, 0),
-                                                   af.reorder(sheared_coordinates, 2, 1, 0),
-                                                   af.INTERP.CUBIC_SPLINE,
-                                                   xp = self.q1_center
-                                                  ),
-                                         2, 1, 0
+        
+        # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
+        # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
+        self.f[:, :, -N_g:] = af.reorder(af.approx2(af.reorder(self.f[:, :, -N_g:], 1, 2, 0),
+                                                    af.reorder(sheared_coordinates, 1, 2, 0),
+                                                    af.reorder(self.q2_center[:, :, -N_g:], 1, 2, 0),
+                                                    af.INTERP.BICUBIC_SPLINE,
+                                                    xp = af.reorder(self.q1_center[:, :, -N_g:], 1, 2, 0),
+                                                    yp = af.reorder(self.q2_center[:, :, -N_g:], 1, 2, 0)
+                                                   ),
+                                         2, 0, 1
                                         )
 
     else:
@@ -290,21 +309,9 @@ def apply_bcs_f(self):
         
         # This is automatically handled by the PETSc function globalToLocal()
         elif(self.boundary_conditions.in_q1_left == 'periodic'):
-            try:
-                assert(self.boundary_conditions.in_q1_right == 'periodic')
-            except:
-                raise Exception('Periodic boundary conditions need to be applied to \
-                                 both the boundaries of a particular axis'
-                               )
             pass
 
         elif(self.boundary_conditions.in_q1_left == 'shearing-box'):
-            try:
-                assert(self.boundary_conditions.in_q1_right == 'shearing-box')
-            except:
-                raise Exception('Shearing box boundary conditions need to be applied to \
-                                 both the boundaries of a particular axis'
-                               )
             apply_shearing_box_bcs_f(self, 'left')
 
         else:
@@ -348,22 +355,9 @@ def apply_bcs_f(self):
         
         # This is automatically handled by the PETSc function globalToLocal()
         elif(self.boundary_conditions.in_q2_bottom == 'periodic'):
-            try:
-                assert(self.boundary_conditions.in_q2_top == 'periodic')
-            except:
-                raise Exception('Periodic boundary conditions need to be applied to \
-                                 both the boundaries of a particular axis'
-                               )
             pass
 
-
         elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
-            try:
-                assert(self.boundary_conditions.in_q2_top == 'shearing-box')
-            except:
-                raise Exception('Shearing box boundary conditions need to be applied to \
-                                 both the boundaries of a particular axis'
-                               )
             apply_shearing_box_bcs_f(self, 'bottom')
 
         else:
@@ -580,6 +574,9 @@ def apply_bcs_fields(self):
                                )
             pass
 
+        elif(self.boundary_conditions.in_q1_left == 'shearing-box'):
+            pass
+
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
     
@@ -598,6 +595,9 @@ def apply_bcs_fields(self):
         
         # This is automatically handled by the PETSc function globalToLocal()
         elif(self.boundary_conditions.in_q1_right == 'periodic'):
+            pass
+
+        elif(self.boundary_conditions.in_q1_right == 'shearing-box'):
             pass
 
         else:
@@ -626,6 +626,9 @@ def apply_bcs_fields(self):
                                )
             pass
 
+        elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
+            pass
+
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
 
@@ -644,6 +647,9 @@ def apply_bcs_fields(self):
         
         # This is automatically handled by the PETSc function globalToLocal()
         elif(self.boundary_conditions.in_q2_top == 'periodic'):
+            pass
+
+        elif(self.boundary_conditions.in_q2_top == 'shearing-box'):
             pass
 
         else:

@@ -164,11 +164,57 @@ class nonlinear_solver(object):
         # boundary conditions when running in parallel. In all other
         # cases, ghosted boundaries are used.
 
-        if(self.boundary_conditions.in_q1_left == 'periodic'):
+        if(   self.boundary_conditions.in_q1_left == 'periodic'
+           or self.boundary_conditions.in_q1_left == 'shearing-box'
+          ):
             petsc_bc_in_q1 = 'periodic'
 
-        if(self.boundary_conditions.in_q2_bottom == 'periodic'):
+        if(   self.boundary_conditions.in_q2_bottom == 'periodic'
+           or self.boundary_conditions.in_q2_bottom == 'shearing-box'
+          ):
             petsc_bc_in_q2 = 'periodic'
+
+        if(self.boundary_conditions.in_q1_left == 'periodic'):
+            try:
+                assert(self.boundary_conditions.in_q1_right == 'periodic')
+            except:
+                raise Exception('Periodic boundary conditions need to be applied to \
+                                 both the boundaries of a particular axis'
+                               )
+        
+        if(self.boundary_conditions.in_q1_left == 'shearing-box'):
+            try:
+                assert(self.boundary_conditions.in_q1_right == 'shearing-box')
+            except:
+                raise Exception('Shearing box boundary conditions need to be applied to \
+                                 both the boundaries of a particular axis'
+                               )
+
+        if(self.boundary_conditions.in_q2_bottom == 'periodic'):
+            try:
+                assert(self.boundary_conditions.in_q2_top == 'periodic')
+            except:
+                raise Exception('Periodic boundary conditions need to be applied to \
+                                 both the boundaries of a particular axis'
+                               )
+
+        if(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
+            try:
+                assert(self.boundary_conditions.in_q2_top == 'shearing-box')
+            except:
+                raise Exception('Shearing box boundary conditions need to be applied to \
+                                 both the boundaries of a particular axis'
+                               )
+
+        nproc_in_q1 = PETSc.DECIDE
+        nproc_in_q2 = PETSc.DECIDE
+
+        # Since shearing boundary conditions require interpolations which are non-local:
+        if(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
+            nproc_in_q1 = 1
+        
+        if(self.boundary_conditions.in_q1_left == 'shearing-box'):
+            nproc_in_q2 = 1
 
         # DMDA is a data structure to handle a distributed structure 
         # grid and its related core algorithms. It stores metadata of
@@ -184,8 +230,8 @@ class nonlinear_solver(object):
                                          boundary_type = (petsc_bc_in_q1,
                                                           petsc_bc_in_q2
                                                          ),
-                                         proc_sizes    = (PETSc.DECIDE, 
-                                                          PETSc.DECIDE
+                                         proc_sizes    = (nproc_in_q1, 
+                                                          nproc_in_q2
                                                          ),
                                          stencil_type  = 1,
                                          comm          = self._comm
@@ -201,8 +247,8 @@ class nonlinear_solver(object):
                                               boundary_type = (petsc_bc_in_q1,
                                                                petsc_bc_in_q2
                                                               ),
-                                              proc_sizes    = (PETSc.DECIDE,
-                                                               PETSc.DECIDE
+                                              proc_sizes    = (nproc_in_q1, 
+                                                               nproc_in_q2
                                                               ),
                                               stencil_type  = 1,
                                               comm          = self._comm
@@ -217,8 +263,8 @@ class nonlinear_solver(object):
                                             boundary_type = (petsc_bc_in_q1,
                                                              petsc_bc_in_q2
                                                             ),
-                                            proc_sizes    = (PETSc.DECIDE,
-                                                             PETSc.DECIDE
+                                            proc_sizes    = (nproc_in_q1, 
+                                                             nproc_in_q2
                                                             ),
                                             stencil_type  = 1,
                                             comm          = self._comm
@@ -230,8 +276,8 @@ class nonlinear_solver(object):
                                                                      physical_system.
                                                                      moment_exponents
                                                                     ),
-                                                    proc_sizes = (PETSc.DECIDE,
-                                                                  PETSc.DECIDE
+                                                    proc_sizes = (nproc_in_q1, 
+                                                                  nproc_in_q2
                                                                  ),
                                                     comm       = self._comm
                                                    )
