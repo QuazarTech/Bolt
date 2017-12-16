@@ -33,9 +33,10 @@ def communicate_f(self):
         af.flat(self.f).to_ndarray(self._local_f_array)
 
     # Global value is non-inclusive of the ghost-zones:
-    af.moddims(self.f[:, N_g:-N_g, N_g:-N_g], 
-               self.f[:, N_g:-N_g, N_g:-N_g].elements()
-              ).to_ndarray(self._glob_f_array)
+    af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
+    # af.moddims(self.f[:, N_g:-N_g, N_g:-N_g], 
+    #            self.f[:, N_g:-N_g, N_g:-N_g].elements()
+    #           ).to_ndarray(self._glob_f_array)
 
     # The following function takes care of interzonal communications
     # Additionally, it also automatically applies periodic BCs when necessary

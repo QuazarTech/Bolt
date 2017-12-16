@@ -37,6 +37,7 @@ slope                  = 10
 
 p1_bulk_background = 0
 p2_bulk_background = 0
+p3_bulk_background = 0
 
 # Time parameters:
 N_cfl   = 0.32
