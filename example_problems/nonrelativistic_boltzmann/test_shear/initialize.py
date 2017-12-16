@@ -25,7 +25,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     f = rho * (m / (2 * np.pi * k * T_b))**(3/2) \
             * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
-            * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T_b))
+            * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T_b)) \
             * af.exp(-m * (p3 - p3_bulk)**2 / (2 * k * T_b))
 
     af.eval(f)
