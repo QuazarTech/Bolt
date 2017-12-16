@@ -20,10 +20,10 @@ reconstruction_method_in_p = 'weno5'
 riemann_solver = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
-p_dim = 1
+p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 4
 
 # Constants:
 mass_particle      = 1
@@ -37,12 +37,6 @@ slope                  = 10
 
 p1_bulk_background = 0
 p2_bulk_background = 0
-
-pert_real = 0.01
-pert_imag = 0.02
-
-k_q1 = 2 * np.pi
-k_q2 = 0 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32

@@ -68,14 +68,12 @@ nls = nonlinear_solver(system)
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array = np.arange(0, params.t_final + dt, dt)
-n          = nls.compute_moments('density')
+# time_array = np.arange(0, params.t_final + dt, dt)
+# n          = nls.compute_moments('density')
 
-for time_index, t0 in enumerate(time_array[1:]):
-
+# for time_index, t0 in enumerate(time_array[1:]):
+for time_index in range(100):
     nls.strang_timestep(dt)
-    n = nls.compute_moments('density')
-    
     # pl.contourf(np.array(af.reorder(nls.q1_center, 1, 2, 0)), 
     #             np.array(af.reorder(nls.q2_center, 1, 2, 0)),
     #             np.array(af.reorder(n, 1, 2, 0)),
