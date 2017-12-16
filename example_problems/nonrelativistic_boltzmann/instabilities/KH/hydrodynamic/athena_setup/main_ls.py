@@ -5,8 +5,8 @@ from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear_solver.linear_solver \
+    import linear_solver
 
 import domain
 import boundary_conditions
@@ -30,24 +30,24 @@ system = physical_system(domain,
                          moment_defs
                         )
 
-# Declaring a linear system object which will evolve the defined physical system:
-nls = nonlinear_solver(system)
+# Declaring a nonlinear system object which will evolve the defined physical system:
+ls = linear_solver(system)
 # Timestep as set by the CFL condition:
-dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+dt = params.N_cfl * min(ls.dq1, ls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
 if(params.t_restart == 0):
     time_elapsed = 0
-    nls.dump_distribution_function('dump_f/t=0.000')
-    nls.dump_moments('dump_moments/t=0.000')
+    ls.dump_distribution_function('dump_f/t=0.000')
+    ls.dump_moments('dump_moments/t=0.000')
 
 else:
     time_elapsed = params.t_restart
-    nls.load_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
+    ls.load_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
 while(time_elapsed < params.t_final):
     
-    nls.strang_timestep(dt)
+    ls.RK4_timestep(dt)
     time_elapsed += dt
 
     if(params.dt_dump_moments != 0):
@@ -59,11 +59,11 @@ while(time_elapsed < params.t_final):
                    * params.dt_dump_moments
 
         if(delta_dt<dt):
-            nls.strang_timestep(delta_dt)
-            nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
+            ls.strang_timestep(delta_dt)
+            ls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
             time_elapsed += delta_dt
 
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
-        nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
+        ls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
     PETSc.Sys.Print('Time = %.5f'%time_elapsed)
