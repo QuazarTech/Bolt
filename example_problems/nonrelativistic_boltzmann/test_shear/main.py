@@ -1,5 +1,6 @@
 import arrayfire as af
 import numpy as np
+from petsc4py import PETSc
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
@@ -49,6 +50,9 @@ pl.rcParams['ytick.minor.pad']  = 8
 pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
+
+nproc       = PETSc.COMM_WORLD.size
+domain.N_q1 = nproc * domain.N_q1
 
 # Defining the physical system to be solved:
 system = physical_system(domain,

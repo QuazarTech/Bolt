@@ -1,10 +1,10 @@
 q1_start = 0
 q1_end   = 1
-N_q1     = 32
+N_q1     = 8
 
 q2_start = 0
 q2_end   = 1
-N_q2     = 32
+N_q2     = 256
 
 p1_start = -8
 p1_end   = 8
