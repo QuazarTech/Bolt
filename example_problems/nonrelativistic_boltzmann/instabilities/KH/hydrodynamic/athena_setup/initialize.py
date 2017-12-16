@@ -13,22 +13,39 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     rho = af.select(af.abs(q2)>0.25, q1**0, 2)
 
-    p1_bulk = af.select(af.abs(q2)>0.25, 
-                        -0.5 - 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
-                                               dtype = af.Dtype.f64
-                                              ) - 0.5
-                                     ),
-                        +0.5 + 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
-                                                dtype = af.Dtype.f64
-                                               ) - 0.5
-                                      )
-                       )
-   
-    p2_bulk = 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
-                               dtype = af.Dtype.f64
-                              ) - 0.5
-                     )
-    
+    try:
+        p1_bulk = af.select(af.abs(q2)>0.25, 
+                            -0.5 - 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
+                                                   dtype = af.Dtype.f64
+                                                  ) - 0.5
+                                         ),
+                            +0.5 + 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
+                                                    dtype = af.Dtype.f64
+                                                   ) - 0.5
+                                          )
+                           )
+       
+        p2_bulk = 0.01 * (af.randu(1, q1.shape[1], q2.shape[2], 
+                                   dtype = af.Dtype.f64
+                                  ) - 0.5
+                         )
+    except:
+        p1_bulk = af.select(af.abs(q2)>0.25, 
+                            -0.5 - 0.01 * (af.randu(q1.shape[0], q2.shape[1], 
+                                                   dtype = af.Dtype.f64
+                                                  ) - 0.5
+                                         ),
+                            +0.5 + 0.01 * (af.randu(q1.shape[0], q2.shape[1], 
+                                                    dtype = af.Dtype.f64
+                                                   ) - 0.5
+                                          )
+                           )
+       
+        p2_bulk = 0.01 * (af.randu(q1.shape[0], q2.shape[1], 
+                                   dtype = af.Dtype.f64
+                                  ) - 0.5
+                         )
+
     T = (2.5 / rho)
 
     f = rho * (m / (2 * np.pi * k * T))**(3 / 2) \

@@ -5,7 +5,7 @@ from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 
-from bolt.lib.nonlinear_solver.linear_solver \
+from bolt.lib.linear_solver.linear_solver \
     import linear_solver
 
 import domain
@@ -59,7 +59,7 @@ while(time_elapsed < params.t_final):
                    * params.dt_dump_moments
 
         if(delta_dt<dt):
-            ls.strang_timestep(delta_dt)
+            ls.RK4_timestep(delta_dt)
             ls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
             time_elapsed += delta_dt
 
