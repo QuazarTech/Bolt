@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 import pylab as pl
 import h5py
 import domain
@@ -34,7 +36,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-time = np.arange(0, params.t_final + params.dt_dump_moments, 
+time = np.arange(0.009, params.t_final + params.dt_dump_moments, 
                  params.dt_dump_moments
                 )
 

@@ -30,3 +30,10 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     af.eval(f)
     return (f)
+
+def initialize_E(q1, q2, params):
+  return(0*q1**0, 0*q1**0, 0*q1**0)
+
+def initialize_B(q1, q2, params):
+  return(0*q1**0, 0*q1**0, 0*q1**0)
+

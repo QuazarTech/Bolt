@@ -1,10 +1,10 @@
 q1_start = -0.5
 q1_end   = 0.5
-N_q1     = 64
+N_q1     = 32 
 
 q2_start = -0.5
 q2_end   = 0.5
-N_q2     = 64
+N_q2     = 32
 
 p1_start = -12
 p1_end   = 12
