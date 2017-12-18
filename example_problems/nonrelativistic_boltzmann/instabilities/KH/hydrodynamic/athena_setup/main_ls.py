@@ -60,8 +60,8 @@ while(time_elapsed < params.t_final):
 
         if(delta_dt<dt):
             ls.RK4_timestep(delta_dt)
-            ls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
             time_elapsed += delta_dt
+            ls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
 
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
         ls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
