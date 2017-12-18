@@ -129,7 +129,7 @@ def df_dt_fvm(f, self, at_n = True):
             B2 = self.cell_centered_EM_fields[4]
             B3 = self.cell_centered_EM_fields[5]
 
-        (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
+        (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.q1_center, self.q2_center,
                                           self.p1, self.p2, self.p3,
                                           E1, E2, E3, B1, B2, B3,
                                           self.physical_system.params
@@ -137,13 +137,13 @@ def df_dt_fvm(f, self, at_n = True):
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, A_p1, f)), 0, method_in_p)
+            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, C_p1, f)), 0, method_in_p)
         # Variation of p2 is along axis 1:
         bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, A_p2, f)), 1, method_in_p)
+            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, C_p2, f)), 1, method_in_p)
         # Variation of p3 is along axis 2:
         back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, A_p3, f)), 2, method_in_p)
+            reconstruct(self, self._convert_to_p_expanded(af.broadcast(multiply, C_p3, f)), 2, method_in_p)
 
         left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
         bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)

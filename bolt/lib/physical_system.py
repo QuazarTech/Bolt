@@ -175,6 +175,7 @@ class physical_system(object):
         self.A_q = advection_term.A_q
         self.C_q = advection_term.C_q
         self.A_p = advection_term.A_p
+        self.C_p = advection_term.C_p
 
         # Assigning the function which is used in computing the term on RHS:
         # Usually, this is taken as a relaxation type collision operator
