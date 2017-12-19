@@ -141,13 +141,13 @@ def df_dt_fvm(f, self, at_n = True):
 
         flux_p1[:3]     = 0
         flux_p1[:, :3]  = 0
-        flux_p1[-3:]    = 0
-        flux_p1[:, -3:] = 0
+        flux_p1[-3:]    = 0 * flux_p1[-3:]
+        flux_p1[:, -3:] = 0 * flux_p1[:, -3:]
         
         flux_p2[:3]     = 0
         flux_p2[:, :3]  = 0
-        flux_p2[-3:]    = 0
-        flux_p2[:, -3:] = 0
+        flux_p2[-3:]    = 0 * flux_p2[-3:]
+        flux_p2[:, -3:] = 0 * flux_p2[:, -3:]
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \

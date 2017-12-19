@@ -118,7 +118,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.001 
+    t_final = 0.1 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
