@@ -75,8 +75,8 @@ error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()
-    domain.N_p1 = N[i]
-    domain.N_p2 = N[i]
+    domain.N_p1 = int(N[i])
+    domain.N_p2 = int(N[i])
 
     # Defining the physical system to be solved:
     system = physical_system(domain,
@@ -116,7 +116,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1 
+    t_final = 0.001 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
@@ -203,8 +203,11 @@ for i in range(N.size):
 
     error[i] = af.mean(af.abs(nls.f[:, N_g, N_g + nls.N_q2/2] - f_initial[:, N_g, N_g + nls.N_q2/2]))
 
+print(error)
+
 pl.loglog(N, error, '-o', label = 'Numerical')
 pl.loglog(N, error[0] * 32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()
+pl.savefig('plot.png')

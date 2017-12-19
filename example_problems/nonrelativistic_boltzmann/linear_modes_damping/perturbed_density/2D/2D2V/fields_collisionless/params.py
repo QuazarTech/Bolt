@@ -8,14 +8,14 @@ import arrayfire as af
 fields_initialize = 'user-defined'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver = 'fft'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'minmod'
-reconstruction_method_in_p = 'minmod'
+reconstruction_method_in_q = 'piecewise-constant'
+reconstruction_method_in_p = 'piecewise-constant'
 
 riemann_solver = 'upwind-flux'
 
