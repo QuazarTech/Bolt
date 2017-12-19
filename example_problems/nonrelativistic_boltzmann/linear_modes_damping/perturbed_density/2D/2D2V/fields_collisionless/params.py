@@ -14,8 +14,8 @@ fields_solver = 'fdtd'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver = 'upwind-flux'
 
@@ -40,8 +40,8 @@ p2_bulk_background = 0
 pert_real = 0.01
 pert_imag = 0.02
 
-k_q1 = 2 * np.pi
-k_q2 = 4 * np.pi
+k_q1 = 2 * np.pi * 0.
+k_q2 = 4 * np.pi * 0.
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
