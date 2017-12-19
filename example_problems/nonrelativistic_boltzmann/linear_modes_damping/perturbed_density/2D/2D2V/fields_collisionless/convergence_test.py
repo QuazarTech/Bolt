@@ -70,8 +70,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N = 2**np.arange(5, 10)
-error = np.zeros(5)
+N = 2**np.arange(5, 8)
+error = np.zeros(3)
 
 for i in range(N.size):
     af.device_gc()

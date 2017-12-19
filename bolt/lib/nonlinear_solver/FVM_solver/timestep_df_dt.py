@@ -30,7 +30,7 @@ def fvm_timestep_RK2(self, dt):
         self.J1 = 0.5 * (self.J1 + af.shift(self.J1, 0, 0, 1))  # (i + 1/2, j)
         self.J2 = 0.5 * (self.J2 + af.shift(self.J2, 0, 1, 0))  # (i, j + 1/2)
 
-        self.J3 = 0.25 * (  self.J3 + af.shift(self.J3, 0, 1, 0) +
+        self.J3 = 0.25 * (  self.J3 + af.shift(self.J3, 0, 1, 0)
                           + af.shift(self.J3, 0, 0, 1)
                           + af.shift(self.J3, 0, 1, 1)
                          )  # (i, j)
