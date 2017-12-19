@@ -74,6 +74,7 @@ N = 2**np.arange(5, 10)
 error = np.zeros(5)
 
 for i in range(N.size):
+    af.device_gc()
     domain.N_p1 = N[i]
     domain.N_p2 = N[i]
 
@@ -136,15 +137,12 @@ for i in range(N.size):
 
     # In[10]:
 
-
-    f = []
-    f.append(nls.f)
+    f_initial = nls.f.copy()
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.strang_timestep(dt)
-        ls.RK4_timestep(dt)
-        f.append(nls.f)
+        # ls.RK4_timestep(dt)
 
         n_nls                         = nls.compute_moments('density')
         rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
@@ -203,7 +201,7 @@ for i in range(N.size):
     # In[16]:
 
 
-    error[i] = af.mean(af.abs(f[time_array.size - 1][:, N_g, N_g + nls.N_q2/2] - f[0][:, N_g, N_g + nls.N_q2/2]))
+    error[i] = af.mean(af.abs(nls.f[:, N_g, N_g + nls.N_q2/2] - f_initial[:, N_g, N_g + nls.N_q2/2]))
 
 pl.loglog(N, error, '-o', label = 'Numerical')
 pl.loglog(N, error[0] * 32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
