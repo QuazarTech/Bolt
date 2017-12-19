@@ -21,9 +21,9 @@ def initialize_E(q1, q2, params):
     #        + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
     #       )
 
-    E1 = 0.1 * q1**0
-    E2 = 0.2 * q1**0
-    E3 = 0.3 * q1**0
+    E1 = 0. * q1**0
+    E2 = 0. * q1**0
+    E3 = 0. * q1**0
 
     return(E1, E2, E3)
 
@@ -34,7 +34,7 @@ def initialize_B(q1, q2, params):
 
     B1 = 0. * q1**0
     B2 = 0. * q1**0 
-    B3 = 0. * q1**0
+    B3 = 0.6 * q1**0
 
     return(B1, B2, B3)
 
@@ -56,7 +56,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     k_q2 = params.k_q2
 
     # Calculating the perturbed density:
-    rho = rho_b + 0*(  pert_real * af.cos(k_q1 * q1 + k_q2 * q2)
+    rho = rho_b + (  pert_real * af.cos(k_q1 * q1 + k_q2 * q2)
                    - pert_imag * af.sin(k_q1 * q1 + k_q2 * q2)
                   )
 

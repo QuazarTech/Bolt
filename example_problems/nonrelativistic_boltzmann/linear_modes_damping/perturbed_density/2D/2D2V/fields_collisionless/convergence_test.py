@@ -6,6 +6,8 @@
 
 import arrayfire as af
 import numpy as np
+import matplotlib
+matplotlib.use('agg')
 import pylab as pl
 
 
@@ -70,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N = 2**np.arange(5, 8)
-error = np.zeros(3)
+N = 2**np.arange(5, 10)
+error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()

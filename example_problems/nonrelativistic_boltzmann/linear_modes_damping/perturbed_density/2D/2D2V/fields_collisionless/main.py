@@ -102,7 +102,7 @@ else:
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)
+    # ls.RK4_timestep(dt)
 
     n_nls                         = nls.compute_moments('density')
     rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
