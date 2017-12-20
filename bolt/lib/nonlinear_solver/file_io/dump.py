@@ -45,15 +45,15 @@ def dump_moments(self, file_name):
     
     >> h5f.close()
     """
-    N_g = self.N_ghost
+    N_g_q = self.N_ghost_q
 
     i = 0
     for key in self.physical_system.moment_exponents:
         if(i == 0):
-            array_to_dump = self.compute_moments(key)[:, N_g:-N_g,N_g:-N_g]
+            array_to_dump = self.compute_moments(key)[:, N_g_q:-N_g_q,N_g_q:-N_g_q]
         else:
             array_to_dump = af.join(0, array_to_dump,
-                                    self.compute_moments(key)[:, N_g:-N_g,N_g:-N_g]
+                                    self.compute_moments(key)[:, N_g_q:-N_g_q,N_g_q:-N_g_q]
                                    )
         i += 1
 
@@ -99,9 +99,9 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    N_g = self.N_ghost
+    N_g_q = self.N_ghost_q
     
-    af.flat(self.f[:, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
+    af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q]).to_ndarray(self._glob_f_array)
     PETSc.Object.setName(self._glob_f, 'distribution_function')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_f)

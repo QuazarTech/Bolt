@@ -72,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N = 2**np.arange(5, 10)
-error = np.zeros(5)
+N = 2**np.arange(5, 8)
+error = np.zeros(3)
 
 for i in range(N.size):
     af.device_gc()
@@ -90,7 +90,7 @@ for i in range(N.size):
                              moment_defs
                             )
 
-    N_g = system.N_ghost
+    N_g_q = system.N_ghost_q
 
 
     # In[7]:
@@ -118,26 +118,10 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1 
+    t_final = 0.001 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
-    rho_data_nls = np.zeros(time_array.size)
-    rho_data_ls  = np.zeros(time_array.size)
-
-
-    # In[9]:
-
-
-    # Storing data at time t = 0:
-    n_nls           = nls.compute_moments('density')
-    rho_data_nls[0] = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
-
-    n_ls           = ls.compute_moments('density')
-    rho_data_ls[0] = af.max(n_ls) 
-
-
-    # In[10]:
 
     f_initial = nls.f.copy()
 
@@ -145,13 +129,6 @@ for i in range(N.size):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.strang_timestep(dt)
         # ls.RK4_timestep(dt)
-
-        n_nls                         = nls.compute_moments('density')
-        rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
-        
-        n_ls                        = ls.compute_moments('density')
-        rho_data_ls[time_index + 1] = af.max(n_ls) 
-
 
     # In[11]:
 
@@ -203,7 +180,7 @@ for i in range(N.size):
     # In[16]:
 
 
-    error[i] = af.mean(af.abs(nls.f[:, N_g, N_g + nls.N_q2/2] - f_initial[:, N_g, N_g + nls.N_q2/2]))
+    error[i] = af.mean(af.abs(nls.f[:, N_g_q, N_g_q + nls.N_q2/2] - f_initial[:, N_g_q, N_g_q + nls.N_q2/2]))
 
 print(error)
 

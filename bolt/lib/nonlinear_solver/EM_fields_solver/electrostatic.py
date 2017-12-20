@@ -20,11 +20,11 @@ def fft_poisson(self, f=None):
         raise Exception('FFT solver can only be used when run in serial')
 
     else:
-        N_g = self.N_ghost
-        rho = af.reorder(  self.physical_system.params.charge_electron \
-                         * self.compute_moments('density', f)[:, N_g:-N_g, N_g:-N_g],
-                         1, 2, 0
-                        )
+        N_g_q = self.N_ghost_q
+        rho   = af.reorder(  self.physical_system.params.charge_electron \
+                           * self.compute_moments('density', f)[:, N_g_q:-N_g_q, N_g_q:-N_g_q],
+                           1, 2, 0
+                          )
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)
         k_q2 = fftfreq(rho.shape[1], self.dq2)
@@ -46,8 +46,8 @@ def fft_poisson(self, f=None):
         E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 0, 1)
         E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 0, 1)
 
-        self.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g] = E1_physical
-        self.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g] = E2_physical
+        self.cell_centered_EM_fields[0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E1_physical
+        self.cell_centered_EM_fields[1, N_g_q:-N_g_q, N_g_q:-N_g_q] = E2_physical
 
         af.eval(self.cell_centered_EM_fields)
 

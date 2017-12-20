@@ -60,7 +60,7 @@ system = physical_system(domain,
                          moment_defs
                         )
 
-N_g = system.N_ghost
+N_g_q = system.N_ghost_q
 
 # Pass this system to the linear solver object when 
 # a single mode only needs to be evolved. This solver
@@ -90,7 +90,11 @@ rho_data_ls  = np.zeros(time_array.size)
 
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
-rho_data_nls[0] = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
+
+pl.plot(af.flat(n_nls[0, :, 0]))
+pl.show()
+
+rho_data_nls[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
 
 n_ls = ls.compute_moments('density')
 
@@ -105,7 +109,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     ls.RK4_timestep(dt)
 
     n_nls                         = nls.compute_moments('density')
-    rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
+    rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
     n_ls = ls.compute_moments('density')
 

@@ -138,7 +138,7 @@ class physical_system(object):
         # Checking that the given input parameters are physical:
         if(self.N_q1 < 0 or self.N_q2 < 0 or
            self.N_p1 < 0 or self.N_p2 < 0 or self.N_p3 < 0 or
-           domain.N_ghost < 0
+           domain.N_ghost_q < 0 or domain.N_ghost_p < 0
           ):
             raise Exception('Grid resolution for the phase \
                              space cannot be negative'
@@ -161,7 +161,9 @@ class physical_system(object):
 
         # Getting number of ghost zones, and the boundary conditions that are
         # utilized
-        self.N_ghost                 = domain.N_ghost
+        self.N_ghost_q               = domain.N_ghost_q
+        self.N_ghost_p               = domain.N_ghost_p
+
         self.boundary_conditions     = boundary_conditions
 
         # Placeholder for all the functions:
@@ -174,6 +176,7 @@ class physical_system(object):
         # as components of a tuple
         self.A_q = advection_term.A_q
         self.C_q = advection_term.C_q
+
         self.A_p = advection_term.A_p
         self.C_p = advection_term.C_p
 
@@ -207,7 +210,17 @@ class physical_system(object):
                         ',',domain.N_p1, ',', domain.N_p2, ',', domain.N_p3, ')'
                        )
         PETSc.Sys.Print('Solver Method in q-space           :', params.solver_method_in_q.upper())
+
+        if(params.solver_method_in_q == 'FVM'):
+            PETSc.Sys.Print('    Reconstruction Method          :', params.reconstruction_method_in_q.upper())
+            PETSc.Sys.Print('    Riemann Solver                 :', params.riemann_solver_in_q.upper())
+
         PETSc.Sys.Print('Solver Method in p-space           :', params.solver_method_in_p.upper())
+
+        if(params.solver_method_in_p == 'FVM'):
+            PETSc.Sys.Print('    Reconstruction Method          :', params.reconstruction_method_in_p.upper())
+            PETSc.Sys.Print('    Riemann Solver                 :', params.riemann_solver_in_p.upper())
+
         PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
         PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Charge Electron                    :', params.charge_electron)

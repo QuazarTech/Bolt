@@ -46,16 +46,16 @@ def compute_moments(self, moment_name, f=None):
         moment_variable = 1
         for i in range(moment_exponents.shape[0]):
             moment_variable *=   moment_coeffs[i, 0] \
-                               * self.p1**(moment_exponents[i, 0]) \
+                               * self.p1_center**(moment_exponents[i, 0]) \
                                + moment_coeffs[i, 1] \
-                               * self.p2**(moment_exponents[i, 1]) \
+                               * self.p2_center**(moment_exponents[i, 1]) \
                                + moment_coeffs[i, 2] \
-                               * self.p3**(moment_exponents[i, 2])
+                               * self.p3_center**(moment_exponents[i, 2])
 
     except BaseException:
-        moment_variable =   moment_coeffs[0] * self.p1**(moment_exponents[0]) \
-                          + moment_coeffs[1] * self.p2**(moment_exponents[1]) \
-                          + moment_coeffs[2] * self.p3**(moment_exponents[2])
+        moment_variable =   moment_coeffs[0] * self.p1_center**(moment_exponents[0]) \
+                          + moment_coeffs[1] * self.p2_center**(moment_exponents[1]) \
+                          + moment_coeffs[2] * self.p3_center**(moment_exponents[2])
 
     # Defining a lambda function to perform broadcasting operations
     # This is done using af.broadcast, which allows us to perform 

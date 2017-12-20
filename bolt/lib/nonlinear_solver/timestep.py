@@ -53,7 +53,9 @@ def op_fvm(self, dt):
     
     # Solving for tau = 0 systems
     if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                                   self.p1, self.p2, self.p3
+                                                   self.p1_center, 
+                                                   self.p2_center,
+                                                   self.p3_center
                                                   ) == 0
                   )
       ):
@@ -61,7 +63,7 @@ def op_fvm(self, dt):
             tic = af.time()
 
         self.f = self._source(self.f, self.q1_center, self.q2_center,
-                              self.p1, self.p2, self.p3, 
+                              self.p1_center, self.p2_center, self.p3_center, 
                               self.compute_moments, 
                               self.physical_system.params, 
                               True

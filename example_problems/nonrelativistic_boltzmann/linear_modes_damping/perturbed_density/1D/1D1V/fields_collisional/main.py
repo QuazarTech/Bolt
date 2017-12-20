@@ -60,7 +60,7 @@ system = physical_system(domain,
                          moment_defs
                         )
 
-N_g = system.N_ghost
+N_g = system.N_ghost_q
 
 # Pass this system to the linear solver object when 
 # a single mode only needs to be evolved. This solver
@@ -110,7 +110,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     n_ls = ls.compute_moments('density')
 
     if(ls.single_mode_evolution == True):
-        rho_data_ls[time_index + 1] =  params.rho_background + abs(n_ls)
+        rho_data_ls[time_index + 1] = params.rho_background + abs(n_ls)
     else:
         rho_data_ls[time_index + 1] = af.max(n_ls) 
 

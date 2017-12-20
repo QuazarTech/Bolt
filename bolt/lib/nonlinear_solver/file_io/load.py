@@ -30,10 +30,12 @@ def load_distribution_function(self, file_name):
                                       )
     self._glob_f.load(viewer)
 
-    N_g = self.N_ghost
-    self.f[:, N_g:-N_g, N_g:-N_g] = af.moddims(af.to_array(self._glob_f_array),
-                                               self.N_p1 * self.N_p2 * self.N_p3,
-                                               self.N_q1, self.N_q2
-                                              )
+    N_g_q = self.N_ghost_q
+    self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q] = af.moddims(af.to_array(self._glob_f_array),
+                                                         (self.N_p1 + 2 * self.N_ghost_p)
+                                                       * (self.N_p2 + 2 * self.N_ghost_p) 
+                                                       * (self.N_p3 + 2 * self.N_ghost_p),
+                                                       self.N_q1, self.N_q2
+                                                      )
 
     return
