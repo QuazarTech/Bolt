@@ -72,7 +72,7 @@ params.rank = nls._comm.rank
 
 # Time parameters:
 #dt      = 0.002*100
-dt = 0.1*1e-3
+dt = 1e-4
 t_final = 1000.
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -83,15 +83,21 @@ N_g        = domain.N_ghost
 print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
       "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
       "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
-      "density = ", af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
+      "density = ", af.mean(n_nls[0, N_g:-N_g, N_g:-N_g]),
       "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0])),
       "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1]))
      )
 
-t0         = 0.0
-time_index = 0
+t0       = 0.0
+time_step = 0
 while t0 < t_final:
-    time_index = time_index + 1
+
+    dump_steps = 1000
+    if (time_step%dump_steps==0):
+        nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps))
+        nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps))
+
+    time_step = time_step + 1
 
     dt_force_constraint = \
         0.5 * np.min(nls.dp1, nls.dp2) \
@@ -100,32 +106,20 @@ while t0 < t_final:
                      )
                     )
 
-    dt_collision_constraint = 0.5*1.
+    dt_collision_constraint = 1e-3
 
     #dt = np.min(dt_force_constraint, dt_collision_constraint)
 
     t0 = t0 + dt
 
-    print("Time step =", time_index, ", Time =", t0, " dt = ",
-            dt_force_constraint)
+    PETSc.Sys.Print("Time step =", time_step, ", Time =", t0, " dt = ",
+                    dt_force_constraint
+                   )
 
-    N_g = domain.N_ghost
-    mean_density = af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
-    density_pert = n_nls - mean_density
-
-for time_step, t0 in enumerate(time_array):
-    PETSc.Sys.Print("Time step =", time_step, ", Time =", t0)
-
-    N_g = domain.N_ghost
     mean_density = af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
     density_pert = n_nls - mean_density
     
-    dump_steps = 1000
-    if (time_step%dump_steps==0):
-        nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps) + '.h5')
-        nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps) + '.h5')
-
-#    if (time_index%1==0):
+#    if (time_step%1==0):
 #        pl.contourf(np.array(nls.q1_center)[0, :, :], \
 #                    np.array(nls.q2_center)[0, :, :], \
 #                    np.array(params.mu)[0, :, :], \
@@ -136,7 +130,7 @@ for time_step, t0 in enumerate(time_array):
 #        pl.ylabel('$y$')
 #        pl.colorbar()
 #        pl.gca().set_aspect('equal')
-#        pl.savefig('/tmp/mu_' + '%06d'%time_index + '.png' )
+#        pl.savefig('/tmp/mu_' + '%06d'%time_step + '.png' )
 #        pl.clf()
 #    
 #        pl.contourf(np.array(nls.q1_center)[0, :, :], \
@@ -149,7 +143,7 @@ for time_step, t0 in enumerate(time_array):
 #        pl.ylabel('$y$')
 #        pl.colorbar()
 #        pl.gca().set_aspect('equal')
-#        pl.savefig('/tmp/E1_' + '%06d'%time_index + '.png' )
+#        pl.savefig('/tmp/E1_' + '%06d'%time_step + '.png' )
 #        pl.clf()
 #
 #        pl.contourf(np.array(nls.q1_center)[0, :, :], \
@@ -162,7 +156,7 @@ for time_step, t0 in enumerate(time_array):
 #        pl.ylabel('$y$')
 #        pl.colorbar()
 #        pl.gca().set_aspect('equal')
-#        pl.savefig('/tmp/E2_' + '%06d'%time_index + '.png' )
+#        pl.savefig('/tmp/E2_' + '%06d'%time_step + '.png' )
 #        pl.clf()
 #
 #        f_at_desired_q = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
@@ -180,7 +174,7 @@ for time_step, t0 in enumerate(time_array):
 #        pl.ylabel('$y$')
 #        pl.colorbar()
 #        pl.gca().set_aspect('equal')
-#        pl.savefig('/tmp/f_' + '%06d'%time_index + '.png' )
+#        pl.savefig('/tmp/f_' + '%06d'%time_step + '.png' )
 #        pl.clf()
 
     nls.strang_timestep(dt)
