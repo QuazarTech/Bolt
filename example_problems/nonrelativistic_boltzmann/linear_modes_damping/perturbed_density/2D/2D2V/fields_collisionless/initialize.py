@@ -21,9 +21,9 @@ def initialize_E(q1, q2, params):
     #        + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
     #       )
 
-    E1 = 0. * q1**0
-    E2 = 0. * q1**0
-    E3 = 0. * q1**0
+    E1 = 0.1 * q1**0
+    E2 = 0.2 * q1**0
+    E3 = 0.  * q1**0
 
     return(E1, E2, E3)
 

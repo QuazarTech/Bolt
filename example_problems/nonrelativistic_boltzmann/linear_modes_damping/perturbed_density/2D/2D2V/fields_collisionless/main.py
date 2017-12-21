@@ -77,7 +77,7 @@ N_g_q = system.N_ghost_q
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+# ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001

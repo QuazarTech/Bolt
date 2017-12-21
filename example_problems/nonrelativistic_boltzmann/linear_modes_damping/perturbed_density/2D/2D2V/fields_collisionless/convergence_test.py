@@ -72,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N = 2**np.arange(5, 8)
-error = np.zeros(3)
+N = 2**np.arange(5, 10)
+error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()
@@ -118,15 +118,16 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.01 
+    t_final = 0.1 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
-    f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    f_initial = nls.f.copy()
+    # f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
-        # nls.strang_timestep(dt)
+        nls.strang_timestep(dt)
         ls.RK4_timestep(dt)
 
     # In[11]:
@@ -178,11 +179,17 @@ for i in range(N.size):
 
     # In[16]:
 
-    f_final = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    f_final = af.flat((0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]))[0, 1, :]) 
+    # error[i] = af.mean(af.abs(f_final[:, 0, 1] - f_initial[:, 0, 1]))
 
-    error[i] = af.mean(af.abs(f_final[:, 0, 1] - f_initial[:, 0, 1]))
+    f_analytic =   1.01 * (1 / (2 * np.pi)) \
+                 * af.exp(-(nls.p1_center+t_final)**2 / 2) \
+                 * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
+
+    error[i] = af.mean(af.abs(nls.f[:, 2, 3] - f_analytic))
 
 print(error)
+print(np.polyfit(np.log10(N), np.log10(error), 1))
 
 pl.loglog(N, error, '-o', label = 'Numerical')
 pl.loglog(N, error[0] * 32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
