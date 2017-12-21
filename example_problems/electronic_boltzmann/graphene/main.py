@@ -71,150 +71,134 @@ n_nls = nls.compute_moments('density')
 params.rank = nls._comm.rank
 
 # Time parameters:
-dt      = 0.002
+#dt      = 0.002*100
+dt = 0.1*1e-3
 t_final = 1000.
 
 time_array = np.arange(dt, t_final + dt, dt)
 compute_electrostatic_fields(nls)
-#params.mu = params.charge_electron*params.phi
 
 N_g        = domain.N_ghost
-#N_q1_local = params.mu.shape[0] - 2*N_g
-#for i in range(N_g):
-#    params.mu[i, :]                = 0.*params.mu[N_g, :]
-#    params.mu[N_q1_local+N_g+i, :] = 0.*params.mu[N_q1_local+N_g-1, :]
 
 print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
       "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
-      "phi = ", af.mean(params.phi[0, N_g:-N_g, N_g:-N_g]),
+      "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
       "density = ", af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
+      "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0])),
+      "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1]))
      )
 
+t0         = 0.0
+time_index = 0
+while t0 < t_final:
+    time_index = time_index + 1
 
+    dt_force_constraint = \
+        0.5 * np.min(nls.dp1, nls.dp2) \
+            / np.max((af.max(nls.cell_centered_EM_fields[0]),
+                      af.max(nls.cell_centered_EM_fields[1])
+                     )
+                    )
 
-#for time_step, t0 in enumerate(time_array):
-#    PETSc.Sys.Print("Time step =", time_step, ", Time =", t0)
-#
-#    N_g = domain.N_ghost
-#    mean_density = af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
-#    density_pert = n_nls - mean_density
+    dt_collision_constraint = 0.5*1.
+
+    #dt = np.min(dt_force_constraint, dt_collision_constraint)
+
+    t0 = t0 + dt
+
+    print("Time step =", time_index, ", Time =", t0, " dt = ",
+            dt_force_constraint)
+
+    N_g = domain.N_ghost
+    mean_density = af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
+    density_pert = n_nls - mean_density
+
+for time_step, t0 in enumerate(time_array):
+    PETSc.Sys.Print("Time step =", time_step, ", Time =", t0)
+
+    N_g = domain.N_ghost
+    mean_density = af.mean(n_nls[0, N_g:-N_g, N_g:-N_g])
+    density_pert = n_nls - mean_density
+    
+    dump_steps = 1000
+    if (time_step%dump_steps==0):
+        nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps) + '.h5')
+        nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps) + '.h5')
+
+#    if (time_index%1==0):
+#        pl.contourf(np.array(nls.q1_center)[0, :, :], \
+#                    np.array(nls.q2_center)[0, :, :], \
+#                    np.array(params.mu)[0, :, :], \
+#                    100, cmap='bwr'
+#                   )
+#        pl.title('Time = ' + "%.2f"%(t0) )
+#        pl.xlabel('$x$')
+#        pl.ylabel('$y$')
+#        pl.colorbar()
+#        pl.gca().set_aspect('equal')
+#        pl.savefig('/tmp/mu_' + '%06d'%time_index + '.png' )
+#        pl.clf()
 #    
-#    dump_steps = 100
-#    if (time_step%dump_steps==0):
-#        nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps) + '.h5')
-#        nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps) + '.h5')
+#        pl.contourf(np.array(nls.q1_center)[0, :, :], \
+#                    np.array(nls.q2_center)[0, :, :], \
+#                    np.array(nls.cell_centered_EM_fields)[0, :, :], \
+#                    100, cmap='bwr'
+#                   )
+#        pl.title('Time = ' + "%.2f"%(t0) )
+#        pl.xlabel('$x$')
+#        pl.ylabel('$y$')
+#        pl.colorbar()
+#        pl.gca().set_aspect('equal')
+#        pl.savefig('/tmp/E1_' + '%06d'%time_index + '.png' )
+#        pl.clf()
 #
-##    if (time_index%1==0):
-##        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
-##                    np.array(nls.q2_center)[0, N_g:-N_g, N_g:-N_g], \
-##                    np.array(n_nls)[0, N_g:-N_g, N_g:-N_g], \
-##                    100, cmap='bwr'
-##                   )
-##        pl.title('Time = ' + "%.2f"%(t0) )
-##        pl.xlabel('$x$')
-##        pl.ylabel('$y$')
-##        pl.colorbar()
-##        pl.gca().set_aspect('equal')
-##        pl.savefig('/tmp/density_' + '%06d'%time_index + '.png' )
-##        pl.clf()
-##
-##        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
-##                    np.array(nls.q2_center)[0, N_g:-N_g, N_g:-N_g], \
-##                    np.array(params.mu)[0, N_g:-N_g, N_g:-N_g], \
-##                    100, cmap='bwr'
-##                   )
-##        pl.title('Time = ' + "%.2f"%(t0) )
-##        pl.xlabel('$x$')
-##        pl.ylabel('$y$')
-##        pl.colorbar()
-##        pl.gca().set_aspect('equal')
-##        pl.savefig('/tmp/mu_' + '%06d'%time_index + '.png' )
-##        pl.clf()
-##    
-###        pl.contourf(np.array(nls.q1_center), \
-###                    np.array(nls.q2_center), \
-###                    np.array(nls.E1), \
-###                    100, cmap='bwr'
-###                   )
-###        pl.title('Time = ' + "%.2f"%(t0) )
-###        pl.xlabel('$x$')
-###        pl.ylabel('$y$')
-###        pl.colorbar()
-###        pl.gca().set_aspect('equal')
-###        pl.savefig('/tmp/E1_' + '%06d'%time_index + '.png' )
-###        pl.clf()
-###
-###        pl.contourf(np.array(nls.q1_center), \
-###                    np.array(nls.q2_center), \
-###                    np.array(nls.E2), \
-###                    100, cmap='bwr'
-###                   )
-###        pl.title('Time = ' + "%.2f"%(t0) )
-###        pl.xlabel('$x$')
-###        pl.ylabel('$y$')
-###        pl.colorbar()
-###        pl.gca().set_aspect('equal')
-###        pl.savefig('/tmp/E2_' + '%06d'%time_index + '.png' )
-###        pl.clf()
-###
-##        f_at_desired_q = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
-##                                    nls.N_p1, nls.N_p2
-##                                   )
-##        p1 = af.moddims(nls.p1, nls.N_p1, nls.N_p2)
-##        p2 = af.moddims(nls.p2, nls.N_p1, nls.N_p2)
-##        pl.contourf(np.array(p1), \
-##                    np.array(p2), \
-##                    np.array((f_at_desired_q)), \
-##                    100, cmap='bwr'
-##                   )
-##        pl.title('Time = ' + "%.2f"%(t0) )
-##        pl.xlabel('$x$')
-##        pl.ylabel('$y$')
-##        pl.colorbar()
-##        pl.gca().set_aspect('equal')
-##        pl.savefig('/tmp/f_' + '%06d'%time_index + '.png' )
-##        pl.clf()
-##
-##    pl.contourf(np.array(params.mu)[N_g:-N_g, N_g:-N_g].transpose(), 100, cmap='jet')
-##    pl.title('Time = ' + "%.2f"%(t0) )
-##    pl.xlabel('$x$')
-##    pl.ylabel('$y$')
-##    pl.colorbar()
-##    pl.gca().set_aspect('equal')
-##    pl.savefig('/tmp/mu_' + '%06d'%time_index + '.png' )
-##    pl.clf()
-##
+#        pl.contourf(np.array(nls.q1_center)[0, :, :], \
+#                    np.array(nls.q2_center)[0, :, :], \
+#                    np.array(nls.cell_centered_EM_fields)[1, :, :], \
+#                    100, cmap='bwr'
+#                   )
+#        pl.title('Time = ' + "%.2f"%(t0) )
+#        pl.xlabel('$x$')
+#        pl.ylabel('$y$')
+#        pl.colorbar()
+#        pl.gca().set_aspect('equal')
+#        pl.savefig('/tmp/E2_' + '%06d'%time_index + '.png' )
+#        pl.clf()
 #
-#    nls.strang_timestep(dt)
-#
-#    # Floors
-#    nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
-#    params.mu = af.select(params.mu < 1e-13, 1e-13, params.mu)
-#
-##    f_left = nls.boundary_conditions.\
-##              f_left(nls.f, nls.q1_center, nls.q2_center,
-##                      nls.p1, nls.p2, nls.p3, 
-##                      nls.physical_system.params
-##                     )
-##    nls.f[:, -N_g:, 10:24] = f_right[:, -N_g:, 10:24]
-#    n_nls = nls.compute_moments('density')
-#    print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
-#          "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
-#          "phi = ", af.mean(params.phi[0, N_g:-N_g, N_g:-N_g]),
-#          "density = ", mean_density
-#         )
-#    PETSc.Sys.Print("--------------------\n")
+#        f_at_desired_q = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
+#                                    nls.N_p1, nls.N_p2
+#                                   )
+#        p1 = af.moddims(nls.p1, nls.N_p1, nls.N_p2)
+#        p2 = af.moddims(nls.p2, nls.N_p1, nls.N_p2)
+#        pl.contourf(np.array(p1), \
+#                    np.array(p2), \
+#                    np.array((f_at_desired_q)), \
+#                    100, cmap='bwr'
+#                   )
+#        pl.title('Time = ' + "%.2f"%(t0) )
+#        pl.xlabel('$x$')
+#        pl.ylabel('$y$')
+#        pl.colorbar()
+#        pl.gca().set_aspect('equal')
+#        pl.savefig('/tmp/f_' + '%06d'%time_index + '.png' )
+#        pl.clf()
 
-###pl.contourf(np.array(params.mu)[N_g:-N_g, N_g:-N_g].transpose(), 100, cmap='jet')
-##pl.contourf(np.array(n_nls)[N_g:-N_g, N_g:-N_g].transpose(), 100, cmap='jet')
-##pl.title('Density')
-###pl.title('$\\mu$')
-##pl.xlabel('$x$')
-##pl.ylabel('$y$')
-##pl.colorbar()
-##pl.gca().set_aspect('equal')
-##pl.show()
-#
+    nls.strang_timestep(dt)
+
+    # Floors
+    nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
+    params.mu = af.select(params.mu < 1e-13, 1e-13, params.mu)
+
+    n_nls = nls.compute_moments('density')
+    print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
+          "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
+          "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
+          "density = ", mean_density,
+          "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0])),
+          "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1]))
+         )
+    PETSc.Sys.Print("--------------------\n")
+
 #phi_array = nls.poisson.glob_phi.getArray()
 #phi_array = phi_array.reshape([nls.poisson.N_q3_3D_local, \
 #                               nls.poisson.N_q2_3D_local, \
@@ -224,10 +208,8 @@ print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
 #pl.subplot(121)
 #N_g = domain.N_ghost
 #pl.contourf(
-#            phi_array[nls.poisson.q3_2D_in_3D_index_start, :, :], 100, cmap='jet'
+#            phi_array[nls.N_q3_poisson/2, :, :], 100, cmap='jet'
 #           )
-##pl.contourf(np.array(nls.E1)[N_g:-N_g, N_g:-N_g].transpose(), 100, cmap='jet'
-##           )
 #pl.colorbar()
 #pl.title('Top View')
 #pl.xlabel('$x$')
@@ -236,34 +218,9 @@ print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
 #
 #pl.subplot(122)
 #pl.contourf(phi_array[:, nls.N_q2_poisson/2, :], 100, cmap='jet')
-##pl.contourf(np.array(nls.E2)[N_g:-N_g, N_g:-N_g].transpose(), 100, cmap='jet')
 #pl.title('Side View')
 #pl.xlabel('$x$')
 #pl.ylabel('$z$')
 #pl.colorbar()
 #pl.gca().set_aspect('equal')
 #pl.show()
-#
-##h5f = h5py.File('dump/0000.h5', 'w')
-##h5f.create_dataset('q1', data = nls.q1_center)
-##h5f.create_dataset('q2', data = nls.q2_center)
-##h5f.create_dataset('n', data = n_nls)
-##h5f.close()
-##
-##def time_evolution():
-##
-##    for time_index, t0 in enumerate(time_array):
-##        print('For Time =', t0    )
-##        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
-##        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
-##        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
-##        print()
-##
-##        nls.strang_timestep(dt)
-##        n_nls = nls.compute_moments('density')
-##        
-##        h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-##        h5f.create_dataset('n', data = n_nls)
-##        h5f.close()
-##
-##time_evolution()

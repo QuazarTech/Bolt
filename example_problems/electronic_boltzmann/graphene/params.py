@@ -18,8 +18,8 @@ time_splitting = 'strang'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'minmod'
-reconstruction_method_in_p = 'minmod'
+reconstruction_method_in_q = 'weno5'
+reconstruction_method_in_p = 'weno5'
 
 riemann_solver = 'upwind-flux'
 
@@ -63,12 +63,12 @@ phi         = None # Electric potential in the plane of graphene sheet
 E_band   = None
 vel_band = None
 
-collision_nonlinear_iters = 5
+collision_nonlinear_iters = 3
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(1. * q1**0 * p1**0)
+    return(1e-4 * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):

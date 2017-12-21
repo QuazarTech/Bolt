@@ -26,7 +26,7 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
         fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
         af.eval(fermi_dirac)
 
-        zeroth_moment = f - fermi_dirac + 1./(af.exp( (E_upper )/(k*T) ) + 1.)
+        zeroth_moment = f - fermi_dirac
     
         eqn_mass_conservation   = af.sum(zeroth_moment, 0)
 
@@ -53,7 +53,7 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
     fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
     af.eval(fermi_dirac)
 
-    zeroth_moment = f - fermi_dirac + 1./(af.exp( (E_upper )/(k*T) ) + 1.)
+    zeroth_moment = f - fermi_dirac
     
     eqn_mass_conservation   = af.sum(zeroth_moment, 0)
 
@@ -66,7 +66,7 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
 
     density_f = af.sum(f, 0)
     fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
-    density_fermi_dirac = af.sum(fermi_dirac - 1./(af.exp( (E_upper )/(k*T) ) + 1.), 0)
+    density_fermi_dirac = af.sum(fermi_dirac, 0)
 
     print("    rank = ", params.rank,
           "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
@@ -99,10 +99,10 @@ def f0_defect(f, p1, p2, p3, params):
         denominator = (k*T**2.*(af.exp(tmp) + 2. + af.exp(-tmp)) )
 
         # TODO: Multiply with the integral measure dp1 * dp2
-        a00 = af.sum(T                      / denominator, 2)
-        a01 = af.sum((E_upper - mu)         / denominator, 2)
-        a10 = af.sum(E_upper*T              / denominator, 2)
-        a11 = af.sum(E_upper*(E_upper - mu) / denominator, 2)
+        a00 = af.sum(T                      / denominator, 0)
+        a01 = af.sum((E_upper - mu)         / denominator, 0)
+        a10 = af.sum(E_upper*T              / denominator, 0)
+        a11 = af.sum(E_upper*(E_upper - mu) / denominator, 0)
 
         # Solve Ax = b
         # where A == Jacobian,
@@ -115,12 +115,12 @@ def f0_defect(f, p1, p2, p3, params):
         zeroth_moment =          f - fermi_dirac
         second_moment = E_upper*(f - fermi_dirac)
     
-        eqn_mass_conservation   = af.sum(zeroth_moment, 2)
-        eqn_energy_conservation = af.sum(second_moment, 2)
+        eqn_mass_conservation   = af.sum(zeroth_moment, 0)
+        eqn_energy_conservation = af.sum(second_moment, 0)
 
         N_g = domain.N_ghost
-        error_mass_conservation   = af.max(af.abs(eqn_mass_conservation)[N_g:-N_g, N_g:-N_g])
-        error_energy_conservation = af.max(af.abs(eqn_energy_conservation)[N_g:-N_g, N_g:-N_g])
+        error_mass_conservation   = af.max(af.abs(eqn_mass_conservation)[0, N_g:-N_g, N_g:-N_g])
+        error_energy_conservation = af.max(af.abs(eqn_energy_conservation)[0, N_g:-N_g, N_g:-N_g])
 
         residual   = [eqn_mass_conservation, eqn_energy_conservation]
         error_norm = np.max([af.max(af.abs(residual[0])), 
@@ -156,22 +156,22 @@ def f0_defect(f, p1, p2, p3, params):
     zeroth_moment =          f - fermi_dirac
     second_moment = E_upper*(f - fermi_dirac)
    
-    eqn_mass_conservation   = af.sum(zeroth_moment, 2)
-    eqn_energy_conservation = af.sum(second_moment, 2)
+    eqn_mass_conservation   = af.sum(zeroth_moment, 0)
+    eqn_energy_conservation = af.sum(second_moment, 0)
 
     residual   = [eqn_mass_conservation, eqn_energy_conservation]
     error_norm = np.max([af.max(af.abs(residual[0])), 
                          af.max(af.abs(residual[1]))]
                        )
     print("    ||residual_defect|| = ", error_norm)
-    density_f = af.sum(f, 2)
+    density_f = af.sum(f, 0)
     fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
-    density_fermi_dirac = af.sum(fermi_dirac, 2)
+    density_fermi_dirac = af.sum(fermi_dirac, 0)
 
-    print("    mu = ", af.mean(params.mu[N_g:-N_g, N_g:-N_g]),
-           "T = ", af.mean(params.T[N_g:-N_g, N_g:-N_g]),
-           "density_f = ", af.mean(density_f[N_g:-N_g, N_g:-N_g]),
-           "density_fermi_dirac = ",af.mean(density_fermi_dirac[N_g:-N_g, N_g:-N_g])
+    print("    mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
+           "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g]),
+           "density_f = ", af.mean(density_f[0, N_g:-N_g, N_g:-N_g]),
+           "density_fermi_dirac = ",af.mean(density_fermi_dirac[0, N_g:-N_g, N_g:-N_g])
          )
     print("    ------------------")
 

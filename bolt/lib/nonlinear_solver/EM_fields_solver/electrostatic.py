@@ -7,35 +7,6 @@ from numpy.fft import fftfreq
 import pylab as pl
 import params
 
-pl.rcParams['figure.figsize']  = 17, 7.5
-pl.rcParams['figure.dpi']      = 150
-pl.rcParams['image.cmap']      = 'jet'
-pl.rcParams['lines.linewidth'] = 1.5
-pl.rcParams['font.family']     = 'serif'
-pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
-pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = True
-pl.rcParams['axes.linewidth']  = 1.5
-pl.rcParams['axes.titlesize']  = 'medium'
-pl.rcParams['axes.labelsize']  = 'medium'
-
-pl.rcParams['xtick.major.size'] = 8
-pl.rcParams['xtick.minor.size'] = 4
-pl.rcParams['xtick.major.pad']  = 8
-pl.rcParams['xtick.minor.pad']  = 8
-pl.rcParams['xtick.color']      = 'k'
-pl.rcParams['xtick.labelsize']  = 'medium'
-pl.rcParams['xtick.direction']  = 'in'
-
-pl.rcParams['ytick.major.size'] = 8
-pl.rcParams['ytick.minor.size'] = 4
-pl.rcParams['ytick.major.pad']  = 8
-pl.rcParams['ytick.minor.pad']  = 8
-pl.rcParams['ytick.color']      = 'k'
-pl.rcParams['ytick.labelsize']  = 'medium'
-pl.rcParams['ytick.direction']  = 'in'
-
 class poisson_eqn_3D(object):
     """
     This user class is an application context for the problem at hand;
@@ -54,6 +25,7 @@ class poisson_eqn_3D(object):
         self.glob_residual  = self.da_3D.createGlobalVec()
 
         self.N_ghost   = self.obj.N_ghost
+        self.N_ghost_poisson = self.obj.N_ghost_poisson
         self.dq1       = self.obj.dq1
         self.dq2       = self.obj.dq2
         self.dq3       = self.obj.dq3
@@ -65,6 +37,14 @@ class poisson_eqn_3D(object):
         ((i_q1_3D_start, i_q2_3D_start, i_q3_3D_start),
          (N_q1_3D_local, N_q2_3D_local, N_q3_3D_local)
         ) = self.da_3D.getCorners()
+        
+        self.i_q1_3D_start = i_q1_3D_start
+        self.i_q2_3D_start = i_q2_3D_start
+        self.i_q3_3D_start = i_q3_3D_start
+
+        self.i_q1_3D_end = i_q1_3D_start + N_q1_3D_local - 1
+        self.i_q2_3D_end = i_q2_3D_start + N_q2_3D_local - 1
+        self.i_q3_3D_end = i_q3_3D_start + N_q3_3D_local - 1
 
         self.N_q1_2D_local = N_q1_2D_local
         self.N_q2_2D_local = N_q2_2D_local
@@ -73,8 +53,9 @@ class poisson_eqn_3D(object):
         self.N_q2_3D_local = N_q2_3D_local
         self.N_q3_3D_local = N_q3_3D_local
 
-        location_in_q3 = 10.
-        N_g = self.N_ghost
+        location_in_q3 = self.obj.location_in_q3
+        N_g  = self.N_ghost         # Ghost zones of Boltzmann solver
+        N_gp = self.N_ghost_poisson # Ghost zones of Poisson solver 
 
         self.density_np = np.zeros([N_q2_2D_local + 2*N_g,
                                     N_q1_2D_local + 2*N_g 
@@ -82,15 +63,15 @@ class poisson_eqn_3D(object):
 				  )
         # Cell centers in 3D
         i_q1_3D = ( (i_q1_3D_start + 0.5)
-                   + np.arange(-N_g, N_q1_3D_local + N_g)
+                   + np.arange(-N_gp, N_q1_3D_local + N_gp)
                   )
 
         i_q2_3D = ( (i_q2_3D_start + 0.5)
-                   + np.arange(-N_g, N_q2_3D_local + N_g)
+                   + np.arange(-N_gp, N_q2_3D_local + N_gp)
                   )
 
         i_q3_3D = ( (i_q3_3D_start + 0.5)
-                   + np.arange(-N_g, N_q3_3D_local + N_g)
+                   + np.arange(-N_gp, N_q3_3D_local + N_gp)
                   )
 
         q1_2D_start = self.obj.q1_start
@@ -121,66 +102,103 @@ class poisson_eqn_3D(object):
         q2_3D =  q2_2D_start - length_multiples_q2*length_q2_2d + i_q2_3D * self.dq2
         q3_3D =  q3_3D_start + i_q3_3D * self.dq3
 
-        self.q3_2D_in_3D_index_start = np.where(q3_3D > location_in_q3 - self.dq3)[0][0]
-        self.q3_2D_in_3D_index_end   = np.where(q3_3D < location_in_q3 + self.dq3)[0][-1]
-
-        self.q1_2D_in_3D_index_start = np.where(abs(q1_3D - q1_2D[N_g] )   < 1e-10)[0][0]
-        self.q1_2D_in_3D_index_end   = np.where(abs(q1_3D - q1_2D[-1-N_g]) < 1e-10)[0][0]
-        self.q2_2D_in_3D_index_start = np.where(abs(q2_3D - q2_2D[N_g] )   < 1e-10)[0][0]
-        self.q2_2D_in_3D_index_end   = np.where(abs(q2_3D - q2_2D[-1-N_g]) < 1e-10)[0][0]
-
         glob_epsilon  = self.da_3D.createGlobalVec()
         local_epsilon = self.da_3D.createLocalVec()
 
         epsilon_array = local_epsilon.getArray(readonly=0)
-        epsilon_array = epsilon_array.reshape([N_q3_3D_local + 2*N_g, \
-                                               N_q2_3D_local + 2*N_g, \
-                                               N_q1_3D_local + 2*N_g
+        epsilon_array = epsilon_array.reshape([N_q3_3D_local + 2*N_gp, \
+                                               N_q2_3D_local + 2*N_gp, \
+                                               N_q1_3D_local + 2*N_gp
                                               ]
                                              )
         epsilon_array[:] = params.epsilon0
-        epsilon_array[:self.q3_2D_in_3D_index_start, :, :] = 10.*params.epsilon0
+        epsilon_array[q3_3D<location_in_q3-self.dq3, :, :] = 10.*params.epsilon0
         self.epsilon_array = epsilon_array
-        
-        q3_3D_data_structure = 0.*epsilon_array
 
-        for j in range(q3_3D_data_structure.shape[1]):
-            for i in range(q3_3D_data_structure.shape[2]):
-                q3_3D_data_structure[:, j, i] = q3_3D
+        q2_3D_data_structure, q3_3D_data_structure, q1_3D_data_structure = \
+                np.meshgrid(q2_3D, q3_3D, q1_3D)
         
-        backgate_potential = -100.
+        q2_2D_data_structure, q1_2D_data_structure = \
+                np.meshgrid(q2_2D, q1_2D)
+
+        tol = 1e-10
+        self.cond_3D =   (q1_3D_data_structure >= q1_2D[N_g] - tol) \
+                       & (q1_3D_data_structure <= q1_2D[-1-N_g] + tol) \
+                       & (q2_3D_data_structure >= q2_2D[N_g] - tol) \
+                       & (q2_3D_data_structure <= q2_2D[-1-N_g] + tol) \
+                       & (q3_3D_data_structure >= location_in_q3) \
+                       & (q3_3D_data_structure < location_in_q3 + self.dq3)
+
+        self.cond_2D =   (q1_2D_data_structure >= q1_2D[N_g]) \
+                       & (q1_2D_data_structure <= q1_2D[-1-N_g]) \
+                       & (q2_2D_data_structure >= q2_2D[N_g]) \
+                       & (q2_2D_data_structure <= q2_2D[-1-N_g])
+
+        self.cond_3D_phi =   (q1_3D_data_structure >= q1_2D[0] - tol) \
+                           & (q1_3D_data_structure <= q1_2D[-1] + tol) \
+                           & (q2_3D_data_structure >= q2_2D[0] - tol) \
+                           & (q2_3D_data_structure <= q2_2D[-1] + tol) \
+                           & (q3_3D_data_structure >= location_in_q3) \
+                           & (q3_3D_data_structure < location_in_q3 + self.dq3)
+
+        contact_start = 2.5; contact_end = 7.5
+
+        self.cond_left_contact = \
+        (q1_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < q1_2D[N_g] - tol) \
+      & (q2_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > contact_start-tol) \
+      & (q2_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < contact_end + tol) \
+      & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > location_in_q3) \
+      & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < location_in_q3 + self.dq3)
+
+        self.cond_right_contact = \
+        (q1_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > q1_2D[-1-N_g] + tol) \
+      & (q2_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > contact_start-tol) \
+      & (q2_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < contact_end + tol) \
+      & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > location_in_q3) \
+      & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < location_in_q3 + self.dq3)
+
+        backgate_potential = -10.
 
         self.q3    = q3_3D_data_structure
         z          = self.q3
-        z_sample   = q3_3D[self.q3_2D_in_3D_index_start]
-        z_backgate = q3_3D[0]
+        #z_sample   = q3_3D[self.q3_2D_in_3D_index_start]
+        #TODO: FIX THIS ASAP
+        z_sample   = location_in_q3
+        z_backgate = q3_3D[N_gp]
         side_wall_boundaries = \
 	    backgate_potential*(z_sample - z)/(z_sample - z_backgate)
 
         self.bc = 0.*self.q3 # 3D boundary condition array
 
         self.bc[:]          = 0.
-        self.bc[:N_g, :, :] = backgate_potential # backgate
+        self.bc[:N_gp, :, :] = backgate_potential # backgate
 
-        self.bc[:self.q3_2D_in_3D_index_start, :N_g, :]               = \
-            side_wall_boundaries[:self.q3_2D_in_3D_index_start, :N_g, :]
+        below_sample = q3_3D<location_in_q3+self.dq3
 
-        self.bc[:self.q3_2D_in_3D_index_start, N_q2_3D_local+N_g:, :] = \
-            side_wall_boundaries[:self.q3_2D_in_3D_index_start, N_q2_3D_local+N_g:, :]
+        # Back wall
+        self.bc[below_sample, :N_gp, :]               = \
+            side_wall_boundaries[below_sample, :N_gp, :]
 
-        self.bc[:self.q3_2D_in_3D_index_start, :, :N_g]               = \
-            side_wall_boundaries[:self.q3_2D_in_3D_index_start, :, :N_g]
+        # Front wall
+        self.bc[below_sample, N_q2_3D_local+N_gp:, :] = \
+            side_wall_boundaries[below_sample, N_q2_3D_local+N_gp:, :]
 
-        self.bc[:self.q3_2D_in_3D_index_start, :, N_q1_3D_local+N_g:] = \
-            side_wall_boundaries[:self.q3_2D_in_3D_index_start, :, N_q1_3D_local+N_g:]
-        
+        # Left wall
+        self.bc[below_sample, :, :N_gp]               = \
+            side_wall_boundaries[below_sample, :, :N_gp]
+
+        # Right wall
+        self.bc[below_sample, :, N_q1_3D_local+N_gp:] = \
+            side_wall_boundaries[below_sample, :, N_q1_3D_local+N_gp:]
+
         return
 
 
     def compute_residual(self, snes, phi, residual):
         self.da_3D.globalToLocal(phi, self.local_phi)
 
-        N_g = self.N_ghost
+        N_g  = self.N_ghost
+        N_gp = self.N_ghost_poisson 
 
         N_q1_2D_local = self.N_q1_2D_local
         N_q2_2D_local = self.N_q2_2D_local
@@ -190,11 +208,18 @@ class poisson_eqn_3D(object):
         N_q3_3D_local = self.N_q3_3D_local
 
         phi_array = self.local_phi.getArray(readonly=0)
-        phi_array = phi_array.reshape([N_q3_3D_local + 2*N_g, \
-                                       N_q2_3D_local + 2*N_g, \
-                                       N_q1_3D_local + 2*N_g
+        phi_array = phi_array.reshape([N_q3_3D_local + 2*N_gp, \
+                                       N_q2_3D_local + 2*N_gp, \
+                                       N_q1_3D_local + 2*N_gp
         			      ]
                                      )
+
+        phi_glob_array = phi.getArray(readonly=0)
+        phi_glob_array = phi_glob_array.reshape([N_q3_3D_local, \
+                                                 N_q2_3D_local, \
+                                                 N_q1_3D_local
+        		                 	]
+                                               )
     
         residual_array = residual.getArray(readonly=0)
         residual_array = residual_array.reshape([N_q3_3D_local, \
@@ -204,13 +229,23 @@ class poisson_eqn_3D(object):
                                                )
         # Boundary conditions
         bc = self.bc
-        phi_array[:N_g, :, :]               = bc[:N_g, :, :]
-        phi_array[N_q3_3D_local+N_g:, :, :] = bc[N_q3_3D_local+N_g:, :, :]
-        phi_array[:, :N_g, :]               = bc[:, :N_g, :]
-        phi_array[:, N_q2_3D_local+N_g:, :] = bc[:, N_q2_3D_local+N_g:, :]
-        phi_array[:, :, :N_g]               = bc[:, :, :N_g]
-        phi_array[:, :, N_q1_3D_local+N_g:] = bc[:, :, N_q1_3D_local+N_g:]
+        if (self.i_q3_3D_start==0):
+            phi_array[:N_gp, :, :]               = bc[:N_gp, :, :]
 
+        if (self.i_q3_3D_end==self.obj.N_q3_poisson-1):
+            phi_array[N_q3_3D_local+N_gp:, :, :] = bc[N_q3_3D_local+N_gp:, :, :]
+
+        if (self.i_q2_3D_start==0):
+            phi_array[:, :N_gp, :]               = bc[:, :N_gp, :]
+
+        if (self.i_q2_3D_end==self.obj.N_q2_poisson-1):
+            phi_array[:, N_q2_3D_local+N_gp:, :] = bc[:, N_q2_3D_local+N_gp:, :]
+
+        if (self.i_q1_3D_start==0):
+            phi_array[:, :, :N_gp]               = bc[:, :, :N_gp]
+
+        if (self.i_q1_3D_end==self.obj.N_q1_poisson-1):
+            phi_array[:, :, N_q1_3D_local+N_gp:] = bc[:, :, N_q1_3D_local+N_gp:]
 
         phi_plus_x  = np.roll(phi_array, shift=-1, axis=2) # (i+3/2, j+1/2, k+1/2)
         phi_minus_x = np.roll(phi_array, shift=1,  axis=2) # (i-1/2, j+1/2, k+1/2)
@@ -242,97 +277,18 @@ class poisson_eqn_3D(object):
                        + (D_top_edge   - D_bot_edge)  /self.dq2 \
                        + (D_front_edge - D_back_edge) /self.dq3
 
-        q3_2D_in_3D_index_start = self.q3_2D_in_3D_index_start 
-        q3_2D_in_3D_index_end   = self.q3_2D_in_3D_index_end   
-                                                               
-        q1_2D_in_3D_index_start = self.q1_2D_in_3D_index_start 
-        q1_2D_in_3D_index_end   = self.q1_2D_in_3D_index_end   
-        q2_2D_in_3D_index_start = self.q2_2D_in_3D_index_start 
-        q2_2D_in_3D_index_end   = self.q2_2D_in_3D_index_end   
-
-        laplacian_phi[q3_2D_in_3D_index_start,
-                      q2_2D_in_3D_index_start:q2_2D_in_3D_index_end+1,
-                      q1_2D_in_3D_index_start:q1_2D_in_3D_index_end+1
-                     ] \
-                     += \
+        laplacian_phi[self.cond_3D] += \
               -params.charge_electron \
-             * self.density_np[N_g:-N_g, N_g:-N_g] / self.dq3
+             * self.density_np[self.cond_2D] / self.dq3
 
         residual_array[:, :, :] = \
-            laplacian_phi[N_g:-N_g, N_g:-N_g, N_g:-N_g]
+            laplacian_phi[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp]
 
-#        #Side contacts
-#        mid_point_q2_index = \
-#            (int)((q2_2D_in_3D_index_start + q2_2D_in_3D_index_end)/2)
-#
-##        residual_array[q3_2D_in_3D_index_start-N_g,
-##                  mid_point_q2_index-5-N_g:mid_point_q2_index+5+1-N_g,
-##                  :q1_2D_in_3D_index_start-N_g
-##                 ] = \
-##        phi_array[q3_2D_in_3D_index_start,
-##                  mid_point_q2_index-5:mid_point_q2_index+5+1,
-##                  N_g:q1_2D_in_3D_index_start
-##                 ] - 0.1*0.
-##
-##        residual_array[q3_2D_in_3D_index_start-N_g,
-##                  mid_point_q2_index-5-N_g:mid_point_q2_index+5+1-N_g,
-##                  q1_2D_in_3D_index_end+1-N_g:
-##                 ] = \
-##        phi_array[q3_2D_in_3D_index_start,
-##                  mid_point_q2_index-5:mid_point_q2_index+5+1,
-##                  q1_2D_in_3D_index_end+1:-N_g
-##                 ] + 0.1*0.
-#
-#        residual_array[q3_2D_in_3D_index_start-N_g,
-#                       q2_2D_in_3D_index_start-N_g:q2_2D_in_3D_index_end+1-N_g,
-#                      :q1_2D_in_3D_index_start-N_g
-#                      ] = \
-#            phi_array[q3_2D_in_3D_index_start,
-#                      q2_2D_in_3D_index_start:q2_2D_in_3D_index_end+1,
-#                      N_g:q1_2D_in_3D_index_start
-#                     ] - 0.1*0.
-#
-#        residual_array[q3_2D_in_3D_index_start-N_g,
-#                       q2_2D_in_3D_index_start-N_g:q2_2D_in_3D_index_end+1-N_g,
-#                       q1_2D_in_3D_index_end+1-N_g:
-#                      ] = \
-#            phi_array[q3_2D_in_3D_index_start,
-#                      q2_2D_in_3D_index_start:q2_2D_in_3D_index_end+1,
-#                      q1_2D_in_3D_index_end+1:-N_g
-#                     ] + 0.1*0.
+        residual_array[self.cond_left_contact] = \
+                phi_glob_array[self.cond_left_contact] - 0.
 
-        #Side contacts
-        mid_point_q2_index = \
-            (int)((q2_2D_in_3D_index_start + q2_2D_in_3D_index_end)/2)
-
-        size_of_inflow   = 5.
-        length_y         = self.obj.q2_end - self.obj.q2_start
-        N_inflow_zones   = (int)(size_of_inflow/length_y*self.obj.N_q2)
-        N_outflow_zones  = N_inflow_zones
-
-        q2_inflow_start   = mid_point_q2_index-N_inflow_zones/2
-        q2_inflow_end     = mid_point_q2_index+N_inflow_zones/2+1 
-
-        q2_outflow_start  = mid_point_q2_index-N_outflow_zones/2
-        q2_outflow_end    = mid_point_q2_index+N_outflow_zones/2+1
-
-        residual_array[q3_2D_in_3D_index_start-N_g,
-                       q2_inflow_start-N_g:q2_inflow_end-N_g,
-                       :q1_2D_in_3D_index_start-N_g
-                      ] = \
-        phi_array[q3_2D_in_3D_index_start,
-                  q2_inflow_start:q2_inflow_end,
-                  N_g:q1_2D_in_3D_index_start
-                 ] - 0.1*0.
-
-        residual_array[q3_2D_in_3D_index_start-N_g,
-                       q2_outflow_start-N_g:q2_outflow_end-N_g,
-                       q1_2D_in_3D_index_end+1-N_g:
-                      ] = \
-        phi_array[q3_2D_in_3D_index_start,
-                  q2_outflow_start:q2_outflow_end,
-                  q1_2D_in_3D_index_end+1:-N_g
-                 ] + 0.1*0.
+        residual_array[self.cond_right_contact] = \
+                phi_glob_array[self.cond_right_contact] - 0.
         return
 
 def compute_electrostatic_fields(self):
@@ -340,7 +296,8 @@ def compute_electrostatic_fields(self):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    N_g = self.N_ghost
+    N_g  = self.N_ghost
+    N_gp = self.poisson.N_ghost_poisson
 
     density_af = af.moddims(self.compute_moments('density'),
                               (self.N_q1_local+2*N_g)
@@ -360,32 +317,14 @@ def compute_electrostatic_fields(self):
 			       )
     phi_local_array = self.poisson.local_phi.getArray()
     phi_local_array = \
-        phi_local_array.reshape([self.poisson.N_q3_3D_local+2*N_g,
-                                 self.poisson.N_q2_3D_local+2*N_g,
-                                 self.poisson.N_q1_3D_local+2*N_g
+        phi_local_array.reshape([self.poisson.N_q3_3D_local+2*N_gp,
+                                 self.poisson.N_q2_3D_local+2*N_gp,
+                                 self.poisson.N_q1_3D_local+2*N_gp
                                 ]
                                )
 
-    q3_2D_in_3D_index_start = self.poisson.q3_2D_in_3D_index_start 
-    q3_2D_in_3D_index_end   = self.poisson.q3_2D_in_3D_index_end   
-                                                           
-    q1_2D_in_3D_index_start = self.poisson.q1_2D_in_3D_index_start 
-    q1_2D_in_3D_index_end   = self.poisson.q1_2D_in_3D_index_end   
-    q2_2D_in_3D_index_start = self.poisson.q2_2D_in_3D_index_start 
-    q2_2D_in_3D_index_end   = self.poisson.q2_2D_in_3D_index_end   
-    
-    phi_2D_local_array = \
-        phi_local_array[q3_2D_in_3D_index_start,
-                        q2_2D_in_3D_index_start-N_g:q2_2D_in_3D_index_end+1+N_g,
-                        q1_2D_in_3D_index_start-N_g:q1_2D_in_3D_index_end+1+N_g
-                       ]
-    
-    phi_2D_local_array = \
-        phi_2D_local_array.reshape([ (self.N_q1_local + 2*N_g) \
-                                    *(self.N_q2_local + 2*N_g)
-                                   ]
-                                  )
-    
+    phi_2D_local_array = phi_local_array[self.poisson.cond_3D_phi]
+
     # convert from np->af
     self.phi = af.to_array(phi_2D_local_array) 
     # Since rho was defined at (i + 0.5, j + 0.5)
@@ -397,15 +336,41 @@ def compute_electrostatic_fields(self):
     params.phi = self.phi
 
     # Obtaining the electric field values at (i+0.5, j+0.5):
-    self.E1 = -(  af.shift(self.phi, -1, 0)
-                - af.shift(self.phi,  1, 0)
-               ) / (2 * self.dq1)
+    E1 = -(  af.shift(self.phi, -1, 0)
+           - af.shift(self.phi,  1, 0)
+          ) / (2 * self.dq1)
 
-    self.E2 = -(  af.shift(self.phi, 0, -1)
-                - af.shift(self.phi, 0,  1)
-               ) / (2 * self.dq2)
+    E2 = -(  af.shift(self.phi, 0, -1)
+           - af.shift(self.phi, 0,  1)
+          ) / (2 * self.dq2)
 
-    af.eval(self.E1, self.E2)
+    E3 = -(  af.shift(self.phi, 0, 0, -1)
+           - af.shift(self.phi, 0, 0,  1)
+          ) / (2 * self.dq3)
+
+    af.eval(E1, E2, E3)
+
+    E1 = af.moddims(E1,
+                    1,
+                    self.N_q1_local + 2*N_g,
+                    self.N_q2_local + 2*N_g
+                   )
+
+    E2 = af.moddims(E2,
+                    1,
+                    self.N_q1_local + 2*N_g,
+                    self.N_q2_local + 2*N_g
+                   )
+
+    E3 = af.moddims(E3,
+                    1,
+                    self.N_q1_local + 2*N_g,
+                    self.N_q2_local + 2*N_g
+                   )
+
+    self.cell_centered_EM_fields[0, :] = E1
+    self.cell_centered_EM_fields[1, :] = E2
+    self.cell_centered_EM_fields[2, :] = E3
 
     if(self.performance_test_flag == True):
         af.sync()

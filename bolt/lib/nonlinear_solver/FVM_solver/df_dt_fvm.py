@@ -1,8 +1,9 @@
 import arrayfire as af
 
 from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import fft_poisson
+from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import compute_electrostatic_fields
 # Importing Riemann solver used in calculating fluxes:
-from .riemann_solver import riemann_solver
+from .riemann_solver import riemann_solver, upwind_flux
 from .reconstruct import reconstruct
 
 # Equation to solve:
@@ -81,7 +82,7 @@ def df_dt_fvm(f, self, at_n = True):
                 fft_poisson(self, f)
             
             elif(self.physical_system.params.fields_solver == 'SNES'):
-                #compute_electrostatic_fields(self)
+                compute_electrostatic_fields(self)
                 pass
             
             self._communicate_fields()
@@ -158,9 +159,19 @@ def df_dt_fvm(f, self, at_n = True):
 #        back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
         # Obtaining the fluxes by face-averaging:
-        left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
-        bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)
+#        left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
+#        bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)
  #       back_flux_p3  = 0.5 * (back_minus_eps_flux_p3 + back_plus_eps_flux_p3)
+
+        left_flux_p1 = upwind_flux(left_minus_eps_flux_p1, \
+                                   left_plus_eps_flux_p1, \
+                                   self._convert_to_p_expanded(A_p1)
+                                  )
+
+        bot_flux_p2  = upwind_flux(bot_minus_eps_flux_p2, \
+                                   bot_plus_eps_flux_p2, \
+                                   self._convert_to_p_expanded(A_p2)
+                                  )
 
         right_flux_p1 = af.shift(left_flux_p1, -1)
         top_flux_p2   = af.shift(bot_flux_p2,   0, -1)

@@ -118,8 +118,9 @@ class nonlinear_solver(object):
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
 
-        if(self.physical_system.params.num_devices>1):
-            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+        af.set_device(1)
+#        if(self.physical_system.params.num_devices>1):
+#            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
 
@@ -213,24 +214,26 @@ class nonlinear_solver(object):
 	# TODO: Remove the following hardcoded values
         self.length_multiples_q1 = 1
         self.length_multiples_q2 = 1
+        self.location_in_q3      = 10.
         self.q3_3D_start =  0.; self.q3_3D_end = 20.
-        self.dq3 = physical_system.dq1
+        self.dq3 = self.dq1
 
         self.N_q1_poisson = (2*self.length_multiples_q1+1)*self.N_q1
         self.N_q2_poisson = (2*self.length_multiples_q2+1)*self.N_q2
         self.N_q3_poisson = (int)((self.q3_3D_end - self.q3_3D_start) / self.dq3)
+        self.N_ghost_poisson = 1
 
         self._da_snes = PETSc.DMDA().create([self.N_q1_poisson, 
 	                                     self.N_q2_poisson,
 					     self.N_q3_poisson],
-                                             stencil_width = self.N_ghost,
+                                             stencil_width = self.N_ghost_poisson,
                                              boundary_type = (petsc_bc_in_q1,
                                                               petsc_bc_in_q2,
 							      'periodic'
                                                              ),
                                              proc_sizes    = (PETSc.DECIDE,
                                                               PETSc.DECIDE,
-                                                              PETSc.DECIDE
+                                                              1
                                                              ),
                                              stencil_type  = 1,
                                              dof = 1,
@@ -480,7 +483,6 @@ class nonlinear_solver(object):
                                                       p1_center,
                                                       p3_center
                                                      )
-
         # Flattening the arrays:
         p1_center = af.flat(af.to_array(p1_center))
         p2_center = af.flat(af.to_array(p2_center))
