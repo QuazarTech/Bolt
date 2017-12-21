@@ -11,19 +11,9 @@ def initialize_E(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
     
-    E1 = 0 * q1**0
-    # E1 =   params.charge_electron * k_q1/(k_q1**2 + k_q2**2) \
-    #      * (  params.pert_real * af.sin(k_q1 * q1 + k_q2 * q2) 
-    #         + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
-    #        )
-
-    E2 = 0 * q1**0
-    # E2 =   params.charge_electron * k_q2/(k_q1**2 + k_q2**2) \
-    #      * (  params.pert_real * af.sin(k_q1 * q1 + k_q2 * q2) 
-    #         + params.pert_imag * af.cos(k_q1 * q1 + k_q2 * q2)
-    #        )
-
-    E3 = 0 * q1**0
+    E1 = 0. * q1**0
+    E2 = 0. * q1**0
+    E3 = 0. * q1**0
 
     return(E1, E2, E3)
 
@@ -32,9 +22,9 @@ def initialize_B(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
 
-    B1 = 0.1 * q1**0 #af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
-    B2 = 0.2 * q1**0 #af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
-    B3 = 0.3 * q1**0 #af.cos(2 * np.pi * q1) * af.sin(4 * np.pi * q2)
+    B1 = 0.4 * q1**0 #af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
+    B2 = 0.5 * q1**0 #af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
+    B3 = 0.6 * q1**0 #af.cos(2 * np.pi * q1) * af.sin(4 * np.pi * q2)
 
     return(B1, B2, B3)
 

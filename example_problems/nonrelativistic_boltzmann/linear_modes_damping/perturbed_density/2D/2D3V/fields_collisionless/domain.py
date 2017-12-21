@@ -1,10 +1,10 @@
 q1_start = 0
 q1_end   = 1
-N_q1     = 1
+N_q1     = 2
 
 q2_start = 0
 q2_end   = 1
-N_q2     = 1
+N_q2     = 2
 
 p1_start = -10
 p1_end   = 10
@@ -19,4 +19,4 @@ p3_end   = 10
 N_p3     = 32
 
 N_ghost_q = 1
-N_ghost_p = 1
+N_ghost_p = 0

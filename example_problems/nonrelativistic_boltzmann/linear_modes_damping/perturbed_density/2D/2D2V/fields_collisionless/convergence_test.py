@@ -41,7 +41,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 75
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -72,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N = 2**np.arange(5, 10)
-error = np.zeros(5)
+N     = np.array([128])
+error = np.zeros(1)
 
 for i in range(N.size):
     af.device_gc()
@@ -102,8 +102,8 @@ for i in range(N.size):
 
     # print("N_q1 =", nls.N_q1, ", N_q2 =", nls.N_q2, ", N_p1 =", nls.N_p1, ", N_p2 =", nls.N_p2)
 
-    # p1 = np.array(af.moddims(nls.p1, nls.N_p1, nls.N_p2))
-    # p2 = np.array(af.moddims(nls.p2, nls.N_p1, nls.N_p2))
+    p1 = np.array(af.moddims(nls.p1_center, nls.N_p1, nls.N_p2))
+    p2 = np.array(af.moddims(nls.p2_center, nls.N_p1, nls.N_p2))
 
     # f_at_desired_q_initial = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
     #                             nls.N_p1, nls.N_p2
@@ -123,12 +123,27 @@ for i in range(N.size):
     time_array  = np.arange(0, t_final + dt, dt)
 
     f_initial = nls.f.copy()
+
+    maxf = af.max(nls.f)
+    minf = af.min(nls.f)
+
     # f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.strang_timestep(dt)
         ls.RK4_timestep(dt)
+
+        f_at_desired_q = af.moddims(nls.f[:, 1, 2],
+                                    nls.N_p1, nls.N_p2
+                                   )
+
+        pl.contourf(p1, p2, np.array(f_at_desired_q), np.linspace(minf, maxf, 200), cmap='bwr')
+        pl.colorbar()
+        pl.title('Time = %.3f'%(t0))
+        pl.gca().set_aspect('equal')
+        pl.savefig('images/%04d'%time_index+'.png')
+        pl.clf()
 
     # In[11]:
 
@@ -147,10 +162,10 @@ for i in range(N.size):
     #                             nls.N_p1, nls.N_p2
     #                            )
 
-    #f_initial_at_desired_q = \
+    # f_initial_at_desired_q = \
     #    initialize.initialize_f(nls.q1_center, nls.q2_center, nls.p1, nls.p2, nls.p3, params)
         
-    #f_initial_at_desired_q = af.moddims(f_initial_at_desired_q,
+    # f_initial_at_desired_q = af.moddims(f_initial_at_desired_q,
     #                                    nls.N_p1, nls.N_p2
     #                                   )
 
@@ -158,16 +173,7 @@ for i in range(N.size):
     # pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
     # pl.gca().set_aspect('equal')
 
-    # for i in range(400):
-    #     f_at_desired_q = af.moddims(f[i][:, N_g, N_g + nls.N_q2/2],
-    #                                 nls.N_p1, nls.N_p2
-    #                                )
 
-    #     pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
-    #     pl.title('Time = %.3f'%(i*1e-3))
-    #     pl.gca().set_aspect('equal')
-    #     pl.savefig('images/%04d'%i+'.png')
-    #     pl.clf()
 
 
     # In[15]:
@@ -186,7 +192,7 @@ for i in range(N.size):
                  * af.exp(-(nls.p1_center+t_final)**2 / 2) \
                  * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
 
-    error[i] = af.mean(af.abs(nls.f[:, 2, 3] - f_analytic))
+    error[i] = af.mean(af.abs(nls.f[:, 1, 2] - f_analytic))
 
 print(error)
 print(np.polyfit(np.log10(N), np.log10(error), 1))

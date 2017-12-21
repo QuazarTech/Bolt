@@ -18,5 +18,5 @@ p3_start = -0.5
 p3_end   = 0.5
 N_p3     = 1
 
-N_ghost_q = 2
+N_ghost_q = 1
 N_ghost_p = 0
