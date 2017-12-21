@@ -1,5 +1,6 @@
 """Contains the function which returns the Source/Sink term."""
 
+from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
 from .matrix_inverse import inverse_4x4_matrix
@@ -34,7 +35,7 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
 
         residual   = [eqn_mass_conservation]
         error_norm = np.max([af.max(af.abs(residual[0]))])
-        print("    ||residual_defect|| = ", error_norm)
+        print("    rank = ", params.rank, "||residual_defect|| = ", error_norm)
 
         res      = eqn_mass_conservation
         dres_dmu = -a00
@@ -61,18 +62,19 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
 
     residual   = [eqn_mass_conservation]
     error_norm = np.max([af.max(af.abs(residual[0]))])
-    print("    ||residual_defect|| = ", error_norm)
+    print("    rank = ", params.rank, "||residual_defect|| = ", error_norm)
 
     density_f = af.sum(f, 0)
     fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
     density_fermi_dirac = af.sum(fermi_dirac - 1./(af.exp( (E_upper )/(k*T) ) + 1.), 0)
 
-    print("    mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
-           "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g]),
-           "density_f = ", af.mean(density_f[0, N_g:-N_g, N_g:-N_g]),
-           "density_fermi_dirac = ",af.mean(density_fermi_dirac[0, N_g:-N_g, N_g:-N_g])
+    print("    rank = ", params.rank,
+          "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
+          "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g]),
+          "density_f = ", af.mean(density_f[0, N_g:-N_g, N_g:-N_g]),
+          "density_fermi_dirac = ",af.mean(density_fermi_dirac[0, N_g:-N_g, N_g:-N_g])
          )
-    print("    ------------------")
+    PETSc.Sys.Print("    ------------------")
 
     return(fermi_dirac)
 
