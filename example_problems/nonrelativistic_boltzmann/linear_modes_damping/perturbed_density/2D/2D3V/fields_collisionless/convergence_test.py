@@ -69,16 +69,15 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-
-# In[6]:
-
-N = 2**np.arange(5, 8)
-error = np.zeros(3)
+N = np.array([32, 48, 64, 96, 128])
+error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()
+
     domain.N_p1 = int(N[i])
     domain.N_p2 = int(N[i])
+    domain.N_p3 = int(N[i])
 
     # Defining the physical system to be solved:
     system = physical_system(domain,
@@ -98,7 +97,7 @@ for i in range(N.size):
 
     # Declaring a linear system object which will evolve the defined physical system:
     nls = nonlinear_solver(system)
-    ls  = linear_solver(system)
+    # ls  = linear_solver(system)
 
     # print("N_q1 =", nls.N_q1, ", N_q2 =", nls.N_q2, ", N_p1 =", nls.N_p1, ", N_p2 =", nls.N_p2)
 
@@ -118,16 +117,20 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.01 
+    t_final = 0.1 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
-    f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    if(time_array[-1]>t_final):
+        time_array = np.delete(time_array, -1)
+
+    # f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    f_initial = nls.f.copy()
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
-        # nls.strang_timestep(dt)
-        ls.RK4_timestep(dt)
+        nls.strang_timestep(dt)
+        # ls.RK4_timestep(dt)
 
     # In[11]:
 
@@ -178,11 +181,13 @@ for i in range(N.size):
 
     # In[16]:
 
-    f_final = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    # f_final = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    # error[i] = af.mean(af.abs(f_final[0, 1, :] - f_initial[0, 1, :]))
 
-    error[i] = af.mean(af.abs(f_final[:, 0, 1] - f_initial[:, 0, 1]))
+    error[i] = af.mean(af.abs(nls.f[:, 0, 1] - f_initial[:, 0, 1]))
 
 print(error)
+print(np.polyfit(np.log10(N), np.log10(error), 1))
 
 pl.loglog(N, error, '-o', label = 'Numerical')
 pl.loglog(N, error[0] * 32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')

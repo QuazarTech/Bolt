@@ -90,10 +90,6 @@ rho_data_ls  = np.zeros(time_array.size)
 
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
-
-pl.plot(af.flat(n_nls[0, :, 0]))
-pl.show()
-
 rho_data_nls[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
 
 n_ls = ls.compute_moments('density')

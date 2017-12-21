@@ -20,8 +20,6 @@ reconstruction_method_in_p = 'weno5'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-c_lax = 0
-
 # Dimensionality considered in velocity space:
 p_dim = 1
 

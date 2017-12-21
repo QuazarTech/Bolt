@@ -17,7 +17,8 @@ solver_method_in_p = 'FVM'
 reconstruction_method_in_q = 'piecewise-constant'
 reconstruction_method_in_p = 'piecewise-constant'
 
-riemann_solver = 'upwind-flux'
+riemann_solver_in_q = 'upwind-flux'
+riemann_solver_in_p = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 3
@@ -41,8 +42,8 @@ p3_bulk_background = 0
 pert_real = 0.00001
 pert_imag = 0.00002
 
-k_q1 = 2 * np.pi
-k_q2 = 4 * np.pi
+k_q1 = 2 * np.pi * 0
+k_q2 = 4 * np.pi * 0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

@@ -311,10 +311,8 @@ class nonlinear_solver(object):
         PETSc.Object.setName(self._glob_moments, 'moments')
 
         # Obtaining the array values of the cannonical variables:
-        self.q1_center, self.q2_center = self._calculate_q_center()
-        
+        self.q1_center, self.q2_center                 = self._calculate_q_center()
         self.p1_center, self.p2_center, self.p3_center = self._calculate_p_center()
-        self.p1_left,   self.p2_bottom, self.p3_back   = self._calculate_p_edge()
 
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
@@ -507,7 +505,7 @@ class nonlinear_solver(object):
                                                       self.N_p3 + self.N_ghost_p
                                                     )
                                     ) * self.dp3
-
+        
         p2_center, p1_center, p3_center = np.meshgrid(p2_center,
                                                       p1_center,
                                                       p3_center
@@ -521,34 +519,92 @@ class nonlinear_solver(object):
         af.eval(p1_center, p2_center, p3_center)
         return (p1_center, p2_center, p3_center)
 
-    def _calculate_p_edge(self):
-        """
-        Initializes the cannonical variables p1, p2 and p3 at the left edges. 
-        The size, and resolution are the same as declared under domain of the
-        physical system object.
-        """
+    def _calculate_p_left(self):
+
         p1_left   = self.p1_start + np.arange(-self.N_ghost_p, 
                                                self.N_p1 + self.N_ghost_p
                                              ) * self.dp1
+
+        p2_center = self.p2_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p2 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp2
+
+        p3_center = self.p3_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p3 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp3
+
+        p2_left, p1_left, p3_left = np.meshgrid(p2_center,
+                                                p1_left,
+                                                p3_center
+                                               )
+
+        # Flattening the arrays:
+        p1_left = af.flat(af.to_array(p1_left))
+        p2_left = af.flat(af.to_array(p2_left))
+        p3_left = af.flat(af.to_array(p3_left))
+
+        af.eval(p1_left, p2_left, p3_left)
+        return (p1_left, p2_left, p3_left)
+
+    def _calculate_p_bottom(self):
+
+        p1_center = self.p1_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p1 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp1
+
         p2_bottom = self.p2_start + np.arange(-self.N_ghost_p, 
                                                self.N_p2 + self.N_ghost_p
                                              ) * self.dp2
+
+        p3_center = self.p3_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p3 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp3
+
+        p2_bottom, p1_bottom, p3_bottom = np.meshgrid(p2_bottom,
+                                                      p1_center,
+                                                      p3_center
+                                                     )
+
+        # Flattening the arrays:
+        p1_bottom = af.flat(af.to_array(p1_bottom))
+        p2_bottom = af.flat(af.to_array(p2_bottom))
+        p3_bottom = af.flat(af.to_array(p3_bottom))
+
+        af.eval(p1_bottom, p2_bottom, p3_bottom)
+        return (p1_bottom, p2_bottom, p3_bottom)
+
+    def _calculate_p_back(self):
+
+        p1_center = self.p1_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p1 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp1
+
+        p2_center = self.p2_start + (0.5 + np.arange(-self.N_ghost_p, 
+                                                      self.N_p2 + self.N_ghost_p
+                                                    )
+                                    ) * self.dp2
+
         p3_back   = self.p3_start + np.arange(-self.N_ghost_p, 
                                                self.N_p3 + self.N_ghost_p
                                              ) * self.dp3
 
-        p2_bottom, p1_left, p3_back = np.meshgrid(p2_bottom,
-                                                  p1_left,
-                                                  p3_back
-                                                 )
+        p2_back, p1_back, p3_back = np.meshgrid(p2_center,
+                                                p1_center,
+                                                p3_center
+                                               )
 
         # Flattening the arrays:
-        p1_left   = af.flat(af.to_array(p1_left))
-        p2_bottom = af.flat(af.to_array(p2_bottom))
-        p3_back   = af.flat(af.to_array(p3_back))
+        p1_back = af.flat(af.to_array(p1_back))
+        p2_back = af.flat(af.to_array(p2_back))
+        p3_back = af.flat(af.to_array(p3_back))
 
-        af.eval(p1_left, p2_bottom, p3_back)
-        return (p1_left, p2_bottom, p3_back)
+        af.eval(p1_back, p2_back, p3_back)
+        return (p1_back, p2_back, p3_back)
 
     def _initialize(self, params):
         """
