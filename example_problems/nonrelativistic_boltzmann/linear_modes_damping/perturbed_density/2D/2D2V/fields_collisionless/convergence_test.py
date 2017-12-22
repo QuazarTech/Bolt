@@ -72,7 +72,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N     = np.array([64])
+N     = np.array([96])
 error = np.zeros(1)
 
 for i in range(N.size):
@@ -98,7 +98,7 @@ for i in range(N.size):
 
     # Declaring a linear system object which will evolve the defined physical system:
     nls = nonlinear_solver(system)
-    ls  = linear_solver(system)
+    #ls  = linear_solver(system)
 
     # print("N_q1 =", nls.N_q1, ", N_q2 =", nls.N_q2, ", N_p1 =", nls.N_p1, ", N_p2 =", nls.N_p2)
 
@@ -132,11 +132,11 @@ for i in range(N.size):
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.strang_timestep(dt)
-        ls.RK4_timestep(dt)
+        #ls.RK4_timestep(dt)
         
-        f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
+        #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        f_at_desired_q = af.moddims(f[3, 3, :],
+        f_at_desired_q = af.moddims(nls.f[:, 1, 1],
                                     nls.N_p1, nls.N_p2
                                    )
 
