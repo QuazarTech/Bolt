@@ -72,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N     = np.array([32, 48, 64, 96])
-error = np.zeros(4)
+N     = 2**np.arange(5, 10) #np.array([32, 48, 64, 96])
+error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()
@@ -197,10 +197,27 @@ for i in range(N.size):
     #             * af.exp(-(nls.p1_center+t_final)**2 / 2) \
     #             * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
 
-    import h5py
-    h5f = h5py.File('%04d'%(nls.N_p1) + '.h5', 'r')
-    f_ana = h5f['distribution_function'][:]
-    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - af.to_array(f_ana)))
+    params.solver_method_in_q = 'ASL'
+    params.solver_method_in_p = 'ASL'
+
+    # Defining the physical system to be solved:
+    system = physical_system(domain,
+                             boundary_conditions,
+                             params,
+                             initialize,
+                             advection_terms,
+                             collision_operator.BGK,
+                             moment_defs
+                            )
+
+    params.solver_method_in_q = 'FVM'
+    params.solver_method_in_p = 'FVM'
+
+    N_g_q = system.N_ghost_q
+
+    nls2 = nonlinear_solver(system)
+    # nls2.lie_timestep(t_final)
+    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - nls2.f[:, 1, 1]))
 
 print(error)
 print(np.polyfit(np.log10(N), np.log10(error), 1))
