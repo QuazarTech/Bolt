@@ -72,15 +72,18 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N     = 2**np.arange(5, 10) #np.array([32, 48, 64, 96])
-error = np.zeros(5)
+N     = np.array([128]) #2**np.arange(5, 10) #np.array([32, 48, 64, 96])
+error = np.zeros(1)
 
 for i in range(N.size):
     af.device_gc()
     domain.N_p1 = int(N[i])
     domain.N_p2 = int(N[i])
 
-    # Defining the physical system to be solved:
+    params.solver_method_in_q = 'ASL'
+    params.solver_method_in_p = 'ASL'
+
+   # Defining the physical system to be solved:
     system = physical_system(domain,
                              boundary_conditions,
                              params,
@@ -134,22 +137,22 @@ for i in range(N.size):
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
-        nls.strang_timestep(dt)
+        nls.lie_timestep(t0)
         #ls.RK4_timestep(dt)
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        #f_at_desired_q = af.moddims(nls.f[:, 1, 1],
-        #                            nls.N_p1, nls.N_p2
-        #                           )
+        f_at_desired_q = af.moddims(nls.f[:, 1, 1],
+                                    nls.N_p1, nls.N_p2
+                                   )
 
-        #pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
-        #pl.colorbar()
-        #pl.title('Time = %.3f'%(t0))
-        #pl.gca().set_aspect('equal')
-        #pl.savefig('images/%04d'%time_index+'.png')
-        #pl.clf()
-
+        pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
+        pl.colorbar()
+        pl.title('Time = %.3f'%(t0))
+        pl.gca().set_aspect('equal')
+        pl.savefig('images/%04d'%time_index+'.png')
+        pl.clf()
+        nls.f = f_initial
     # In[11]:
 
 
@@ -196,9 +199,6 @@ for i in range(N.size):
     #f_analytic =   1.01 * (1 / (2 * np.pi)) \
     #             * af.exp(-(nls.p1_center+t_final)**2 / 2) \
     #             * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
-
-    params.solver_method_in_q = 'ASL'
-    params.solver_method_in_p = 'ASL'
 
     # Defining the physical system to be solved:
     system = physical_system(domain,
