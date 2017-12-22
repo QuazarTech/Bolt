@@ -5,6 +5,7 @@ from bolt.lib.nonlinear_solver.EM_fields_solver.electrostatic import compute_ele
 # Importing Riemann solver used in calculating fluxes:
 from .riemann_solver import riemann_solver, upwind_flux
 from .reconstruct import reconstruct
+import params
 
 # Equation to solve:
 # df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
@@ -77,16 +78,24 @@ def df_dt_fvm(f, self, at_n = True):
        and self.physical_system.params.charge_electron != 0
       ):
         if(self.physical_system.params.fields_type == 'electrostatic'):
-            if(self.physical_system.params.fields_solver == 'fft'):
 
-                fft_poisson(self, f)
+            if (params.time_step%params.electrostatic_solver_step==0):
+
+                if(self.physical_system.params.fields_solver == 'fft'):
+
+                    fft_poisson(self, f)
             
-            elif(self.physical_system.params.fields_solver == 'SNES'):
-                compute_electrostatic_fields(self)
-                pass
-            
-            self._communicate_fields()
-            self._apply_bcs_fields()
+                elif(self.physical_system.params.fields_solver == 'SNES'):
+                    compute_electrostatic_fields(self)
+                    pass
+
+            E1 = self.cell_centered_EM_fields[0]
+            E2 = self.cell_centered_EM_fields[1]
+            E3 = self.cell_centered_EM_fields[2]
+
+            B1 = self.cell_centered_EM_fields[3]
+            B2 = self.cell_centered_EM_fields[4]
+            B3 = self.cell_centered_EM_fields[5]
 
         # This is taken care of by the timestepper that is utilized
         # when FDTD is to be used with FVM in p-space
@@ -98,39 +107,39 @@ def df_dt_fvm(f, self, at_n = True):
                                        invalid/not-implemented'
                                      )
 
-        if(    self.physical_system.params.fields_solver == 'fdtd'
-           and at_n == True
-          ):
-
-            E1 = self.cell_centered_EM_fields_at_n[0]
-            E2 = self.cell_centered_EM_fields_at_n[1]
-            E3 = self.cell_centered_EM_fields_at_n[2]
-
-            B1 = self.cell_centered_EM_fields_at_n[3]
-            B2 = self.cell_centered_EM_fields_at_n[4]
-            B3 = self.cell_centered_EM_fields_at_n[5]
-
-        elif(    self.physical_system.params.fields_solver == 'fdtd'
-             and at_n != False
-            ):
-
-            E1 = self.cell_centered_EM_fields_at_n_plus_half[0]
-            E2 = self.cell_centered_EM_fields_at_n_plus_half[1]
-            E3 = self.cell_centered_EM_fields_at_n_plus_half[2]
-
-            B1 = self.cell_centered_EM_fields_at_n_plus_half[3]
-            B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
-            B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
-
-        else:
-
-            E1 = self.cell_centered_EM_fields[0]
-            E2 = self.cell_centered_EM_fields[1]
-            E3 = self.cell_centered_EM_fields[2]
-
-            B1 = self.cell_centered_EM_fields[3]
-            B2 = self.cell_centered_EM_fields[4]
-            B3 = self.cell_centered_EM_fields[5]
+#        if(    self.physical_system.params.fields_solver == 'fdtd'
+#           and at_n == True
+#          ):
+#
+#            E1 = self.cell_centered_EM_fields_at_n[0]
+#            E2 = self.cell_centered_EM_fields_at_n[1]
+#            E3 = self.cell_centered_EM_fields_at_n[2]
+#
+#            B1 = self.cell_centered_EM_fields_at_n[3]
+#            B2 = self.cell_centered_EM_fields_at_n[4]
+#            B3 = self.cell_centered_EM_fields_at_n[5]
+#
+#        elif(    self.physical_system.params.fields_solver == 'fdtd'
+#             and at_n != False
+#            ):
+#
+#            E1 = self.cell_centered_EM_fields_at_n_plus_half[0]
+#            E2 = self.cell_centered_EM_fields_at_n_plus_half[1]
+#            E3 = self.cell_centered_EM_fields_at_n_plus_half[2]
+#
+#            B1 = self.cell_centered_EM_fields_at_n_plus_half[3]
+#            B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
+#            B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
+#
+#        else:
+#
+#            E1 = self.cell_centered_EM_fields[0]
+#            E2 = self.cell_centered_EM_fields[1]
+#            E3 = self.cell_centered_EM_fields[2]
+#
+#            B1 = self.cell_centered_EM_fields[3]
+#            B2 = self.cell_centered_EM_fields[4]
+#            B3 = self.cell_centered_EM_fields[5]
 
         (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                           self.p1, self.p2, self.p3,
@@ -189,7 +198,6 @@ def df_dt_fvm(f, self, at_n = True):
         df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
                  - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
                  #- (front_flux_p3 - back_flux_p3)/self.dp3
-
     
     af.eval(df_dt)
     return(df_dt)

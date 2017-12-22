@@ -335,7 +335,15 @@ def f0_ee(f, p1, p2, p3, params):
 
 def RTA(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     """Return BGK operator -(f-f0)/tau."""
+
+    if(af.any_true(params.tau_defect(q1, q2, p1, p2, p3) == 0)):
+        if (flag == False):
+            return(0.*f)
+
+        f = f0_defect_constant_T(f, p1, p2, p3, params)
     
+        return(f)
+
     C_f = -(  f - f0_defect_constant_T(f, p1, p2, p3, params)
            ) / params.tau_defect(q1, q2, p1, p2, p3) \
 #          -(  f - f0_ee(f, p1, p2, p3, params)
@@ -344,6 +352,7 @@ def RTA(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     # WORKAROUND:
     C_f = af.select(params.tau_defect(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
 #    C_f = af.select(params.tau_ee(q1, q2, p1, p2, p3)     == np.inf, 0, C_f)
-    
+
     af.eval(C_f)
     return(C_f)
+

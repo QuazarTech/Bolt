@@ -220,7 +220,8 @@ class nonlinear_solver(object):
         self.N_q1_poisson = (2*self.length_multiples_q1+1)*self.N_q1
         self.N_q2_poisson = (2*self.length_multiples_q2+1)*self.N_q2
         self.N_q3_poisson = (int)((self.q3_3D_end - self.q3_3D_start) / self.dq3)
-        self.N_ghost_poisson = 1
+        self.N_ghost_poisson = self.N_ghost
+        #self.N_ghost_poisson = 1
 
         self._da_snes = PETSc.DMDA().create([self.N_q1_poisson, 
 	                                     self.N_q2_poisson,

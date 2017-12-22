@@ -1,10 +1,10 @@
 q1_start = 0.
 q1_end   = 10.
-N_q1     = 30
+N_q1     = 35
 
 q2_start = 0.
 q2_end   = 10.
-N_q2     = 30
+N_q2     = 35
 
 p1_start = -0.01
 p1_end   =  0.01

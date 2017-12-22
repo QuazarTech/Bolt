@@ -76,6 +76,7 @@ dt = 1e-4
 t_final = 1000.
 
 time_array = np.arange(dt, t_final + dt, dt)
+nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
 compute_electrostatic_fields(nls)
 
 N_g        = domain.N_ghost
@@ -84,20 +85,18 @@ print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
       "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
       "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
       "density = ", af.mean(n_nls[0, N_g:-N_g, N_g:-N_g]),
-      "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0])),
-      "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1]))
+      "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
+      "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g]))
      )
 
 t0       = 0.0
-time_step = 0
+params.time_step = time_step = 0
 while t0 < t_final:
 
     dump_steps = 1000
     if (time_step%dump_steps==0):
         nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps))
         nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps))
-
-    time_step = time_step + 1
 
     dt_force_constraint = \
         0.5 * np.min(nls.dp1, nls.dp2) \
@@ -109,8 +108,6 @@ while t0 < t_final:
     dt_collision_constraint = 1e-3
 
     #dt = np.min(dt_force_constraint, dt_collision_constraint)
-
-    t0 = t0 + dt
 
     PETSc.Sys.Print("Time step =", time_step, ", Time =", t0, " dt = ",
                     dt_force_constraint
@@ -178,18 +175,21 @@ while t0 < t_final:
 #        pl.clf()
 
     nls.strang_timestep(dt)
+    time_step = time_step + 1
+    params.time_step = time_step
+    t0 = t0 + dt
 
     # Floors
     nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
-    params.mu = af.select(params.mu < 1e-13, 1e-13, params.mu)
+    #params.mu = af.select(params.mu < 1e-25, 1e-25, params.mu)
 
     n_nls = nls.compute_moments('density')
     print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
           "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
           "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
           "density = ", mean_density,
-          "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0])),
-          "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1]))
+          "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
+          "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g]))
          )
     PETSc.Sys.Print("--------------------\n")
 

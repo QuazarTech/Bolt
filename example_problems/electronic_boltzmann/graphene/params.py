@@ -64,6 +64,7 @@ E_band   = None
 vel_band = None
 
 collision_nonlinear_iters = 3
+electrostatic_solver_step = 10000
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
@@ -73,6 +74,9 @@ def tau_defect(q1, q2, p1, p2, p3):
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
     return(np.inf * q1**0 * p1**0)
+
+def tau(q1, q2, p1, p2, p3):
+    return(tau_defect(q1, q2, p1, p2, p3))
 
 def band_energy(p_x, p_y):
     

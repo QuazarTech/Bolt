@@ -118,8 +118,8 @@ class poisson_eqn_3D(object):
         q2_3D_data_structure, q3_3D_data_structure, q1_3D_data_structure = \
                 np.meshgrid(q2_3D, q3_3D, q1_3D)
         
-        q2_2D_data_structure, q1_2D_data_structure = \
-                np.meshgrid(q2_2D, q1_2D)
+        q1_2D_data_structure, q2_2D_data_structure = \
+                np.meshgrid(q1_2D, q2_2D)
 
         tol = 1e-10
         self.cond_3D =   (q1_3D_data_structure >= q1_2D[N_g] - tol) \
@@ -376,7 +376,7 @@ def compute_electrostatic_fields(self):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
-    
+
     return
 
 
