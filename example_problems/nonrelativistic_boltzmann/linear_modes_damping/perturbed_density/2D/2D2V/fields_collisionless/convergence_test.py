@@ -72,7 +72,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N     = np.array([128])
+N     = np.array([64])
 error = np.zeros(1)
 
 for i in range(N.size):
@@ -118,7 +118,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1 
+    t_final = 0.5 
 
     time_array  = np.arange(0, t_final + dt, dt)
 
@@ -133,12 +133,14 @@ for i in range(N.size):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.strang_timestep(dt)
         ls.RK4_timestep(dt)
+        
+        f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        f_at_desired_q = af.moddims(nls.f[:, 1, 2],
+        f_at_desired_q = af.moddims(f[3, 3, :],
                                     nls.N_p1, nls.N_p2
                                    )
 
-        pl.contourf(p1, p2, np.array(f_at_desired_q), np.linspace(minf, maxf, 200), cmap='bwr')
+        pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
         pl.colorbar()
         pl.title('Time = %.3f'%(t0))
         pl.gca().set_aspect('equal')
