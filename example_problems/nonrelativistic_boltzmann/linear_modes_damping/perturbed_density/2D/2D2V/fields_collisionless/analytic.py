@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.integrate import odeint
+import matplotlib
+matplotlib.use('agg')
 import pylab as pl
 
 # Optimized plot parameters to make beautiful plots:
@@ -69,16 +71,22 @@ A_p1 = charge * (E1 + p2 * B3).ravel()
 A_p2 = charge * (E2 - p1 * B3).ravel()
 
 dt      = 0.001 * 32 / N_p1
-t_final = 0.5
+t_final = 0.1
 
 t = np.arange(dt, t_final + dt, dt)
 
-sol = odeint(dfdt, f_initial.ravel(), t, args = (A_p1, A_p2))
+sol = odeint(dfdt, f_initial.ravel(), t, args = (A_p1, A_p2), rtol = 1e-14, atol= 1e-14)
+print(sol)
+import h5py
+h5f = h5py.File('%04d'%N_p1 + '.h5', 'w')
+h5f.create_dataset('distribution_function', data = sol[-1]) 
+h5f.close()
 
-for i in range(sol.shape[0]):
+#for i in range(1000, sol.shape[0]):
     
-    pl.contourf(p1, p2, sol[i].reshape(N_p1, N_p2), 100, cmap = 'bwr')
-    pl.gca().set_aspect('equal')
-    pl.title('Time =%.3f'%(i * dt))
-    pl.savefig('images/%04d'%i + '.png')
-    pl.clf()
+#    pl.contourf(p1, p2, sol[i].reshape(N_p1, N_p2), 100, cmap = 'bwr')
+#    pl.colorbar()
+#    pl.gca().set_aspect('equal')
+#    pl.title('Time =%.3f'%(i * dt))
+#    pl.savefig('images/%04d'%i + '.png')
+#    pl.clf()

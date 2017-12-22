@@ -72,8 +72,8 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # In[6]:
 
-N     = np.array([96])
-error = np.zeros(1)
+N     = np.array([32, 48, 64, 96])
+error = np.zeros(4)
 
 for i in range(N.size):
     af.device_gc()
@@ -118,9 +118,12 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.5 
+    t_final = 0.1
 
     time_array  = np.arange(0, t_final + dt, dt)
+    
+    if(time_array[-1]>t_final):
+        time_array = np.delete(time_array, -1)
 
     f_initial = nls.f.copy()
 
@@ -136,16 +139,16 @@ for i in range(N.size):
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        f_at_desired_q = af.moddims(nls.f[:, 1, 1],
-                                    nls.N_p1, nls.N_p2
-                                   )
+        #f_at_desired_q = af.moddims(nls.f[:, 1, 1],
+        #                            nls.N_p1, nls.N_p2
+        #                           )
 
-        pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
-        pl.colorbar()
-        pl.title('Time = %.3f'%(t0))
-        pl.gca().set_aspect('equal')
-        pl.savefig('images/%04d'%time_index+'.png')
-        pl.clf()
+        #pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
+        #pl.colorbar()
+        #pl.title('Time = %.3f'%(t0))
+        #pl.gca().set_aspect('equal')
+        #pl.savefig('images/%04d'%time_index+'.png')
+        #pl.clf()
 
     # In[11]:
 
@@ -187,14 +190,17 @@ for i in range(N.size):
 
     # In[16]:
 
-    f_final = af.flat((0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]))[0, 1, :]) 
+    #f_final = af.flat((0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]))[0, 1, :]) 
     # error[i] = af.mean(af.abs(f_final[:, 0, 1] - f_initial[:, 0, 1]))
 
-    f_analytic =   1.01 * (1 / (2 * np.pi)) \
-                 * af.exp(-(nls.p1_center+t_final)**2 / 2) \
-                 * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
+    #f_analytic =   1.01 * (1 / (2 * np.pi)) \
+    #             * af.exp(-(nls.p1_center+t_final)**2 / 2) \
+    #             * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
 
-    error[i] = af.mean(af.abs(nls.f[:, 1, 2] - f_analytic))
+    import h5py
+    h5f = h5py.File('%04d'%(nls.N_p1) + '.h5', 'r')
+    f_ana = h5f['distribution_function'][:]
+    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - af.to_array(f_ana)))
 
 print(error)
 print(np.polyfit(np.log10(N), np.log10(error), 1))
