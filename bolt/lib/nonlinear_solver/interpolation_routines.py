@@ -64,7 +64,7 @@ def f_interp_p_3d(self, dt):
     B3 = self.cell_centered_EM_fields_at_n[5]
 
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
-                                      self.p1, self.p2, self.p3,
+                                      self.p1_center, self.p2_center, self.p3_center,
                                       E1, E2, E3, B1, B2, B3,
                                       self.physical_system.params
                                      )
@@ -76,8 +76,8 @@ def f_interp_p_3d(self, dt):
     
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
-    p1_new = af.broadcast(addition, self.p1, - dt * A_p1)
-    p2_new = af.broadcast(addition, self.p2, - dt * A_p2)
+    p1_new = af.broadcast(addition, self.p1_center, - dt * A_p1)
+    p2_new = af.broadcast(addition, self.p2_center, - dt * A_p2)
 
     p1_new = self._convert_to_p_expanded(p1_new)
     p2_new = self._convert_to_p_expanded(p2_new)
@@ -91,7 +91,7 @@ def f_interp_p_3d(self, dt):
 
     if(self.physical_system.params.p_dim == 3):        
         
-        p3_new = af.broadcast(addition, self.p3, - 0.5 * dt * A_p3)
+        p3_new = af.broadcast(addition, self.p3_center, - 0.5 * dt * A_p3)
         p3_new = self._convert_to_p_expanded(p3_new)
         p3_lower_boundary = self.p3_start + 0.5 * self.dp3
         # Reordering p3_interpolant to bring variation in p3 to the 0-th axis:

@@ -210,14 +210,14 @@ for i in range(N.size):
                              moment_defs
                             )
 
-    params.solver_method_in_q = 'FVM'
-    params.solver_method_in_p = 'FVM'
-
     N_g_q = system.N_ghost_q
 
     nls2 = nonlinear_solver(system)
-    # nls2.lie_timestep(t_final)
+    nls2.lie_timestep(t_final)
     error[i] = af.mean(af.abs(nls.f[:, 1, 1] - nls2.f[:, 1, 1]))
+
+    params.solver_method_in_q = 'FVM'
+    params.solver_method_in_p = 'FVM'
 
 print(error)
 print(np.polyfit(np.log10(N), np.log10(error), 1))
