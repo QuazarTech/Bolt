@@ -143,7 +143,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1
+    t_final = 0.2
 
     time_array  = np.arange(0, t_final + dt, dt)
     
@@ -165,17 +165,21 @@ for i in range(N.size):
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
+    # nls.lie_timestep(t_final)
+
     # f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
     #                              nls.N_p1, nls.N_p2
     #                             )
 
-    f_ana = f_analytic(nls.p1_center, 
-                       nls.p2_center,
-                       -10 * (2 + nls.p2_center * 1.8),
-                       -10 * (3 - nls.p1_center * 1.8), t_final
-                      )
+    from initialize import initialize_f
+
+    f_ana = af.broadcast(initialize_f, nls.q1_center, nls.q2_center,
+                         nls.p1_center -10 * (2 + nls.p2_center * 1.8) * t_final, 
+                         nls.p2_center -10 * (3 - nls.p1_center * 1.8) * t_final,
+                         nls.p3_center, nls.physical_system.params
+                        )
         
-    # f_at_desired_q2 = af.moddims(f_ana,
+    # f_at_desired_q2 = af.moddims(f_ana[:, 1, 1],
     #                              nls.N_p1, nls.N_p2
     #                             )
 
@@ -260,10 +264,10 @@ for i in range(N.size):
 
     # nls2 = nonlinear_solver(system)
     # nls2.lie_timestep(t_final)
-    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - f_ana))
+    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - f_ana[:, 1, 1]))
 
-    params.solver_method_in_q = 'FVM'
-    params.solver_method_in_p = 'FVM'
+    # params.solver_method_in_q = 'FVM'
+    # params.solver_method_in_p = 'FVM'
 
 print(error)
 print(np.polyfit(np.log10(N), np.log10(error), 1))
