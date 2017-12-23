@@ -17,9 +17,14 @@ fields_solver = 'fft'
 p_dim = 1
 
 # Method in q-space
-solver_method_in_q = 'ASL'
-riemann_solver = 'lax-friedrichs'
-reconstruction_method = 'minmod'
+solver_method_in_q = 'FVM'
+solver_method_in_p = 'FVM'
+
+riemann_solver_in_q = 'upwind-flux'
+riemann_solver_in_p = 'upwind-flux'
+
+reconstruction_method_in_q = 'weno5'
+reconstruction_method_in_p = 'weno5'
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1

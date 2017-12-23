@@ -76,6 +76,10 @@ def f_analytic(p1, p2, A_p1, A_p2, t):
 
     return(f_analytic)
 
+@af.broadcast
+def addition(a, b):
+    return(a+b)
+
 N     = 2**np.arange(5, 8) #np.array([32, 48, 64, 96])
 error = np.zeros(3)
 
@@ -143,7 +147,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.001
+    t_final = 0.1
 
     time_array  = np.arange(0, t_final + dt, dt)
     
@@ -171,11 +175,25 @@ for i in range(N.size):
         f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
                                      nls.N_p1, nls.N_p2
                                     )
+    
+        E1 = nls.cell_centered_EM_fields_at_n[0]
+        E2 = nls.cell_centered_EM_fields_at_n[1]
+        E3 = nls.cell_centered_EM_fields_at_n[2]
+
+        B1 = nls.cell_centered_EM_fields_at_n[3]
+        B2 = nls.cell_centered_EM_fields_at_n[4]
+        B3 = nls.cell_centered_EM_fields_at_n[5]
+
+        (A_p1, A_p2, A_p3) = af.broadcast(nls._A_p, nls.q1_center, nls.q2_center,
+                                          nls.p1_center, nls.p2_center, nls.p3_center,
+                                          E1, E2, E3, B1, B2, B3,
+                                          nls.physical_system.params
+                                         )
 
 
         f_ana = af.broadcast(initialize_f, nls.q1_center, nls.q2_center,
-                             nls.p1_center +10 * (2 + 0*nls.p2_center * 1.8) * t0, 
-                             nls.p2_center +10 * (3 - 0*nls.p1_center * 1.8) * t0,
+                             addition(nls.p1_center, - A_p1 * t0), 
+                             addition(nls.p2_center, - A_p2 * t0),
                              nls.p3_center, nls.physical_system.params
                             )
         
