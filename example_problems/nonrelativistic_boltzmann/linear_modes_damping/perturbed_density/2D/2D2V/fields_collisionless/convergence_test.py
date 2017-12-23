@@ -69,8 +69,12 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
+def f_analytic(p1, p2, A_p1, A_p2, t):
+    f_analytic =   (1 / (2 * np.pi)) \
+                 * af.exp(-(p1-A_p1 * t)**2 / 2) \
+                 * af.exp(-(p2-A_p2 * t)**2 / 2)
 
-# In[6]:
+    return(f_analytic)
 
 N     = np.array([128]) #2**np.arange(5, 10) #np.array([32, 48, 64, 96])
 error = np.zeros(1)
@@ -99,32 +103,32 @@ for i in range(N.size):
 
     # print("N_q1 =", nls.N_q1, ", N_q2 =", nls.N_q2, ", N_p1 =", nls.N_p1, ", N_p2 =", nls.N_p2)
 
-    params2 = params
+    # params2 = params
 
-    params2.solver_method_in_q = 'ASL'
-    params2.solver_method_in_p = 'ASL'
+    # params2.solver_method_in_q = 'ASL'
+    # params2.solver_method_in_p = 'ASL'
 
-    domain2 = domain
+    # domain2 = domain
 
-    domain2.N_p1 = int(2048)
-    domain2.N_p2 = int(2048)
+    # domain2.N_p1 = int(2048)
+    # domain2.N_p2 = int(2048)
 
-    system2 = physical_system(domain2,
-                              boundary_conditions,
-                              params2,
-                              initialize,
-                              advection_terms,
-                              collision_operator.BGK,
-                              moment_defs
-                             )
+    # system2 = physical_system(domain2,
+    #                           boundary_conditions,
+    #                           params2,
+    #                           initialize,
+    #                           advection_terms,
+    #                           collision_operator.BGK,
+    #                           moment_defs
+    #                          )
 
-    nls2 = nonlinear_solver(system2)
+    # nls2 = nonlinear_solver(system2)
 
     p1 = np.array(af.moddims(nls.p1_center, nls.N_p1, nls.N_p2))
     p2 = np.array(af.moddims(nls.p2_center, nls.N_p1, nls.N_p2))
 
-    p1prime = np.array(af.moddims(nls2.p1_center, nls2.N_p1, nls2.N_p2))
-    p2prime = np.array(af.moddims(nls2.p2_center, nls2.N_p1, nls2.N_p2))
+    # p1prime = np.array(af.moddims(nls2.p1_center, nls2.N_p1, nls2.N_p2))
+    # p2prime = np.array(af.moddims(nls2.p2_center, nls2.N_p1, nls2.N_p2))
 
     # f_at_desired_q_initial = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
     #                             nls.N_p1, nls.N_p2
@@ -146,7 +150,7 @@ for i in range(N.size):
     if(time_array[-1]>t_final):
         time_array = np.delete(time_array, -1)
 
-    f_initial = nls2.f.copy()
+    # f_initial = nls2.f.copy()
 
     maxf = af.max(nls.f) + 0.02
     minf = af.min(nls.f) - 0.02
@@ -156,7 +160,7 @@ for i in range(N.size):
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
         nls.lie_timestep(dt)
-        nls2.lie_timestep(t0)
+        # nls2.lie_timestep(t0)
         #ls.RK4_timestep(dt)
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
@@ -165,8 +169,10 @@ for i in range(N.size):
                                      nls.N_p1, nls.N_p2
                                     )
 
-        f_at_desired_q2 = af.moddims(nls2.f[:, 1, 1],
-                                     nls2.N_p1, nls2.N_p2
+
+        f_ana = f_analytic(nls.p1_center, nls.p2_center, -10 * (2 + nls.p2_center * 1.8), -10 * (3 - nls.p1_center * 1.8), t0)
+        f_at_desired_q2 = af.moddims(f_ana,
+                                     nls.N_p1, nls.N_p2
                                     )
 
         fig = pl.figure()
@@ -179,7 +185,7 @@ for i in range(N.size):
 
         ax2 = fig.add_subplot(1,2,2)
         ax2.set_aspect('equal')
-        c2 = ax2.contourf(p1prime, p2prime, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
+        c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
 
         fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
@@ -188,7 +194,7 @@ for i in range(N.size):
         pl.close(fig)
         pl.clf()
 
-        nls2.f = f_initial
+        # nls2.f = f_initial
     # In[11]:
 
 
