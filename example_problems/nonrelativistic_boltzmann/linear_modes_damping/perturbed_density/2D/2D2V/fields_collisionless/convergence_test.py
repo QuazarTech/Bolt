@@ -40,7 +40,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 20, 10
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -80,10 +80,7 @@ for i in range(N.size):
     domain.N_p1 = int(N[i])
     domain.N_p2 = int(N[i])
 
-    params.solver_method_in_q = 'ASL'
-    params.solver_method_in_p = 'ASL'
-
-   # Defining the physical system to be solved:
+    # Defining the physical system to be solved:
     system = physical_system(domain,
                              boundary_conditions,
                              params,
@@ -96,17 +93,38 @@ for i in range(N.size):
     N_g_q = system.N_ghost_q
 
 
-    # In[7]:
-
-
     # Declaring a linear system object which will evolve the defined physical system:
     nls = nonlinear_solver(system)
     #ls  = linear_solver(system)
 
     # print("N_q1 =", nls.N_q1, ", N_q2 =", nls.N_q2, ", N_p1 =", nls.N_p1, ", N_p2 =", nls.N_p2)
 
+    params2 = params
+
+    params2.solver_method_in_q = 'ASL'
+    params2.solver_method_in_p = 'ASL'
+
+    domain2 = domain
+
+    domain2.N_p1 = int(2048)
+    domain2.N_p2 = int(2048)
+
+    system2 = physical_system(domain2,
+                              boundary_conditions,
+                              params2,
+                              initialize,
+                              advection_terms,
+                              collision_operator.BGK,
+                              moment_defs
+                             )
+
+    nls2 = nonlinear_solver(system2)
+
     p1 = np.array(af.moddims(nls.p1_center, nls.N_p1, nls.N_p2))
     p2 = np.array(af.moddims(nls.p2_center, nls.N_p1, nls.N_p2))
+
+    p1prime = np.array(af.moddims(nls2.p1_center, nls2.N_p1, nls2.N_p2))
+    p2prime = np.array(af.moddims(nls2.p2_center, nls2.N_p1, nls2.N_p2))
 
     # f_at_desired_q_initial = af.moddims(nls.f[:, N_g, N_g + nls.N_q2/2],
     #                             nls.N_p1, nls.N_p2
@@ -121,38 +139,56 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1
+    t_final = 0.3
 
     time_array  = np.arange(0, t_final + dt, dt)
     
     if(time_array[-1]>t_final):
         time_array = np.delete(time_array, -1)
 
-    f_initial = nls.f.copy()
+    f_initial = nls2.f.copy()
 
-    maxf = af.max(nls.f)
-    minf = af.min(nls.f)
+    maxf = af.max(nls.f) + 0.02
+    minf = af.min(nls.f) - 0.02
 
     # f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
-        nls.lie_timestep(t0)
+        nls.lie_timestep(dt)
+        nls2.lie_timestep(t0)
         #ls.RK4_timestep(dt)
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        f_at_desired_q = af.moddims(nls.f[:, 1, 1],
-                                    nls.N_p1, nls.N_p2
-                                   )
+        f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
+                                     nls.N_p1, nls.N_p2
+                                    )
 
-        pl.contourf(p1, p2, np.array(f_at_desired_q), 100, cmap='bwr')
-        pl.colorbar()
-        pl.title('Time = %.3f'%(t0))
-        pl.gca().set_aspect('equal')
-        pl.savefig('images/%04d'%time_index+'.png')
+        f_at_desired_q2 = af.moddims(nls2.f[:, 1, 1],
+                                     nls2.N_p1, nls2.N_p2
+                                    )
+
+        fig = pl.figure()
+
+        ax1 = fig.add_subplot(1,2,1)
+        ax1.set_aspect('equal')
+        c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
+
+        fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+
+        ax2 = fig.add_subplot(1,2,2)
+        ax2.set_aspect('equal')
+        c2 = ax2.contourf(p1prime, p2prime, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
+
+        fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+
+        fig.suptitle('Time = %.3f'%(t0))
+        pl.savefig('images/' + '%04d'%time_index + '.png')
+        pl.close(fig)
         pl.clf()
-        nls.f = f_initial
+
+        nls2.f = f_initial
     # In[11]:
 
 
