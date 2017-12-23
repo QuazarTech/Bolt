@@ -46,12 +46,12 @@ def dY_dt_multimode_evolution(Y, self):
 
     # Scaling Appropriately:
     f       = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
-    C_f_hat = 0 * af.fft2(self._source(f, self.q1_center, self.q2_center,
-                                       self.p1, self.p2, self.p3,
-                                       self.compute_moments, 
-                                       self.physical_system.params
-                                      )
-                         )/(self.N_q2 * self.N_q1)
+    C_f_hat = af.fft2(self._source(f, self.q1_center, self.q2_center,
+                                   self.p1, self.p2, self.p3,
+                                   self.compute_moments, 
+                                   self.physical_system.params
+                                  )
+                     )/(self.N_q2 * self.N_q1)
 
     if(   self.physical_system.params.fields_solver == 'electrostatic'
        or self.physical_system.params.fields_solver == 'fft'
@@ -91,26 +91,26 @@ def dY_dt_multimode_evolution(Y, self):
     
     # af.broadcast(function, *args) performs batched operations on
     # function(*args):
-    dE1_hat_dt = 0*af.broadcast(addition, 
+    dE1_hat_dt = af.broadcast(addition, 
                               af.broadcast(multiply, self.B3_hat, 1j * self.k_q2),
                               - J1_hat
                              )
 
-    dE2_hat_dt = 0*af.broadcast(addition,
+    dE2_hat_dt = af.broadcast(addition,
                               af.broadcast(multiply,-self.B3_hat, 1j * self.k_q1),
                               - J2_hat
                              )
 
-    dE3_hat_dt = 0*af.broadcast(addition, 
+    dE3_hat_dt = af.broadcast(addition, 
                                 af.broadcast(multiply, self.B2_hat, 1j * self.k_q1)
                               - af.broadcast(multiply, self.B1_hat, 1j * self.k_q2), 
                               - J3_hat
                              )
 
-    dB1_hat_dt = 0*af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
-    dB2_hat_dt = 0*af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
-    dB3_hat_dt =   0*af.broadcast(multiply, self.E1_hat, 1j * self.k_q2) \
-                 - 0*af.broadcast(multiply, self.E2_hat, 1j * self.k_q1)
+    dB1_hat_dt = af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
+    dB2_hat_dt = af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
+    dB3_hat_dt =   af.broadcast(multiply, self.E1_hat, 1j * self.k_q2) \
+                 - af.broadcast(multiply, self.E2_hat, 1j * self.k_q1)
 
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
@@ -121,7 +121,7 @@ def dY_dt_multimode_evolution(Y, self):
 
     df_hat_dt  = -1j * (  af.broadcast(multiply, self.k_q1, self._A_q1)
                         + af.broadcast(multiply, self.k_q2, self._A_q2)
-                       ) * f_hat * 0
+                       ) * f_hat
 
     
     # Adding the fields term only when charge is non-zero

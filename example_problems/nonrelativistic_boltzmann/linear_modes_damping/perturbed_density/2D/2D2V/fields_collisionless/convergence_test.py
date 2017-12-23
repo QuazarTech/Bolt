@@ -172,9 +172,9 @@ for i in range(N.size):
 
     # nls.lie_timestep(t_final)
 
-        f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
-                                     nls.N_p1, nls.N_p2
-                                    )
+        # f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
+        #                              nls.N_p1, nls.N_p2
+        #                             )
     
         E1 = nls.cell_centered_EM_fields_at_n[0]
         E2 = nls.cell_centered_EM_fields_at_n[1]
@@ -197,28 +197,28 @@ for i in range(N.size):
                              nls.p3_center, nls.physical_system.params
                             )
         
-        f_at_desired_q2 = af.moddims(f_ana[:, 1, 1],
-                                     nls.N_p1, nls.N_p2
-                                    )
+        # f_at_desired_q2 = af.moddims(f_ana[:, 1, 1],
+        #                              nls.N_p1, nls.N_p2
+        #                             )
 
-        fig = pl.figure()
+        # fig = pl.figure()
 
-        ax1 = fig.add_subplot(1,2,1)
-        ax1.set_aspect('equal')
-        c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
+        # ax1 = fig.add_subplot(1,2,1)
+        # ax1.set_aspect('equal')
+        # c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
 
-        fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+        # fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-        ax2 = fig.add_subplot(1,2,2)
-        ax2.set_aspect('equal')
-        c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
+        # ax2 = fig.add_subplot(1,2,2)
+        # ax2.set_aspect('equal')
+        # c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
 
-        fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+        # fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-        fig.suptitle('Time = %.3f'%(t0))
-        pl.savefig('images/' + '%04d'%time_index + '.png')
-        pl.close(fig)
-        pl.clf()
+        # fig.suptitle('Time = %.3f'%(t0))
+        # pl.savefig('images/' + '%04d'%time_index + '.png')
+        # pl.close(fig)
+        # pl.clf()
 
     nls.f = f_initial
     # In[11]:

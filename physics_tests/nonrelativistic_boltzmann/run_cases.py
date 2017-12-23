@@ -22,7 +22,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator \
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Time parameters:
-t_final = 0.1
+t_final = 0.001
 N       = 2**np.arange(5, 8)
 
 

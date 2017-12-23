@@ -5,10 +5,10 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'user-defined'
+fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver = 'fft'
 
 # Method in q-space
 solver_method_in_q = 'FVM'

@@ -60,7 +60,7 @@ system = physical_system(domain,
                          moment_defs
                         )
 
-N_g = system.N_ghost
+N_g = system.N_ghost_q
 
 # Pass this system to the linear solver object when 
 # a single mode only needs to be evolved. This solver
