@@ -76,7 +76,7 @@ def f_analytic(p1, p2, A_p1, A_p2, t):
 
     return(f_analytic)
 
-N     = 2**np.arange(7, 8) #np.array([32, 48, 64, 96])
+N     = 2**np.arange(5, 8) #np.array([32, 48, 64, 96])
 error = np.zeros(3)
 
 for i in range(N.size):
@@ -143,7 +143,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.1
+    t_final = 0.001
 
     time_array  = np.arange(0, t_final + dt, dt)
     
@@ -174,8 +174,8 @@ for i in range(N.size):
 
 
         f_ana = af.broadcast(initialize_f, nls.q1_center, nls.q2_center,
-                             nls.p1_center -10 * (2 + 0*nls.p2_center * 1.8) * t0, 
-                             nls.p2_center -10 * (3 - 0*nls.p1_center * 1.8) * t0,
+                             nls.p1_center +10 * (2 + 0*nls.p2_center * 1.8) * t0, 
+                             nls.p2_center +10 * (3 - 0*nls.p1_center * 1.8) * t0,
                              nls.p3_center, nls.physical_system.params
                             )
         
