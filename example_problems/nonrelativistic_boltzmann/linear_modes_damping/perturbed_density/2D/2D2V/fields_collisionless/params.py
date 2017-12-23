@@ -12,7 +12,7 @@ fields_solver = 'fdtd'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
-solver_method_in_p = 'FVM'
+solver_method_in_p = 'ASL'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'

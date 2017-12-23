@@ -76,8 +76,8 @@ def f_analytic(p1, p2, A_p1, A_p2, t):
 
     return(f_analytic)
 
-N     = np.array([128]) #2**np.arange(5, 10) #np.array([32, 48, 64, 96])
-error = np.zeros(1)
+N     = 2**np.arange(5, 10) #np.array([32, 48, 64, 96])
+error = np.zeros(5)
 
 for i in range(N.size):
     af.device_gc()
@@ -143,14 +143,14 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.3
+    t_final = 0.1
 
     time_array  = np.arange(0, t_final + dt, dt)
     
     if(time_array[-1]>t_final):
         time_array = np.delete(time_array, -1)
 
-    # f_initial = nls2.f.copy()
+    f_initial = nls.f.copy()
 
     maxf = af.max(nls.f) + 0.02
     minf = af.min(nls.f) - 0.02
@@ -165,36 +165,40 @@ for i in range(N.size):
         
         #f = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0])
 
-        f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
-                                     nls.N_p1, nls.N_p2
-                                    )
+    # f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
+    #                              nls.N_p1, nls.N_p2
+    #                             )
 
+    f_ana = f_analytic(nls.p1_center, 
+                       nls.p2_center,
+                       -10 * (2 + nls.p2_center * 1.8),
+                       -10 * (3 - nls.p1_center * 1.8), t_final
+                      )
+        
+    # f_at_desired_q2 = af.moddims(f_ana,
+    #                              nls.N_p1, nls.N_p2
+    #                             )
 
-        f_ana = f_analytic(nls.p1_center, nls.p2_center, -10 * (2 + nls.p2_center * 1.8), -10 * (3 - nls.p1_center * 1.8), t0)
-        f_at_desired_q2 = af.moddims(f_ana,
-                                     nls.N_p1, nls.N_p2
-                                    )
+    # fig = pl.figure()
 
-        fig = pl.figure()
+    # ax1 = fig.add_subplot(1,2,1)
+    # ax1.set_aspect('equal')
+    # c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
 
-        ax1 = fig.add_subplot(1,2,1)
-        ax1.set_aspect('equal')
-        c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
+    # fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-        fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+    # ax2 = fig.add_subplot(1,2,2)
+    # ax2.set_aspect('equal')
+    # c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
 
-        ax2 = fig.add_subplot(1,2,2)
-        ax2.set_aspect('equal')
-        c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
+    # fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-        fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+    # fig.suptitle('Time = %.3f'%(t0))
+    # pl.savefig('images/' + '%04d'%time_index + '.png')
+    # pl.close(fig)
+    # pl.clf()
 
-        fig.suptitle('Time = %.3f'%(t0))
-        pl.savefig('images/' + '%04d'%time_index + '.png')
-        pl.close(fig)
-        pl.clf()
-
-        # nls2.f = f_initial
+    nls.f = f_initial
     # In[11]:
 
 
@@ -243,20 +247,20 @@ for i in range(N.size):
     #             * af.exp(-(nls.p2_center+2*t_final)**2 / 2)
 
     # Defining the physical system to be solved:
-    system = physical_system(domain,
-                             boundary_conditions,
-                             params,
-                             initialize,
-                             advection_terms,
-                             collision_operator.BGK,
-                             moment_defs
-                            )
+    # system = physical_system(domain,
+    #                          boundary_conditions,
+    #                          params,
+    #                          initialize,
+    #                          advection_terms,
+    #                          collision_operator.BGK,
+    #                          moment_defs
+    #                         )
 
-    N_g_q = system.N_ghost_q
+    # N_g_q = system.N_ghost_q
 
-    nls2 = nonlinear_solver(system)
-    nls2.lie_timestep(t_final)
-    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - nls2.f[:, 1, 1]))
+    # nls2 = nonlinear_solver(system)
+    # nls2.lie_timestep(t_final)
+    error[i] = af.mean(af.abs(nls.f[:, 1, 1] - f_ana))
 
     params.solver_method_in_q = 'FVM'
     params.solver_method_in_p = 'FVM'
