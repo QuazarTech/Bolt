@@ -22,8 +22,8 @@ def initialize_E(q1, q2, params):
     #       )
 
     E1 = 2 * q1**0
-    E2 = 3. * q1**0
-    E3 = 0.  * q1**0
+    E2 = 3 * q1**0
+    E3 = 0 * q1**0
 
     return(E1, E2, E3)
 
@@ -32,9 +32,9 @@ def initialize_B(q1, q2, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
 
-    B1 = 0.  * q1**0
-    B2 = 0.  * q1**0 
-    B3 = 1.8 * q1**0
+    B1 = 0. * q1**0
+    B2 = 0. * q1**0 
+    B3 = 0. * q1**0
 
     return(B1, B2, B3)
 

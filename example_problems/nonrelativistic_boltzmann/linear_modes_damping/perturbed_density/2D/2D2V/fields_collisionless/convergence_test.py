@@ -76,8 +76,8 @@ def f_analytic(p1, p2, A_p1, A_p2, t):
 
     return(f_analytic)
 
-N     = 2**np.arange(5, 10) #np.array([32, 48, 64, 96])
-error = np.zeros(5)
+N     = 2**np.arange(7, 8) #np.array([32, 48, 64, 96])
+error = np.zeros(3)
 
 for i in range(N.size):
     af.device_gc()
@@ -143,7 +143,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.001 * 32/nls.N_p1
-    t_final = 0.2
+    t_final = 0.1
 
     time_array  = np.arange(0, t_final + dt, dt)
     
@@ -156,6 +156,7 @@ for i in range(N.size):
     minf = af.min(nls.f) - 0.02
 
     # f_initial = 0.5 * ls.N_q1 * ls.N_q2 * af.ifft2(ls.Y[:, :, :, 0]) 
+    from initialize import initialize_f
 
     for time_index, t0 in enumerate(time_array[1:]):
         print("time_index = ", time_index, " of ", time_array.size-2, " t = ", t0)
@@ -167,40 +168,39 @@ for i in range(N.size):
 
     # nls.lie_timestep(t_final)
 
-    # f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
-    #                              nls.N_p1, nls.N_p2
-    #                             )
+        f_at_desired_q1 = af.moddims(nls.f[:, 1, 1],
+                                     nls.N_p1, nls.N_p2
+                                    )
 
-    from initialize import initialize_f
 
-    f_ana = af.broadcast(initialize_f, nls.q1_center, nls.q2_center,
-                         nls.p1_center -10 * (2 + nls.p2_center * 1.8) * t_final, 
-                         nls.p2_center -10 * (3 - nls.p1_center * 1.8) * t_final,
-                         nls.p3_center, nls.physical_system.params
-                        )
+        f_ana = af.broadcast(initialize_f, nls.q1_center, nls.q2_center,
+                             nls.p1_center -10 * (2 + 0*nls.p2_center * 1.8) * t0, 
+                             nls.p2_center -10 * (3 - 0*nls.p1_center * 1.8) * t0,
+                             nls.p3_center, nls.physical_system.params
+                            )
         
-    # f_at_desired_q2 = af.moddims(f_ana[:, 1, 1],
-    #                              nls.N_p1, nls.N_p2
-    #                             )
+        f_at_desired_q2 = af.moddims(f_ana[:, 1, 1],
+                                     nls.N_p1, nls.N_p2
+                                    )
 
-    # fig = pl.figure()
+        fig = pl.figure()
 
-    # ax1 = fig.add_subplot(1,2,1)
-    # ax1.set_aspect('equal')
-    # c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
+        ax1 = fig.add_subplot(1,2,1)
+        ax1.set_aspect('equal')
+        c1 = ax1.contourf(p1, p2, np.array(f_at_desired_q1), np.linspace(minf, maxf, 120), cmap='bwr')
 
-    # fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+        fig.colorbar(c1, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-    # ax2 = fig.add_subplot(1,2,2)
-    # ax2.set_aspect('equal')
-    # c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
+        ax2 = fig.add_subplot(1,2,2)
+        ax2.set_aspect('equal')
+        c2 = ax2.contourf(p1, p2, np.array(f_at_desired_q2), np.linspace(minf, maxf, 120), cmap='bwr')
 
-    # fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
+        fig.colorbar(c2, orientation = 'vertical', ticks = [minf, 0.5 * (maxf + minf), maxf], fraction=0.046, pad=0.04)
 
-    # fig.suptitle('Time = %.3f'%(t0))
-    # pl.savefig('images/' + '%04d'%time_index + '.png')
-    # pl.close(fig)
-    # pl.clf()
+        fig.suptitle('Time = %.3f'%(t0))
+        pl.savefig('images/' + '%04d'%time_index + '.png')
+        pl.close(fig)
+        pl.clf()
 
     nls.f = f_initial
     # In[11]:
