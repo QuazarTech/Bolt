@@ -72,7 +72,7 @@ params.rank = nls._comm.rank
 
 # Time parameters:
 #dt      = 0.002*100
-dt = 1e-4
+dt = 1e-3
 t_final = 1000.
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -98,14 +98,21 @@ while t0 < t_final:
         nls.dump_moments('dumps/density_' + '%06d'%(time_step/dump_steps))
         nls.dump_distribution_function('dumps/f_' + '%06d'%(time_step/dump_steps))
 
-    dt_force_constraint = \
-        0.5 * np.min(nls.dp1, nls.dp2) \
-            / np.max((af.max(nls.cell_centered_EM_fields[0]),
-                      af.max(nls.cell_centered_EM_fields[1])
-                     )
-                    )
+        # Dump EM fields
+        af.flat(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]).to_ndarray(nls._glob_fields_array)
+        PETSc.Object.setName(nls._glob_fields, 'fields')
+        viewer = PETSc.Viewer().createHDF5('dumps/fields_' + '%06d'%(time_step/dump_steps) + '.h5', 'w', comm=nls._comm)
+        viewer(nls._glob_fields)
 
-    dt_collision_constraint = 1e-3
+    dt_force_constraint = 0.
+#    dt_force_constraint = \
+#        0.5 * np.min(nls.dp1, nls.dp2) \
+#            / np.max((af.max(nls.cell_centered_EM_fields[0]),
+#                      af.max(nls.cell_centered_EM_fields[1])
+#                     )
+#                    )
+
+    dt_collision_constraint = 1e-4
 
     #dt = np.min(dt_force_constraint, dt_collision_constraint)
 
@@ -180,16 +187,18 @@ while t0 < t_final:
     t0 = t0 + dt
 
     # Floors
-    nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
+    #nls.f     = af.select(nls.f < 1e-13, 1e-13, nls.f)
     #params.mu = af.select(params.mu < 1e-25, 1e-25, params.mu)
 
     n_nls = nls.compute_moments('density')
-    print("rank = ", nls._comm.rank, " params.rank = ", params.rank,
+    print("rank = ", nls._comm.rank,
           "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
           "phi = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]),
           "density = ", mean_density,
           "|E1| = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
-          "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g]))
+          "|E2| = ", af.mean(af.abs(nls.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g])),
+          "q1 = ", np.array(nls.q1_center[0, N_g, 0])[0], "q2 = ", np.array(nls.q2_center[0, 0, N_g])[0],
+           "N_q1_local= ", nls.N_q1_local, "N_q2_local = ", nls.N_q2_local
          )
     PETSc.Sys.Print("--------------------\n")
 

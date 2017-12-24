@@ -39,7 +39,7 @@ t_final = 10
 p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 6
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
