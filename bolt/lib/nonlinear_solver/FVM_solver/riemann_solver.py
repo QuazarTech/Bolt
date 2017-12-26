@@ -25,14 +25,23 @@ def riemann_solver(self, left_flux, right_flux, left_f, right_f, dim):
 
     if(self.physical_system.params.riemann_solver_in_q == 'upwind-flux'):
 
-        if(dim == 'q1'):
-            velocity = af.tile(self._C_q1, 1, left_flux.shape[1], left_flux.shape[2])
+        if(self._C_q1.elements() != left_flux.elements()):
 
-        elif(dim == 'q2'):
-            velocity = af.tile(self._C_q2, 1, left_flux.shape[1], left_flux.shape[2])
+            if(dim == 'q1'):
+                velocity = af.tile(self._C_q1, 1, left_flux.shape[1], left_flux.shape[2])
+
+            elif(dim == 'q2'):
+                velocity = af.tile(self._C_q2, 1, left_flux.shape[1], left_flux.shape[2])
+
+            else:
+                raise NotImplementedError('Invalid Option!')
 
         else:
-            raise NotImplementedError('Invalid Option!')
+            if(dim == 'q1'):
+                velocity = self._C_q1
+            
+            elif(dim == 'q2'):
+                velocity = self._C_q2
 
         flux = upwind_flux(left_flux, right_flux, velocity)
 

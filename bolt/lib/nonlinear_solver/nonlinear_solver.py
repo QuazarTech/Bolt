@@ -159,12 +159,13 @@ class nonlinear_solver(object):
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'
 
-        # Only for periodic boundary conditions do the boundary
-        # conditions passed to the DA need to be changed. PETSc
-        # automatically handles the application of periodic 
-        # boundary conditions when running in parallel. In all other
-        # cases, ghosted boundaries are used.
-
+        # Only for periodic boundary conditions or shearing-box boundary conditions 
+        # do the boundary conditions passed to the DA need to be changed. PETSc
+        # automatically handles the application of periodic boundary conditions when
+        # running in parallel. For shearing box boundary conditions, an interpolation
+        # operation needs to be applied on top of the periodic boundary conditions.
+        # In all other cases, ghosted boundaries are used.
+        
         if(   self.boundary_conditions.in_q1_left == 'periodic'
            or self.boundary_conditions.in_q1_left == 'shearing-box'
           ):
@@ -256,9 +257,8 @@ class nonlinear_solver(object):
                                              )
 
         # Additionally, a DMDA object also needs to be created for 
-        # the KSP/SNES solver with a DOF of 1. This is used to solve for
-        # the electrostatic case:
-
+        # the SNES solver with a DOF of 1. This is used to solve for
+        # the electrostatic case, in combination with the KSP solver:
         self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                             stencil_width = N_g_q,
                                             boundary_type = (petsc_bc_in_q1,
@@ -669,7 +669,16 @@ class nonlinear_solver(object):
                                              )
 
 
+
         if(self.physical_system.params.charge_electron != 0):
+    
+            if(self.physical_system.params.fields_type == 'user-defined'):
+                try:
+                    assert(self.physical_system.params.fields_initialize == 'user-defined')
+                except:
+                    raise Exception('It is expected that the fields initialization method is also \
+                                     userdefined when the fields type is declared to be userdefined'
+                                   )
             
             if (self.physical_system.params.fields_initialize == 'fft'):
                 fft_poisson(self)
@@ -677,18 +686,32 @@ class nonlinear_solver(object):
                 self._apply_bcs_fields()
 
             elif (self.physical_system.params.fields_initialize == 'user-defined'):
-                
-                E1, E2, E3 = \
-                    self.physical_system.initial_conditions.initialize_E(self.q1_center,
-                                                                         self.q2_center,
-                                                                         params
-                                                                        )
+    
+                if(self.physical_system.params.fields_type != 'user-defined'):            
+                    E1, E2, E3 = \
+                        self.physical_system.initial_conditions.initialize_E(self.q1_center,
+                                                                             self.q2_center,
+                                                                             params
+                                                                            )
 
-                B1, B2, B3 = \
-                    self.physical_system.initial_conditions.initialize_B(self.q1_center,
-                                                                         self.q2_center,
-                                                                         params
-                                                                        )
+                    B1, B2, B3 = \
+                        self.physical_system.initial_conditions.initialize_B(self.q1_center,
+                                                                             self.q2_center,
+                                                                             params
+                                                                            )
+                else:
+
+                    E1, E2, E3 = \
+                        self.physical_system.params.user_defined_E(self.q1_center,
+                                                                   self.q2_center,
+                                                                   0
+                                                                  )
+
+                    B1, B2, B3 = \
+                        self.physical_system.params.user_defined_B(self.q1_center,
+                                                                   self.q2_center,
+                                                                   0
+                                                                  )
 
                 self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
             

@@ -3,7 +3,9 @@ import numpy as np
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+
+from bolt.lib.nonlinear_solver.nonlinear_solver \
+    import nonlinear_solver
 from bolt.lib.linear_solver.linear_solver import linear_solver
 
 import domain
@@ -12,7 +14,10 @@ import params
 import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
+
+import bolt.src.nonrelativistic_boltzmann.collision_operator \
+    as collision_operator
+
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
@@ -55,37 +60,23 @@ system = physical_system(domain,
                          moment_defs
                         )
 
-N_g = system.N_ghost_q
-
-# Pass this system to the linear solver object when 
-# a single mode only needs to be evolved. This solver
-# would only evolve the single mode, and hence requires
-# much lower time and memory for the computations:
-linearized_system = physical_system(domain,
-                                    boundary_conditions,
-                                    params,
-                                    initialize,
-                                    advection_terms,
-                                    collision_operator.linearized_BGK,
-                                    moment_defs
-                                   )
+N_g_q = system.N_ghost_q
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
 
-# Timestep as set by the CFL condition:
-dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+# Time parameters:
+dt      = 0.001
+t_final = 0.4
 
-time_array  = np.arange(0, params.t_final + dt, dt)
+time_array  = np.arange(0, t_final + dt, dt)
 
 rho_data_nls = np.zeros(time_array.size)
 rho_data_ls  = np.zeros(time_array.size)
 
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
-rho_data_nls[0] = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
+rho_data_nls[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
 
 n_ls = ls.compute_moments('density')
 
@@ -97,10 +88,10 @@ else:
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)
+    # ls.RK4_timestep(dt)
 
     n_nls                         = nls.compute_moments('density')
-    rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g:-N_g, N_g:-N_g])
+    rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
     n_ls = ls.compute_moments('density')
 
@@ -109,6 +100,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     else:
         rho_data_ls[time_index + 1] = af.max(n_ls) 
 
+    
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')

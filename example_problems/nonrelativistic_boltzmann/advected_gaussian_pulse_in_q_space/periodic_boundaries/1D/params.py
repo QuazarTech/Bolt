@@ -7,17 +7,19 @@ import arrayfire as af
 # Maxwell's constraint equations
 fields_initialize = 'fft'
 
+# Can be defined as 'electrostatic' and 'fdtd'
+fields_solver = 'fdtd'
+fields_type   = 'electrostatic'
+
 # Solver method:
 solver_method_in_q = 'FVM'
-solver_method_in_p = 'ASL'
+solver_method_in_p = 'FVM'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
-riemann_solver = 'upwind-flux'
-
-# Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+riemann_solver_in_q = 'upwind-flux'
+riemann_solver_in_p = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -29,9 +31,6 @@ num_devices = 1
 mass_particle      = 1
 boltzmann_constant = 1
 charge_electron    = 0
-
-# Initial Conditions used in initialize:
-rho_background  = 1
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

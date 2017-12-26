@@ -84,55 +84,93 @@ def df_dt_fvm(f, self, at_n = True):
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
        and self.physical_system.params.charge_electron != 0
       ):
-        if(self.physical_system.params.fields_solver == 'fft'):
 
-            fft_poisson(self, f)
-            self._communicate_fields()
-            self._apply_bcs_fields()
-
-        # This is taken care of by the timestepper that is utilized
-        # when FDTD is to be used with FVM in p-space
-        elif(self.physical_system.params.fields_solver == 'fdtd'):
-            pass
-
-        else:
-            raise NotImplementedError('The method specified is \
-                                       invalid/not-implemented'
-                                     )
-
-        if(    self.physical_system.params.fields_solver == 'fdtd'
+        if(self.physical_system.params.fields_type == 'user-defined'
            and at_n == True
           ):
+            
+            E1, E2, E3 = \
+                self.physical_system.params.user_defined_E(self.q1_center,
+                                                           self.q2_center,
+                                                           self.time_elapsed
+                                                          )
 
-            E1 = self.cell_centered_EM_fields_at_n[0]
-            E2 = self.cell_centered_EM_fields_at_n[1]
-            E3 = self.cell_centered_EM_fields_at_n[2]
+            B1, B2, B3 = \
+                self.physical_system.params.user_defined_B(self.q1_center,
+                                                           self.q2_center,
+                                                           self.time_elapsed
+                                                          )
 
-            B1 = self.cell_centered_EM_fields_at_n[3]
-            B2 = self.cell_centered_EM_fields_at_n[4]
-            B3 = self.cell_centered_EM_fields_at_n[5]
+            self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
-        elif(    self.physical_system.params.fields_solver == 'fdtd'
-             and at_n != False
+        elif(self.physical_system.params.fields_type == 'user-defined'
+             and at_n == False
             ):
+            
+            E1, E2, E3 = \
+                self.physical_system.params.user_defined_E(self.q1_center,
+                                                           self.q2_center,
+                                                           self.time_elapsed + 0.5 * self.dt
+                                                          )
 
-            E1 = self.cell_centered_EM_fields_at_n_plus_half[0]
-            E2 = self.cell_centered_EM_fields_at_n_plus_half[1]
-            E3 = self.cell_centered_EM_fields_at_n_plus_half[2]
+            B1, B2, B3 = \
+                self.physical_system.params.user_defined_B(self.q1_center,
+                                                           self.q2_center,
+                                                           self.time_elapsed + 0.5 * self.dt
+                                                          )
 
-            B1 = self.cell_centered_EM_fields_at_n_plus_half[3]
-            B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
-            B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
+            self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         else:
+            if(self.physical_system.params.fields_solver == 'fft'):
 
-            E1 = self.cell_centered_EM_fields[0]
-            E2 = self.cell_centered_EM_fields[1]
-            E3 = self.cell_centered_EM_fields[2]
+                fft_poisson(self, f)
+                self._communicate_fields()
+                self._apply_bcs_fields()
 
-            B1 = self.cell_centered_EM_fields[3]
-            B2 = self.cell_centered_EM_fields[4]
-            B3 = self.cell_centered_EM_fields[5]
+            # This is taken care of by the timestepper that is utilized
+            # when FDTD is to be used with FVM in p-space
+            elif(self.physical_system.params.fields_solver == 'fdtd'):
+                pass
+
+            else:
+                raise NotImplementedError('The method specified is \
+                                           invalid/not-implemented'
+                                         )
+
+            if(    self.physical_system.params.fields_solver == 'fdtd'
+               and at_n == True
+              ):
+
+                E1 = self.cell_centered_EM_fields_at_n[0]
+                E2 = self.cell_centered_EM_fields_at_n[1]
+                E3 = self.cell_centered_EM_fields_at_n[2]
+
+                B1 = self.cell_centered_EM_fields_at_n[3]
+                B2 = self.cell_centered_EM_fields_at_n[4]
+                B3 = self.cell_centered_EM_fields_at_n[5]
+
+            elif(    self.physical_system.params.fields_solver == 'fdtd'
+                 and at_n == False
+                ):
+
+                E1 = self.cell_centered_EM_fields_at_n_plus_half[0]
+                E2 = self.cell_centered_EM_fields_at_n_plus_half[1]
+                E3 = self.cell_centered_EM_fields_at_n_plus_half[2]
+
+                B1 = self.cell_centered_EM_fields_at_n_plus_half[3]
+                B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
+                B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
+
+            else:
+
+                E1 = self.cell_centered_EM_fields[0]
+                E2 = self.cell_centered_EM_fields[1]
+                E3 = self.cell_centered_EM_fields[2]
+
+                B1 = self.cell_centered_EM_fields[3]
+                B2 = self.cell_centered_EM_fields[4]
+                B3 = self.cell_centered_EM_fields[5]
 
         (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.q1_center, self.q2_center,
                                           self.p1_center, self.p2_center, self.p3_center,
@@ -184,7 +222,8 @@ def df_dt_fvm(f, self, at_n = True):
         bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
         back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
-        if(self.physical_system.params.riemann_solver_in_p == 'face-averaged-flux'):
+
+        if(self.physical_system.params.riemann_solver_in_p == 'averaged-flux'):
             
             left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
             bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)

@@ -94,9 +94,12 @@ def compute_moments(self, moment_name, f=None):
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
     if(f is None):
-        
-        N_q1 = self.f.shape[1]
-        N_q2 = self.f.shape[2]
+    
+        try:
+            N_q1 = self.f.shape[1]
+            N_q2 = self.f.shape[2]
+        except:
+            N_q1 = N_q2 = 1
 
         if(N_g_p != 0):
             f = af.moddims(self._convert_to_p_expanded(self.f)[N_g_p:-N_g_p, 
@@ -110,8 +113,12 @@ def compute_moments(self, moment_name, f=None):
             f = self.f
     
     else:
-        N_q1 = f.shape[1]
-        N_q2 = f.shape[2]
+
+        try:
+            N_q1 = self.f.shape[1]
+            N_q2 = self.f.shape[2]
+        except:
+            N_q1 = N_q2 = 1
 
         if(N_g_p != 0):
             f = af.moddims(self._convert_to_p_expanded(f)[N_g_p:-N_g_p, 

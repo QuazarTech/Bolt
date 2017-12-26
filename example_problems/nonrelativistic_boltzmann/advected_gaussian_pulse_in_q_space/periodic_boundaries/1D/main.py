@@ -3,9 +3,7 @@ import numpy as np
 import h5py
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -13,10 +11,7 @@ import params
 import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Defining the physical system to be solved:
@@ -31,7 +26,7 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-N_g = nls.N_ghost
+N_g = nls.N_ghost_q
 
 # Time parameters:
 dt      = 0.01

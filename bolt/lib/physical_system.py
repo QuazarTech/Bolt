@@ -221,7 +221,9 @@ class physical_system(object):
             PETSc.Sys.Print('    Reconstruction Method          :', params.reconstruction_method_in_p.upper())
             PETSc.Sys.Print('    Riemann Solver                 :', params.riemann_solver_in_p.upper())
 
+        PETSc.Sys.Print('Fields Type                        :', params.fields_type.upper())
         PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
-        PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
+        if(params.fields_type.upper() != 'USER-DEFINED'):
+            PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Charge Electron                    :', params.charge_electron)
         PETSc.Sys.Print('Number of Devices/Node             :', params.num_devices)
