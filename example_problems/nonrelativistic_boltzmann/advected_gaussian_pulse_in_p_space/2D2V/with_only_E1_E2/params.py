@@ -6,6 +6,7 @@ fields_type = 'user-defined'
 
 # Can be defined as 'fft', 'snes' and 'user-defined':
 fields_initialize = 'user-defined'
+fields_solver     = 'user-defined-evolution'
 
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
@@ -41,8 +42,8 @@ def tau(q1, q2, p1, p2, p3):
 
 def user_defined_E(q1, q2, t):
     
-    E1 = 2 * q1**0
-    E2 = 3 * q1**0
+    E1 = 1 * q1**0
+    E2 = 0 * q1**0
     E3 = 0 * q1**0
 
     return(E1, E2, E3)
