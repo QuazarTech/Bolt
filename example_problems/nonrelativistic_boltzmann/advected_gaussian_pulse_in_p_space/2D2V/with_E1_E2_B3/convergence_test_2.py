@@ -1,5 +1,6 @@
 import arrayfire as af
 import numpy as np
+from scipy.integrate import odeint
 import h5py
 import pylab as pl
 
@@ -49,7 +50,20 @@ pl.rcParams['ytick.direction']  = 'in'
 def addition(a, b):
     return(a+b)
 
+def dpdt(p, t, E1, E2, B3, charge, mass):
+    p1 = p[0]
+    p2 = p[1]
+
+    dp1_dt = (charge/mass) * (E1 + p2 * B3)
+    dp2_dt = (charge/mass) * (E2 - p1 * B3)
+    dp_dt  = np.append(dp1_dt, dp2_dt)
+    return(dp_dt)
+
 N = 2**np.arange(5, 10)
+
+dt_odeint         = 0.001
+t_final_odeint    = 3
+time_array_odeint = np.arange(dt_odeint, t_final_odeint + dt_odeint, dt_odeint)
 
 def check_error(params):
     error = np.zeros(N.size)
@@ -72,10 +86,26 @@ def check_error(params):
         N_g = nls.N_ghost_q
 
         # Time parameters:
-        dt      = 0.001 * 32/nls.N_p1
-        t_final = 2.093
+        dt = 0.001 * 32/nls.N_p1
+        
+        # First, we check when the blob returns to (0, 0)
+        E1 = nls.cell_centered_EM_fields[0]
+        E2 = nls.cell_centered_EM_fields[1]
+        B3 = nls.cell_centered_EM_fields[5]
 
-        time_array  = np.arange(dt, t_final + dt, dt)
+        sol = odeint(dpdt, np.array([0, 0]), time_array_odeint,
+                     args = (af.mean(E1), af.mean(E2), af.mean(B3), 
+                             params.charge_electron,
+                             params.mass_particle
+                            )
+                    ) 
+
+        dist_from_origin = abs(sol[:, 0]) + abs(sol[:, 1])
+        
+        # The time when the distance is minimum apart from the start is the time
+        # when the blob returns back to the center:
+        t_final    = time_array_odeint[np.argmin(dist_from_origin[1:])]
+        time_array = np.arange(dt, t_final + dt, dt)
 
         f_reference = nls.f
 

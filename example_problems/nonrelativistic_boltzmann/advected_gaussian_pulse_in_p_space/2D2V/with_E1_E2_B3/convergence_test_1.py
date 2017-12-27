@@ -1,5 +1,6 @@
 import arrayfire as af
 import numpy as np
+from scipy.integrate import odeint
 import h5py
 import pylab as pl
 
@@ -49,6 +50,15 @@ pl.rcParams['ytick.direction']  = 'in'
 def addition(a, b):
     return(a+b)
 
+def dpdt(p, t, E1, E2, B3, charge, mass):
+    p1 = p[0]
+    p2 = p[1]
+
+    dp1_dt = (charge/mass) * (E1 + p2 * B3)
+    dp2_dt = (charge/mass) * (E2 - p1 * B3)
+    dp_dt  = np.append(dp1_dt, dp2_dt)
+    return(dp_dt)
+
 N = 2**np.arange(5, 10)
 
 def check_error(params):
@@ -73,15 +83,28 @@ def check_error(params):
 
         # Time parameters:
         dt      = 0.001 * 32/nls.N_p1
-        t_final = 0.2
+        t_final = 0.1
 
         time_array  = np.arange(dt, t_final + dt, dt)
 
-        f_ana = af.broadcast(initialize.initialize_f, nls.q1_center, nls.q2_center,
-                             nls.p1_center + 0.071771222559229159, 
-                             nls.p2_center + 0.43464979521701463 ,
-                             nls.p3_center, nls.physical_system.params
+        # Finding final resting point of the blob:
+        E1 = nls.cell_centered_EM_fields[0]
+        E2 = nls.cell_centered_EM_fields[1]
+        B3 = nls.cell_centered_EM_fields[5]
+
+        sol = odeint(dpdt, np.array([0, 0]), time_array,
+                     args = (af.mean(E1), af.mean(E2), af.mean(B3), 
+                             params.charge_electron,
+                             params.mass_particle
                             )
+                    ) 
+
+        f_reference = af.broadcast(initialize.initialize_f, 
+                                   nls.q1_center, nls.q2_center,
+                                   nls.p1_center + sol[-1, 0], 
+                                   nls.p2_center + sol[-1, 1],
+                                   nls.p3_center, params
+                                  )
 
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
