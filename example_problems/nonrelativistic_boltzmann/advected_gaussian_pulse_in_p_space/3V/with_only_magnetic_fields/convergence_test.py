@@ -1,10 +1,6 @@
 import arrayfire as af
 import numpy as np
-from scipy.integrate import odeint
-from scipy.optimize import root
-import h5py
 import pylab as pl
-from mpl_toolkits.mplot3d import Axes3D
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
@@ -52,39 +48,7 @@ pl.rcParams['ytick.direction']  = 'in'
 def addition(a, b):
     return(a+b)
 
-def dp_dt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
-    p1 = p[0]
-    p2 = p[1]
-    p3 = p[2]
-
-    dp1_dt = (charge/mass) * (E1 + p2 * B3 - p3 * B2)
-    dp2_dt = (charge/mass) * (E2 + p3 * B1 - p1 * B3)
-    dp3_dt = (charge/mass) * (E3 + p1 * B2 - p2 * B1)
-
-    dp_dt  = np.array([dp1_dt, dp2_dt, dp3_dt])
-    return(dp_dt)
-
-def residual(t_final, E1, E2, E3, B1, B2, B3, charge, mass):
-    p1_initial, p2_initial, p3_initial = 0, 0, 0
-
-    t   = np.array([0, t_final])
-    sol = odeint(dp_dt, np.array([p1_initial, p2_initial, p3_initial]), t, 
-                 args = (E1, E2, E3, B1, B2, B3, charge, mass),
-                 rtol = 1e-12, atol = 1e-12
-                )
-
-    p1_final, p2_final = sol[-1, 0], sol[-1, 1]
-    
-    diff_p1  = abs(p1_final - p1_initial)
-    diff_p2  = abs(p2_final - p2_initial)
-    residual = np.append(diff_p1, diff_p2)
-    return(residual)
-
-N = 2**np.arange(5, 10)
-
-dt_odeint         = 0.001
-t_final_odeint    = 20
-time_array_odeint = np.arange(dt_odeint, t_final_odeint + dt_odeint, dt_odeint)
+N = np.array([32, 48, 64, 96, 128])
 
 def check_error(params):
     error = np.zeros(N.size)
@@ -93,6 +57,7 @@ def check_error(params):
         domain.N_p1 = int(N[i])
         domain.N_p2 = int(N[i])
         domain.N_p3 = int(N[i])
+
         # Defining the physical system to be solved:
         system = physical_system(domain,
                                  boundary_conditions,
@@ -103,54 +68,22 @@ def check_error(params):
                                  moment_defs
                                 )
 
+        # Declaring a linear system object which will evolve the defined physical system:
         nls = nonlinear_solver(system)
         N_g = nls.N_ghost_q
 
         # Time parameters:
-        dt = 0.001 * 32/nls.N_p1
-        
-        # First, we check when the blob returns to (0, 0)
-        E1 = nls.cell_centered_EM_fields[0]
-        E2 = nls.cell_centered_EM_fields[1]
-        E3 = nls.cell_centered_EM_fields[2]
-        
-        B1 = nls.cell_centered_EM_fields[3]
-        B2 = nls.cell_centered_EM_fields[4]
-        B3 = nls.cell_centered_EM_fields[5]
+        dt      = 0.001 * 32/nls.N_p1
+        t_final = 0.1
 
-        sol = odeint(dp_dt, np.array([0, 0, 0]), time_array_odeint,
-                     args = (af.mean(E1), af.mean(E2), af.mean(E3), 
-                             af.mean(B1), af.mean(B2), af.mean(B3), 
-                             params.charge_electron,
-                             params.mass_particle
-                            ),
-                     atol = 1e-12, rtol = 1e-12
-                    ) 
+        time_array  = np.arange(dt, t_final + dt, dt)
 
-        Axes3D.plot(sol[:, 0], sol[:, 1], sol[:, 2])
-        pl.show()
-        
-        dist_from_origin = abs(sol[:, 0]) + abs(sol[:, 1]) + abs(sol[:, 2]) 
-        
-        # The time when the distance is minimum apart from the start is the time
-        # when the blob returns back to the center:
-        # However, this is an approximate solution. To get a more accurate solution, 
-        # we provide this guess to our root finder scipy.optimize.root
-        t_final_approx = time_array_odeint[np.argmin(dist_from_origin[1:])]
-        # t_final        = root(residual, t_final_approx, 
-        #                       args = (af.mean(E1), af.mean(E2), af.mean(E3), 
-        #                               af.mean(B3), af.mean(B2), af.mean(B3),
-        #                               params.charge_electron,
-        #                               params.mass_particle
-        #                              ),
-        #                       method = 'lm', tol = 1e-12
-        #                      ).x
+        if(time_array[-1]>t_final):
+            time_array = np.delete(time_array, -1)
 
-        print(t_final_approx)
-
-        time_array  = np.arange(dt, float("{0:.3f}".format(t_final[0])) + dt, dt)
+        # Finding final resting point of the blob:
         f_reference = nls.f
-
+        
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
 
