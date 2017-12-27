@@ -34,7 +34,7 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 1.0
+t_final = 0.5
 time    = np.arange(0, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')

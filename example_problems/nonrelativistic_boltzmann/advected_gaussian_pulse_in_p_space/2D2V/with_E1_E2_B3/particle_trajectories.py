@@ -41,7 +41,7 @@ E2 = 3
 B3 = 1.8
 
 dt      = 0.001
-t_final = 1.0
+t_final = 0.5
 
 t = np.arange(0, t_final + dt, dt)
 p = np.zeros(400)
