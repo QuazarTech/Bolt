@@ -88,13 +88,17 @@ def check_error(params):
 
         # Time parameters:
         dt      = 0.001 * 32/nls.N_p1
-        t_final = 0.1
+        t_final = 0.01
 
         time_array  = np.arange(dt, t_final + dt, dt)
 
         # Finding final resting point of the blob:
         E1 = nls.cell_centered_EM_fields[0]
         E2 = nls.cell_centered_EM_fields[1]
+        E3 = nls.cell_centered_EM_fields[2]
+        
+        B1 = nls.cell_centered_EM_fields[3]
+        B2 = nls.cell_centered_EM_fields[4]
         B3 = nls.cell_centered_EM_fields[5]
 
         sol = odeint(dpdt, np.array([0, 0, 0]), time_array,
