@@ -153,19 +153,25 @@ params.reconstruction_method_in_p = 'piecewise-constant'
 pc_err = check_error(params)
 pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
 
+params.solver_method_in_p         = 'ASL'
+
+asl_err = check_error(params)
+asl_con = np.polyfit(np.log10(N), np.log10(asl_err), 1)
+
 print('Convergence with WENO5 reconstruction:', weno5_con[0])
 print('Convergence with PPM reconstruction:', ppm_con[0])
 print('Convergence with minmod reconstruction:', minmod_con[0])
 print('Convergence with piecewise-constant reconstruction:', pc_con[0])
+print('Convergence with ASL:', asl_con[0])
 
 pl.loglog(N, weno5_err, '-o',label = 'WENO5')
 pl.loglog(N, ppm_err, '-o', label = 'PPM')
 pl.loglog(N, minmod_err, '-o', label = 'minmod')
 pl.loglog(N, pc_err, '-o', label = 'Piecewise-Constant')
+pl.loglog(N, asl_err, '-o', label = 'ASL')
 pl.loglog(N, 1e-3/N, '--', color = 'black', label = r'$O(N^{-1})$')
 pl.loglog(N, 1e-2/N**2, '-.', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()
-pl.title('With Upwind-Flux Riemann Solver')
 pl.savefig('convergenceplot.png')
