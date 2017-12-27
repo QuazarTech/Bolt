@@ -50,7 +50,7 @@ pl.rcParams['ytick.direction']  = 'in'
 def addition(a, b):
     return(a+b)
 
-def dpdt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
+def dp_dt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
     p1 = p[0]
     p2 = p[1]
     p3 = p[2]
@@ -62,7 +62,7 @@ def dpdt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
     dp_dt  = np.array([dp1_dt, dp2_dt, dp3_dt])
     return(dp_dt)
 
-N = 2**np.arange(5, 8)
+N = np.array([32, 48, 64, 96, 128])
 
 def check_error(params):
     error = np.zeros(N.size)
@@ -88,9 +88,12 @@ def check_error(params):
 
         # Time parameters:
         dt      = 0.001 * 32/nls.N_p1
-        t_final = 0.01
+        t_final = 0.1
 
         time_array  = np.arange(dt, t_final + dt, dt)
+
+        if(time_array[-1]>t_final):
+            time_array = np.delete(time_array, -1)
 
         # Finding final resting point of the blob:
         E1 = nls.cell_centered_EM_fields[0]
@@ -101,12 +104,13 @@ def check_error(params):
         B2 = nls.cell_centered_EM_fields[4]
         B3 = nls.cell_centered_EM_fields[5]
 
-        sol = odeint(dpdt, np.array([0, 0, 0]), time_array,
+        sol = odeint(dp_dt, np.array([0, 0, 0]), time_array,
                      args = (af.mean(E1), af.mean(E2), af.mean(E3), 
                              af.mean(B1), af.mean(B2), af.mean(B3), 
                              params.charge_electron,
                              params.mass_particle
-                            )
+                            ),
+                     atol = 1e-12, rtol = 1e-12
                     ) 
 
         f_reference = af.broadcast(initialize.initialize_f, 

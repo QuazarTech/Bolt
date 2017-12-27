@@ -4,6 +4,7 @@ from scipy.integrate import odeint
 from scipy.optimize import root
 import h5py
 import pylab as pl
+from mpl_toolkits.mplot3d import Axes3D
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
@@ -51,21 +52,24 @@ pl.rcParams['ytick.direction']  = 'in'
 def addition(a, b):
     return(a+b)
 
-def dp_dt(p, t, E1, E2, B3, charge, mass):
+def dp_dt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
     p1 = p[0]
     p2 = p[1]
+    p3 = p[2]
 
-    dp1_dt = (charge/mass) * (E1 + p2 * B3)
-    dp2_dt = (charge/mass) * (E2 - p1 * B3)
-    dp_dt  = np.append(dp1_dt, dp2_dt)
+    dp1_dt = (charge/mass) * (E1 + p2 * B3 - p3 * B2)
+    dp2_dt = (charge/mass) * (E2 + p3 * B1 - p1 * B3)
+    dp3_dt = (charge/mass) * (E3 + p1 * B2 - p2 * B1)
+
+    dp_dt  = np.array([dp1_dt, dp2_dt, dp3_dt])
     return(dp_dt)
 
-def residual(t_final, E1, E2, B3, charge, mass):
-    p1_initial, p2_initial = 0, 0
+def residual(t_final, E1, E2, E3, B1, B2, B3, charge, mass):
+    p1_initial, p2_initial, p3_initial = 0, 0, 0
 
     t   = np.array([0, t_final])
-    sol = odeint(dp_dt, np.array([p1_initial, p2_initial]), t, 
-                 args = (E1, E2, B3, charge, mass),
+    sol = odeint(dp_dt, np.array([p1_initial, p2_initial, p3_initial]), t, 
+                 args = (E1, E2, E3, B1, B2, B3, charge, mass),
                  rtol = 1e-12, atol = 1e-12
                 )
 
@@ -79,7 +83,7 @@ def residual(t_final, E1, E2, B3, charge, mass):
 N = 2**np.arange(5, 10)
 
 dt_odeint         = 0.001
-t_final_odeint    = 3
+t_final_odeint    = 20
 time_array_odeint = np.arange(dt_odeint, t_final_odeint + dt_odeint, dt_odeint)
 
 def check_error(params):
@@ -88,6 +92,7 @@ def check_error(params):
     for i in range(N.size):
         domain.N_p1 = int(N[i])
         domain.N_p2 = int(N[i])
+        domain.N_p3 = int(N[i])
         # Defining the physical system to be solved:
         system = physical_system(domain,
                                  boundary_conditions,
@@ -107,30 +112,41 @@ def check_error(params):
         # First, we check when the blob returns to (0, 0)
         E1 = nls.cell_centered_EM_fields[0]
         E2 = nls.cell_centered_EM_fields[1]
+        E3 = nls.cell_centered_EM_fields[2]
+        
+        B1 = nls.cell_centered_EM_fields[3]
+        B2 = nls.cell_centered_EM_fields[4]
         B3 = nls.cell_centered_EM_fields[5]
 
-        sol = odeint(dp_dt, np.array([0, 0]), time_array_odeint,
-                     args = (af.mean(E1), af.mean(E2), af.mean(B3), 
+        sol = odeint(dp_dt, np.array([0, 0, 0]), time_array_odeint,
+                     args = (af.mean(E1), af.mean(E2), af.mean(E3), 
+                             af.mean(B1), af.mean(B2), af.mean(B3), 
                              params.charge_electron,
                              params.mass_particle
                             ),
                      atol = 1e-12, rtol = 1e-12
                     ) 
 
-        dist_from_origin = abs(sol[:, 0]) + abs(sol[:, 1])
+        Axes3D.plot(sol[:, 0], sol[:, 1], sol[:, 2])
+        pl.show()
+        
+        dist_from_origin = abs(sol[:, 0]) + abs(sol[:, 1]) + abs(sol[:, 2]) 
         
         # The time when the distance is minimum apart from the start is the time
         # when the blob returns back to the center:
         # However, this is an approximate solution. To get a more accurate solution, 
         # we provide this guess to our root finder scipy.optimize.root
         t_final_approx = time_array_odeint[np.argmin(dist_from_origin[1:])]
-        t_final        = root(residual, t_final_approx, 
-                              args = (af.mean(E1), af.mean(E2), af.mean(B3), 
-                                      params.charge_electron,
-                                      params.mass_particle
-                                     ),
-                              method = 'lm', tol = 1e-12
-                             ).x
+        # t_final        = root(residual, t_final_approx, 
+        #                       args = (af.mean(E1), af.mean(E2), af.mean(E3), 
+        #                               af.mean(B3), af.mean(B2), af.mean(B3),
+        #                               params.charge_electron,
+        #                               params.mass_particle
+        #                              ),
+        #                       method = 'lm', tol = 1e-12
+        #                      ).x
+
+        print(t_final_approx)
 
         time_array  = np.arange(dt, float("{0:.3f}".format(t_final[0])) + dt, dt)
         f_reference = nls.f
