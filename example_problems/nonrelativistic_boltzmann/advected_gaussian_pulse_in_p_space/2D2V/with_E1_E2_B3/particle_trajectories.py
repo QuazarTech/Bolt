@@ -36,9 +36,9 @@ pl.rcParams['ytick.direction']  = 'in'
 charge = -10
 mass   = 1
 
-E1 = 0.1
-E2 = 0.2
-B3 = 0.9
+E1 = 2
+E2 = 3
+B3 = 1.8
 
 dt      = 0.001
 t_final = 1.0

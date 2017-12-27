@@ -64,13 +64,13 @@ for time_index, t0 in enumerate(time):
     ax1.set_aspect('equal')
     for i in range(200):
         ax1.plot(sol[time_index, i], sol[time_index, i + 200], 'or')
-    ax1.set_xlim(-1.5, 1.5)
-    ax1.set_ylim(-1.5, 1.5)
+    ax1.set_xlim(-5, 5)
+    ax1.set_ylim(-5, 5)
 
     ax2 = fig.add_subplot(1,2,2)
     ax2.set_aspect('equal')
-    ax2.set_xlim(-1.5, 1.5)
-    ax2.set_ylim(-1.5, 1.5)
+    ax2.set_xlim(-5, 5)
+    ax2.set_ylim(-5, 5)
     ax2.contourf(p1, p2, f, np.linspace(minf, maxf, 120), cmap='bwr')
 
     fig.suptitle('Time = %.3f'%(t0))

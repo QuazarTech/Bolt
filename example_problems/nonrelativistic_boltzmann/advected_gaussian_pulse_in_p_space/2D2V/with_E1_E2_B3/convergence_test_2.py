@@ -66,7 +66,7 @@ def residual(t_final, E1, E2, B3, charge, mass):
     t   = np.array([0, t_final])
     sol = odeint(dp_dt, np.array([p1_initial, p2_initial]), t, 
                  args = (E1, E2, B3, charge, mass),
-                 rtol = 1e-14, atol = 1e-14
+                 rtol = 1e-12, atol = 1e-12
                 )
 
     p1_final, p2_final = sol[-1, 0], sol[-1, 1]
@@ -114,7 +114,7 @@ def check_error(params):
                              params.charge_electron,
                              params.mass_particle
                             ),
-                     atol = 1e-14, rtol = 1e-14
+                     atol = 1e-12, rtol = 1e-12
                     ) 
 
         dist_from_origin = abs(sol[:, 0]) + abs(sol[:, 1])
@@ -129,7 +129,7 @@ def check_error(params):
                                       params.charge_electron,
                                       params.mass_particle
                                      ),
-                              method = 'lm', tol = 1e-14
+                              method = 'lm', tol = 1e-12
                              ).x
 
         time_array  = np.arange(dt, float("{0:.3f}".format(t_final[0])) + dt, dt)
