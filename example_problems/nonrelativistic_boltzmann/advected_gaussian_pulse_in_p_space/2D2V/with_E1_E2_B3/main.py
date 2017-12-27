@@ -31,7 +31,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.4
+t_final = 1.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -39,6 +39,7 @@ time_array  = np.arange(0, t_final + dt, dt)
 h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('distribution_function', data = nls.f)
 h5f.create_dataset('p1', data = nls.p1_center)
+h5f.create_dataset('p2', data = nls.p2_center)
 h5f.close()
 
 for time_index, t0 in enumerate(time_array[1:]):
@@ -48,4 +49,5 @@ for time_index, t0 in enumerate(time_array[1:]):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
     h5f.create_dataset('distribution_function', data = nls.f)
     h5f.create_dataset('p1', data = nls.p1_center)
+    h5f.create_dataset('p2', data = nls.p2_center)
     h5f.close()

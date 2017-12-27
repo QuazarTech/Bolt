@@ -4,7 +4,7 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 20, 10
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -34,33 +34,46 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 0.4
-time    = np.arange(dt, t_final + dt, dt)
+t_final = 1.0
+time    = np.arange(0, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
-p1  = h5f['p1'][:]
-f   = h5f['distribution_function'][:]
+p1  = h5f['p1'][:].reshape(128, 128)
+p2  = h5f['p2'][:].reshape(128, 128)
+f   = h5f['distribution_function'][:].reshape(128, 128)
 h5f.close()
 
-pl.plot(p1, f)
-pl.title('Time = 0')
-pl.xlabel(r'$v$')
-pl.ylabel(r'$f$')
-pl.savefig('images/0000.png')
-pl.clf()
+h5f = h5py.File('particle_traj.h5', 'r')
+sol = h5f['particle_paths'][:]
+h5f.close()
+
+maxf = np.max(f) + 0.02
+minf = np.min(f) - 0.02
 
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    p1  = h5f['p1'][:]
-    f   = h5f['distribution_function'][:]
+    p1  = h5f['p1'][:].reshape(128, 128)
+    p2  = h5f['p2'][:].reshape(128, 128)
+    f   = h5f['distribution_function'][:].reshape(128, 128)
     h5f.close()
 
-    if((time_index+1)%4==0):
+    fig = pl.figure()
 
-        pl.plot(p1, f)
-        pl.title('Time =' + str(t0))
-        pl.xlabel(r'$v$')
-        pl.ylabel(r'$f$')
-        pl.savefig('images/%04d'%((time_index+1)/4) + '.png')
-        pl.clf()
+    ax1 = fig.add_subplot(1,2,1)
+    ax1.set_aspect('equal')
+    for i in range(200):
+        ax1.plot(sol[time_index, i], sol[time_index, i + 200], 'or')
+    ax1.set_xlim(-1.5, 1.5)
+    ax1.set_ylim(-1.5, 1.5)
+
+    ax2 = fig.add_subplot(1,2,2)
+    ax2.set_aspect('equal')
+    ax2.set_xlim(-1.5, 1.5)
+    ax2.set_ylim(-1.5, 1.5)
+    ax2.contourf(p1, p2, f, np.linspace(minf, maxf, 120), cmap='bwr')
+
+    fig.suptitle('Time = %.3f'%(t0))
+    pl.savefig('images/' + '%04d'%time_index + '.png')
+    pl.close(fig)
+    pl.clf()
