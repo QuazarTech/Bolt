@@ -1,0 +1,8 @@
+This folder contains tests where a gaussian pulse is advected through p-space:
+
+In this folder we consider a thorough convergence check which needs to be passing at O(N^{-2}) to validate the correctness of our implementation for operations in p-space. Similar to the advected gaussian pulse in q-space, each individual folder contains a main.py which outputs dump files upon which a post processing script is used to get images which are a visual check of how the blob advects in p-space. The convergence tests can be run by executing convergence_test.py
+
+In 1V, we consider the following convergence check:
+
+- Advection with constant E1, (E2, E3, B1, B2, B3) = 0 till a time t before blob hits boundary in p space
+  Reference Solution: f(p1 - (e/m)*E1*t)

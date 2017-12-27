@@ -11,11 +11,14 @@ We consider 3 different convergence tests for this:
   Reference Solution: Initial Solution.
 
 - Advection with constant (E1, E2), (B1=0, B2=0, B3!=0) 
-    For this problem, we can test using 2 convergence tests:
+    
+    For this problem, we can test using 2 different convergence tests:
+    
     - Reference Solution: Initial State
       We trace the trajectory of the center of the blob using odeint to get the time when the blob returns
-      to the center(numerically:distance from origin is minimum). We evolve to this final time on the 
-      nonlinear solver. 
+      to the center(numerically:distance from origin is minimum), and improve the accuracy of the solution 
+      using scipy.optimize.root. We evolve to this final time on the nonlinear solver. 
+    
     - Reference Solution: f(p1 - p1_center_final, p2 - p2_center_final)
       We trace the trajectory of the center of the blob using odeint to get the final resting spot of the
       center of the blob (p1_center_final, p2_center_final). Then using this, we get the reference distribution

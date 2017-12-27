@@ -29,7 +29,6 @@ def C_q(q1, q2, p1, p2, p3, params):
     """Return the terms C_q1, C_q2."""
     return (p1, p2)
 
-
 def A_p(q1, q2, p1, p2, p3,
         E1, E2, E3, B1, B2, B3,
         params
