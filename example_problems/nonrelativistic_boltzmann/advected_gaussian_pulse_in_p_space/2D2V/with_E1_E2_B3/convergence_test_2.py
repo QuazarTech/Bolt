@@ -81,7 +81,6 @@ def check_error(params):
                                  moment_defs
                                 )
 
-        # Declaring a linear system object which will evolve the defined physical system:
         nls = nonlinear_solver(system)
         N_g = nls.N_ghost_q
 
@@ -126,30 +125,25 @@ params.reconstruction_method_in_p = 'weno5'
 weno5_err = check_error(params)
 weno5_con = np.polyfit(np.log10(N), np.log10(weno5_err), 1)
 
-# params.reconstruction_method_in_p = 'ppm'
+params.reconstruction_method_in_p = 'ppm'
 
-# ppm_err = check_error(params)
-# ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
+ppm_err = check_error(params)
+ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
 
-# params.reconstruction_method_in_p = 'minmod'
+params.reconstruction_method_in_p = 'minmod'
 
-# minmod_err = check_error(params)
-# minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
+minmod_err = check_error(params)
+minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
 
-# params.reconstruction_method_in_p = 'piecewise-constant'
+params.reconstruction_method_in_p = 'piecewise-constant'
 
-# pc_err = check_error(params)
-# pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
-
-print(weno5_err)
-# print(ppm_err)
-# print(minmod_err)
-# print(pc_err)
+pc_err = check_error(params)
+pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
 
 print('Convergence with WENO5 reconstruction:', weno5_con[0])
-# print('Convergence with PPM reconstruction:', ppm_con[0])
-# print('Convergence with minmod reconstruction:', minmod_con[0])
-# print('Convergence with piecewise-constant reconstruction:', pc_con[0])
+print('Convergence with PPM reconstruction:', ppm_con[0])
+print('Convergence with minmod reconstruction:', minmod_con[0])
+print('Convergence with piecewise-constant reconstruction:', pc_con[0])
 
 pl.loglog(N, weno5_err, '-o',label = 'WENO5')
 pl.loglog(N, ppm_err, '-o', label = 'PPM')
