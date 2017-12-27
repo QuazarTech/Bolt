@@ -59,7 +59,7 @@ def dpdt(p, t, E1, E2, E3, B1, B2, B3, charge, mass):
     dp2_dt = (charge/mass) * (E2 + p3 * B1 - p1 * B3)
     dp3_dt = (charge/mass) * (E3 + p1 * B2 - p2 * B1)
 
-    dp_dt  = np.concatenate([dp1_dt, dp2_dt, dp3_dt])
+    dp_dt  = np.array([dp1_dt, dp2_dt, dp3_dt])
     return(dp_dt)
 
 N = 2**np.arange(5, 8)
