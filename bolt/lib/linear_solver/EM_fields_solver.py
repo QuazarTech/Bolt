@@ -52,11 +52,11 @@ def compute_electrostatic_fields(self, f=None, f_hat=None):
 
         self.E1_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q1))
         self.E2_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q2))
-        self.E3_hat = 0
+        self.E3_hat = 0 * self.E1_hat 
         
-        self.B1_hat = 0
-        self.B2_hat = 0
-        self.B3_hat = 0
+        self.B1_hat = 0 * self.E1_hat
+        self.B2_hat = 0 * self.E1_hat
+        self.B3_hat = 0 * self.E1_hat
 
         af.eval(self.E1_hat, self.E2_hat, self.E3_hat,
                 self.E1_hat, self.E2_hat, self.E3_hat
