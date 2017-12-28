@@ -58,7 +58,6 @@ def dump_moments(self, file_name):
         i += 1
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
-    PETSc.Object.setName(self._glob_moments, 'moments')
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
@@ -100,10 +99,39 @@ def dump_distribution_function(self, file_name):
     >> h5f.close()
     """
     N_g_q = self.N_ghost_q
+    N_g_p = self.N_ghost_p
     
-    af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q]).to_ndarray(self._glob_f_array)
-    PETSc.Object.setName(self._glob_f, 'distribution_function')
+    N_q1_local = self.f.shape[1]
+    N_q2_local = self.f.shape[2]
+
+    # The dumped array shouldn't be inclusive of velocity ghost zones:
+    if(N_g_p != 0):
+        array_to_dump = self._convert_to_p_expanded(self.f)[N_g_p:-N_g_p, 
+                                                            N_g_p:-N_g_p,
+                                                            N_g_p:-N_g_p
+                                                           ]
+        array_to_dump = af.moddims(array_to_dump, 
+                                   self.N_p1 * self.N_p2 * self.N_p3,
+                                   N_q1_local,
+                                   N_q2_local
+                                  )                                           
+    
+    else:
+        array_to_dump = self.f
+    
+    array_to_dump = af.flat(array_to_dump[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    array_to_dump.to_ndarray(self._glob_dump_f_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-    viewer(self._glob_f)
+    viewer(self._glob_dump_f)
+
+    return
+
+def dump_EM_fields(self, file_name):
+
+    N_g_q = self.N_ghost_q
+    flattened_global_EM_fields_array = af.flat(self.yee_grid_EM_fields[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer(self._glob_fields)
 
     return

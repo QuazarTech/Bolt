@@ -47,11 +47,11 @@ init_sum = af.sum(nls.f[:, N_g:-N_g, N_g:-N_g])
 for time_index, t0 in enumerate(time_array):
 
     # Used to debug:    
-    # print('For Time =', t0)
-    # print('MIN(f) =', af.min(nls.f[:, N_g:-N_g, N_g:-N_g]))
-    # print('MAX(f) =', af.max(nls.f[:, N_g:-N_g, N_g:-N_g]))
-    # print('d(SUM(f)) =', af.sum(nls.f[:, N_g:-N_g, N_g:-N_g]) - init_sum)
-    # print()
+    print('For Time =', t0)
+    print('MIN(f) =', af.min(nls.f[:, N_g:-N_g, N_g:-N_g]))
+    print('MAX(f) =', af.max(nls.f[:, N_g:-N_g, N_g:-N_g]))
+    print('d(SUM(f)) =', af.sum(nls.f[:, N_g:-N_g, N_g:-N_g]) - init_sum)
+    print()
 
     nls.strang_timestep(dt)
     n_nls = nls.compute_moments('density')

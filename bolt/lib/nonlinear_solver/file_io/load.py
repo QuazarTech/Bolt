@@ -24,6 +24,10 @@ def load_distribution_function(self, file_name):
     The above statemant will load the distribution function data stored in the file
     distribution_function.h5 into self.f
     """
+    # Obtaining start coordinates for the local zone
+    # Additionally, we also obtain the size of the local zone
+    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 
                                        PETSc.Viewer.Mode.READ, 
                                        comm=self._comm
@@ -35,7 +39,11 @@ def load_distribution_function(self, file_name):
                                                          (self.N_p1 + 2 * self.N_ghost_p)
                                                        * (self.N_p2 + 2 * self.N_ghost_p) 
                                                        * (self.N_p3 + 2 * self.N_ghost_p),
-                                                       self.N_q1, self.N_q2
+                                                       N_q1_local, N_q2_local
                                                       )
 
     return
+
+def load_EM_fields(self, file_name):
+  #ADD FUNCTION HERE
+  return

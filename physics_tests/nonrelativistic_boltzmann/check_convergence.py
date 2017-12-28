@@ -34,7 +34,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 10)
+    N     = 2**np.arange(5, 8)
     error = np.zeros(N.size)
     
     for i in range(N.size):
@@ -65,6 +65,4 @@ def check_convergence():
     pl.xlabel('$N$')
     pl.savefig('convergence_plot.png')
 
-    poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    print(poly)
     assert(abs(poly[0] + 2)<0.25)

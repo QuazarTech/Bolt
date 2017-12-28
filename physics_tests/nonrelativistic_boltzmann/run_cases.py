@@ -23,7 +23,7 @@ import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Time parameters:
 t_final = 0.1
-N       = 2**np.arange(5, 10)
+N       = 2**np.arange(5, 8)
 
 
 def run_cases(q_dim, p_dim, charge_electron, tau):
@@ -75,14 +75,14 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                                  moment_defs
                                 )
         
-        linearized_system = physical_system(domain,
-                                            boundary_conditions,
-                                            params,
-                                            initialize,
-                                            advection_terms,
-                                            collision_operator.linearized_BGK,
-                                            moment_defs
-                                           )
+        # linearized_system = physical_system(domain,
+        #                                     boundary_conditions,
+        #                                     params,
+        #                                     initialize,
+        #                                     advection_terms,
+        #                                     collision_operator.linearized_BGK,
+        #                                     moment_defs
+        #                                    )
 
         # Declaring a linear system object which will 
         # evolve the defined physical system:

@@ -19,4 +19,4 @@ p3_end   = 0.5
 N_p3     = 1
 
 N_ghost_q = 3
-N_ghost_p = 0
+N_ghost_p = 3
