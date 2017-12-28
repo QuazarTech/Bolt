@@ -10,6 +10,8 @@ fields_initialize = 'fft'
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_solver = 'fft'
 
+fields_type = 'electrostatic'
+
 # Can be defined as 'strang' and 'lie'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
