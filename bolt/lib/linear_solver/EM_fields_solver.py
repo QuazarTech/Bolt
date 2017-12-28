@@ -59,7 +59,7 @@ def compute_electrostatic_fields(self, f=None, f_hat=None):
         self.B3_hat = 0 * self.E1_hat
 
         af.eval(self.E1_hat, self.E2_hat, self.E3_hat,
-                self.E1_hat, self.E2_hat, self.E3_hat
+                self.B1_hat, self.B2_hat, self.B3_hat
                )
 
     return
