@@ -8,6 +8,7 @@ import arrayfire as af
 fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
+fields_type   = 'electrostatic'
 fields_solver = 'fft'
 
 # Method in q-space

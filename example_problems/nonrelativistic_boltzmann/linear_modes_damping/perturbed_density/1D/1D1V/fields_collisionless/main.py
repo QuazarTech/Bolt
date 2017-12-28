@@ -3,9 +3,7 @@ import numpy as np
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 from bolt.lib.linear_solver.linear_solver import linear_solver
 
 import domain
@@ -14,10 +12,7 @@ import params
 import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
@@ -77,7 +72,7 @@ linearized_system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+ls  = linear_solver(linearized_system)
 
 # Timestep as set by the CFL condition:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
