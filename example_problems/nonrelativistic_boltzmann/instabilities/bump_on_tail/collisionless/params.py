@@ -4,14 +4,9 @@ import arrayfire as af
 rho_background         = 1
 temperature_background = 1
 
-# Can be defined as 'fft', 'electrostatic', 'user-defined'.
-# The initial conditions need to be specified under initialize
-# Ensure that the initial conditions specified satisfy
-# Maxwell's constraint equations
+fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-
-# Can be defined as 'fft', electrostatic', 'fdtd'
-fields_solver = 'fft'
+fields_solver     = 'fft'
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -25,6 +20,9 @@ riemann_solver_in_p = 'upwind-flux'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
+
+t_final = 20
+N_cfl   = 0.8
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1
