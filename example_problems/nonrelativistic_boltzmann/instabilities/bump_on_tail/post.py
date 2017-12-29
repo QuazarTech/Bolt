@@ -1,7 +1,7 @@
 import numpy as np
+import matplotlib as mpl
 import pylab as pl
 import h5py
-import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -32,3 +32,52 @@ pl.rcParams['ytick.minor.pad']  = 8
 pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
+
+h5f = h5py.File('collisionless/data.h5', 'r')
+time_array    = h5f['time'][:]
+E_ls_tau_inf  = h5f['electrical_energy_ls'][:]
+E_nls_tau_inf = h5f['electrical_energy_nls'][:]
+h5f.close()
+
+h5f = h5py.File('tau_0.01/data.h5', 'r')
+E_ls_tau_1e_minus_2  = h5f['electrical_energy_ls'][:]
+E_nls_tau_1e_minus_2 = h5f['electrical_energy_nls'][:]
+h5f.close()
+
+h5f = h5py.File('tau_0.001/data.h5', 'r')
+E_ls_tau_1e_minus_3  = h5f['electrical_energy_ls'][:]
+E_nls_tau_1e_minus_3 = h5f['electrical_energy_nls'][:]
+h5f.close()
+
+h5f = h5py.File('tau_0/data.h5', 'r')
+E_ls_tau_0  = h5f['electrical_energy_ls'][:]
+E_nls_tau_0 = h5f['electrical_energy_nls'][:]
+h5f.close()
+
+pl.plot(time_array, E_ls_tau_inf, '--', color = 'blue', label = r'$\tau=\inf$')
+pl.plot(time_array, E_nls_tau_inf, color = 'blue', label=r'$\tau=\inf$')
+pl.plot(time_array, E_ls_tau_1e_minus_2, '--', color = 'green', label = r'$\tau=0.01$')
+pl.plot(time_array, E_nls_tau_1e_minus_2, color = 'green', label=r'$\tau=0.01$')
+pl.plot(time_array, E_ls_tau_1e_minus_3, '--', color = 'red', label = r'$\tau=0.001$')
+pl.plot(time_array, E_nls_tau_1e_minus_3, color = 'red', label=r'$\tau=0.001$')
+pl.plot(time_array, E_ls_tau_0, '--', color = 'cyan', label = r'$\tau=0$')
+pl.plot(time_array, E_nls_tau_0, color = 'cyan', label=r'$\tau=0$')
+pl.ylabel(r'SUM($|E|^2$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('linearplot.png')
+pl.clf()
+
+pl.semilogy(time_array, E_ls_tau_inf, '--', color = 'blue', label = r'$\tau=\inf$')
+pl.semilogy(time_array, E_nls_tau_inf, color = 'blue', label=r'$\tau=\inf$')
+pl.semilogy(time_array, E_ls_tau_1e_minus_2, '--', color = 'green', label = r'$\tau=0.01$')
+pl.semilogy(time_array, E_nls_tau_1e_minus_2, color = 'green', label=r'$\tau=0.01$')
+pl.semilogy(time_array, E_ls_tau_1e_minus_3, '--', color = 'red', label = r'$\tau=0.001$')
+pl.semilogy(time_array, E_nls_tau_1e_minus_3, color = 'red', label=r'$\tau=0.001$')
+pl.semilogy(time_array, E_ls_tau_0, '--', color = 'cyan', label = r'$\tau=0$')
+pl.semilogy(time_array, E_nls_tau_0, color = 'cyan', label=r'$\tau=0$')
+pl.ylabel(r'SUM($|E|^2$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('semilogyplot.png')
+pl.clf()

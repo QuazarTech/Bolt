@@ -1,5 +1,6 @@
 import arrayfire as af
 import numpy as np
+import matplotlib as mpl
 import pylab as pl
 import h5py
 
@@ -88,6 +89,7 @@ for time_index, t0 in enumerate(time_array):
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)
+h5f.create_dataset('time', data = time_array)
 h5f.close()
 
 pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')

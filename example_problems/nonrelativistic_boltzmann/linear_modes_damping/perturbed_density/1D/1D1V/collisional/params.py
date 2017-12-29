@@ -1,14 +1,9 @@
 import numpy as np
 import arrayfire as af
 
-# Can be defined as 'electrostatic', 'user-defined'.
-# The initial conditions need to be specified under initialize
-# Ensure that the initial conditions specified satisfy
-# Maxwell's constraint equations
+fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-
-# Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fdtd'
+fields_solver     = 'fdtd'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -44,9 +39,9 @@ k_q1 = 2 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 1.0
+t_final = 0.5
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0 * p1**0 * q1**0)
+    return (0.01 * p1**0 * q1**0)
