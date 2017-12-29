@@ -87,7 +87,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         # Declaring a linear system object which will 
         # evolve the defined physical system:
         nls = nonlinear_solver(system)
-        ls  = linear_solver(linearized_system)
+        ls  = linear_solver(system)
 
         time_array = np.arange(dt, t_final + dt, dt)
 

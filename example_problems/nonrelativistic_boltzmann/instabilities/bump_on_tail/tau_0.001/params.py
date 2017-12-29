@@ -22,7 +22,7 @@ reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
 t_final = 50
-N_cfl   = 0.4
+N_cfl   = 0.04
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1
