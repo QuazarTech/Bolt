@@ -14,14 +14,13 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     rho_b = params.rho_background
     T_b   = params.temperature_background
 
-    slope = params.slope
-
     p1_bulk = params.p1_bulk_background
     p2_bulk = params.p2_bulk_background
     p3_bulk = params.p3_bulk_background
 
     # Calculating the perturbed density:
-    rho = rho_b + slope * q2
+    # rho = rho_b + slope * q2
+    rho = rho_b + 0.01 * af.sin(2 * np.pi * q1)
 
     f = rho * (m / (2 * np.pi * k * T_b))**(3/2) \
             * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \

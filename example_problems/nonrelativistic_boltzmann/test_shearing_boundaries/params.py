@@ -35,7 +35,6 @@ charge_electron    = -1
 # Initial Conditions used in initialize:
 rho_background         = 1
 temperature_background = 1
-slope                  = 10
 
 p1_bulk_background = 0
 p2_bulk_background = 0
