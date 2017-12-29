@@ -39,8 +39,8 @@ def apply_shearing_box_bcs_f(self, boundary):
                                                 xp = af.reorder(self.q1_center[:, :N_g_q], 1, 2, 0),
                                                 yp = af.reorder(self.q2_center[:, :N_g_q], 1, 2, 0)
                                                ),
-                                     2, 0, 1
-                                    )
+                                       2, 0, 1
+                                      )
         
     elif(boundary == 'right'):
         sheared_coordinates = self.q2_center[:, -N_g_q:] + q * omega * L_q1 * self.time_elapsed

@@ -46,7 +46,7 @@ k_q2 = 0 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 0.25
+t_final = 0.5
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

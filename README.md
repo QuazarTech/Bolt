@@ -1,7 +1,16 @@
-# Bolt - A Fast Semi-Lagrangian Solver Framework For Kinetic Theories:
+# Bolt - A Solver Framework For Kinetic Theories:
 [![Documentation Status](https://readthedocs.org/projects/qbolt/badge/?version=latest)](http://qbolt.readthedocs.io/en/latest/?badge=latest)[![Build Status](https://travis-ci.org/ShyamSS-95/Bolt.svg?branch=master)](https://travis-ci.org/ShyamSS-95/Bolt)
 
-This framework provides methods for solving an advection equation with sources/sinks uptil 5-dimensional phase space. The framework consists of a linear as well as a non-linear solver. The non-linear solver is a semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
+This framework provides methods for solving kinetic theory formulations uptil 5-dimensional phase space, and has been throughly unit tested. The framework consists of a linear as well as a non-linear solver. 
+
+The non-linear solver can make use of the following solver methods:
+
+* Conservative Finite Volume Method
+    * Reconstruction Methods: minmod, PPM, WENO5
+    * Riemann Solvers: Local Lax Friedrichs Flux, 1st order Upwind-Flux 
+* Advective semi-Lagrangian solver based on the method proposed in [Cheng & Knorr, 1976](http://adsabs.harvard.edu/abs/1976JCoPh..22..330C). 
+
+The framework has been written with ease of use and extensibility in mind, and can be used to obtain solution for any equation of the following form:
 
 <p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/372221e63638d7fbbb468a0b9029d7a9.svg?invert_in_darkmode" align=middle width=450.2223pt height=36.953894999999996pt/></p>
 
@@ -11,7 +20,7 @@ The generalized structure that the framework uses can be found in `lib/`. All th
 
 <p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/6012d33f73b29a6e67bdfd25286152d3.svg?invert_in_darkmode" align=middle width=766.6296pt height=38.464304999999996pt/></p>
 
-The functions that have been used for solving the above equation may be referred to from `src/nonrelativistic_boltzmann`.
+The functions that have been used for solving the above equation may be referred to from `src/nonrelativistic_boltzmann`. The test problems we have solved can be found under `example_problems/nonrelativistic_boltzmann`. A README has been provided under each of the test folders for appropriate context.
 
 ## Dependencies:
 
@@ -24,6 +33,7 @@ The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for 
 * mpi4py
 
 The documentation is built using sphinx, and requires the following dependencies to be built locally:
+
 * sphinx
 * sphinx_rtd_theme
 * sphinx-autobuild

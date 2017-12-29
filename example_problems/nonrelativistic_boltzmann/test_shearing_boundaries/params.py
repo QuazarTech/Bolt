@@ -8,6 +8,7 @@ import arrayfire as af
 fields_initialize = 'user-defined'
 
 # Can be defined as 'electrostatic' and 'fdtd'
+fields_type   = 'electrodynamic'
 fields_solver = 'fdtd'
 
 # Method in q-space
@@ -17,7 +18,8 @@ solver_method_in_p = 'FVM'
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
-riemann_solver = 'upwind-flux'
+riemann_solver_in_q = 'upwind-flux'
+riemann_solver_in_p = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
 p_dim = 3
@@ -43,8 +45,8 @@ p3_bulk_background = 0
 N_cfl   = 0.32
 t_final = 0.25
 
-q     = 1.5
-omega = 10
+q     = 1
+omega = 1
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

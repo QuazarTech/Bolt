@@ -180,5 +180,3 @@ def test_communicate_fields():
 
     expected = af.sin(2 * np.pi * obj.q1 + 4 * np.pi * obj.q2)
     assert (af.mean(af.abs(obj.cell_centered_EM_fields - expected)) < 5e-14)
-
-test_communicate_f()
