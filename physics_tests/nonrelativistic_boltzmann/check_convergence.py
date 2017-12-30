@@ -36,7 +36,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 8)
+    N     = 2**np.arange(5, 10)
     error = np.zeros(N.size)
     
     for i in range(N.size):
@@ -53,10 +53,17 @@ def check_convergence():
         pl.contourf(nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
         pl.colorbar()
         pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
-        
+        pl.clf()
+
         pl.contourf(ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
         pl.colorbar()
         pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
+        pl.clf()
+
+        pl.contourf((nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.colorbar()
+        pl.savefig('comparison_N_%03d'%(int(N[i])) + '.png')  
+        pl.clf()
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
@@ -74,3 +81,4 @@ def check_convergence():
     pl.savefig('convergence_plot.png')
 
     assert(abs(poly[0] + 2)<0.25)
+
