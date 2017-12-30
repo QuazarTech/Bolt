@@ -36,12 +36,12 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 10)
+    N     = 2**np.arange(5, 8)
     error = np.zeros(N.size)
     
     for i in range(N.size):
-        x     = (0.5 + np.arange(int(N[i])))
-        v     = -15 + (0.5 + np.arange(int(N[i]))) * 30
+        x     = (0.5 + np.arange(int(N[i])))/int(N[i])
+        v     = -15 + (0.5 + np.arange(int(N[i]))) * 30/int(N[i])
         x, v  = np.meshgrid(x, v)
 
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
@@ -52,23 +52,23 @@ def check_convergence():
         ls_f = h5f['distribution_function'][:]
         h5f.close()
 
-        pl.contourf(x, v, nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
+        pl.contourf(v, x, nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$v$')
+        pl.ylabel(r'$x$')
         pl.colorbar()
         pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
         pl.clf()
 
-        pl.contourf(x, v, ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
+        pl.contourf(v, x, ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$v$')
+        pl.ylabel(r'$x$')
         pl.colorbar()
         pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
         pl.clf()
 
-        pl.contourf(x, v, (nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
+        pl.contourf(v, x, (nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$v$')
+        pl.ylabel(r'$x$')
         pl.colorbar()
         pl.savefig('comparison_N_%03d'%(int(N[i])) + '.png')  
         pl.clf()
