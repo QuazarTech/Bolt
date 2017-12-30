@@ -36,13 +36,13 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 8)
+    N     = 2**np.arange(5, 10)
     error = np.zeros(N.size)
     
     for i in range(N.size):
         x     = (0.5 + np.arange(int(N[i])))/int(N[i])
         v     = -15 + (0.5 + np.arange(int(N[i]))) * 30/int(N[i])
-        x, v  = np.meshgrid(x, v)
+        v, x  = np.meshgrid(v, x)
 
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
         nls_f = h5f['distribution_function'][:]
@@ -52,21 +52,22 @@ def check_convergence():
         ls_f = h5f['distribution_function'][:]
         h5f.close()
 
-        pl.contourf(v, x, nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
-        pl.xlabel(r'$v$')
-        pl.ylabel(r'$x$')
-        pl.colorbar()
-        pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
-        pl.clf()
+        # pl.contourf(v, x, nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        # pl.xlabel(r'$v$')
+        # pl.ylabel(r'$x$')
+        # pl.colorbar()
+        # pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
+        # pl.clf()
 
-        pl.contourf(v, x, ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
-        pl.xlabel(r'$v$')
-        pl.ylabel(r'$x$')
-        pl.colorbar()
-        pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
-        pl.clf()
+        # pl.contourf(v, x, ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        # pl.xlabel(r'$v$')
+        # pl.ylabel(r'$x$')
+        # pl.colorbar()
+        # pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
+        # pl.clf()
 
-        pl.contourf(v, x, (nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        # Comparing solution of both solvers:
+        pl.contourf(v, x, (abs(nls_f-ls_f))[0, :, :].reshape(int(N[i]), int(N[i])), 100)
         pl.xlabel(r'$v$')
         pl.ylabel(r'$x$')
         pl.colorbar()
@@ -75,9 +76,9 @@ def check_convergence():
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
-    print(error)
+    # print(error)
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    print(poly)
+    # print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
@@ -89,4 +90,3 @@ def check_convergence():
     pl.savefig('convergence_plot.png')
 
     assert(abs(poly[0] + 2)<0.25)
-
