@@ -40,7 +40,9 @@ def check_convergence():
     error = np.zeros(N.size)
     
     for i in range(N.size):
-        
+        x     = (0.5 + np.arange(int(N[i])))
+        v     = -15 + (0.5 + np.arange(int(N[i]))) * 30
+        x, v  = np.meshgrid(x, v)
 
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
         nls_f = h5f['distribution_function'][:]
@@ -50,17 +52,23 @@ def check_convergence():
         ls_f = h5f['distribution_function'][:]
         h5f.close()
 
-        pl.contourf(nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.contourf(x, v, nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
         pl.colorbar()
         pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
         pl.clf()
 
-        pl.contourf(ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.contourf(x, v, ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
         pl.colorbar()
         pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
         pl.clf()
 
-        pl.contourf((nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.contourf(x, v, (nls_f-ls_f)[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
         pl.colorbar()
         pl.savefig('comparison_N_%03d'%(int(N[i])) + '.png')  
         pl.clf()

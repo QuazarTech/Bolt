@@ -92,7 +92,6 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         time_array = np.arange(dt, t_final + dt, dt)
 
         for time_index, t0 in enumerate(time_array):
-            print(t0)
             nls.strang_timestep(dt)
             ls.RK4_timestep(dt)
 
