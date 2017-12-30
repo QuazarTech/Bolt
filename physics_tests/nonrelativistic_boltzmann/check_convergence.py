@@ -1,5 +1,7 @@
 import numpy as np 
 import h5py
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 
 # Optimized plot parameters to make beautiful plots:
@@ -48,7 +50,13 @@ def check_convergence():
         ls_f = h5f['distribution_function'][:]
         h5f.close()
 
-        print(nls_f.shape)
+        pl.contourf(nls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.colorbar()
+        pl.savefig('nls_N_%03d'%(int(N[i])) + '.png')
+        
+        pl.contourf(ls_f[0, :, :].reshape(int(N[i]), int(N[i])), 100)
+        pl.colorbar()
+        pl.savefig('ls_N_%03d'%(int(N[i])) + '.png')
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
