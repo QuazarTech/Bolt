@@ -52,6 +52,13 @@ def f_interp_p_3d(self, dt):
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
 
+    N_s = self.N_species
+
+    # Number of DOF in the array for a single species:
+    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
+          * (self.N_p2 + 2 * self.N_ghost_p) \
+          * (self.N_p3 + 2 * self.N_ghost_p)
+
     if(self.performance_test_flag == True):
         tic = af.time()
     
@@ -94,6 +101,7 @@ def f_interp_p_3d(self, dt):
         p3_new = af.broadcast(addition, self.p3_center, - 0.5 * dt * A_p3)
         p3_new = self._convert_to_p_expanded(p3_new)
         p3_lower_boundary = self.p3_start + 0.5 * self.dp3
+        
         # Reordering p3_interpolant to bring variation in p3 to the 0-th axis:
         p3_interpolant = af.reorder((p3_new - p3_lower_boundary) / self.dp3, 2, 0, 1)
 
@@ -101,34 +109,35 @@ def f_interp_p_3d(self, dt):
     # individual 1d + 2d interpolations. Reordering to bring the
     # variation in values along axis 0 and axis 1
 
-    self.f = self._convert_to_p_expanded(self.f)
+    for i in range(N_s):
+        f = self._convert_to_p_expanded(self.f[i * dof:(i+1) * dof])
 
-    if(self.physical_system.params.p_dim == 3):
+        if(self.physical_system.params.p_dim == 3):
+            
+            f = af.approx1(af.reorder(f, 2, 0, 1),
+                           p3_interpolant, 
+                           af.INTERP.CUBIC_SPLINE
+                          )
 
-        
-        self.f = af.approx1(af.reorder(self.f, 2, 0, 1),
-                            p3_interpolant, 
-                            af.INTERP.CUBIC_SPLINE
-                           )
+            f = af.reorder(f, 1, 2, 0)
 
-        self.f = af.reorder(self.f, 1, 2, 0)
+        f = af.approx2(f,
+                       p1_interpolant,
+                       p2_interpolant,
+                       af.INTERP.BICUBIC_SPLINE
+                      )
 
-    self.f = af.approx2(self.f,
-                        p1_interpolant,
-                        p2_interpolant,
-                        af.INTERP.BICUBIC_SPLINE
-                       )
+        if(self.physical_system.params.p_dim == 3):
+            
+            f = af.approx1(af.reorder(f, 2, 0, 1),
+                           p3_interpolant, 
+                           af.INTERP.CUBIC_SPLINE
+                          )
 
-    if(self.physical_system.params.p_dim == 3):
-        
-        self.f = af.approx1(af.reorder(self.f, 2, 0, 1),
-                            p3_interpolant, 
-                            af.INTERP.CUBIC_SPLINE
-                           )
+            f = af.reorder(f, 1, 2, 0)
 
-        self.f = af.reorder(self.f, 1, 2, 0)
-
-    self.f = self._convert_to_q_expanded(self.f)
+        self.f[i * dof:(i+1) * dof] = self._convert_to_q_expanded(f)
+    
     af.eval(self.f)
 
     if(self.performance_test_flag == True):

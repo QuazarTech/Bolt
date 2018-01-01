@@ -137,7 +137,13 @@ def apply_shearing_box_bcs_f(self, boundary):
 def apply_dirichlet_bcs_f(self, boundary):
     
     N_g_q = self.N_ghost_q
-    
+    N_s   = self.N_species
+
+    # Number of DOF in the array for a single species:
+    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
+          * (self.N_p2 + 2 * self.N_ghost_p) \
+          * (self.N_p3 + 2 * self.N_ghost_p)
+
     if(self._A_q1.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
                                 * (self.N_p2 + 2 * self.N_ghost_p) 
                                 * (self.N_p3 + 2 * self.N_ghost_p)
@@ -148,6 +154,8 @@ def apply_dirichlet_bcs_f(self, boundary):
                        self.f.shape[1],
                        self.f.shape[2]
                       )
+    else:
+        A_q1 = self._A_q1
 
     if(self._A_q2.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
                                 * (self.N_p2 + 2 * self.N_ghost_p) 
@@ -159,54 +167,83 @@ def apply_dirichlet_bcs_f(self, boundary):
                        self.f.shape[1],
                        self.f.shape[2]
                       )
+    else:
+        A_q2 = self._A_q2
 
     if(boundary == 'left'):
-        f_left = self.boundary_conditions.\
-                 f_left(self.f, self.q1_center, self.q2_center,
-                        self.p1_center, self.p2_center, self.p3_center, 
-                        self.physical_system.params
-                       )
-
-        # Only changing inflowing characteristics:
-        f_left = af.select(A_q1>0, f_left, self.f)
-
-        self.f[:, :N_g_q] = f_left[:, :N_g_q]
-
-    elif(boundary == 'right'):
-        f_right = self.boundary_conditions.\
-                  f_right(self.f, self.q1_center, self.q2_center,
-                          self.p1_center, self.p2_center, self.p3_center, 
-                          self.physical_system.params
+        f_left = list(map(lambda f:f[:, :N_g_q],
+                          self.boundary_conditions.\
+                          f_left(self.f, self.q1_center, self.q2_center,
+                                 self.p1_center, self.p2_center, self.p3_center, 
+                                 self.physical_system.params
+                                )
                          )
-
-        # Only changing inflowing characteristics:
-        f_right = af.select(A_q1<0, f_right, self.f)
-
-        self.f[:, -N_g_q:] = f_right[:, -N_g_q:]
-
-    elif(boundary == 'bottom'):
-        f_bottom = self.boundary_conditions.\
-                   f_bottom(self.f, self.q1_center, self.q2_center,
-                            self.p1_center, self.p2_center, self.p3_center, 
-                            self.physical_system.params
-                           )
-
-        # Only changing inflowing characteristics:
-        f_bottom = af.select(A_q2>0, f_bottom, self.f)
-
-        self.f[:, :, :N_g_q] = f_bottom[:, :, :N_g_q]
-
-    elif(boundary == 'top'):
-        f_top = self.boundary_conditions.\
-                f_top(self.f, self.q1_center, self.q2_center,
-                      self.p1_center, self.p2_center, self.p3_center, 
-                      self.physical_system.params
                      )
 
         # Only changing inflowing characteristics:
-        f_top = af.select(A_q2<0, f_top, self.f)
+        # We'll have to assign values species-wise
+        for i in range(N_s):
+            f_left_species = af.select(A_q1>0, f_left[i], 
+                                       self.f[i * dof:(i+1) * dof, :N_g_q]
+                                      )
+            self.f[i * dof:(i+1) * dof, :N_g_q] = f_left_species
 
-        self.f[:, :, -N_g_q:] = f_top[:, :, -N_g_q:]
+    elif(boundary == 'right'):
+        f_right = list(map(lambda f:f[:, -N_g_q:],
+                           self.boundary_conditions.\
+                           f_right(self.f, self.q1_center, self.q2_center,
+                                   self.p1_center, self.p2_center, self.p3_center, 
+                                   self.physical_system.params
+                                  )
+                          )
+                      )
+
+        # Only changing inflowing characteristics:
+        # We'll have to assign values species-wise
+        for i in range(N_s):
+            f_right_species = af.select(A_q1<0, f_right[i], 
+                                        self.f[i * dof:(i+1) * dof, -N_g_q:]
+                                       )
+
+            self.f[i * dof:(i+1) * dof, -N_g_q:] = f_right_species
+
+    elif(boundary == 'bottom'):
+        f_bottom = list(map(lambda f:f[:, :, :N_g_q],
+                            self.boundary_conditions.\
+                            f_bottom(self.f, self.q1_center, self.q2_center,
+                                     self.p1_center, self.p2_center, self.p3_center, 
+                                     self.physical_system.params
+                                    )
+                           )
+                       )
+
+        # Only changing inflowing characteristics:
+        # We'll have to assign values species-wise
+        for i in range(N_s):
+            f_bottom_species = af.select(A_q2>0, f_bottom[i], 
+                                         self.f[i * dof:(i+1) * dof, :, :N_g_q]
+                                        )
+
+            self.f[i * dof:(i+1) * dof, :, :N_g_q] = f_bottom_species
+
+    elif(boundary == 'top'):
+        f_top = list(map(lambda f:f[:, :, -N_g_q:],
+                         self.boundary_conditions.\
+                         f_top(self.f, self.q1_center, self.q2_center,
+                               self.p1_center, self.p2_center, self.p3_center, 
+                               self.physical_system.params
+                              )
+                        )
+                    )
+    
+        # Only changing inflowing characteristics:
+        # We'll have to assign values species-wise
+        for i in range(N_s):
+            f_top_species = af.select(A_q2<0, f_top[i], 
+                                      self.f[i * dof:(i+1) * dof, :, -N_g_q:]
+                                     )
+
+            self.f[i * dof:(i+1) * dof, :, -N_g_q:] = f_top_species
 
     else:
         raise Exception('Invalid choice for boundary')
@@ -216,6 +253,11 @@ def apply_dirichlet_bcs_f(self, boundary):
 def apply_mirror_bcs_f(self, boundary):
 
     N_g_q = self.N_ghost_q
+
+    # Number of DOF in the array for a single species:
+    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
+          * (self.N_p2 + 2 * self.N_ghost_p) \
+          * (self.N_p3 + 2 * self.N_ghost_p)
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
@@ -228,11 +270,16 @@ def apply_mirror_bcs_f(self, boundary):
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p1
-        self.f[:, :N_g_q] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
-                                                0
-                                               )
-                                       )[:, :N_g_q]
+        for i in range(self.N_species):
+            self.f[i * dof:(i+1) * dof, :N_g_q] = \
+                self._convert_to_q_expanded(af.flip(self.\
+                                                    _convert_to_p_expanded(self.f[i * dof:
+                                                                                  (i+1) * dof
+                                                                                 ]
+                                                                          ), 
+                                                    0
+                                                   )
+                                           )[:, :N_g_q]
 
     elif(boundary == 'right'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
@@ -245,12 +292,17 @@ def apply_mirror_bcs_f(self, boundary):
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p1
-        self.f[:, -N_g_q:] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
-                                                0
-                                               )
-                                       )[:, -N_g_q:]
-
+        for i in range(self.N_species):
+            self.f[i * dof:(i+1) * dof, -N_g_q:] = \
+                self._convert_to_q_expanded(af.flip(self.\
+                                                    _convert_to_p_expanded(self.f[i * dof:
+                                                                                  (i+1) * dof
+                                                                                 ]
+                                                                          ), 
+                                                    0
+                                                   )
+                                           )[:, -N_g_q:]
+        
     elif(boundary == 'bottom'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
@@ -262,11 +314,16 @@ def apply_mirror_bcs_f(self, boundary):
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p2
-        self.f[:, :, :N_g_q] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
-                                                1
-                                               )
-                                       )[:, :, :N_g_q]
+        for i in range(self.N_species):
+            self.f[i * dof:(i+1) * dof, :, :N_g_q] = \
+                self._convert_to_q_expanded(af.flip(self.\
+                                                    _convert_to_p_expanded(self.f[i * dof:
+                                                                                  (i+1) * dof
+                                                                                 ]
+                                                                          ), 
+                                                    1
+                                                   )
+                                           )[:, :, :N_g_q]
 
     elif(boundary == 'top'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
@@ -279,11 +336,16 @@ def apply_mirror_bcs_f(self, boundary):
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p2
-        self.f[:, :, -N_g_q:] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
-                                                1
-                                               )
-                                       )[:, :, -N_g_q:]
+        for i in range(self.N_species):
+            self.f[i * dof:(i+1) * dof, :, -N_g_q:] = \
+                self._convert_to_q_expanded(af.flip(self.\
+                                                    _convert_to_p_expanded(self.f[i * dof:
+                                                                                  (i+1) * dof
+                                                                                 ]
+                                                                          ), 
+                                                    1
+                                                   )
+                                           )[:, :, -N_g_q:]
 
     else:
         raise Exception('Invalid choice for boundary')

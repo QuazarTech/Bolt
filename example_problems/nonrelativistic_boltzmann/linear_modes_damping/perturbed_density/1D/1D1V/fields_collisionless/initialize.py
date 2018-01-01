@@ -8,7 +8,7 @@ import numpy as np
 
 def initialize_f(q1, q2, p1, p2, p3, params):
 
-    m = params.mass_particle
+    m = params.mass[0]
     k = params.boltzmann_constant
 
     rho_b = params.rho_background
@@ -31,4 +31,4 @@ def initialize_f(q1, q2, p1, p2, p3, params):
             * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b))
 
     af.eval(f)
-    return (f)
+    return ([f])

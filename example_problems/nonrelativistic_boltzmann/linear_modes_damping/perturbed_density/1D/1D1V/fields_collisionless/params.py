@@ -5,11 +5,11 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'fft'
 
 # Can be defined as 'electrostatic' and 'fdtd'
-fields_type   = 'electrostatic'
-fields_solver = 'fft'
+fields_type       = 'electrostatic'
+fields_initialize = 'fft'
+fields_solver     = 'fft'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -28,9 +28,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass_particle      = 1
+mass               = [1]
 boltzmann_constant = 1
-charge_electron    = -10
+charge             = [-10]
 
 # Initial Conditions used in initialize:
 rho_background         = 1

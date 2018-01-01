@@ -109,6 +109,9 @@ class nonlinear_solver(object):
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
+        # Getting the number of species:
+        N_s = self.N_species = len(self.physical_system.params.charge)
+
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
         N_g_q = self.N_ghost_q = physical_system.N_ghost_q
@@ -223,7 +226,8 @@ class nonlinear_solver(object):
         # how the grid is partitioned when run in parallel which is 
         # utilized by the various methods of the solver.
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                         dof           = (  (self.N_p1 + 2 * N_g_p) 
+                                         dof           = (  N_s
+                                                          * (self.N_p1 + 2 * N_g_p) 
                                                           * (self.N_p2 + 2 * N_g_p) 
                                                           * (self.N_p3 + 2 * N_g_p)
                                                          ),
@@ -240,7 +244,8 @@ class nonlinear_solver(object):
 
         # This DA is used by the FileIO routine dump_distribution_function():
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof           = (  self.N_p1 
+                                              dof           = (  N_s 
+                                                               * self.N_p1 
                                                                * self.N_p2 
                                                                * self.N_p3
                                                               ),
@@ -288,11 +293,11 @@ class nonlinear_solver(object):
                                           )
 
         # This DA is used by the FileIO routine dump_moments():
+        # Finding the number of definitions for the moments under moment_defs:
+        attributes = [a for a in dir(self.physical_system.moment_defs) if not a.startswith('_')]
+
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof        = len(self.
-                                                                     physical_system.
-                                                                     moment_exponents
-                                                                    ),
+                                                    dof        = len(attributes),
                                                     proc_sizes = (nproc_in_q1, 
                                                                   nproc_in_q2
                                                                  ),
@@ -341,46 +346,74 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
         (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
+        # Number of DOF in the array for a single species:
+        dof =   (self.N_p1 + 2 * N_g_p) \
+              * (self.N_p2 + 2 * N_g_p) \
+              * (self.N_p3 + 2 * N_g_p)
+
         # Applying dirichlet boundary conditions:        
         if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
-                self.f[:, :N_g_q] = self.boundary_conditions.\
-                                    f_left(self.f, self.q1_center, self.q2_center,
-                                           self.p1_center, self.p2_center, self.p3_center, 
-                                           self.physical_system.params
-                                          )[:, :N_g_q]
+                f_left = list(map(lambda f:f[:, :N_g_q],
+                                  self.boundary_conditions.\
+                                  f_left(self.f, self.q1_center, self.q2_center,
+                                         self.p1_center, self.p2_center, self.p3_center, 
+                                         self.physical_system.params
+                                        )
+                                 )
+                             )
+
+                for i in range(N_s):
+                    self.f[i * dof:(i+1) * dof, :N_g_q] = f_left[i]
     
         if(self.physical_system.boundary_conditions.in_q1_right == 'dirichlet'):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
-                self.f[:, -N_g_q:] = self.boundary_conditions.\
-                                     f_right(self.f, self.q1_center, self.q2_center,
-                                             self.p1_center, self.p2_center, self.p3_center, 
-                                             self.physical_system.params
-                                            )[:, -N_g_q:]
+                f_right = list(map(lambda f:f[:, -N_g_q:],
+                                   self.boundary_conditions.\
+                                   f_right(self.f, self.q1_center, self.q2_center,
+                                           self.p1_center, self.p2_center, self.p3_center, 
+                                           self.physical_system.params
+                                          )
+                                  )
+                              )
+
+                for i in range(N_s):
+                    self.f[i * dof:(i+1) * dof, -N_g_q:] = f_right[i]
 
         if(self.physical_system.boundary_conditions.in_q2_bottom == 'dirichlet'):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
-                self.f[:, :, :N_g_q] = self.boundary_conditions.\
-                                       f_bot(self.f, self.q1_center, self.q2_center,
+                f_bottom = list(map(lambda f:f[:, :, :N_g_q],
+                                    self.boundary_conditions.\
+                                    f_bottom(self.f, self.q1_center, self.q2_center,
                                              self.p1_center, self.p2_center, self.p3_center, 
                                              self.physical_system.params
-                                            )[:, :, :N_g_q]
+                                            )
+                                   )
+                               )
+
+                for i in range(N_s):
+                    self.f[i * dof:(i+1) * dof, :, :N_g_q] = f_bottom[i]
 
         if(self.physical_system.boundary_conditions.in_q2_top == 'dirichlet'):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
-                self.f[:, :, -N_g_q:] = self.boundary_conditions.\
-                                        f_top(self.f, self.q1_center, self.q2_center,
-                                              self.p1_center, self.p2_center, self.p3_center, 
-                                              self.physical_system.params
-                                             )[:, :, -N_g_q:]
+                f_top = list(map(lambda f:f[:, :, -N_g_q:],
+                                 self.boundary_conditions.\
+                                 f_top(self.f, self.q1_center, self.q2_center,
+                                       self.p1_center, self.p2_center, self.p3_center, 
+                                       self.physical_system.params
+                                      )
+                                )
+                            )
 
-        # Assigning the value to the PETSc Vecs(for dump at t = 0):
-        (af.flat(self.f)).to_ndarray(self._local_f_array)
-        (af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_f_array)
+                for i in range(N_s):
+                    self.f[i * dof:(i+1) * dof, :, -N_g_q:] = f_top[i]
+
+        # Assigning the value to the PETSc Vec(for dump at t = 0):
+        (af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_dump_f_array)
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
@@ -432,7 +465,7 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
      
         array = af.moddims(array,
-                             (self.N_p1 + 2 * self.N_ghost_p) 
+                           * (self.N_p1 + 2 * self.N_ghost_p) 
                            * (self.N_p2 + 2 * self.N_ghost_p)
                            * (self.N_p3 + 2 * self.N_ghost_p),
                            (N_q1_local + 2 * self.N_ghost_q),
@@ -636,14 +669,33 @@ class nonlinear_solver(object):
         # when operating on arrays of different sizes
         # af.broadcast(function, *args) performs batched operations on
         # function(*args)
-        self.f = af.broadcast(self.physical_system.initial_conditions.\
-                              initialize_f, self.q1_center, self.q2_center,
-                              self.p1_center, self.p2_center, self.p3_center, params
-                             )
 
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+
+        # Number of DOF in the array for a single species:
+        dof =   (self.N_p1 + 2 * self.N_ghost_p) \
+              * (self.N_p2 + 2 * self.N_ghost_p) \
+              * (self.N_p3 + 2 * self.N_ghost_p)
+
+        self.f = af.constant(0, self.N_species * dof,
+                               N_q1_local 
+                             + 2 * self.N_ghost_q,
+                               N_q2_local 
+                             + 2 * self.N_ghost_q,
+                             dtype=af.Dtype.f64
+                            )
+
+        f_initial = list(af.broadcast(self.physical_system.initial_conditions.\
+                                      initialize_f, self.q1_center, self.q2_center,
+                                      self.p1_center, self.p2_center, self.p3_center, params
+                                     )
+                        )
+
+        for i in range(self.N_species):
+            self.f[i * dof:(i+1) * dof] = f_initial[i]
+
 
         # Initializing the EM fields quantities:
         # These quantities are defined for the CK grid:
@@ -687,8 +739,6 @@ class nonlinear_solver(object):
                                               dtype=af.Dtype.f64
                                              )
 
-
-
         if(self.physical_system.params.charge_electron != 0):
     
             if(self.physical_system.params.fields_type == 'user-defined'):
@@ -707,6 +757,7 @@ class nonlinear_solver(object):
             elif (self.physical_system.params.fields_initialize == 'user-defined'):
     
                 if(self.physical_system.params.fields_type != 'user-defined'):            
+                    
                     E1, E2, E3 = \
                         self.physical_system.initial_conditions.initialize_E(self.q1_center,
                                                                              self.q2_center,

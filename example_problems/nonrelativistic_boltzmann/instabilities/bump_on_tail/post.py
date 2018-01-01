@@ -60,8 +60,8 @@ h5f.close()
 
 h5f = h5py.File('tau_1/data.h5', 'r')
 time_array_5 = h5f['time'][:]
-E_ls_tau_0   = h5f['electrical_energy_ls'][:]
-E_nls_tau_0  = h5f['electrical_energy_nls'][:]
+E_ls_tau_1   = h5f['electrical_energy_ls'][:]
+E_nls_tau_1  = h5f['electrical_energy_nls'][:]
 h5f.close()
 
 h5f = h5py.File('tau_10/data.h5', 'r')
@@ -78,8 +78,8 @@ h5f.close()
 
 pl.plot(time_array_1, E_ls_tau_inf, '--', color = 'blue', label = r'$\tau=\inf$')
 pl.plot(time_array_1, E_nls_tau_inf, color = 'blue', label=r'$\tau=\inf$')
-pl.plot(time_array_7, E_ls_tau_100, '--', color = 'oranged', label = r'$\tau=0$')
-pl.plot(time_array_7, E_nls_tau_100, color = 'oranged', label=r'$\tau=0$')
+pl.plot(time_array_7, E_ls_tau_100, '--', color = 'orangered', label = r'$\tau=0$')
+pl.plot(time_array_7, E_nls_tau_100, color = 'orangered', label=r'$\tau=0$')
 pl.plot(time_array_6, E_ls_tau_10, '--', color = 'maroon', label = r'$\tau=0$')
 pl.plot(time_array_6, E_nls_tau_10, color = 'maroon', label=r'$\tau=0$')
 pl.plot(time_array_5, E_ls_tau_1, '--', color = 'olive', label = r'$\tau=0$')
@@ -98,8 +98,8 @@ pl.clf()
 
 pl.semilogy(time_array_1, E_ls_tau_inf, '--', color = 'blue', label = r'$\tau=\inf$')
 pl.semilogy(time_array_1, E_nls_tau_inf, color = 'blue', label=r'$\tau=\inf$')
-pl.semilogy(time_array_7, E_ls_tau_100, '--', color = 'oranged', label = r'$\tau=0$')
-pl.semilogy(time_array_7, E_nls_tau_100, color = 'oranged', label=r'$\tau=0$')
+pl.semilogy(time_array_7, E_ls_tau_100, '--', color = 'orangered', label = r'$\tau=0$')
+pl.semilogy(time_array_7, E_nls_tau_100, color = 'orangered', label=r'$\tau=0$')
 pl.semilogy(time_array_6, E_ls_tau_10, '--', color = 'maroon', label = r'$\tau=0$')
 pl.semilogy(time_array_6, E_nls_tau_10, color = 'maroon', label=r'$\tau=0$')
 pl.semilogy(time_array_5, E_ls_tau_1, '--', color = 'olive', label = r'$\tau=0$')
