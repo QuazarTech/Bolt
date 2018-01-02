@@ -56,8 +56,7 @@ def dY_dt_multimode_evolution(Y, self):
     if(   self.physical_system.params.fields_solver == 'electrostatic'
        or self.physical_system.params.fields_solver == 'fft'
       ):
-        pass
-        # compute_electrostatic_fields(self, f_hat=f_hat)
+        pass # compute_electrostatic_fields(self, f_hat=f_hat)
 
     # When method is FDTD, this function returns the timederivatives
     # of the field quantities which is stepped using a numerical integrator:
@@ -225,7 +224,7 @@ def dY_dt_singlemode_evolution(Y, self):
                       - fields_term + C_f_hat
   
     dY_dt = np.array([ddelta_f_hat_dt,
-                      ddelta_E1_hat_dt, ddelta_E1_hat_dt, ddelta_E3_hat_dt,
+                      ddelta_E1_hat_dt, ddelta_E2_hat_dt, ddelta_E3_hat_dt,
                       ddelta_B1_hat_dt, ddelta_B3_hat_dt, ddelta_B3_hat_dt
                      ]
                     )
