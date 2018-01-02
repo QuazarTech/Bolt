@@ -28,9 +28,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = [1]
+mass               = [1, 1]
 boltzmann_constant = 1
-charge             = [-10]
+charge             = [-10, 5]
 
 # Initial Conditions used in initialize:
 rho_background         = 1

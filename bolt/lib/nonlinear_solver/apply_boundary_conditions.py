@@ -33,12 +33,12 @@ def apply_shearing_box_bcs_f(self, boundary):
         # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
 
         self.f[:, :N_g_q] = af.reorder(af.approx2(af.reorder(self.f[:, :N_g_q], 1, 2, 0),
-                                                af.reorder(self.q1_center[:, :N_g_q], 1, 2, 0),
-                                                af.reorder(sheared_coordinates, 1, 2, 0),
-                                                af.INTERP.BICUBIC_SPLINE,
-                                                xp = af.reorder(self.q1_center[:, :N_g_q], 1, 2, 0),
-                                                yp = af.reorder(self.q2_center[:, :N_g_q], 1, 2, 0)
-                                               ),
+                                                  af.reorder(self.q1_center[:, :N_g_q], 1, 2, 0),
+                                                  af.reorder(sheared_coordinates, 1, 2, 0),
+                                                  af.INTERP.BICUBIC_SPLINE,
+                                                  xp = af.reorder(self.q1_center[:, :N_g_q], 1, 2, 0),
+                                                  yp = af.reorder(self.q2_center[:, :N_g_q], 1, 2, 0)
+                                                 ),
                                        2, 0, 1
                                       )
         
@@ -62,14 +62,14 @@ def apply_shearing_box_bcs_f(self, boundary):
         # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
 
         self.f[:, -N_g_q:] = af.reorder(af.approx2(af.reorder(self.f[:, -N_g_q:], 1, 2, 0),
-                                                 af.reorder(self.q1_center[:, -N_g_q:], 1, 2, 0),
-                                                 af.reorder(sheared_coordinates, 1, 2, 0),
-                                                 af.INTERP.BICUBIC_SPLINE,
-                                                 xp = af.reorder(self.q1_center[:, -N_g_q:], 1, 2, 0),
-                                                 yp = af.reorder(self.q2_center[:, -N_g_q:], 1, 2, 0)
-                                                ),
-                                      2, 0, 1
-                                     )
+                                                   af.reorder(self.q1_center[:, -N_g_q:], 1, 2, 0),
+                                                   af.reorder(sheared_coordinates, 1, 2, 0),
+                                                   af.INTERP.BICUBIC_SPLINE,
+                                                   xp = af.reorder(self.q1_center[:, -N_g_q:], 1, 2, 0),
+                                                   yp = af.reorder(self.q2_center[:, -N_g_q:], 1, 2, 0)
+                                                  ),
+                                        2, 0, 1
+                                       )
 
     elif(boundary == 'bottom'):
 
@@ -91,14 +91,14 @@ def apply_shearing_box_bcs_f(self, boundary):
         # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
         # and reordering back from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
         self.f[:, :, :N_g_q] = af.reorder(af.approx2(af.reorder(self.f[:, :, :N_g_q], 1, 2, 0),
-                                                   af.reorder(sheared_coordinates, 1, 2, 0),
-                                                   af.reorder(self.q2_center[:, :, :N_g_q], 1, 2, 0),
-                                                   af.INTERP.BICUBIC_SPLINE,
-                                                   xp = af.reorder(self.q1_center[:, :, :N_g_q], 1, 2, 0),
-                                                   yp = af.reorder(self.q2_center[:, :, :N_g_q], 1, 2, 0)
-                                                  ),
-                                        2, 0, 1
-                                       )
+                                                     af.reorder(sheared_coordinates, 1, 2, 0),
+                                                     af.reorder(self.q2_center[:, :, :N_g_q], 1, 2, 0),
+                                                     af.INTERP.BICUBIC_SPLINE,
+                                                     xp = af.reorder(self.q1_center[:, :, :N_g_q], 1, 2, 0),
+                                                     yp = af.reorder(self.q2_center[:, :, :N_g_q], 1, 2, 0)
+                                                    ),
+                                          2, 0, 1
+                                         )
 
     elif(boundary == 'top'):
 
@@ -126,8 +126,8 @@ def apply_shearing_box_bcs_f(self, boundary):
                                                     xp = af.reorder(self.q1_center[:, :, -N_g_q:], 1, 2, 0),
                                                     yp = af.reorder(self.q2_center[:, :, -N_g_q:], 1, 2, 0)
                                                    ),
-                                         2, 0, 1
-                                        )
+                                           2, 0, 1
+                                          )
 
     else:
         raise Exception('Invalid choice for boundary')
@@ -144,10 +144,7 @@ def apply_dirichlet_bcs_f(self, boundary):
           * (self.N_p2 + 2 * self.N_ghost_p) \
           * (self.N_p3 + 2 * self.N_ghost_p)
 
-    if(self._A_q1.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
-                                * (self.N_p2 + 2 * self.N_ghost_p) 
-                                * (self.N_p3 + 2 * self.N_ghost_p)
-      ):
+    if(self._A_q1.elements() == self.N_species * self.dof):
         # If A_q1 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
         A_q1 = af.tile(self._A_q1, 1,
@@ -157,16 +154,14 @@ def apply_dirichlet_bcs_f(self, boundary):
     else:
         A_q1 = self._A_q1
 
-    if(self._A_q2.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
-                                * (self.N_p2 + 2 * self.N_ghost_p) 
-                                * (self.N_p3 + 2 * self.N_ghost_p)
-      ):
+    if(self._A_q2.elements() == self.N_species * self.dof):
         # If A_q2 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
         A_q2 = af.tile(self._A_q2, 1, 
                        self.f.shape[1],
                        self.f.shape[2]
                       )
+    
     else:
         A_q2 = self._A_q2
 

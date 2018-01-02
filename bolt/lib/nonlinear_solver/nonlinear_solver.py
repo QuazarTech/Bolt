@@ -347,9 +347,9 @@ class nonlinear_solver(object):
         (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
         # Number of DOF in the array for a single species:
-        dof =   (self.N_p1 + 2 * N_g_p) \
-              * (self.N_p2 + 2 * N_g_p) \
-              * (self.N_p3 + 2 * N_g_p)
+        dof = self.dof =   (self.N_p1 + 2 * N_g_p) \
+                         * (self.N_p2 + 2 * N_g_p) \
+                         * (self.N_p3 + 2 * N_g_p)
 
         # Applying dirichlet boundary conditions:        
         if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
@@ -416,24 +416,30 @@ class nonlinear_solver(object):
         (af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_dump_f_array)
 
         # Assigning the advection terms along q1 and q2
-        self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[0]
-        self._A_q2 = physical_system.A_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[1]
+        self._A_q1 = af.tile(physical_system.A_q(self.q1_center, self.q2_center,
+                                                 self.p1_center, self.p2_center, self.p3_center,
+                                                 physical_system.params
+                                                )[0], N_s
+                            )
+
+        self._A_q2 = af.tile(physical_system.A_q(self.q1_center, self.q2_center,
+                                                 self.p1_center, self.p2_center, self.p3_center,
+                                                 physical_system.params
+                                                )[1], N_s
+                            )
 
         # Assigning the conservative advection terms along q1 and q2
-        self._C_q1 = physical_system.C_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[0]
-        self._C_q2 = physical_system.C_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[1]
+        self._C_q1 = af.tile(physical_system.C_q(self.q1_center, self.q2_center,
+                                                 self.p1_center, self.p2_center, self.p3_center,
+                                                 physical_system.params
+                                                )[0], N_s
+                            )
+
+        self._C_q2 = af.tile(physical_system.C_q(self.q1_center, self.q2_center,
+                                                 self.p1_center, self.p2_center, self.p3_center,
+                                                 physical_system.params
+                                                )[1], N_s
+                            )
 
         # Assigning the function objects to methods of the solver:
         self._A_p = physical_system.A_p
