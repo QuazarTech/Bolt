@@ -35,12 +35,8 @@ def compute_moments(self, moment_name, N_s = 0, f=None):
     accordingly
     """
     N_g_p = self.N_ghost_p
-
-    # Number of DOF in the array for a single species:
-    dof =   (self.N_p1 + 2 * N_g_p) \
-          * (self.N_p2 + 2 * N_g_p) \
-          * (self.N_p3 + 2 * N_g_p)
-
+    dof   = self.dof
+    
     if(N_g_p != 0):
     
         p1 = af.flat(af.moddims(self.p1_center,

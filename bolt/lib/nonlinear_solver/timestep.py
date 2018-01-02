@@ -62,11 +62,7 @@ def op_fvm(self, dt):
         if(self.performance_test_flag == True):
             tic = af.time()
     
-        # Number of DOF in the array for a single species:
-        dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-              * (self.N_p2 + 2 * self.N_ghost_p) \
-              * (self.N_p3 + 2 * self.N_ghost_p)
-
+        dof = self.dof
         for i in range(self.N_species):
             self.f[i * dof:(i+1) * dof] += self._source(self.f[i * dof:(i+1) * dof], 
                                                         self.q1_center, self.q2_center,
@@ -100,11 +96,7 @@ def op_solve_src(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    # Number of DOF in the array for a single species:
-    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-          * (self.N_p2 + 2 * self.N_ghost_p) \
-          * (self.N_p3 + 2 * self.N_ghost_p)
-
+    dof = self.dof
     # Solving for tau = 0 systems
     if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
                                                    self.p1_center, self.p2_center, self.p3_center

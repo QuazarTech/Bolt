@@ -53,11 +53,7 @@ def f_interp_p_3d(self, dt):
     # function(*args)
 
     N_s = self.N_species
-
-    # Number of DOF in the array for a single species:
-    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-          * (self.N_p2 + 2 * self.N_ghost_p) \
-          * (self.N_p3 + 2 * self.N_ghost_p)
+    dof = self.dof
 
     if(self.performance_test_flag == True):
         tic = af.time()

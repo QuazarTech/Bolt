@@ -140,30 +140,28 @@ def apply_dirichlet_bcs_f(self, boundary):
     N_s   = self.N_species
 
     # Number of DOF in the array for a single species:
-    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-          * (self.N_p2 + 2 * self.N_ghost_p) \
-          * (self.N_p3 + 2 * self.N_ghost_p)
+    dof = self.dof
 
-    if(self._A_q1.elements() == self.N_species * self.dof):
+    if(self._A_q1[:dof].elements() == self.N_species * self.dof):
         # If A_q1 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q1 = af.tile(self._A_q1, 1,
+        A_q1 = af.tile(self._A_q1[:dof], 1,
                        self.f.shape[1],
                        self.f.shape[2]
                       )
     else:
-        A_q1 = self._A_q1
+        A_q1 = self._A_q1[:dof]
 
-    if(self._A_q2.elements() == self.N_species * self.dof):
+    if(self._A_q2[:dof].elements() == self.N_species * self.dof):
         # If A_q2 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q2 = af.tile(self._A_q2, 1, 
+        A_q2 = af.tile(self._A_q2[:dof], 1, 
                        self.f.shape[1],
                        self.f.shape[2]
                       )
     
     else:
-        A_q2 = self._A_q2
+        A_q2 = self._A_q2[:dof]
 
     if(boundary == 'left'):
         f_left = list(map(lambda f:f[:, :N_g_q],
@@ -248,11 +246,7 @@ def apply_dirichlet_bcs_f(self, boundary):
 def apply_mirror_bcs_f(self, boundary):
 
     N_g_q = self.N_ghost_q
-
-    # Number of DOF in the array for a single species:
-    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-          * (self.N_p2 + 2 * self.N_ghost_p) \
-          * (self.N_p3 + 2 * self.N_ghost_p)
+    dof   = self.dof 
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....

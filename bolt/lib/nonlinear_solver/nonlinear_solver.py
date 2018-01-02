@@ -334,6 +334,11 @@ class nonlinear_solver(object):
         PETSc.Object.setName(self._glob_moments, 'moments')
         PETSc.Object.setName(self._glob_fields, 'EM_fields')
 
+        # Number of DOF in the array for a single species:
+        dof = self.dof =   (self.N_p1 + 2 * N_g_p) \
+                         * (self.N_p2 + 2 * N_g_p) \
+                         * (self.N_p3 + 2 * N_g_p)
+
         # Obtaining the array values of the cannonical variables:
         self.q1_center, self.q2_center                 = self._calculate_q_center()
         self.p1_center, self.p2_center, self.p3_center = self._calculate_p_center()
@@ -345,11 +350,6 @@ class nonlinear_solver(object):
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
         (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
-
-        # Number of DOF in the array for a single species:
-        dof = self.dof =   (self.N_p1 + 2 * N_g_p) \
-                         * (self.N_p2 + 2 * N_g_p) \
-                         * (self.N_p3 + 2 * N_g_p)
 
         # Applying dirichlet boundary conditions:        
         if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
@@ -471,9 +471,7 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
      
         array = af.moddims(array,
-                             (self.N_p1 + 2 * self.N_ghost_p) 
-                           * (self.N_p2 + 2 * self.N_ghost_p)
-                           * (self.N_p3 + 2 * self.N_ghost_p),
+                           self.dof,
                            (N_q1_local + 2 * self.N_ghost_q),
                            (N_q2_local + 2 * self.N_ghost_q)
                           )
@@ -680,11 +678,7 @@ class nonlinear_solver(object):
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
-        # Number of DOF in the array for a single species:
-        dof =   (self.N_p1 + 2 * self.N_ghost_p) \
-              * (self.N_p2 + 2 * self.N_ghost_p) \
-              * (self.N_p3 + 2 * self.N_ghost_p)
-
+        dof    = self.dof
         self.f = af.constant(0, self.N_species * dof,
                                N_q1_local 
                              + 2 * self.N_ghost_q,
