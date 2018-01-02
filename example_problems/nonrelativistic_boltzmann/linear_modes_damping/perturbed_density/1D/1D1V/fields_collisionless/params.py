@@ -9,7 +9,7 @@ import arrayfire as af
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-fields_solver     = 'fft'
+fields_solver     = 'fdtd'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -51,4 +51,4 @@ t_final = 0.5
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * p1**0 * q1**0)
+    return (0.01 * p1**0 * q1**0)

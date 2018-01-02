@@ -465,7 +465,7 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
      
         array = af.moddims(array,
-                           * (self.N_p1 + 2 * self.N_ghost_p) 
+                             (self.N_p1 + 2 * self.N_ghost_p) 
                            * (self.N_p2 + 2 * self.N_ghost_p)
                            * (self.N_p3 + 2 * self.N_ghost_p),
                            (N_q1_local + 2 * self.N_ghost_q),
@@ -739,7 +739,7 @@ class nonlinear_solver(object):
                                               dtype=af.Dtype.f64
                                              )
 
-        if(self.physical_system.params.charge_electron != 0):
+        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
     
             if(self.physical_system.params.fields_type == 'user-defined'):
                 try:

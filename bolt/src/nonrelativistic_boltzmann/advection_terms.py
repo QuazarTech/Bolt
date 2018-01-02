@@ -31,14 +31,14 @@ def C_q(q1, q2, v1, v2, v3, params):
 
 def A_p(q1, q2, v1, v2, v3,
         E1, E2, E3, B1, B2, B3,
-        params
+        params, N_s
        ):
     """Return the terms A_p1, A_p2 and A_p3."""
-    F1 =   (params.charge_electron / params.mass_particle) \
+    F1 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E1 + v2 * B3 - v3 * B2)
-    F2 =   (params.charge_electron / params.mass_particle) \
+    F2 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E2 + v3 * B1 - v1 * B3)
-    F3 =   (params.charge_electron / params.mass_particle) \
+    F3 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E3 + v1 * B2 - v2 * B1)
 
     return (F1, F2, F3)
@@ -46,14 +46,14 @@ def A_p(q1, q2, v1, v2, v3,
 # Conservative Advection terms in p-space:
 def C_p(q1, q2, v1, v2, v3,
         E1, E2, E3, B1, B2, B3,
-        params
+        params, N_s
        ):
     """Return the terms C_v1, C_v2 and C_v3."""
-    F1 =   (params.charge_electron / params.mass_particle) \
+    F1 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E1 + v2 * B3 - v3 * B2)
-    F2 =   (params.charge_electron / params.mass_particle) \
+    F2 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E2 + v3 * B1 - v1 * B3)
-    F3 =   (params.charge_electron / params.mass_particle) \
+    F3 =   (params.charge[N_s] / params.mass[N_s]) \
          * (E3 + v1 * B2 - v2 * B1)
 
     return (F1, F2, F3)

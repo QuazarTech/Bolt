@@ -72,7 +72,7 @@ N_g_q = system.N_ghost_q
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(linearized_system)
+# ls  = linear_solver(linearized_system)
 
 # Timestep as set by the CFL condition:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
@@ -81,35 +81,34 @@ dt = params.N_cfl * min(nls.dq1, nls.dq2) \
 time_array  = np.arange(0, params.t_final + dt, dt)
 
 rho_data_nls = np.zeros(time_array.size)
-rho_data_ls  = np.zeros(time_array.size)
+# rho_data_ls  = np.zeros(time_array.size)
 
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
 rho_data_nls[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+# n_ls = ls.compute_moments('density')
 
-n_ls = ls.compute_moments('density')
-
-if(ls.single_mode_evolution == True):
-    rho_data_ls[0] = params.rho_background + abs(n_ls)
-else:
-    rho_data_ls[0] = af.max(n_ls) 
+# if(ls.single_mode_evolution == True):
+#     rho_data_ls[0] = params.rho_background + abs(n_ls)
+# else:
+#     rho_data_ls[0] = af.max(n_ls) 
 
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)
+    # ls.RK4_timestep(dt)
 
     n_nls                         = nls.compute_moments('density')
     rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
-    n_ls = ls.compute_moments('density')
+    # n_ls = ls.compute_moments('density')
 
-    if(ls.single_mode_evolution == True):
-        rho_data_ls[time_index + 1] =  params.rho_background + abs(n_ls)
-    else:
-        rho_data_ls[time_index + 1] = af.max(n_ls) 
+    # if(ls.single_mode_evolution == True):
+    #     rho_data_ls[time_index + 1] =  params.rho_background + abs(n_ls)
+    # else:
+    #     rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')

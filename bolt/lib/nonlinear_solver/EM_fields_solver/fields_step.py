@@ -19,12 +19,21 @@ def fields_step(self, dt):
 
     elif (self.physical_system.params.fields_solver == 'fdtd'):
         
-        self.J1 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
-        self.J2 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p2_bulk')  # (i + 1/2, j + 1/2)
-        self.J3 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p3_bulk')  # (i + 1/2, j + 1/2)
+        for i in range(self.N_species):
+            if(i == 0):    
+                self.J1 =   self.physical_system.params.charge[i] \
+                          * self.compute_moments('mom_v1_bulk', i)  # (i + 1/2, j + 1/2)
+                self.J2 =   self.physical_system.params.charge[i] \
+                          * self.compute_moments('mom_v2_bulk', i)  # (i + 1/2, j + 1/2)
+                self.J3 =   self.physical_system.params.charge[i] \
+                          * self.compute_moments('mom_v3_bulk', i)  # (i + 1/2, j + 1/2)
+            else:
+                self.J1 +=   self.physical_system.params.charge[i] \
+                           * self.compute_moments('mom_v1_bulk', i)  # (i + 1/2, j + 1/2)
+                self.J2 +=   self.physical_system.params.charge[i] \
+                           * self.compute_moments('mom_v2_bulk', i)  # (i + 1/2, j + 1/2)
+                self.J3 +=   self.physical_system.params.charge[i] \
+                           * self.compute_moments('mom_v3_bulk', i)  # (i + 1/2, j + 1/2)
 
         # Obtaining the values for current density on the Yee-Grid:
         self.J1 = 0.5 * (self.J1 + af.shift(self.J1, 0, 0, 1))  # (i + 1/2, j)

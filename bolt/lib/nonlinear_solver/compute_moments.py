@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-def compute_moments(self, moment_name, N_s = 1, f=None):
+def compute_moments(self, moment_name, N_s = 0, f=None):
     """
     Used in computing the moments of the distribution function.
     The moment definitions which are passed to physical system
@@ -98,7 +98,7 @@ def compute_moments(self, moment_name, N_s = 1, f=None):
                           )
 
         else:
-            f = self.f[(N_s-1) * dof:N_s * dof,
+            f = self.f[N_s * dof:(N_s + 1) * dof,
                        :, :
                       ]
     
@@ -112,7 +112,7 @@ def compute_moments(self, moment_name, N_s = 1, f=None):
 
         if(N_g_p != 0):
             f = af.moddims(self.\
-                           _convert_to_p_expanded(f[(N_s-1) * dof:N_s * dof,
+                           _convert_to_p_expanded(f[N_s * dof:(N_s + 1) * dof,
                                                     :, :
                                                    ]
                                                  )[N_g_p:-N_g_p, 

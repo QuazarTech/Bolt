@@ -26,8 +26,13 @@ from .reconstruct import reconstruct
                           # )
 
 def df_dt_fvm(f, self, at_n = True):
-    
+
     multiply = lambda a, b: a * b
+
+    # Number of DOF in the array for a single species:
+    dof =   (self.N_p1 + 2 * self.N_ghost_p) \
+          * (self.N_p2 + 2 * self.N_ghost_p) \
+          * (self.N_p3 + 2 * self.N_ghost_p)
 
     # Giving shorter name references:
     reconstruction_in_q = self.physical_system.params.reconstruction_method_in_q
@@ -75,14 +80,19 @@ def df_dt_fvm(f, self, at_n = True):
         
         df_dt += - (right_flux - left_flux)/self.dq1 \
                  - (top_flux   - bot_flux )/self.dq2 \
-                 + self._source(f, self.q1_center, self.q2_center,
-                                self.p1_center, self.p2_center, self.p3_center, 
-                                self.compute_moments, 
-                                self.physical_system.params, False
-                               ) 
+
+        for i in range(self.N_species):
+            df_dt[i * dof:(i+1) * dof] += self._source(f[i * dof:(i+1) * dof], 
+                                                       self.q1_center, self.q2_center,
+                                                       self.p1_center, 
+                                                       self.p2_center, 
+                                                       self.p3_center, 
+                                                       self.compute_moments, 
+                                                       self.physical_system.params, i, False
+                                                      ) 
 
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
-       and self.physical_system.params.charge_electron != 0
+       and any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
       ):
 
         if(self.physical_system.params.fields_type == 'user-defined'
@@ -123,7 +133,6 @@ def df_dt_fvm(f, self, at_n = True):
 
         else:
             if(self.physical_system.params.fields_solver == 'fft'):
-
                 fft_poisson(self, f)
                 self._communicate_fields()
                 self._apply_bcs_fields()
@@ -172,96 +181,108 @@ def df_dt_fvm(f, self, at_n = True):
                 B2 = self.cell_centered_EM_fields[4]
                 B3 = self.cell_centered_EM_fields[5]
 
-        (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.q1_center, self.q2_center,
-                                          self.p1_center, self.p2_center, self.p3_center,
-                                          E1, E2, E3, B1, B2, B3,
-                                          self.physical_system.params
+        for i in range(self.N_species):
+
+            (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.q1_center, self.q2_center,
+                                              self.p1_center, self.p2_center, self.p3_center,
+                                              E1, E2, E3, B1, B2, B3,
+                                              self.physical_system.params, i
+                                             )
+
+            flux_p1 = self._convert_to_p_expanded(af.broadcast(multiply, C_p1, 
+                                                               f[i * dof:(i+1) * dof]
+                                                              )
+                                                 )
+
+            flux_p2 = self._convert_to_p_expanded(af.broadcast(multiply, C_p2,
+                                                               f[i * dof:(i+1) * dof]
+                                                              )
+                                                 )
+
+            flux_p3 = self._convert_to_p_expanded(af.broadcast(multiply, C_p3, 
+                                                               f[i * dof:(i+1) * dof]
+                                                              )
+                                                 )
+
+            N_g_p = self.N_ghost_p
+
+            # Setting flux values in the ghost zones to zero:
+            if(N_g_p != 0):
+                
+                flux_p1[:N_g_p]        = 0
+                flux_p1[:, :N_g_p]     = 0
+                flux_p1[:, :, :N_g_p]  = 0
+                flux_p1[-N_g_p:]       = 0 * flux_p1[-N_g_p:]
+                flux_p1[:, -N_g_p:]    = 0 * flux_p1[:, -N_g_p:]
+                flux_p1[:, :, -N_g_p:] = 0 * flux_p1[:, :, -N_g_p:]
+
+                flux_p2[:N_g_p]        = 0
+                flux_p2[:, :N_g_p]     = 0
+                flux_p2[:, :, :N_g_p]  = 0
+                flux_p2[-N_g_p:]       = 0 * flux_p2[-N_g_p:]
+                flux_p2[:, -N_g_p:]    = 0 * flux_p2[:, -N_g_p:]
+                flux_p2[:, :, -N_g_p:] = 0 * flux_p2[:, :, -N_g_p:]
+
+                flux_p3[:N_g_p]        = 0
+                flux_p3[:, :N_g_p]     = 0
+                flux_p3[:, :, :N_g_p]  = 0
+                flux_p3[-N_g_p:]       = 0 * flux_p3[-N_g_p:]
+                flux_p3[:, -N_g_p:]    = 0 * flux_p3[:, -N_g_p:]
+                flux_p3[:, :, -N_g_p:] = 0 * flux_p3[:, :, -N_g_p:]
+
+            # Variation of p1 is along axis 0:
+            left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
+                reconstruct(self, flux_p1, 0, reconstruction_in_p)
+            # Variation of p2 is along axis 1:
+            bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
+                reconstruct(self, flux_p2, 1, reconstruction_in_p)
+            # Variation of p3 is along axis 2:
+            back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
+                reconstruct(self, flux_p3, 2, reconstruction_in_p)
+
+            left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
+            bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
+            back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
+
+            if(self.physical_system.params.riemann_solver_in_p == 'averaged-flux'):
+                
+                left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
+                bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)
+                back_flux_p3  = 0.5 * (back_minus_eps_flux_p3 + back_plus_eps_flux_p3)
+
+            elif(self.physical_system.params.riemann_solver_in_p == 'upwind-flux'):
+
+                left_flux_p1 = upwind_flux(left_minus_eps_flux_p1, 
+                                           left_plus_eps_flux_p1,
+                                           self._convert_to_p_expanded(C_p1) 
+                                          )
+
+                bot_flux_p2 = upwind_flux(bot_minus_eps_flux_p2, 
+                                          bot_plus_eps_flux_p2,
+                                          self._convert_to_p_expanded(C_p2) 
                                          )
 
-        flux_p1 = self._convert_to_p_expanded(af.broadcast(multiply, C_p1, f))
-        flux_p2 = self._convert_to_p_expanded(af.broadcast(multiply, C_p2, f))
-        flux_p3 = self._convert_to_p_expanded(af.broadcast(multiply, C_p3, f))
+                back_flux_p3 = upwind_flux(back_minus_eps_flux_p3, 
+                                           back_plus_eps_flux_p3,
+                                           self._convert_to_p_expanded(C_p3) 
+                                          )
 
-        N_g_p = self.N_ghost_p
+            right_flux_p1 = af.shift(left_flux_p1, -1)
+            top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
+            front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
 
-        # Setting flux values in the ghost zones to zero:
-        if(N_g_p != 0):
-            
-            flux_p1[:N_g_p]        = 0
-            flux_p1[:, :N_g_p]     = 0
-            flux_p1[:, :, :N_g_p]  = 0
-            flux_p1[-N_g_p:]       = 0 * flux_p1[-N_g_p:]
-            flux_p1[:, -N_g_p:]    = 0 * flux_p1[:, -N_g_p:]
-            flux_p1[:, :, -N_g_p:] = 0 * flux_p1[:, :, -N_g_p:]
+            left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
+            right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
 
-            flux_p2[:N_g_p]        = 0
-            flux_p2[:, :N_g_p]     = 0
-            flux_p2[:, :, :N_g_p]  = 0
-            flux_p2[-N_g_p:]       = 0 * flux_p2[-N_g_p:]
-            flux_p2[:, -N_g_p:]    = 0 * flux_p2[:, -N_g_p:]
-            flux_p2[:, :, -N_g_p:] = 0 * flux_p2[:, :, -N_g_p:]
+            bot_flux_p2   = self._convert_to_q_expanded(bot_flux_p2)
+            top_flux_p2   = self._convert_to_q_expanded(top_flux_p2)
 
-            flux_p3[:N_g_p]        = 0
-            flux_p3[:, :N_g_p]     = 0
-            flux_p3[:, :, :N_g_p]  = 0
-            flux_p3[-N_g_p:]       = 0 * flux_p3[-N_g_p:]
-            flux_p3[:, -N_g_p:]    = 0 * flux_p3[:, -N_g_p:]
-            flux_p3[:, :, -N_g_p:] = 0 * flux_p3[:, :, -N_g_p:]
+            back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
+            front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
 
-        # Variation of p1 is along axis 0:
-        left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            reconstruct(self, flux_p1, 0, reconstruction_in_p)
-        # Variation of p2 is along axis 1:
-        bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            reconstruct(self, flux_p2, 1, reconstruction_in_p)
-        # Variation of p3 is along axis 2:
-        back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            reconstruct(self, flux_p3, 2, reconstruction_in_p)
-
-        left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
-        bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
-        back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
-
-
-        if(self.physical_system.params.riemann_solver_in_p == 'averaged-flux'):
-            
-            left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
-            bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)
-            back_flux_p3  = 0.5 * (back_minus_eps_flux_p3 + back_plus_eps_flux_p3)
-
-        elif(self.physical_system.params.riemann_solver_in_p == 'upwind-flux'):
-
-            left_flux_p1 = upwind_flux(left_minus_eps_flux_p1, 
-                                       left_plus_eps_flux_p1,
-                                       self._convert_to_p_expanded(C_p1) 
-                                      )
-
-            bot_flux_p2 = upwind_flux(bot_minus_eps_flux_p2, 
-                                      bot_plus_eps_flux_p2,
-                                      self._convert_to_p_expanded(C_p2) 
-                                     )
-
-            back_flux_p3 = upwind_flux(back_minus_eps_flux_p3, 
-                                       back_plus_eps_flux_p3,
-                                       self._convert_to_p_expanded(C_p3) 
-                                      )
-
-        right_flux_p1 = af.shift(left_flux_p1, -1)
-        top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
-        front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
-
-        left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
-        right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
-
-        bot_flux_p2   = self._convert_to_q_expanded(bot_flux_p2)
-        top_flux_p2   = self._convert_to_q_expanded(top_flux_p2)
-
-        back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
-        front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
-
-        df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
-                 - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
-                 - (front_flux_p3 - back_flux_p3)/self.dp3
+            df_dt[i * dof:(i+1) * dof] += - (right_flux_p1 - left_flux_p1)/self.dp1 \
+                                          - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
+                                          - (front_flux_p3 - back_flux_p3)/self.dp3
 
     
     af.eval(df_dt)
