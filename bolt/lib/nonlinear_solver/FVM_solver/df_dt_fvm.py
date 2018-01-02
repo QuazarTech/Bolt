@@ -124,7 +124,7 @@ def df_dt_fvm(f, self, at_n = True):
         else:
             if(self.physical_system.params.fields_solver == 'fft'):
 
-                fft_poisson(self, f)
+                # fft_poisson(self, f)
                 self._communicate_fields()
                 self._apply_bcs_fields()
 

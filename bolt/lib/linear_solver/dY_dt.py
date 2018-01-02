@@ -56,7 +56,8 @@ def dY_dt_multimode_evolution(Y, self):
     if(   self.physical_system.params.fields_solver == 'electrostatic'
        or self.physical_system.params.fields_solver == 'fft'
       ):
-        compute_electrostatic_fields(self, f_hat=f_hat)
+        pass
+        # compute_electrostatic_fields(self, f_hat=f_hat)
 
     # When method is FDTD, this function returns the timederivatives
     # of the field quantities which is stepped using a numerical integrator:
@@ -91,26 +92,26 @@ def dY_dt_multimode_evolution(Y, self):
     
     # af.broadcast(function, *args) performs batched operations on
     # function(*args):
-    dE1_hat_dt = af.broadcast(addition, 
+    dE1_hat_dt = 0*af.broadcast(addition, 
                               af.broadcast(multiply, self.B3_hat, 1j * self.k_q2),
                               - J1_hat
                              )
 
-    dE2_hat_dt = af.broadcast(addition,
+    dE2_hat_dt = 0*af.broadcast(addition,
                               af.broadcast(multiply,-self.B3_hat, 1j * self.k_q1),
                               - J2_hat
                              )
 
-    dE3_hat_dt = af.broadcast(addition, 
+    dE3_hat_dt = 0*af.broadcast(addition, 
                                 af.broadcast(multiply, self.B2_hat, 1j * self.k_q1)
                               - af.broadcast(multiply, self.B1_hat, 1j * self.k_q2), 
                               - J3_hat
                              )
 
-    dB1_hat_dt = af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
-    dB2_hat_dt = af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
-    dB3_hat_dt =   af.broadcast(multiply, self.E1_hat, 1j * self.k_q2) \
-                 - af.broadcast(multiply, self.E2_hat, 1j * self.k_q1)
+    dB1_hat_dt = 0*af.broadcast(multiply, -self.E3_hat, 1j * self.k_q2)
+    dB2_hat_dt = 0*af.broadcast(multiply, self.E3_hat, 1j * self.k_q1)
+    dB3_hat_dt =   0*af.broadcast(multiply, self.E1_hat, 1j * self.k_q2) \
+                 - 0*af.broadcast(multiply, self.E2_hat, 1j * self.k_q1)
 
     (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
                                       self.p1, self.p2, self.p3,
@@ -171,9 +172,9 @@ def dY_dt_singlemode_evolution(Y, self):
 
     if(self.physical_system.params.fields_solver == 'electrostatic' or
        self.physical_system.params.fields_solver == 'fft'):
-        compute_electrostatic_fields(self, delta_f_hat)
+        # compute_electrostatic_fields(self, delta_f_hat)
         delta_E1_hat = self.delta_E1_hat
-        delta_E2_hat = self.delta_E1_hat
+        delta_E2_hat = self.delta_E2_hat
         delta_E3_hat = delta_B1_hat = delta_B2_hat = delta_B3_hat = 0
         
     # When method is FDTD, this function returns the timederivatives
@@ -192,13 +193,13 @@ def dY_dt_singlemode_evolution(Y, self):
     delta_J2_hat = charge_electron * delta_p2_bulk
     delta_J3_hat = charge_electron * delta_p3_bulk
 
-    ddelta_E1_hat_dt = (delta_B3_hat * 1j * k_q2) - delta_J1_hat
-    ddelta_E2_hat_dt = (- delta_B3_hat * 1j * k_q1) - delta_J2_hat
-    ddelta_E3_hat_dt = (delta_B2_hat * 1j * k_q1 - delta_B1_hat * 1j * k_q1) - delta_J3_hat
+    ddelta_E1_hat_dt = 0*(delta_B3_hat * 1j * k_q2) - delta_J1_hat
+    ddelta_E2_hat_dt = 0*(- delta_B3_hat * 1j * k_q1) - delta_J2_hat
+    ddelta_E3_hat_dt = 0*(delta_B2_hat * 1j * k_q1 - delta_B1_hat * 1j * k_q1) - delta_J3_hat
 
-    ddelta_B1_hat_dt = (- delta_E3_hat * 1j * k_q2)
-    ddelta_B2_hat_dt = (delta_E3_hat * 1j * k_q1)
-    ddelta_B3_hat_dt = (delta_E1_hat * 1j * k_q2 - delta_E2_hat * 1j * k_q1)
+    ddelta_B1_hat_dt = 0*(- delta_E3_hat * 1j * k_q2)
+    ddelta_B2_hat_dt = 0*(delta_E3_hat * 1j * k_q1)
+    ddelta_B3_hat_dt = 0*(delta_E1_hat * 1j * k_q2 - delta_E2_hat * 1j * k_q1)
 
     fields_term =   charge_electron * (  delta_E1_hat \
                                        + delta_B3_hat * self.p2 \

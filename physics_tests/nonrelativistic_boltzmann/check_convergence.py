@@ -76,9 +76,9 @@ def check_convergence():
 
         error[i] = np.mean(abs(nls_f - ls_f))
 
-    # print(error)
+    print(error)
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    # print(poly)
+    print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
     pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
