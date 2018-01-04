@@ -14,22 +14,35 @@ def f_interp_2d(self, dt):
     # batched operations when operating on arrays of different sizes
     addition = lambda a, b:a + b
 
-    # af.broadcast(function, *args) performs batched operations on
-    # function(*args)
-    q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
-    q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
+    for i in range(self.N_species):
 
-    # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
-    self.f = af.approx2(af.reorder(self.f, 1, 2, 0),
-                        af.reorder(q1_center_new, 1, 2, 0),
-                        af.reorder(q2_center_new, 1, 2, 0),
-                        af.INTERP.BICUBIC_SPLINE, 
-                        xp = af.reorder(self.q1_center, 1, 2, 0),
-                        yp = af.reorder(self.q2_center, 1, 2, 0)
-                       )
+        A_q1 = self._A_q(self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params, i
+                        )[0]
 
-    # Reordering from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
-    self.f = af.reorder(self.f, 2, 0, 1)
+        A_q2 = self._A_q(self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params, i
+                        )[1]
+
+        # af.broadcast(function, *args) performs batched operations on
+        # function(*args)
+        q1_center_new = af.broadcast(addition, self.q1_center, - A_q1 * dt)
+        q2_center_new = af.broadcast(addition, self.q2_center, - A_q2 * dt)
+
+        # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
+        self.f[i * dof:(i+1) * dof] = \
+            af.approx2(af.reorder(self.f[i * dof:(i+1) * dof], 1, 2, 0),
+                       af.reorder(q1_center_new, 1, 2, 0),
+                       af.reorder(q2_center_new, 1, 2, 0),
+                       af.INTERP.BICUBIC_SPLINE, 
+                       xp = af.reorder(self.q1_center, 1, 2, 0),
+                       yp = af.reorder(self.q2_center, 1, 2, 0)
+                      )
+
+        # Reordering from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
+        self.f[i * dof:(i+1) * dof] = af.reorder(self.f[i * dof:(i+1) * dof], 2, 0, 1)
 
     af.eval(self.f)
 

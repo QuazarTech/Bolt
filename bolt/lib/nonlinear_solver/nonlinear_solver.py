@@ -415,33 +415,9 @@ class nonlinear_solver(object):
         # Assigning the value to the PETSc Vec(for dump at t = 0):
         (af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_dump_f_array)
 
-        # Assigning the advection terms along q1 and q2
-        self._A_q1 = af.tile(physical_system.A_q(self.q1_center, self.q2_center,
-                                                 self.p1_center, self.p2_center, self.p3_center,
-                                                 physical_system.params
-                                                )[0], N_s
-                            )
-
-        self._A_q2 = af.tile(physical_system.A_q(self.q1_center, self.q2_center,
-                                                 self.p1_center, self.p2_center, self.p3_center,
-                                                 physical_system.params
-                                                )[1], N_s
-                            )
-
-        # Assigning the conservative advection terms along q1 and q2
-        self._C_q1 = af.tile(physical_system.C_q(self.q1_center, self.q2_center,
-                                                 self.p1_center, self.p2_center, self.p3_center,
-                                                 physical_system.params
-                                                )[0], N_s
-                            )
-
-        self._C_q2 = af.tile(physical_system.C_q(self.q1_center, self.q2_center,
-                                                 self.p1_center, self.p2_center, self.p3_center,
-                                                 physical_system.params
-                                                )[1], N_s
-                            )
-
         # Assigning the function objects to methods of the solver:
+        self._A_q = physical_system.A_q
+        self._C_q = physical_system.C_q
         self._A_p = physical_system.A_p
         self._C_p = physical_system.C_p
 
@@ -686,6 +662,17 @@ class nonlinear_solver(object):
                              + 2 * self.N_ghost_q,
                              dtype=af.Dtype.f64
                             )
+
+        if(   self.physical_system.params.solver_method_in_q == 'FVM'  
+           or self.physical_system.params.solver_method_in_p == 'FVM'
+          ):
+            self.df_dt = af.constant(0, self.N_species * dof,
+                                       N_q1_local 
+                                     + 2 * self.N_ghost_q,
+                                       N_q2_local 
+                                     + 2 * self.N_ghost_q,
+                                     dtype=af.Dtype.f64
+                                    )
 
         f_initial = list(af.broadcast(self.physical_system.initial_conditions.\
                                       initialize_f, self.q1_center, self.q2_center,

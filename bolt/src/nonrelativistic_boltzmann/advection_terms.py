@@ -19,13 +19,13 @@ A_v2 = C_v2 = q/m * (E_y + v_z * B_x - v_x * B_z) = q/m * (E2 + v3 * B1 - v1 * B
 A_v3 = C_v3 = q/m * (E_z + v_x * B_y - v_y * B_x) = q/m * (E3 + v1 * B2 - v2 * B1)
 """
 
-def A_q(q1, q2, v1, v2, v3, params):
+def A_q(q1, q2, v1, v2, v3, params, N_s):
     """Return the terms A_q1, A_q2."""
     return (v1, v2)
 
 # Conservative Advection terms in q-space:
 # Used by the FVM solver:
-def C_q(q1, q2, v1, v2, v3, params):
+def C_q(q1, q2, v1, v2, v3, params, N_s):
     """Return the terms C_q1, C_q2."""
     return (v1, v2)
 

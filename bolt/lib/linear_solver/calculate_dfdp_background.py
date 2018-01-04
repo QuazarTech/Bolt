@@ -9,29 +9,33 @@ def calculate_dfdp_background(self):
     with respect to the variables p1, p2, p3. This is used to
     solve for the contribution from the fields
     """
-    f_b = af.moddims(self.f_background, self.N_p1, self.N_p2, self.N_p3)
+    # Initializing:
+    self.dfdp1_background = []
+    self.dfdp2_background = []
+    self.dfdp3_background = []
 
-    # Using a 4th order central difference stencil:
-    dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
-                        +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
-                       ) / (12 * self.dp1)
+    for i in range(self.N_species):
 
-    dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
-                        +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
-                       ) / (12 * self.dp2)
+        f_b = af.moddims(self.f_background[:, :, i * self.dof:(i+1) * self.dof], 
+                         self.N_p1, self.N_p2, self.N_p3
+                        )
 
-    dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
-                        +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
-                       ) / (12 * self.dp3)
+        # Using a 4th order central difference stencil:
+        dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
+                            +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
+                           ) / (12 * self.dp1)
 
-    # Reordering such that the variations in velocity are along axis 2
-    self.dfdp1_background = af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1)
-    self.dfdp2_background = af.reorder(af.flat(dfdp2_background), 2, 3, 0, 1)
-    self.dfdp3_background = af.reorder(af.flat(dfdp3_background), 2, 3, 0, 1)
+        dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
+                            +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
+                           ) / (12 * self.dp2)
 
-    af.eval(self.dfdp1_background,
-            self.dfdp2_background,
-            self.dfdp3_background
-           )
+        dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
+                            +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
+                           ) / (12 * self.dp3)
+
+        # Reordering such that the variations in velocity are along axis 2
+        self.dfdp1_background.append(af.reorder(af.flat(dfdp1_background), 2, 3, 0, 1))
+        self.dfdp2_background.append(af.reorder(af.flat(dfdp2_background), 2, 3, 0, 1))
+        self.dfdp3_background.append(af.reorder(af.flat(dfdp3_background), 2, 3, 0, 1))
 
     return

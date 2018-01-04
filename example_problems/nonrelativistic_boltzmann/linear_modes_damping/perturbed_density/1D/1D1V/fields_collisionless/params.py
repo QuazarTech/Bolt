@@ -9,7 +9,7 @@ import arrayfire as af
 # Can be defined as 'electrostatic' and 'fdtd'
 fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-fields_solver     = 'fdtd'
+fields_solver     = 'fft'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -30,7 +30,7 @@ num_devices = 1
 # Constants:
 mass               = [1, 1]
 boltzmann_constant = 1
-charge             = [-10, 5]
+charge             = [-5, -5]
 
 # Initial Conditions used in initialize:
 rho_background         = 1
