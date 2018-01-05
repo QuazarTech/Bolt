@@ -5,7 +5,7 @@ import arrayfire as af
 
 # Using af.broadcast, since v1, v2, v3 are of size (1, 1, Nv1*Nv2*Nv3)
 # All moment quantities are of shape (Nq1, Nq2)
-# By wrapping with af.broadcast, we can perform batched operations
+# By wrapping with af.broadcast, we can perform batched operations 
 # on arrays of different sizes.
 @af.broadcast
 def f0(v1, v2, v3, n, T, v1_bulk, v2_bulk, v3_bulk, params, N_s):
@@ -66,17 +66,17 @@ def BGK(f, q1, q2, v1, v2, v3, moments, params, N_s = 0, flag = False):
         # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
         # Setting when tau is zero we assign f = f0 manually
         # WORKAROUND:
-        if(isinstance(params.tau(q1, q2, v1, v2, v3), af.Array) is True):
-            C_f = af.select(params.tau(q1, q2, v1, v2, v3) == np.inf, 0, C_f)
-            af.eval(C_f)
+        # if(isinstance(params.tau(q1, q2, v1, v2, v3), af.Array) is True):
+        #     C_f = af.select(params.tau(q1, q2, v1, v2, v3) == np.inf, 0, C_f)
+        #     af.eval(C_f)
         
-        else:
-            if(params.tau(q1, q2, v1, v2, v3) == np.inf):
-                C_f = 0
+        # else:
+        #     if(params.tau(q1, q2, v1, v2, v3) == np.inf):
+        #         C_f = 0
 
         return(C_f)
 
-def linearized_BGK(delta_f_hat, v1, v2, v3, moments, params):
+def linearized_BGK(delta_f_hat, v1, v2, v3, moments, params, N_s = 0):
     """
     Returns the array that contains the values of the linearized BGK collision operator.
     The expression that has been used may be understood more clearly by referring to the
@@ -96,15 +96,14 @@ def linearized_BGK(delta_f_hat, v1, v2, v3, moments, params):
     # (0, 0) are dummy values for q1, q2:
     tau = params.tau(0, 0, v1, v2, v3)
 
-    # Obtaining the normalization constant:
-    delta_rho_hat = moments('density', delta_f_hat)
+    delta_rho_hat = moments('density', delta_f_hat, N_s)
     
-    delta_v1_hat = (moments('mom_v1_bulk', delta_f_hat) - v1_b * delta_rho_hat)/rho
-    delta_v2_hat = (moments('mom_v2_bulk', delta_f_hat) - v2_b * delta_rho_hat)/rho
-    delta_v3_hat = (moments('mom_v3_bulk', delta_f_hat) - v3_b * delta_rho_hat)/rho
+    delta_v1_hat = (moments('mom_v1_bulk', delta_f_hat, N_s) - v1_b * delta_rho_hat)/rho
+    delta_v2_hat = (moments('mom_v2_bulk', delta_f_hat, N_s) - v2_b * delta_rho_hat)/rho
+    delta_v3_hat = (moments('mom_v3_bulk', delta_f_hat, N_s) - v3_b * delta_rho_hat)/rho
     
     delta_T_hat =   (  (2 / params.p_dim) \
-                     * moments('energy', delta_f_hat) 
+                     * moments('energy', delta_f_hat, N_s) 
                      - delta_rho_hat * T
                      - 2 * rho * v1_b * delta_v1_hat
                      - 2 * rho * v2_b * delta_v2_hat
@@ -148,6 +147,7 @@ def linearized_BGK(delta_f_hat, v1, v2, v3, moments, params):
                   )/tau
       
     else:
+        
         expr_term_1 = 2 * np.sqrt(2 * m**3) * rho * T * v1 * delta_v1_hat
         expr_term_2 = np.sqrt(2 * m**3) * rho * (v1**2 + v1_b**2) * delta_T_hat
         expr_term_3 = 2 * np.sqrt(2 * m) * k * T**2 * delta_rho_hat

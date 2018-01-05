@@ -142,101 +142,97 @@ def apply_dirichlet_bcs_f(self, boundary):
     # Number of DOF in the array for a single species:
     dof = self.dof
 
-    if(self._A_q1[:dof].elements() == self.N_species * self.dof):
-        # If A_q1 is of shape (Np1 * Np2 * Np3)
-        # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q1 = af.tile(self._A_q1[:dof], 1,
-                       self.f.shape[1],
-                       self.f.shape[2]
-                      )
-    else:
-        A_q1 = self._A_q1[:dof]
+    for i in range(N_s):
 
-    if(self._A_q2[:dof].elements() == self.N_species * self.dof):
-        # If A_q2 is of shape (Np1 * Np2 * Np3)
-        # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q2 = af.tile(self._A_q2[:dof], 1, 
-                       self.f.shape[1],
-                       self.f.shape[2]
-                      )
-    
-    else:
-        A_q2 = self._A_q2[:dof]
+        A_q1 = self._A_q(self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params, i
+                        )[0]
 
-    if(boundary == 'left'):
-        f_left = list(map(lambda f:f[:, :N_g_q],
-                          self.boundary_conditions.\
-                          f_left(self.f, self.q1_center, self.q2_center,
-                                 self.p1_center, self.p2_center, self.p3_center, 
-                                 self.physical_system.params
-                                )
-                         )
-                     )
+        A_q2 = self._A_q(self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params, i
+                        )[1]
 
-        # Only changing inflowing characteristics:
-        # We'll have to assign values species-wise
-        for i in range(N_s):
-            f_left_species = af.select(A_q1>0, f_left[i], 
-                                       self.f[i * dof:(i+1) * dof, :N_g_q]
-                                      )
-            self.f[i * dof:(i+1) * dof, :N_g_q] = f_left_species
-
-    elif(boundary == 'right'):
-        f_right = list(map(lambda f:f[:, -N_g_q:],
-                           self.boundary_conditions.\
-                           f_right(self.f, self.q1_center, self.q2_center,
-                                   self.p1_center, self.p2_center, self.p3_center, 
-                                   self.physical_system.params
-                                  )
+        if(A_q1.elements() == self.N_species * self.dof):
+            # If A_q1 is of shape (Np1 * Np2 * Np3)
+            # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
+            A_q1 = af.tile(A_q1, 1,
+                           self.f.shape[1],
+                           self.f.shape[2]
                           )
-                      )
 
-        # Only changing inflowing characteristics:
-        # We'll have to assign values species-wise
-        for i in range(N_s):
-            f_right_species = af.select(A_q1<0, f_right[i], 
-                                        self.f[i * dof:(i+1) * dof, -N_g_q:]
-                                       )
-
-            self.f[i * dof:(i+1) * dof, -N_g_q:] = f_right_species
-
-    elif(boundary == 'bottom'):
-        f_bottom = list(map(lambda f:f[:, :, :N_g_q],
-                            self.boundary_conditions.\
-                            f_bottom(self.f, self.q1_center, self.q2_center,
+        if(A_q2.elements() == self.N_species * self.dof):
+            # If A_q2 is of shape (Np1 * Np2 * Np3)
+            # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
+            A_q2 = af.tile(A_q2, 1, 
+                           self.f.shape[1],
+                           self.f.shape[2]
+                          )
+    
+        if(boundary == 'left'):
+            f_left = list(map(lambda f:f[:, :N_g_q],
+                              self.boundary_conditions.\
+                              f_left(self.f, self.q1_center, self.q2_center,
                                      self.p1_center, self.p2_center, self.p3_center, 
                                      self.physical_system.params
                                     )
-                           )
-                       )
+                             )
+                         )[i]
 
-        # Only changing inflowing characteristics:
-        # We'll have to assign values species-wise
-        for i in range(N_s):
-            f_bottom_species = af.select(A_q2>0, f_bottom[i], 
-                                         self.f[i * dof:(i+1) * dof, :, :N_g_q]
-                                        )
+            # Only changing inflowing characteristics:
+            self.f[i * dof:(i+1) * dof, :N_g_q] = \
+                af.select(A_q1>0, f_left, 
+                          self.f[i * dof:(i+1) * dof, :N_g_q]
+                         )
 
-            self.f[i * dof:(i+1) * dof, :, :N_g_q] = f_bottom_species
-
-    elif(boundary == 'top'):
-        f_top = list(map(lambda f:f[:, :, -N_g_q:],
-                         self.boundary_conditions.\
-                         f_top(self.f, self.q1_center, self.q2_center,
-                               self.p1_center, self.p2_center, self.p3_center, 
-                               self.physical_system.params
+        elif(boundary == 'right'):
+            f_right = list(map(lambda f:f[:, -N_g_q:],
+                               self.boundary_conditions.\
+                               f_right(self.f, self.q1_center, self.q2_center,
+                                       self.p1_center, self.p2_center, self.p3_center, 
+                                       self.physical_system.params
+                                      )
                               )
-                        )
-                    )
-    
-        # Only changing inflowing characteristics:
-        # We'll have to assign values species-wise
-        for i in range(N_s):
-            f_top_species = af.select(A_q2<0, f_top[i], 
-                                      self.f[i * dof:(i+1) * dof, :, -N_g_q:]
-                                     )
+                          )[i]
 
-            self.f[i * dof:(i+1) * dof, :, -N_g_q:] = f_top_species
+            # Only changing inflowing characteristics:
+            self.f[i * dof:(i+1) * dof, -N_g_q:] = \
+                af.select(A_q1<0, f_right, 
+                          self.f[i * dof:(i+1) * dof, -N_g_q:]
+                         )
+
+        elif(boundary == 'bottom'):
+            f_bottom = list(map(lambda f:f[:, :, :N_g_q],
+                                self.boundary_conditions.\
+                                f_bottom(self.f, self.q1_center, self.q2_center,
+                                         self.p1_center, self.p2_center, self.p3_center, 
+                                         self.physical_system.params
+                                        )
+                               )
+                           )[i]
+
+            # Only changing inflowing characteristics:
+            self.f[i * dof:(i+1) * dof, :, :N_g_q] = \
+                af.select(A_q2>0, f_bottom[i], 
+                          self.f[i * dof:(i+1) * dof, :, :N_g_q]
+                         )
+
+        elif(boundary == 'top'):
+            f_top = list(map(lambda f:f[:, :, -N_g_q:],
+                             self.boundary_conditions.\
+                             f_top(self.f, self.q1_center, self.q2_center,
+                                   self.p1_center, self.p2_center, self.p3_center, 
+                                   self.physical_system.params
+                                  )
+                            )
+                        )[i]
+    
+            # Only changing inflowing characteristics:
+            self.f[i * dof:(i+1) * dof, :, -N_g_q:] = \
+                af.select(A_q2<0, f_top[i], 
+                          self.f[i * dof:(i+1) * dof, :, -N_g_q:]
+                         )
 
     else:
         raise Exception('Invalid choice for boundary')

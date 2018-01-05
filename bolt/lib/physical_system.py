@@ -64,7 +64,6 @@ class physical_system(object):
         """
         # Checking that domain resolution and size are 
         # of the correct data-type(only of int or float):
-        
         attributes = [a for a in dir(domain) if not a.startswith('__')]
         
         for i in range(len(attributes)):

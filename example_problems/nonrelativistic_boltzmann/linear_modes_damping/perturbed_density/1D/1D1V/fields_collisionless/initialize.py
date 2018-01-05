@@ -30,8 +30,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     f1 = rho * np.sqrt(m[0] / (2 * np.pi * k * T_b)) \
              * af.exp(-m[0] * (p1 - p1_bulk)**2 / (2 * k * T_b))
 
-    f2 = rho * np.sqrt(m[1] / (2 * np.pi * k * T_b)) \
-             * af.exp(-m[1] * (p1 - p1_bulk)**2 / (2 * k * T_b))
+    f2 = 2 * rho * np.sqrt(m[1] / (2 * np.pi * k * T_b)) \
+                 * af.exp(-m[1] * (p1 - p1_bulk)**2 / (2 * k * T_b))
 
     af.eval(f1, f2)
     return ([f1, f2])

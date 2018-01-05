@@ -28,11 +28,12 @@ N       = 2**np.arange(5, 10)
 
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
-    params.charge_electron = charge_electron
-    params.tau             = tau
+    params.charge[0] = charge_electron
+    params.tau       = tau
 
     # Running the setup for all resolutions:
     for i in range(N.size):
+        print(i)
         af.device_gc()
         domain.N_q1 = int(N[i])
 

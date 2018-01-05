@@ -80,38 +80,72 @@ dt = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 time_array  = np.arange(0, params.t_final + dt, dt)
 
-rho_data_nls = np.zeros(time_array.size)
-rho_data_ls  = np.zeros(time_array.size)
+rho_data_nls_1 = np.zeros(time_array.size)
+rho_data_ls_1  = np.zeros(time_array.size)
+
+rho_data_nls_2 = np.zeros(time_array.size)
+rho_data_ls_2  = np.zeros(time_array.size)
 
 # Storing data at time t = 0:
-n_nls           = nls.compute_moments('density')
-rho_data_nls[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
-n_ls = ls.compute_moments('density')
+n_nls             = nls.compute_moments('density', 0)
+rho_data_nls_1[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+
+n_ls = ls.compute_moments('density', 0)
 
 if(ls.single_mode_evolution == True):
-    rho_data_ls[0] = params.rho_background + abs(n_ls)
+    rho_data_ls_1[0] = params.rho_background + abs(n_ls)
 else:
-    rho_data_ls[0] = af.max(n_ls) 
+    rho_data_ls_1[0] = af.max(n_ls) 
+
+n_nls             = nls.compute_moments('density', 1)
+rho_data_nls_2[0] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+
+n_ls = ls.compute_moments('density', 1)
+
+if(ls.single_mode_evolution == True):
+    rho_data_ls_2[0] = params.rho_background + abs(n_ls)
+else:
+    rho_data_ls_2[0] = af.max(n_ls) 
 
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
 
-    n_nls                         = nls.compute_moments('density')
-    rho_data_nls[time_index + 1]  = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    n_nls                          = nls.compute_moments('density', 0)
+    rho_data_nls_1[time_index + 1] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
-    n_ls = ls.compute_moments('density')
+    n_ls = ls.compute_moments('density', 0)
 
     if(ls.single_mode_evolution == True):
-        rho_data_ls[time_index + 1] =  params.rho_background + abs(n_ls)
+        rho_data_ls_1[time_index + 1] =  params.rho_background + abs(n_ls)
     else:
-        rho_data_ls[time_index + 1] = af.max(n_ls) 
+        rho_data_ls_1[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
+    n_nls                          = nls.compute_moments('density', 1)
+    rho_data_nls_2[time_index + 1] = af.max(n_nls[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    
+    n_ls = ls.compute_moments('density', 1)
+
+    if(ls.single_mode_evolution == True):
+        rho_data_ls_2[time_index + 1] =  params.rho_background + abs(n_ls)
+    else:
+        rho_data_ls_2[time_index + 1] = af.max(n_ls) 
+
+pl.plot(time_array, rho_data_ls_1, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, rho_data_nls_1, label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
+pl.title('For Species-1')
 pl.legend()
-pl.savefig('rho.png')
+pl.savefig('rho_1.png')
+pl.clf()
+
+pl.plot(time_array, rho_data_ls_2, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, rho_data_nls_2, label='Nonlinear Solver')
+pl.ylabel(r'MAX($\rho$)')
+pl.xlabel('Time')
+pl.title('For Species-2')
+pl.legend()
+pl.savefig('rho_2.png')
 pl.clf()
