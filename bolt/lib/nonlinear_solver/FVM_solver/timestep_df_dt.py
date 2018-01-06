@@ -16,15 +16,20 @@ def fvm_timestep_RK2(self, dt):
     self._communicate_f()
     self._apply_bcs_f()
 
-    if(    self.physical_system.params.charge_electron != 0
+    if(    any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
        and self.physical_system.params.fields_solver == 'fdtd'
       ):
-        self.J1 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p1_bulk')  # (i + 1/2, j + 1/2)
-        self.J2 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p2_bulk')  # (i + 1/2, j + 1/2)
-        self.J3 =   self.physical_system.params.charge_electron \
-                  * self.compute_moments('mom_p3_bulk')  # (i + 1/2, j + 1/2)
+
+        self.J1 =   af.sum(self.physical_system.params.charge) \
+                  * self.compute_moments('mom_v1_bulk')  # (i + 1/2, j + 1/2)
+        self.J2 =   af.sum(self.physical_system.params.charge) \
+                  * self.compute_moments('mom_v2_bulk')  # (i + 1/2, j + 1/2)
+        self.J3 =   af.sum(self.physical_system.params.charge) \
+                  * self.compute_moments('mom_v3_bulk')  # (i + 1/2, j + 1/2)
+
+        self.J1 = af.sum(self.J1, 1)
+        self.J2 = af.sum(self.J2, 1)
+        self.J3 = af.sum(self.J3, 1)
 
         # Obtaining the values for current density on the Yee-Grid:
         self.J1 = 0.5 * (self.J1 + af.shift(self.J1, 0, 0, 1))  # (i + 1/2, j)

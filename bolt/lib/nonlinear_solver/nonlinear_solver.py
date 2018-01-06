@@ -109,6 +109,15 @@ class nonlinear_solver(object):
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
+        # Getting number of species:
+        self.N_species = len(physical_system.params.mass)
+
+        # Conversions to be consistent with chosen data structure:
+        self.physical_system.params.mass   = \
+            af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
+        self.physical_system.params.charge = \
+            af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
+
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
         N_g_q = self.N_ghost_q = physical_system.N_ghost_q
@@ -223,7 +232,8 @@ class nonlinear_solver(object):
         # how the grid is partitioned when run in parallel which is 
         # utilized by the various methods of the solver.
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                         dof           = (  (self.N_p1 + 2 * N_g_p) 
+                                         dof           = (  self.N_species 
+                                                          * (self.N_p1 + 2 * N_g_p) 
                                                           * (self.N_p2 + 2 * N_g_p) 
                                                           * (self.N_p3 + 2 * N_g_p)
                                                          ),
@@ -240,7 +250,8 @@ class nonlinear_solver(object):
 
         # This DA is used by the FileIO routine dump_distribution_function():
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof           = (  self.N_p1 
+                                              dof           = (  self.N_species 
+                                                               * self.N_p1 
                                                                * self.N_p2 
                                                                * self.N_p3
                                                               ),
@@ -288,11 +299,11 @@ class nonlinear_solver(object):
                                           )
 
         # This DA is used by the FileIO routine dump_moments():
+        # Finding the number of definitions for the moments under moment_defs:
+        attributes = [a for a in dir(self.physical_system.moment_defs) if not a.startswith('_')]
+
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof        = len(self.
-                                                                     physical_system.
-                                                                     moment_exponents
-                                                                    ),
+                                                    dof        = len(attributes),
                                                     proc_sizes = (nproc_in_q1, 
                                                                   nproc_in_q2
                                                                  ),
@@ -380,7 +391,7 @@ class nonlinear_solver(object):
 
         # Assigning the value to the PETSc Vecs(for dump at t = 0):
         (af.flat(self.f)).to_ndarray(self._local_f_array)
-        (af.flat(self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_f_array)
+        (af.flat(self.f[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_f_array)
 
         # Assigning the advection terms along q1 and q2
         self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
@@ -421,7 +432,7 @@ class nonlinear_solver(object):
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        q_expanded form:(N_p1 * N_p2 * N_p3, N_q1, N_q2)
+        q_expanded form:(N_p1 * N_p2 * N_p3, N_s, N_q1, N_q2)
         p_expanded form:(N_p1, N_p2, N_p3, N_q1 * N_q2)
         
         This function converts the input array from
@@ -435,6 +446,7 @@ class nonlinear_solver(object):
                              (self.N_p1 + 2 * self.N_ghost_p) 
                            * (self.N_p2 + 2 * self.N_ghost_p)
                            * (self.N_p3 + 2 * self.N_ghost_p),
+                           self.N_species,
                            (N_q1_local + 2 * self.N_ghost_q),
                            (N_q2_local + 2 * self.N_ghost_q)
                           )
@@ -449,8 +461,8 @@ class nonlinear_solver(object):
         which can be used such that the computations may
         carried out along all dimensions necessary:
 
-        q_expanded form:(N_p1 * N_p2 * N_p3, N_q1, N_q2)
-        p_expanded form:(N_p1, N_p2, N_p3, N_q1 * N_q2)
+        q_expanded form:(N_p1 * N_p2 * N_p3, N_s, N_q1, N_q2)
+        p_expanded form:(N_p1, N_p2, N_p3, N_s * N_q1 * N_q2)
         
         This function converts the input array from
         q_expanded to p_expanded form.
@@ -463,7 +475,8 @@ class nonlinear_solver(object):
                            self.N_p1 + 2 * self.N_ghost_p, 
                            self.N_p2 + 2 * self.N_ghost_p,
                            self.N_p3 + 2 * self.N_ghost_p,
-                             (N_q1_local + 2 * self.N_ghost_q)
+                             self.N_species
+                           * (N_q1_local + 2 * self.N_ghost_q)
                            * (N_q2_local + 2 * self.N_ghost_q)
                           )
 
@@ -500,8 +513,8 @@ class nonlinear_solver(object):
         q2_center, q1_center = np.meshgrid(q2_center, q1_center)
         q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
 
-        q1_center = af.reorder(q1_center, 2, 0, 1)
-        q2_center = af.reorder(q2_center, 2, 0, 1)
+        q1_center = af.reorder(q1_center, 3, 2, 0, 1)
+        q2_center = af.reorder(q2_center, 3, 2, 0, 1)
 
         af.eval(q1_center, q2_center)
         return (q1_center, q2_center)
@@ -534,6 +547,12 @@ class nonlinear_solver(object):
         p1_center = af.flat(af.to_array(p1_center))
         p2_center = af.flat(af.to_array(p2_center))
         p3_center = af.flat(af.to_array(p3_center))
+
+        if(self.N_species > 1):
+            
+            p1_center = af.tile(p1_center, 1, self.N_species)
+            p2_center = af.tile(p2_center, 1, self.N_species)
+            p3_center = af.tile(p3_center, 1, self.N_species)
 
         af.eval(p1_center, p2_center, p3_center)
         return (p1_center, p2_center, p3_center)
@@ -651,7 +670,7 @@ class nonlinear_solver(object):
 
         # Electric fields are defined at the n-th timestep:
         # Magnetic fields are defined at the (n-1/2)-th timestep:
-        self.cell_centered_EM_fields = af.constant(0, 6,
+        self.cell_centered_EM_fields = af.constant(0, 6, 1, 
                                                      N_q1_local 
                                                    + 2 * self.N_ghost_q,
                                                      N_q2_local 
@@ -660,7 +679,7 @@ class nonlinear_solver(object):
                                                   )
 
         # Field values at n-th timestep:
-        self.cell_centered_EM_fields_at_n = af.constant(0, 6,
+        self.cell_centered_EM_fields_at_n = af.constant(0, 6, 1, 
                                                           N_q1_local 
                                                         + 2 * self.N_ghost_q,
                                                           N_q2_local 
@@ -669,7 +688,7 @@ class nonlinear_solver(object):
                                                        )
 
         # Field values at (n+1/2)-th timestep:
-        self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6,
+        self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6, 1,
                                                                     N_q1_local 
                                                                   + 2 * self.N_ghost_q,
                                                                     N_q2_local 
@@ -679,7 +698,7 @@ class nonlinear_solver(object):
 
 
         # Declaring the arrays which store data on the FDTD grid:
-        self.yee_grid_EM_fields = af.constant(0, 6,
+        self.yee_grid_EM_fields = af.constant(0, 6, 1,
                                                 N_q1_local 
                                               + 2 * self.N_ghost_q,
                                                 N_q2_local 
@@ -689,7 +708,7 @@ class nonlinear_solver(object):
 
 
 
-        if(self.physical_system.params.charge_electron != 0):
+        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
     
             if(self.physical_system.params.fields_type == 'user-defined'):
                 try:

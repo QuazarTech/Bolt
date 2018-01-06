@@ -28,10 +28,10 @@ def riemann_solver(self, left_flux, right_flux, left_f, right_f, dim):
         if(self._C_q1.elements() != left_flux.elements()):
 
             if(dim == 'q1'):
-                velocity = af.tile(self._C_q1, 1, left_flux.shape[1], left_flux.shape[2])
+                velocity = af.tile(self._C_q1, 1, 1, left_flux.shape[2], left_flux.shape[3])
 
             elif(dim == 'q2'):
-                velocity = af.tile(self._C_q2, 1, left_flux.shape[1], left_flux.shape[2])
+                velocity = af.tile(self._C_q2, 1, 1, left_flux.shape[2], left_flux.shape[3])
 
             else:
                 raise NotImplementedError('Invalid Option!')

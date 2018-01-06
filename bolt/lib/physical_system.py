@@ -64,7 +64,6 @@ class physical_system(object):
         """
         # Checking that domain resolution and size are 
         # of the correct data-type(only of int or float):
-        
         attributes = [a for a in dir(domain) if not a.startswith('__')]
         
         for i in range(len(attributes)):
@@ -108,20 +107,15 @@ class physical_system(object):
                                  to be of type function'
                                )
 
-        # Checking for the data-type in moment_defs:
-        if(not isinstance(moment_defs.moment_exponents, dict) or
-           not isinstance(moment_defs.moment_coeffs, dict)
-          ):
-            raise TypeError('Expected attributes of boundary_conditions \
-                             to be of type dict'
-                           )
-
-        # Checking that the number of keys in moment_exponents and
-        # moments_coeffs is the same:
-        if(moment_defs.moment_exponents.keys() != moment_defs.moment_coeffs.keys()):
-            raise Exception('Keys in moment_exponents and \
-                             moment_coeffs needs to be the same'
-                           )
+        attributes = [a for a in dir(moment_defs) if not a.startswith('_')]
+        for i in range(len(attributes)):
+            if(isinstance(getattr(moment_defs, attributes[i]),
+                          types.FunctionType
+                         ) is False
+              ):
+                raise TypeError('Expected attributes of moment_defs \
+                                 to be of type function'
+                               )
 
         # Getting resolution and size of configuration and velocity space:
         self.N_q1, self.q1_start, self.q1_end = domain.N_q1,\
@@ -184,9 +178,18 @@ class physical_system(object):
         # Usually, this is taken as a relaxation type collision operator
         self.source = source
 
-        # Assigning the moment dictionaries:
-        self.moment_exponents = moment_defs.moment_exponents
-        self.moment_coeffs    = moment_defs.moment_coeffs
+        # Assigning the moments data:
+        self.moment_defs = moment_defs
+
+        # Finding the number of species:
+        N_species = len(params.charge)
+
+        try:
+            assert(len(params.mass) == len(params.charge))
+        except:
+            raise Exception('Inconsistenty in number of species. Mismatch between\
+                             the number of species mentioned in charge and mass inputs'
+                           )
 
         # Printing code signature:
         PETSc.Sys.Print('-------------------------------------------------------------------')
@@ -223,7 +226,9 @@ class physical_system(object):
 
         PETSc.Sys.Print('Fields Type                        :', params.fields_type.upper())
         PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
-        if(params.fields_type.upper() != 'USER-DEFINED'):
-            PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
-        PETSc.Sys.Print('Charge Electron                    :', params.charge_electron)
+        PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
+        PETSc.Sys.Print('Number of Species                  :', N_species)
+        for i in range(N_species):
+            PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), params.charge[i])
+            PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), params.mass[i])
         PETSc.Sys.Print('Number of Devices/Node             :', params.num_devices)

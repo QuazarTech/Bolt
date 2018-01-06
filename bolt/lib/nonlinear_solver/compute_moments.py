@@ -24,17 +24,18 @@ def compute_moments(self, moment_name, f=None):
        moments of the input array and not the one stored by the state vector
        of the object.
 
+    N_s: The species for which you want to compute the moment quantity.
+
     Examples
     --------
     
     >> solver.compute_moments('density')
 
-    The above line will lookup the definition for 'density' under the dict
-    moments_exponents, and moments_coefficients and calculate the same
+    The above line will lookup the definition for 'density' and calculate the same
     accordingly
     """
     N_g_p = self.N_ghost_p
-
+    
     if(N_g_p != 0):
     
         p1 = af.flat(af.moddims(self.p1_center,
@@ -62,30 +63,6 @@ def compute_moments(self, moment_name, f=None):
         p2 = self.p2_center
         p3 = self.p3_center
 
-    try:
-        moment_exponents = \
-            np.array(self.physical_system.moment_exponents[moment_name])
-        moment_coeffs    = \
-            np.array(self.physical_system.moment_coeffs[moment_name])
-
-    except BaseException:
-        raise KeyError('moment_name not defined under physical system')
-
-    try:
-        moment_variable = 1
-        for i in range(moment_exponents.shape[0]):
-            moment_variable *=   moment_coeffs[i, 0] \
-                               * p1**(moment_exponents[i, 0]) \
-                               + moment_coeffs[i, 1] \
-                               * p2**(moment_exponents[i, 1]) \
-                               + moment_coeffs[i, 2] \
-                               * p3**(moment_exponents[i, 2])
-
-    except BaseException:
-        moment_variable =   moment_coeffs[0] * p1**(moment_exponents[0]) \
-                          + moment_coeffs[1] * p2**(moment_exponents[1]) \
-                          + moment_coeffs[2] * p3**(moment_exponents[2])
-
     # Defining a lambda function to perform broadcasting operations
     # This is done using af.broadcast, which allows us to perform 
     # batched operations when operating on arrays of different sizes
@@ -94,19 +71,22 @@ def compute_moments(self, moment_name, f=None):
     # af.broadcast(function, *args) performs batched operations on
     # function(*args)
     if(f is None):
-    
         try:
             N_q1 = self.f.shape[1]
             N_q2 = self.f.shape[2]
+
         except:
             N_q1 = N_q2 = 1
 
         if(N_g_p != 0):
-            f = af.moddims(self._convert_to_p_expanded(self.f)[N_g_p:-N_g_p, 
-                                                               N_g_p:-N_g_p,
-                                                               N_g_p:-N_g_p
-                                                              ],
-                           self.N_p1 * self.N_p2 * self.N_p3, N_q1, N_q2
+
+            f = af.moddims(self.\
+                           _convert_to_p_expanded(self.f)[N_g_p:-N_g_p, 
+                                                          N_g_p:-N_g_p,
+                                                          N_g_p:-N_g_p
+                                                         ],
+                           self.N_p1 * self.N_p2 * self.N_p3, 
+                           N_q1, N_q2
                           )
 
         else:
@@ -115,21 +95,27 @@ def compute_moments(self, moment_name, f=None):
     else:
 
         try:
-            N_q1 = self.f.shape[1]
-            N_q2 = self.f.shape[2]
+            N_q1 = f.shape[1]
+            N_q2 = f.shape[2]
         except:
             N_q1 = N_q2 = 1
 
         if(N_g_p != 0):
-            f = af.moddims(self._convert_to_p_expanded(f)[N_g_p:-N_g_p, 
-                                                          N_g_p:-N_g_p,
-                                                          N_g_p:-N_g_p
-                                                         ],
-                           self.N_p1 * self.N_p2 * self.N_p3, N_q1, N_q2
+            f = af.moddims(self.\
+                           _convert_to_p_expanded(f)[N_g_p:-N_g_p, 
+                                                     N_g_p:-N_g_p,
+                                                     N_g_p:-N_g_p
+                                                    ],
+                           self.N_p1 * self.N_p2 * self.N_p3, 
+                           N_q1, N_q2
                           )
 
-    moment   =   af.sum(af.broadcast(multiply, f, moment_variable), 0) \
-               * self.dp3 * self.dp2 * self.dp1
+    moment   =   af.sum(af.broadcast(getattr(self.physical_system.moment_defs, 
+                                             moment_name
+                                            ), f, p1, p2, p3
+                                    ),
+                        0
+                       ) * self.dp3 * self.dp2 * self.dp1
 
     af.eval(moment)
     return (moment)

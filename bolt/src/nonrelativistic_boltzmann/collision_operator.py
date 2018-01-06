@@ -10,7 +10,7 @@ import arrayfire as af
 @af.broadcast
 def f0(p1, p2, p3, n, T, p1_bulk, p2_bulk, p3_bulk, params):
     """Return the Local MB distribution."""
-    m     = params.mass_particle
+    m     = params.mass[0]
     k     = params.boltzmann_constant
 
     if (params.p_dim == 3):
@@ -38,9 +38,9 @@ def BGK(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     # Floor used to avoid 0/0 limit:
     eps = 1e-30
 
-    p1_bulk = moments('mom_p1_bulk', f) / (n + eps)
-    p2_bulk = moments('mom_p2_bulk', f) / (n + eps)
-    p3_bulk = moments('mom_p3_bulk', f) / (n + eps)
+    p1_bulk = moments('mom_v1_bulk', f) / (n + eps)
+    p2_bulk = moments('mom_v2_bulk', f) / (n + eps)
+    p3_bulk = moments('mom_v3_bulk', f) / (n + eps)
 
     T = (1 / params.p_dim) * (  2 * moments('energy', f) 
                               - n * p1_bulk**2

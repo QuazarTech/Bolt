@@ -34,11 +34,11 @@ def A_p(q1, q2, p1, p2, p3,
         params
        ):
     """Return the terms A_p1, A_p2 and A_p3."""
-    F1 =   (params.charge_electron / params.mass_particle) \
+    F1 =   (params.charge / params.mass) \
          * (E1 + p2 * B3 - p3 * B2)
-    F2 =   (params.charge_electron / params.mass_particle) \
+    F2 =   (params.charge / params.mass) \
          * (E2 + p3 * B1 - p1 * B3)
-    F3 =   (params.charge_electron / params.mass_particle) \
+    F3 =   (params.charge / params.mass) \
          * (E3 + p1 * B2 - p2 * B1)
 
     return (F1, F2, F3)
@@ -49,11 +49,11 @@ def C_p(q1, q2, p1, p2, p3,
         params
        ):
     """Return the terms C_p1, C_p2 and C_p3."""
-    F1 =   (params.charge_electron / params.mass_particle) \
+    F1 =   (params.charge / params.mass) \
          * (E1 + p2 * B3 - p3 * B2)
-    F2 =   (params.charge_electron / params.mass_particle) \
+    F2 =   (params.charge / params.mass) \
          * (E2 + p3 * B1 - p1 * B3)
-    F3 =   (params.charge_electron / params.mass_particle) \
+    F3 =   (params.charge / params.mass) \
          * (E3 + p1 * B2 - p2 * B1)
 
     return (F1, F2, F3)

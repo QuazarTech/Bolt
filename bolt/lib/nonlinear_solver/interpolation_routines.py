@@ -19,17 +19,17 @@ def f_interp_2d(self, dt):
     q1_center_new = af.broadcast(addition, self.q1_center, - self._A_q1 * dt)
     q2_center_new = af.broadcast(addition, self.q2_center, - self._A_q2 * dt)
 
-    # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
-    self.f = af.approx2(af.reorder(self.f, 1, 2, 0),
-                        af.reorder(q1_center_new, 1, 2, 0),
-                        af.reorder(q2_center_new, 1, 2, 0),
+    # Reordering from (dof, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_s, dof)
+    self.f = af.approx2(af.reorder(self.f, 2, 3, 1, 0),
+                        af.reorder(q1_center_new, 2, 3, 1, 0),
+                        af.reorder(q2_center_new, 2, 3, 1, 0),
                         af.INTERP.BICUBIC_SPLINE, 
-                        xp = af.reorder(self.q1_center, 1, 2, 0),
-                        yp = af.reorder(self.q2_center, 1, 2, 0)
+                        xp = af.reorder(self.q1_center, 2, 3, 1, 0),
+                        yp = af.reorder(self.q2_center, 2, 3, 1, 0)
                        )
 
-    # Reordering from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
-    self.f = af.reorder(self.f, 2, 0, 1)
+    # Reordering from (N_q1, N_q2, N_s, dof) --> (dof, N_s, N_q1, N_q2)
+    self.f = af.reorder(self.f, 3, 2, 0, 1)
 
     af.eval(self.f)
 
@@ -102,7 +102,7 @@ def f_interp_p_3d(self, dt):
     # variation in values along axis 0 and axis 1
 
     self.f = self._convert_to_p_expanded(self.f)
-
+    
     if(self.physical_system.params.p_dim == 3):
 
         

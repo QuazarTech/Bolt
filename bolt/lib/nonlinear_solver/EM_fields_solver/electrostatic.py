@@ -21,10 +21,24 @@ def fft_poisson(self, f=None):
 
     else:
         N_g_q = self.N_ghost_q
-        rho   = af.reorder(  self.physical_system.params.charge_electron \
-                           * self.compute_moments('density', f)[:, N_g_q:-N_g_q, N_g_q:-N_g_q],
-                           1, 2, 0
-                          )
+
+        for i in range(self.N_species):
+            n = self.compute_moments('density', f)[:, :, N_g_q:-N_g_q,
+                                                         N_g_q:-N_g_q
+                                                  ]
+            
+            rho   = af.reorder(  af.sum(self.physical_system.params.charge[0]) \
+                               * (n[0, 0] - af.mean(n[0, 0])),
+                               2, 3, 0, 1
+                              )
+
+            if(self.N_species > 1):
+                if i in range(1, self.N_species):
+                    rho += af.reorder(  self.physical_system.params.charge[i] \
+                                      * (n[0, i] - af.mean(n[0, i])),
+                                      2, 3, 0, 1
+                                     )
+
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)
         k_q2 = fftfreq(rho.shape[1], self.dq2)
@@ -43,11 +57,11 @@ def fft_poisson(self, f=None):
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
 
         # Non-inclusive of ghost-zones:
-        E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 0, 1)
-        E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 0, 1)
+        E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 3, 0, 1)
+        E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 3, 0, 1)
 
-        self.cell_centered_EM_fields[0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E1_physical
-        self.cell_centered_EM_fields[1, N_g_q:-N_g_q, N_g_q:-N_g_q] = E2_physical
+        self.cell_centered_EM_fields[0, 0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E1_physical
+        self.cell_centered_EM_fields[1, 0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E2_physical
 
         af.eval(self.cell_centered_EM_fields)
 

@@ -7,24 +7,31 @@ def reconstruct_weno5(input_array, axis):
 
     if(axis == 0):
 
-        x0_shift = 2;  y0_shift = 0; z0_shift = 0
-        x1_shift = 1;  y1_shift = 0; z1_shift = 0
-        x3_shift = -1; y3_shift = 0; z3_shift = 0
-        x4_shift = -2; y4_shift = 0; z4_shift = 0
+        x0_shift = 2;  y0_shift = 0; z0_shift = 0; w0_shift = 0
+        x1_shift = 1;  y1_shift = 0; z1_shift = 0; w1_shift = 0
+        x3_shift = -1; y3_shift = 0; z3_shift = 0; w3_shift = 0
+        x4_shift = -2; y4_shift = 0; z4_shift = 0; w4_shift = 0
 
     elif(axis == 1):
 
-        x0_shift = 0; y0_shift = 2;  z0_shift = 0
-        x1_shift = 0; y1_shift = 1;  z1_shift = 0
-        x3_shift = 0; y3_shift = -1; z3_shift = 0
-        x4_shift = 0; y4_shift = -2; z4_shift = 0
+        x0_shift = 0; y0_shift = 2;  z0_shift = 0; w0_shift = 0
+        x1_shift = 0; y1_shift = 1;  z1_shift = 0; w1_shift = 0
+        x3_shift = 0; y3_shift = -1; z3_shift = 0; w3_shift = 0
+        x4_shift = 0; y4_shift = -2; z4_shift = 0; w4_shift = 0
   
     elif(axis == 2):
 
-        x0_shift = 0; y0_shift = 0; z0_shift = 2
-        x1_shift = 0; y1_shift = 0; z1_shift = 1
-        x3_shift = 0; y3_shift = 0; z3_shift = -1
-        x4_shift = 0; y4_shift = 0; z4_shift = -2
+        x0_shift = 0; y0_shift = 0; z0_shift = 2;  w0_shift = 0
+        x1_shift = 0; y1_shift = 0; z1_shift = 1;  w1_shift = 0
+        x3_shift = 0; y3_shift = 0; z3_shift = -1; w3_shift = 0
+        x4_shift = 0; y4_shift = 0; z4_shift = -2; w4_shift = 0
+
+    elif(axis == 3):
+
+        x0_shift = 0; y0_shift = 0; z0_shift = 0; w0_shift = 2
+        x1_shift = 0; y1_shift = 0; z1_shift = 0; w1_shift = 1
+        x3_shift = 0; y3_shift = 0; z3_shift = 0; w3_shift = -1
+        x4_shift = 0; y4_shift = 0; z4_shift = 0; w4_shift = -2
 
     else:
         raise Exception('Invalid choice for axis')

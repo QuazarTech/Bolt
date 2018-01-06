@@ -32,6 +32,11 @@ def slope_minmod(input_array, axis):
         f_i_plus_one  = af.shift(input_array, 0, 0, -1)
         f_i_minus_one = af.shift(input_array, 0, 0,  1)
 
+    elif(axis == 3):
+
+        f_i_plus_one  = af.shift(input_array, 0, 0, 0, -1)
+        f_i_minus_one = af.shift(input_array, 0, 0, 0,  1)
+
     forward_diff  = (f_i_plus_one - input_array  )
     backward_diff = (input_array  - f_i_minus_one)
     central_diff  = backward_diff + forward_diff
