@@ -127,6 +127,4 @@ def fdtd_grid_to_ck_grid(self):
     self.cell_centered_EM_fields[3] = 0.5 * (B1_yee + af.shift(B1_yee, 0, -1,  0))
     self.cell_centered_EM_fields[4] = 0.5 * (B2_yee + af.shift(B2_yee, 0, 0, -1))
     self.cell_centered_EM_fields[5] = B3_yee
-
-    af.eval(self.cell_centered_EM_fields)
     return

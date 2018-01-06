@@ -29,8 +29,8 @@ def compute_electrostatic_fields(self, f=None, f_hat=None):
     else:
 
         for i in range(self.N_species):
-            
-            rho_hat = 2 * af.fft2(self.compute_moments('density', i, f=f, f_hat=f_hat)) \
+            n       = self.compute_moments('density', i, f=f, f_hat=f_hat)
+            rho_hat = 2 * af.fft2(n - af.mean(n)) \
                         / (self.N_q1 * self.N_q2)
 
             if(i == 0):

@@ -19,7 +19,6 @@ def fvm_timestep_RK2(self, dt):
     if(    any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
        and self.physical_system.params.fields_solver == 'fdtd'
       ):
-        
         for i in range(self.N_species):
             if(i == 0):    
                 self.J1 =   self.physical_system.params.charge[i] \

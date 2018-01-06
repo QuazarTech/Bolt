@@ -23,20 +23,19 @@ def fft_poisson(self, f=None):
         N_g_q = self.N_ghost_q
 
         for i in range(self.N_species):
+            n = self.compute_moments('density', i, f)[:, N_g_q:-N_g_q,
+                                                      N_g_q:-N_g_q
+                                                     ]
             if(i == 0):
                 rho   = af.reorder(  self.physical_system.params.charge[0] \
-                                   * self.compute_moments('density', 0, f)[:, N_g_q:-N_g_q,
-                                                                           N_g_q:-N_g_q
-                                                                          ],
+                                   * (n - af.mean(n)),
                                    1, 2, 0
                                   )
             else:
-                rho  += af.reorder(  self.physical_system.params.charge[i] \
-                                   * self.compute_moments('density', i, f)[:, N_g_q:-N_g_q,
-                                                                           N_g_q:-N_g_q
-                                                                          ],
-                                   1, 2, 0
-                                  )
+                rho += af.reorder(  self.physical_system.params.charge[i] \
+                                  * (n - af.mean(n)),
+                                  1, 2, 0
+                                 )
 
 
         k_q1 = fftfreq(rho.shape[0], self.dq1)

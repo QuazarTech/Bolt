@@ -5,7 +5,7 @@ import arrayfire as af
 import numpy as np
 
 def f_interp_2d(self, dt):
-    
+    dof = self.dof
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -32,7 +32,7 @@ def f_interp_2d(self, dt):
         q2_center_new = af.broadcast(addition, self.q2_center, - A_q2 * dt)
 
         # Reordering from (dof, N_q1, N_q2) --> (N_q1, N_q2, dof)
-        self.f[i * dof:(i+1) * dof] = \
+        f_new_reordered = \
             af.approx2(af.reorder(self.f[i * dof:(i+1) * dof], 1, 2, 0),
                        af.reorder(q1_center_new, 1, 2, 0),
                        af.reorder(q2_center_new, 1, 2, 0),
@@ -42,7 +42,7 @@ def f_interp_2d(self, dt):
                       )
 
         # Reordering from (N_q1, N_q2, dof) --> (dof, N_q1, N_q2)
-        self.f[i * dof:(i+1) * dof] = af.reorder(self.f[i * dof:(i+1) * dof], 2, 0, 1)
+        self.f[i * dof:(i+1) * dof] = af.reorder(f_new_reordered, 2, 0, 1)
 
     af.eval(self.f)
 
