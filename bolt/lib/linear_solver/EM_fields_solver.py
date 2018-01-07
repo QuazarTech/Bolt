@@ -28,30 +28,23 @@ def compute_electrostatic_fields(self, f=None, f_hat=None):
 
     else:
 
-        rho_hat = 2 * af.fft2(self.compute_moments('density', f=f, f_hat=f_hat)) \
-                    / (self.N_q1 * self.N_q2) # Scaling Appropriately
+        for i in range(self.N_species):
+            n       = self.compute_moments('density', i, f=f, f_hat=f_hat)
+            rho_hat = 2 * af.fft2(n - af.mean(n)) \
+                        / (self.N_q1 * self.N_q2)
 
-        # Defining lambda functions to perform broadcasting operations:
-        # This is done using af.broadcast, which allows us to perform 
-        # batched operations when operating on arrays of different sizes:
-        divide   = lambda a, b:a/b
-        multiply = lambda a, b:a*b
-
-        # af.broadcast(function, *args) performs batched operations on
-        # function(*args):
-        phi_hat = self.physical_system.params.charge_electron * \
-                  af.broadcast(divide, rho_hat, 
-                               (self.k_q1**2 + self.k_q2**2)
-                              )
+            if(i == 0):
+                phi_hat = af.sum(self.physical_system.params.charge[i]) * \
+                          rho_hat / (self.k_q1**2 + self.k_q2**2)
+            else:
+                phi_hat += self.physical_system.params.charge[i] * \
+                           rho_hat / (self.k_q1**2 + self.k_q2**2)
 
         # Setting the background electric potential to zero:
         phi_hat[0, 0] = 0
 
-        # Tiling to make phi_hat of positionsExpanded form:
-        phi_hat = af.tile(phi_hat, 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-
-        self.E1_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q1))
-        self.E2_hat = af.broadcast(multiply, -phi_hat, (1j * self.k_q2))
+        self.E1_hat = -phi_hat * 1j * self.k_q1
+        self.E2_hat = -phi_hat * 1j * self.k_q2
         self.E3_hat = 0 * self.E1_hat 
         
         self.B1_hat = 0 * self.E1_hat

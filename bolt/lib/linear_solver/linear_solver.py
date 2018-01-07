@@ -78,6 +78,15 @@ class linear_solver(object):
         self.N_p1, self.dp1 = physical_system.N_p1, physical_system.dp1
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
+        
+        # Getting number of species:
+        self.N_species = len(physical_system.params.mass)
+
+        # Conversions to be consistent with chosen data structure:
+        self.physical_system.params.mass   = \
+            af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
+        self.physical_system.params.charge = \
+            af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
 
         # Checking that periodic B.C's are utilized:
         if(    physical_system.boundary_conditions.in_q1_left   != 'periodic' 
@@ -91,18 +100,16 @@ class linear_solver(object):
 
         # Initializing DAs which will be used in file-writing:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof=(  self.N_p1 
+                                              dof=(  self.N_species
+                                                   * self.N_p1 
                                                    * self.N_p2 
                                                    * self.N_p3
                                                   )
                                              )
-
+        attributes = [a for a in dir(self.physical_system.moment_defs) if not a.startswith('_')]
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof=len(self.physical_system.\
-                                                            moment_exponents
-                                                           )
+                                                    dof=len(attributes)
                                                    )
-
 
         # Printing backend details:
         PETSc.Sys.Print('\nBackend Details for Linear Solver:')
@@ -247,6 +254,12 @@ class linear_solver(object):
         p2_center = af.reorder(p2_center, 2, 3, 0, 1)
         p3_center = af.reorder(p3_center, 2, 3, 0, 1)
 
+        if(self.N_species > 1):
+            
+            p1_center = af.tile(p1_center, 1, 1, 1, self.N_species)
+            p2_center = af.tile(p2_center, 1, 1, 1, self.N_species)
+            p3_center = af.tile(p3_center, 1, 1, 1, self.N_species)
+
         af.eval(p1_center, p2_center, p3_center)
         return(p1_center, p2_center, p3_center)
 
@@ -266,12 +279,12 @@ class linear_solver(object):
                              self.p1, self.p2, self.p3, params
                              )
         # Taking FFT:
-        f_hat = af.fft2(f)
+        self.f_hat = af.fft2(f)
 
         # Since (k_q1, k_q2) = (0, 0) will give the background distribution:
         # The division by (self.N_q1 * self.N_q2) is performed since the FFT
         # at (0, 0) returns (amplitude * (self.N_q1 * self.N_q2))
-        self.f_background = af.abs(f_hat[0, 0, :])/ (self.N_q1 * self.N_q2)
+        self.f_background = af.abs(self.f_hat[0, 0])/ (self.N_q1 * self.N_q2)
 
         # Calculating derivatives of the background distribution function:
         self._calculate_dfdp_background()
@@ -279,7 +292,7 @@ class linear_solver(object):
         # Scaling Appropriately:
         # Except the case of (0, 0) the FFT returns
         # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
-        f_hat = 2 * f_hat / (self.N_q1 * self.N_q2)
+        self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2) 
 
         if(self.single_mode_evolution == True):
             # Background
@@ -365,33 +378,40 @@ class linear_solver(object):
                              )
 
         else:
-            # Using a vector Y to evolve the system:
-            self.Y = af.constant(0, self.N_q1, self.N_q2,
-                                 self.N_p1 * self.N_p2 * self.N_p3,
-                                 7, dtype = af.Dtype.c64
-                                )
+            dof            = self.N_p1 * self.N_p2 * self.N_p3
+            self.df_hat_dt = af.constant(0, self.N_q1, self.N_q2, 
+                                         self.N_species * dof,
+                                         dtype=af.Dtype.c64
+                                        )
 
-            # Assigning the 0th indice along axis 3 to the f_hat:
-            self.Y[:, :, :, 0] = f_hat
+
+
+            self.fields_hat = af.constant(0, self.N_q1, self.N_q2,
+                                          6, dtype = af.Dtype.c64
+                                         )
 
             # Initializing the EM field quantities:
+            self.E1_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      dtype = af.Dtype.c64
+                                     )
+
+            self.E2_hat = af.constant(0, self.N_q1, self.N_q2,
+                                      dtype = af.Dtype.c64
+                                     )
+
             self.E3_hat = af.constant(0, self.N_q1, self.N_q2,
-                                      self.N_p1 * self.N_p2 * self.N_p3, 
                                       dtype = af.Dtype.c64
                                      )
 
             self.B1_hat = af.constant(0, self.N_q1, self.N_q2,
-                                      self.N_p1 * self.N_p2 * self.N_p3,
                                       dtype = af.Dtype.c64
                                      )
             
             self.B2_hat = af.constant(0, self.N_q1, self.N_q2,
-                                      self.N_p1 * self.N_p2 * self.N_p3,
                                       dtype = af.Dtype.c64
                                      ) 
             
             self.B3_hat = af.constant(0, self.N_q1, self.N_q2,
-                                      self.N_p1 * self.N_p2 * self.N_p3,
                                       dtype = af.Dtype.c64
                                      )
             
@@ -404,32 +424,36 @@ class linear_solver(object):
             # If option is given as user-defined:
             elif(self.physical_system.params.fields_initialize == 'user-defined'):
                 E1, E2, E3 = \
-                    self.physical_system.initial_conditions.initialize_E(self.q1_center, self.q2_center, self.physical_system.params)
+                    self.physical_system.initial_conditions.initialize_E(self.q1_center, 
+                                                                         self.q2_center,
+                                                                         self.physical_system.params
+                                                                        )
                 
                 B1, B2, B3 = \
-                    self.physical_system.initial_conditions.initialize_B(self.q1_center, self.q2_center, self.physical_system.params)
+                    self.physical_system.initial_conditions.initialize_B(self.q1_center,
+                                                                         self.q2_center,
+                                                                         self.physical_system.params
+                                                                        )
 
                 # Scaling Appropriately
-                self.E1_hat = af.tile(2 * af.fft2(E1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-                self.E2_hat = af.tile(2 * af.fft2(E2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-                self.E3_hat = af.tile(2 * af.fft2(E3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-                self.B1_hat = af.tile(2 * af.fft2(B1) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-                self.B2_hat = af.tile(2 * af.fft2(B2) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-                self.B3_hat = af.tile(2 * af.fft2(B3) / (self.N_q1 * self.N_q2), 1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+                self.E1_hat = 2 * af.fft2(E1) / (self.N_q1 * self.N_q2)
+                self.E2_hat = 2 * af.fft2(E2) / (self.N_q1 * self.N_q2)
+                self.E3_hat = 2 * af.fft2(E3) / (self.N_q1 * self.N_q2)
+                self.B1_hat = 2 * af.fft2(B1) / (self.N_q1 * self.N_q2)
+                self.B2_hat = 2 * af.fft2(B2) / (self.N_q1 * self.N_q2)
+                self.B3_hat = 2 * af.fft2(B3) / (self.N_q1 * self.N_q2)
                 
             else:
                 raise NotImplementedError('Method invalid/not-implemented')
 
-            # Assigning other indices along axis 3 to be
-            # the EM field quantities:
-            self.Y[:, :, :, 1] = self.E1_hat
-            self.Y[:, :, :, 2] = self.E2_hat
-            self.Y[:, :, :, 3] = self.E3_hat
-            self.Y[:, :, :, 4] = self.B1_hat
-            self.Y[:, :, :, 5] = self.B2_hat
-            self.Y[:, :, :, 6] = self.B3_hat
+            self.fields_hat[:, :, 0] = self.E1_hat
+            self.fields_hat[:, :, 1] = self.E2_hat
+            self.fields_hat[:, :, 2] = self.E3_hat
+            self.fields_hat[:, :, 3] = self.B1_hat
+            self.fields_hat[:, :, 4] = self.B2_hat
+            self.fields_hat[:, :, 5] = self.B3_hat
 
-            af.eval(self.Y)
+            af.eval(self.fields_hat)
 
         return
 
