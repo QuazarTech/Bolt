@@ -7,13 +7,7 @@ nonlinear solver of bolt is defined. This solver object
 stores the details of the system defined under physical_system, 
 and is evolved using the methods of this module.
 
-The solver utilizes a semi-lagrangian which uses advective 
-interpolation based on Cheng-Knorr(1978) in the p-space:
-   
-    - The interpolation schemes available are 
-      linear and quadratic spline.
-
-The q-space has the option of using 2 different methods:
+The solver has the option of using 2 different methods:
 
 - A semi-lagrangian scheme based on Cheng-Knorr(1978) which
   uses advective interpolation.(non-conservative)
@@ -52,7 +46,7 @@ from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
 from .utils.performance_timings import print_table
 from .compute_moments import compute_moments as compute_moments_imported
-from .EM_fields_solver.electrostatic import fft_poisson
+from .fields.fields_solver import fields_solver
 
 class nonlinear_solver(object):
     """
@@ -111,12 +105,6 @@ class nonlinear_solver(object):
 
         # Getting number of species:
         self.N_species = len(physical_system.params.mass)
-
-        # Conversions to be consistent with chosen data structure:
-        self.physical_system.params.mass   = \
-            af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
-        self.physical_system.params.charge = \
-            af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
 
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
@@ -266,37 +254,6 @@ class nonlinear_solver(object):
                                               comm          = self._comm
                                              )
 
-        # This DA object is used in the communication routines for the
-        # EM field quantities. A DOF of 6 is taken so that the communications,
-        # and application of B.C's may be carried out in a single call among
-        # all the field quantities(E1, E2, E3, B1, B2, B3)
-        self._da_fields = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof           = 6,
-                                              stencil_width = N_g_q,
-                                              boundary_type = (petsc_bc_in_q1,
-                                                               petsc_bc_in_q2
-                                                              ),
-                                              proc_sizes    = (nproc_in_q1, 
-                                                               nproc_in_q2
-                                                              ),
-                                              stencil_type  = 1,
-                                              comm          = self._comm
-                                             )
-
-        # Additionally, a DMDA object also needs to be created for 
-        # the SNES solver with a DOF of 1. This is used to solve for
-        # the electrostatic case, in combination with the KSP solver:
-        self._da_ksp = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                            stencil_width = N_g_q,
-                                            boundary_type = (petsc_bc_in_q1,
-                                                             petsc_bc_in_q2
-                                                            ),
-                                            proc_sizes    = (nproc_in_q1, 
-                                                             nproc_in_q2
-                                                            ),
-                                            stencil_type  = 1,
-                                            comm          = self._comm
-                                          )
 
         # This DA is used by the FileIO routine dump_moments():
         # Finding the number of definitions for the moments under moment_defs:
@@ -315,11 +272,6 @@ class nonlinear_solver(object):
         self._glob_f  = self._da_f.createGlobalVec()
         self._local_f = self._da_f.createLocalVec()
 
-        # The following global and local vectors are used in
-        # the communication routines for EM fields
-        self._glob_fields  = self._da_fields.createGlobalVec()
-        self._local_fields = self._da_fields.createLocalVec()
-
         # The following vector is used to dump the data to file:
         self._glob_dump_f  = self._da_dump_f.createGlobalVec()
         self._glob_moments = self._da_dump_moments.createGlobalVec()
@@ -328,9 +280,6 @@ class nonlinear_solver(object):
         self._glob_f_array  = self._glob_f.getArray()
         self._local_f_array = self._local_f.getArray()
 
-        self._glob_fields_array  = self._glob_fields.getArray()
-        self._local_fields_array = self._local_fields.getArray()
-
         self._glob_moments_array = self._glob_moments.getArray()
         self._glob_dump_f_array  = self._glob_dump_f.getArray()
 
@@ -338,7 +287,6 @@ class nonlinear_solver(object):
         # used as the key identifiers for the HDF5 files:
         PETSc.Object.setName(self._glob_dump_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
-        PETSc.Object.setName(self._glob_fields, 'EM_fields')
 
         # Obtaining the array values of the cannonical variables:
         self.q1_center, self.q2_center                 = self._calculate_q_center()
@@ -347,6 +295,7 @@ class nonlinear_solver(object):
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
     
+
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
@@ -393,27 +342,9 @@ class nonlinear_solver(object):
         (af.flat(self.f)).to_ndarray(self._local_f_array)
         (af.flat(self.f[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_f_array)
 
-        # Assigning the advection terms along q1 and q2
-        self._A_q1 = physical_system.A_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[0]
-        self._A_q2 = physical_system.A_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[1]
-
-        # Assigning the conservative advection terms along q1 and q2
-        self._C_q1 = physical_system.C_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[0]
-        self._C_q2 = physical_system.C_q(self.q1_center, self.q2_center,
-                                         self.p1_center, self.p2_center, self.p3_center,
-                                         physical_system.params
-                                        )[1]
-
         # Assigning the function objects to methods of the solver:
+        self._A_q = physical_system.A_q
+        self._C_q = physical_system.C_q
         self._A_p = physical_system.A_p
         self._C_p = physical_system.C_p
 
@@ -421,8 +352,6 @@ class nonlinear_solver(object):
         self._source = physical_system.source
 
         # Initializing a variable to track time-elapsed:
-        # This becomes necessary when applying shearing wall
-        # boundary conditions(WIP):
         self.time_elapsed = 0
 
     def _convert_to_q_expanded(self, array):
@@ -513,6 +442,7 @@ class nonlinear_solver(object):
         q2_center, q1_center = np.meshgrid(q2_center, q1_center)
         q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
 
+        # To bring the data structure to the default form:(N_p, N_s, N_q1, N_q2)
         q1_center = af.reorder(q1_center, 3, 2, 0, 1)
         q2_center = af.reorder(q2_center, 3, 2, 0, 1)
 
@@ -583,6 +513,12 @@ class nonlinear_solver(object):
         p2_left = af.flat(af.to_array(p2_left))
         p3_left = af.flat(af.to_array(p3_left))
 
+        if(self.N_species > 1):
+            
+            p1_left = af.tile(p1_left, 1, self.N_species)
+            p2_left = af.tile(p2_left, 1, self.N_species)
+            p3_left = af.tile(p3_left, 1, self.N_species)
+
         af.eval(p1_left, p2_left, p3_left)
         return (p1_left, p2_left, p3_left)
 
@@ -612,6 +548,12 @@ class nonlinear_solver(object):
         p2_bottom = af.flat(af.to_array(p2_bottom))
         p3_bottom = af.flat(af.to_array(p3_bottom))
 
+        if(self.N_species > 1):
+            
+            p1_bottom = af.tile(p1_bottom, 1, self.N_species)
+            p2_bottom = af.tile(p2_bottom, 1, self.N_species)
+            p3_bottom = af.tile(p3_bottom, 1, self.N_species)
+
         af.eval(p1_bottom, p2_bottom, p3_bottom)
         return (p1_bottom, p2_bottom, p3_bottom)
 
@@ -640,6 +582,12 @@ class nonlinear_solver(object):
         p1_back = af.flat(af.to_array(p1_back))
         p2_back = af.flat(af.to_array(p2_back))
         p3_back = af.flat(af.to_array(p3_back))
+        
+        if(self.N_species > 1):
+            
+            p1_back = af.tile(p1_back, 1, self.N_species)
+            p2_back = af.tile(p2_back, 1, self.N_species)
+            p3_back = af.tile(p3_back, 1, self.N_species)
 
         af.eval(p1_back, p2_back, p3_back)
         return (p1_back, p2_back, p3_back)
@@ -660,138 +608,20 @@ class nonlinear_solver(object):
                               self.p1_center, self.p2_center, self.p3_center, params
                              )
 
-        # Obtaining start coordinates for the local zone
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+        if(self.physical_system.params.EM_fields_on):
+            # Conversions to stack mass and charge on axis containing N_s:
+            # This allows for easier operations in field computations:
+            self.physical_system.params.mass   = \
+                af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
+            self.physical_system.params.charge = \
+                af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
 
-        # Initializing the EM fields quantities:
-        # These quantities are defined for the CK grid:
-        # That is at (i + 0.5, j + 0.5):
-
-        # Electric fields are defined at the n-th timestep:
-        # Magnetic fields are defined at the (n-1/2)-th timestep:
-        self.cell_centered_EM_fields = af.constant(0, 6, 1, 
-                                                     N_q1_local 
-                                                   + 2 * self.N_ghost_q,
-                                                     N_q2_local 
-                                                   + 2 * self.N_ghost_q,
-                                                   dtype=af.Dtype.f64
-                                                  )
-
-        # Field values at n-th timestep:
-        self.cell_centered_EM_fields_at_n = af.constant(0, 6, 1, 
-                                                          N_q1_local 
-                                                        + 2 * self.N_ghost_q,
-                                                          N_q2_local 
-                                                        + 2 * self.N_ghost_q,
-                                                        dtype=af.Dtype.f64
-                                                       )
-
-        # Field values at (n+1/2)-th timestep:
-        self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6, 1,
-                                                                    N_q1_local 
-                                                                  + 2 * self.N_ghost_q,
-                                                                    N_q2_local 
-                                                                  + 2 * self.N_ghost_q,
-                                                                  dtype=af.Dtype.f64
-                                                                 )
-
-
-        # Declaring the arrays which store data on the FDTD grid:
-        self.yee_grid_EM_fields = af.constant(0, 6, 1,
-                                                N_q1_local 
-                                              + 2 * self.N_ghost_q,
-                                                N_q2_local 
-                                              + 2 * self.N_ghost_q,
-                                              dtype=af.Dtype.f64
-                                             )
-
-
-
-        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
-    
-            if(self.physical_system.params.fields_type == 'user-defined'):
-                try:
-                    assert(self.physical_system.params.fields_initialize == 'user-defined')
-                except:
-                    raise Exception('It is expected that the fields initialization method is also \
-                                     userdefined when the fields type is declared to be userdefined'
-                                   )
-            
-            if (self.physical_system.params.fields_initialize == 'fft'):
-                fft_poisson(self)
-                self._communicate_fields()
-                self._apply_bcs_fields()
-
-            elif (self.physical_system.params.fields_initialize == 'user-defined'):
-    
-                if(self.physical_system.params.fields_type != 'user-defined'):            
-                    E1, E2, E3 = \
-                        self.physical_system.initial_conditions.initialize_E(self.q1_center,
-                                                                             self.q2_center,
-                                                                             params
-                                                                            )
-
-                    B1, B2, B3 = \
-                        self.physical_system.initial_conditions.initialize_B(self.q1_center,
-                                                                             self.q2_center,
-                                                                             params
-                                                                            )
-                else:
-
-                    E1, E2, E3 = \
-                        self.physical_system.params.user_defined_E(self.q1_center,
-                                                                   self.q2_center,
-                                                                   0
-                                                                  )
-
-                    B1, B2, B3 = \
-                        self.physical_system.params.user_defined_B(self.q1_center,
-                                                                   self.q2_center,
-                                                                   0
-                                                                  )
-
-                self.cell_centered_EM_fields  = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-            
-            else:
-                raise NotImplementedError('Method not valid/not implemented')
-
-            # Getting the values at the FDTD grid points:
-            E1 = self.cell_centered_EM_fields[0] # (i+1/2, j+1/2)
-            E2 = self.cell_centered_EM_fields[1] # (i+1/2, j+1/2)
-            E3 = self.cell_centered_EM_fields[2] # (i+1/2, j+1/2)
-            
-            B1 = self.cell_centered_EM_fields[3] # (i+1/2, j+1/2)
-            B2 = self.cell_centered_EM_fields[4] # (i+1/2, j+1/2)
-            B3 = self.cell_centered_EM_fields[5] # (i+1/2, j+1/2)
-
-            self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 1))  # (i+1/2, j)
-            self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 1, 0))  # (i, j+1/2)
-            self.yee_grid_EM_fields[2] = 0.25 * (  E3 
-                                                 + af.shift(E3, 0, 1, 0)
-                                                 + af.shift(E3, 0, 0, 1) 
-                                                 + af.shift(E3, 0, 1, 1)
-                                                )  # (i, j)
-
-            self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 1, 0)) # (i, j+1/2)
-            self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 1)) # (i+1/2, j)
-            self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
-
-            # At t = 0, we take the value of B_{0} = B{1/2}:
-            self.cell_centered_EM_fields_at_n = \
-                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
-            self.cell_centered_EM_fields_at_n_plus_half = \
-                af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            self.fields_solver = fields_solver(self)
         
     # Injection of solver functions into class as methods:
     _communicate_f      = communicate.\
                           communicate_f
-
-    _communicate_fields = communicate.\
-                          communicate_fields
-
-    _apply_bcs_f      = apply_boundary_conditions.apply_bcs_f
-    _apply_bcs_fields = apply_boundary_conditions.apply_bcs_fields
+    _apply_bcs_f        = apply_boundary_conditions.apply_bcs_f
 
     strang_timestep = timestep.strang_step
     lie_timestep    = timestep.lie_step

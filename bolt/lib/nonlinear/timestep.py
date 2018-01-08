@@ -12,27 +12,8 @@ from .temporal_evolution import integrators
 from .FVM_solver.df_dt_fvm import df_dt_fvm
 from .FVM_solver.timestep_df_dt import fvm_timestep_RK2
 
-from .interpolation_routines import f_interp_2d
-from .EM_fields_solver.fields_step import fields_step
-
-
-# def check_maxwells_constraint_equations(self):
-    
-#     N_g = self.N_ghost
-
-#     rhoc =    self.physical_system.params.charge_electron \
-#            * (self.compute_moments('density') - 1)
-
-#     rho = 0.25 * (rhoc + af.shift(rhoc, 0, 1) + af.shift(rhoc, 0, 0, 1) + af.shift(rhoc, 0, 1, 1))
-
-#     gradE = + (self.yee_grid_EM_fields[0] - af.shift(self.yee_grid_EM_fields[0], 0, 1))/self.dq1 \
-#             + (self.yee_grid_EM_fields[1] - af.shift(self.yee_grid_EM_fields[1], 0, 0, 1))/self.dq2
-
-#     gradB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 1))/self.dq1 \
-#             + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 1))/self.dq2
-
-#     print('MEAN(|gradB|) =', af.mean(af.abs(gradB[0, N_g:-N_g, N_g:-N_g])))
-#     print('MEAN(|gradE - rho|) =', af.mean(af.abs(gradE - rho)[0, N_g:-N_g, N_g:-N_g]))
+from .ASL_solver.interpolation_routines import f_interp_2d
+from .ASL_solver.fields_step import fields_step
 
 # Defining the operators:
 # When using FVM:

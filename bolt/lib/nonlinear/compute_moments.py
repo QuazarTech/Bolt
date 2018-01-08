@@ -110,12 +110,10 @@ def compute_moments(self, moment_name, f=None):
                            N_q1, N_q2
                           )
 
-    moment   =   af.sum(af.broadcast(getattr(self.physical_system.moment_defs, 
-                                             moment_name
-                                            ), f, p1, p2, p3
-                                    ),
-                        0
-                       ) * self.dp3 * self.dp2 * self.dp1
+    moment = af.broadcast(getattr(self.physical_system.moment_defs, 
+                                  moment_name
+                                 ), f, p1, p2, p3
+                         ) * self.dp3 * self.dp2 * self.dp1
 
     af.eval(moment)
     return (moment)

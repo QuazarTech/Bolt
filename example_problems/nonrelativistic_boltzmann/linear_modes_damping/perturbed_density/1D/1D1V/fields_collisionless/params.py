@@ -1,13 +1,10 @@
 import numpy as np
 import arrayfire as af
 
-# Can be defined as 'electrostatic', 'user-defined'.
-# The initial conditions need to be specified under initialize
-# Ensure that the initial conditions specified satisfy
-# Maxwell's constraint equations
+# Can be defined as 'electrostatic', 'user-defined', 'electrodynamic'.
 fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-fields_solver     = 'fft'
+fields_solver     = 'fdtd'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -26,25 +23,39 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = [1]
+mass               = [1, 1]
 boltzmann_constant = 1
-charge             = [-10]
+charge             = [-10, 5]
 
 # Initial Conditions used in initialize:
-rho_background         = 1
-temperature_background = 1
+rho_background_species_1 = 1
+rho_background_species_2 = 1
 
-p1_bulk_background = 0
+temperature_background_species_1 = 1
+temperature_background_species_2 = 1
 
-pert_real = 0.01
-pert_imag = 0.02
+v1_bulk_background_species_1 = 0
+v1_bulk_background_species_2 = 0
 
-k_q1 = 2 * np.pi
-k_q2 = 0 * np.pi
+pert_real_species_1 = 0.01
+pert_real_species_2 = 0.01
+
+pert_imag_species_1 = 0.02
+pert_imag_species_2 = 0.02
+
+k_q1_species_1 = 2 * np.pi
+k_q1_species_2 = 2 * np.pi
+
+k_q2_species_1 = 0 * np.pi
+k_q2_species_2 = 0 * np.pi
 
 # Time parameters:
 N_cfl   = 0.32
 t_final = 0.5
+
+# Switch for solver segments:
+EM_fields_on = True
+src_on       = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

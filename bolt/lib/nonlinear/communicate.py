@@ -72,14 +72,14 @@ def communicate_fields(self, on_fdtd_grid = False):
     it can also be used to communicate the values on the Yee-grid
     which is used by the FDTD solver.
     """
-    if(self.performance_test_flag == True):
+    if(self.nls.performance_test_flag == True):
         tic = af.time()
 
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
 
-    N_g_q = self.N_ghost_q
+    N_g_q = self.nls.N_ghost_q
 
     # Assigning the values of the af.Array 
     # fields quantities to the PETSc.Vec:
@@ -116,7 +116,7 @@ def communicate_fields(self, on_fdtd_grid = False):
         
         af.eval(self.cell_centered_EM_fields)
     
-    if(self.performance_test_flag == True):
+    if(self.nls.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_communicate_fields += toc - tic
