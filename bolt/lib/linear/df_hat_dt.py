@@ -83,8 +83,6 @@ def df_hat_dt_multimode_evolution(f_hat, self):
                       + multiply(A_p2_hat, self.dfdp2_background) \
                       + multiply(A_p3_hat, self.dfdp3_background)
 
-        # print(af.sum(af.abs(fields_term)))
-        # print(af.sum(af.abs(df_hat_dt)))
         df_hat_dt -= fields_term
 
     af.eval(df_hat_dt)

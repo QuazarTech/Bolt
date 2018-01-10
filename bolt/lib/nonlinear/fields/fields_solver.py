@@ -186,6 +186,7 @@ class fields_solver(object):
             raise NotImplementedError('Method not valid/not implemented')
 
         self.cell_centered_grid_to_yee_grid()
+        
         # At t = 0, we take the value of B_{0} = B{1/2}:
         self.cell_centered_EM_fields_at_n = self.cell_centered_EM_fields
         self.cell_centered_EM_fields_at_n_plus_half = self.cell_centered_EM_fields
@@ -200,16 +201,16 @@ class fields_solver(object):
         B2 = self.cell_centered_EM_fields[4]
         B3 = self.cell_centered_EM_fields[5]
 
-        self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 1))  # (i+1/2, j)
-        self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 1, 0))  # (i, j+1/2)
+        self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 0, 1))  # (i+1/2, j)
+        self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 0, 1, 0))  # (i, j+1/2)
         self.yee_grid_EM_fields[2] = 0.25 * (  E3 
-                                             + af.shift(E3, 0, 1, 0)
-                                             + af.shift(E3, 0, 0, 1) 
-                                             + af.shift(E3, 0, 1, 1)
+                                             + af.shift(E3, 0, 0, 1, 0)
+                                             + af.shift(E3, 0, 0, 0, 1) 
+                                             + af.shift(E3, 0, 0, 1, 1)
                                             )  # (i, j)
 
-        self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 1, 0)) # (i, j+1/2)
-        self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 1)) # (i+1/2, j)
+        self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 0, 1, 0)) # (i, j+1/2)
+        self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 0, 1)) # (i+1/2, j)
         self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
 
         af.eval(self.yee_grid_EM_fields)
@@ -252,9 +253,12 @@ class fields_solver(object):
                           + af.shift(self.J3, 0, 0, 1, 1)
                          )  # (i, j)
 
+        return
+
     def compute_electrostatic_fields(self, rho):
 
         if (self.params.fields_initialize == 'fft'):
+            
             fft_poisson(self, rho)
             communicate.communicate_fields(self)
             apply_boundary_conditions.apply_bcs_fields(self)
@@ -267,6 +271,7 @@ class fields_solver(object):
         self.J2 = af.sum(J2, 1)
         self.J3 = af.sum(J3, 1)
 
+        self.current_values_to_yee_grid()
 
         # Here:
         # cell_centered_EM_fields[:3] is at n
@@ -329,7 +334,7 @@ class fields_solver(object):
                 B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
 
         # Alternating upon each call
-        # TEMP FIX: Need to change to something more clear
+        # TEMP FIX: Need to change to something more clean
         self.at_n = not(self.at_n)
 
         return(E1, E2, E3, B1, B2, B3)

@@ -24,6 +24,8 @@ A_v3 = C_v3 = q/m * (E_z + v_x * B_y - v_y * B_x) = q/m * (E3 + v1 * B2 - v2 * B
 
 def A_q(f, t, q1, q2, v1, v2, v3, params):
     """Return the terms A_q1, A_q2."""
+    # A_q1[:, :N_s] = v1
+
     A_q1 = v1
     A_q2 = v2
 

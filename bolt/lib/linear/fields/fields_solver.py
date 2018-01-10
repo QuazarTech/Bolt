@@ -54,9 +54,9 @@ class fields_solver(object):
     def evolve_electrodynamic_fields(self, J1, J2, J3):
         # This function just updates the current values which is then
         # used in the dfields_hat_dt function to evolve the field quantities
-        self.J1_hat = 2 * af.fft2(J1)/(self.N_q1 * self.N_q2)
-        self.J2_hat = 2 * af.fft2(J2)/(self.N_q1 * self.N_q2)
-        self.J3_hat = 2 * af.fft2(J3)/(self.N_q1 * self.N_q2)
+        self.J1_hat = 2 * fft2(J1)/(self.N_q1 * self.N_q2)
+        self.J2_hat = 2 * fft2(J2)/(self.N_q1 * self.N_q2)
+        self.J3_hat = 2 * fft2(J3)/(self.N_q1 * self.N_q2)
 
         # Summing along all species:
         self.J1_hat = af.sum(self.J1_hat, 1)
