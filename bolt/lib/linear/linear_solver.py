@@ -121,7 +121,7 @@ class linear_solver(object):
 
         # Creating PETSc Vecs which are used in dumping to file:
         self._glob_f       = self._da_dump_f.createGlobalVec()
-        self._glob_f_value = self._da_dump_f.getVecArray(self._glob_f)
+        self._glob_f_array = self._glob_f.getArray()
 
         self._glob_moments       = self._da_dump_moments.createGlobalVec()
         self._glob_moments_value = self._da_dump_moments.\

@@ -2,11 +2,8 @@ import arrayfire as af
 import numpy as np
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
-
-from bolt.lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
+from bolt.lib.linear.linear_solver import linear_solver
 
 import physics_tests.nonrelativistic_boltzmann.domain as domain
 import physics_tests.nonrelativistic_boltzmann.boundary_conditions \
@@ -15,21 +12,17 @@ import physics_tests.nonrelativistic_boltzmann.params as params
 import physics_tests.nonrelativistic_boltzmann.initialize as initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Time parameters:
 t_final = 0.1
 N       = 2**np.arange(5, 10)
 
-
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
-    params.charge_electron = charge_electron
-    params.tau             = tau
+    params.charge[0] = charge_electron
+    params.tau       = tau
 
     # Running the setup for all resolutions:
     for i in range(N.size):
@@ -72,17 +65,17 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                                  initialize,
                                  advection_terms,
                                  collision_operator.BGK,
-                                 moment_defs
+                                 moments
                                 )
         
-        linearized_system = physical_system(domain,
-                                            boundary_conditions,
-                                            params,
-                                            initialize,
-                                            advection_terms,
-                                            collision_operator.linearized_BGK,
-                                            moment_defs
-                                           )
+        # linearized_system = physical_system(domain,
+        #                                     boundary_conditions,
+        #                                     params,
+        #                                     initialize,
+        #                                     advection_terms,
+        #                                     collision_operator.linearized_BGK,
+        #                                     moments
+        #                                    )
 
         # Declaring a linear system object which will 
         # evolve the defined physical system:

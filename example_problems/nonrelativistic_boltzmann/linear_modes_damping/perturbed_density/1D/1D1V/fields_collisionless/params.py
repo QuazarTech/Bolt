@@ -25,7 +25,7 @@ num_devices = 1
 # Constants:
 mass               = af.Array([1, 1], (1, 2))
 boltzmann_constant = 1
-charge             = af.Array([-10, 0], (1, 2))
+charge             = af.Array([-10, 5], (1, 2))
 
 # Initial Conditions used in initialize:
 rho_background_species_1 = 1
@@ -55,9 +55,9 @@ t_final = 0.5
 
 # Switch for solver components:
 EM_fields_enabled = True
-source_enabled    = False
+source_enabled    = True
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * p1**0 * q1**0)
+    return (0.01 * p1**0 * q1**0)

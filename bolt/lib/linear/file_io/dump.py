@@ -4,8 +4,7 @@
 import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
-import h5py
-
+from bolt.lib.linear.utils.fft_funcs import ifft2
 
 def dump_moments(self, file_name):
     """
@@ -95,26 +94,29 @@ def dump_distribution_function(self, file_name):
     
     >> h5f.close()
     """
-    if(self.single_mode_evolution == True):
+    # if(self.single_mode_evolution == True):
         
-        f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
+    #     f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
 
-        k_q1 = self.physical_system.params.k_q1
-        k_q2 = self.physical_system.params.k_q2
+    #     k_q1 = self.physical_system.params.k_q1
+    #     k_q2 = self.physical_system.params.k_q2
 
-        q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
-        q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+    #     q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
+    #     q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
 
-        df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
-              * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
-             ).real
+    #     df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
+    #           * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
+    #          ).real
 
-        self._glob_f_value[:] = f_b + df
+    #     self._glob_f_value[:] = f_b + df
 
-    else:
-        # Scaling Appropriately:
-        self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 \
-                                    * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    # else:
+    #     # Scaling Appropriately:
+    #     self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 \
+    #                                 * np.array(af.ifft2(self.Y[:, :, :, 0])).real
+    
+    array_to_dump = 0.5 * self.N_q2 * self.N_q1  * af.real(ifft2(self.f_hat))
+    array_to_dump.to_ndarray(self._glob_f_array)
     
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_f)

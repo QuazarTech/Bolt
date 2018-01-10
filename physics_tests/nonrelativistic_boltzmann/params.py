@@ -5,12 +5,9 @@ import arrayfire as af
 # The initial conditions need to be specified under initialize
 # Ensure that the initial conditions specified satisfy
 # Maxwell's constraint equations
-fields_initialize = 'fft'
-
-# Can be defined as 'electrostatic' and 'fdtd'
-fields_solver = 'fft'
-
 fields_type = 'electrostatic'
+fields_initialize = 'fft'
+fields_solver = 'fft'
 
 # Can be defined as 'strang' and 'lie'
 solver_method_in_q = 'FVM'
@@ -29,9 +26,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass_particle      = 1
+mass               = af.Array([1], (1, 1))
 boltzmann_constant = 1
-charge_electron    = 0
+charge             = af.Array([0], (1, 1))
 
 # Initial Conditions used in initialize:
 rho_background         = 1
@@ -46,3 +43,7 @@ pert_imag = 0
 
 k_q1 = 2 * np.pi
 k_q2 = 0
+
+# Solver switches:
+EM_fields_enabled = True 
+source_enabled    = True

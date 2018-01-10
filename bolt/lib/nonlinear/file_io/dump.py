@@ -101,8 +101,8 @@ def dump_distribution_function(self, file_name):
     N_g_q = self.N_ghost_q
     N_g_p = self.N_ghost_p
     
-    N_q1_local = self.f.shape[1]
-    N_q2_local = self.f.shape[2]
+    N_q1_local = self.f.shape[2]
+    N_q2_local = self.f.shape[3]
 
     # The dumped array shouldn't be inclusive of velocity ghost zones:
     if(N_g_p != 0):
@@ -112,6 +112,7 @@ def dump_distribution_function(self, file_name):
                                                            ]
         array_to_dump = af.moddims(array_to_dump, 
                                    self.N_p1 * self.N_p2 * self.N_p3,
+                                   self.N_species,
                                    N_q1_local,
                                    N_q2_local
                                   )                                           
@@ -119,7 +120,7 @@ def dump_distribution_function(self, file_name):
     else:
         array_to_dump = self.f
     
-    array_to_dump = af.flat(array_to_dump[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    array_to_dump = af.flat(array_to_dump[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
     array_to_dump.to_ndarray(self._glob_dump_f_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_dump_f)
