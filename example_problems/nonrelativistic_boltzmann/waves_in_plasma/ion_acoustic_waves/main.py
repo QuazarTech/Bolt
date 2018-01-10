@@ -1,5 +1,4 @@
 import arrayfire as af
-af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 
@@ -99,6 +98,8 @@ else:
 
 for time_index, t0 in enumerate(time_array[1:]):
 
+    print('Computing For Time =', t0)
+    
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
 
@@ -119,7 +120,7 @@ pl.plot(time_array, rho_data_nls[:, 0], label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
-pl.savefig('rho_1.png')
+pl.savefig('rho_e.png')
 pl.clf()
 
 pl.plot(time_array, rho_data_ls[:, 1], '--', color = 'black', label = 'Linear Solver')
@@ -127,5 +128,5 @@ pl.plot(time_array, rho_data_nls[:, 1], label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
-pl.savefig('rho_2.png')
+pl.savefig('rho_i.png')
 pl.clf()

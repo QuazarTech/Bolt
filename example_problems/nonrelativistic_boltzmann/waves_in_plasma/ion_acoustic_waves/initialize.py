@@ -8,47 +8,29 @@ import numpy as np
 
 def initialize_f(q1, q2, v1, v2, v3, params):
 
-    m = params.mass
+    m_e = params.mass[0, 0]
+    m_i = params.mass[0, 1]
+
     k = params.boltzmann_constant
 
-    rho_b_1   = params.rho_background_species_1
-    T_b_1     = params.temperature_background_species_1
-    v1_bulk_1 = params.v1_bulk_background_species_1
+    rho_b_e   = params.rho_background_e
+    T_b_e     = params.temperature_background_e
 
-    rho_b_2   = params.rho_background_species_2
-    T_b_2     = params.temperature_background_species_2
-    v1_bulk_2 = params.v1_bulk_background_species_2
+    rho_b_i = params.rho_background_i
+    T_b_i   = params.temperature_background_i
 
-    pert_real_species_1 = params.pert_real_species_1
-    pert_imag_species_1 = params.pert_imag_species_1
+    rho_e = rho_b_e + 0 * q1
+    rho_i = rho_b_i + params.alpha * af.cos(q1)
+    T_e   = T_b_e
+    T_i   = T_b_i
 
-    pert_real_species_2 = params.pert_real_species_2
-    pert_imag_species_2 = params.pert_imag_species_2
+    f_e = rho_e * np.sqrt(1 / (2 * np.pi)) * af.sqrt(m_e * T_i/m_i * T_e) \
+                * af.exp(-0.5 * (m_e * T_i/m_i * T_e) * (v1[:, 0])**2)
 
-    k_q1_species_1 = params.k_q1_species_1
-    k_q2_species_1 = params.k_q2_species_1
+    f_i = rho_i * np.sqrt(1 / (2 * np.pi)) \
+                * af.exp(-0.5 * (v1[:, 1])**2)
 
-    k_q1_species_2 = params.k_q1_species_2
-    k_q2_species_2 = params.k_q2_species_2
-
-    # Calculating the perturbed density:
-    rho_species_1 = \
-        rho_b_1 + (  pert_real_species_1 * af.cos(k_q1_species_1 * q1 + k_q2_species_1 * q2)
-                   - pert_imag_species_1 * af.sin(k_q1_species_1 * q1 + k_q2_species_1 * q2)
-                  )
-
-    rho_species_2 = \
-        rho_b_2 + (  pert_real_species_2 * af.cos(k_q1_species_2 * q1 + k_q2_species_2 * q2)
-                   - pert_imag_species_2 * af.sin(k_q1_species_2 * q1 + k_q2_species_2 * q2)
-                  )
-
-    f_species_1 = rho_species_1 * af.sqrt(m[0, 0] / (2 * np.pi * k * T_b_1)) \
-                                * af.exp(-m[0, 0] * (v1[:, 0] - v1_bulk_1)**2 / (2 * k * T_b_1))
-
-    f_species_2 = rho_species_2 * af.sqrt(m[0, 1] / (2 * np.pi * k * T_b_2)) \
-                                * af.exp(-m[0, 1] * (v1[:, 1] - v1_bulk_2)**2 / (2 * k * T_b_2))
-
-    f = af.join(1, f_species_1, f_species_2)
+    f = af.join(1, f_e, f_i)
     
     af.eval(f)
     return (f)
