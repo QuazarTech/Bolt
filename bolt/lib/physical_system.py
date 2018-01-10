@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import types
+import arrayfire as af
 from petsc4py import PETSc
 
 class physical_system(object):
@@ -191,24 +192,30 @@ class physical_system(object):
                              the number of species mentioned in charge and mass inputs'
                            )
 
+        if(params.fields_type == 'electrodynamic'):
+            try:
+                assert(params.fields_solver.upper() == 'FDTD')
+            except:
+                raise Exception('Solver specified isn\'t an electrodynamic solver')
+
         # Printing code signature:
-        PETSc.Sys.Print('-------------------------------------------------------------------')
-        PETSc.Sys.Print("|                      ,/                                         |")
-        PETSc.Sys.Print("|                    ,'/          ____        ____                |")                   
-        PETSc.Sys.Print("|                  ,' /          / __ )____  / / /_               |")
-        PETSc.Sys.Print("|                ,'  /_____,    / __  / __ \/ / __/               |")
-        PETSc.Sys.Print("|              .'____    ,'    / /_/ / /_/ / / /_                 |")
-        PETSc.Sys.Print("|                   /  ,'     /_____/\____/_/\__/                 |")
-        PETSc.Sys.Print("|                  / ,'                                           |")
-        PETSc.Sys.Print("|                 /,'                                             |")
-        PETSc.Sys.Print("|                /'                                               |")
-        PETSc.Sys.Print('|-----------------------------------------------------------------|')
-        PETSc.Sys.Print('|Copyright (C) 2017, Research Division, Quazar Technologies, Delhi|')
-        PETSc.Sys.Print('|                                                                 |')
-        PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or modify    |')
-        PETSc.Sys.Print('| it under the terms of the GNU General Public License as         |')
-        PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)       |')
-        PETSc.Sys.Print('-------------------------------------------------------------------')
+        PETSc.Sys.Print('----------------------------------------------------------------------')
+        PETSc.Sys.Print("|                      ,/                                            |")
+        PETSc.Sys.Print("|                    ,'/          ____        ____                   |")                   
+        PETSc.Sys.Print("|                  ,' /          / __ )____  / / /_                  |")
+        PETSc.Sys.Print("|                ,'  /_____,    / __  / __ \/ / __/                  |")
+        PETSc.Sys.Print("|              .'____    ,'    / /_/ / /_/ / / /_                    |")
+        PETSc.Sys.Print("|                   /  ,'     /_____/\____/_/\__/                    |")
+        PETSc.Sys.Print("|                  / ,'                                              |")
+        PETSc.Sys.Print("|                 /,'                                                |")
+        PETSc.Sys.Print("|                /'                                                  |")
+        PETSc.Sys.Print('|--------------------------------------------------------------------|')
+        PETSc.Sys.Print('|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|')
+        PETSc.Sys.Print('|                                                                    |')
+        PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or modify       |')
+        PETSc.Sys.Print('| it under the terms of the GNU General Public License as            |')
+        PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)          |')
+        PETSc.Sys.Print('----------------------------------------------------------------------')
         PETSc.Sys.Print('Resolution(Nq1, Nq2, Np1, Np2, Np3):', '(', domain.N_q1, ',', domain.N_q2, 
                         ',',domain.N_p1, ',', domain.N_p2, ',', domain.N_p3, ')'
                        )
@@ -229,6 +236,6 @@ class physical_system(object):
         PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Number of Species                  :', N_species)
         for i in range(N_species):
-            PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), params.charge[i])
-            PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), params.mass[i])
+            PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), af.sum(params.charge[0, i]))
+            PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), af.sum(params.mass[0, i]))
         PETSc.Sys.Print('Number of Devices/Node             :', params.num_devices)

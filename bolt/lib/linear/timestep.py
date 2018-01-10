@@ -4,72 +4,57 @@ import arrayfire as af
 
 from . import integrators
 from .df_hat_dt import df_hat_dt
-from .dfields_hat_dt import dfields_hat_dt
+from .fields.dfields_hat_dt import dfields_hat_dt
 
 
 def RK5_step(self, dt):
-    self.Y = integrators.RK5(dY_dt, self.Y, dt, self)
-    # Solving for tau = 0 systems
-    if(    self.single_mode_evolution == False
-       and af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, 
-                                                       self.p1, self.p2, self.p3
-                                                      ) == 0
-                      )
-      ):
-        f_hat = self.Y[:, :, :, 0]
-        f     = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
 
-        self.Y[:,:, :, 0] = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
-                                                     self.p1, self.p2, self.p3, 
-                                                     self.compute_moments, 
-                                                     self.physical_system.params, 
-                                                     True
-                                                    ) 
-                                       )/(self.N_q2 * self.N_q1)
+    if(    self.physical_system.params.EM_fields_enabled == True 
+       and self.physical_system.params.fields_type == 'electrodynamic'
+      ):
+        self.f_hat, self.fields_solver.fields_hat = \
+            integrators.RK5_coupled(df_hat_dt, self.f_hat,
+                                    dfields_hat_dt, self.fields_solver.fields_hat,
+                                    dt, self
+                                   )
+
+    else:
+        self.f_hat = integrators.RK5(df_hat_dt, self.f_hat,
+                                     dt, self
+                                    )
+
     return
 
 def RK4_step(self, dt):
-    self.f_hat, self.fields_hat = integrators.RK4(df_hat_dt, self.f_hat,
-                                                  dfields_hat_dt, self.fields_hat,
-                                                  dt, self
-                                                 )
+    if(    self.physical_system.params.EM_fields_enabled == True 
+       and self.physical_system.params.fields_type == 'electrodynamic'
+      ):
+        self.f_hat, self.fields_solver.fields_hat = \
+            integrators.RK4_coupled(df_hat_dt, self.f_hat,
+                                    dfields_hat_dt, self.fields_solver.fields_hat,
+                                    dt, self
+                                   )
 
-    # Solving for tau = 0 systems
-    # if(    self.single_mode_evolution == False
-    #    and af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, 
-    #                                                    self.p1, self.p2, self.p3
-    #                                                   ) == 0
-    #                   )
-    #   ):
-    #     f_hat = self.Y[:, :, :, 0]
-    #     f     = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
+    else:
+        self.f_hat = integrators.RK4(df_hat_dt, self.f_hat,
+                                     dt, self
+                                    )
 
-    #     self.Y[:,:, :, 0] = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
-    #                                                  self.p1, self.p2, self.p3, 
-    #                                                  self.compute_moments, 
-    #                                                  self.physical_system.params, 
-    #                                                  True
-    #                                                 ) 
-    #                                    )/(self.N_q2 * self.N_q1)
     return
 
 def RK2_step(self, dt):
-    self.Y = integrators.RK2(dY_dt, self.Y, dt, self)
-    # Solving for tau = 0 systems
-    if(    self.single_mode_evolution == False
-       and af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center, 
-                                                       self.p1, self.p2, self.p3
-                                                      ) == 0
-                      )
+    if(    self.physical_system.params.EM_fields_enabled == True 
+       and self.physical_system.params.fields_type == 'electrodynamic'
       ):
-        f_hat = self.Y[:, :, :, 0]
-        f     = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * f_hat))
+        self.f_hat, self.fields_solver.fields_hat = \
+            integrators.RK2_coupled(df_hat_dt, self.f_hat,
+                                    dfields_hat_dt, self.fields_solver.fields_hat,
+                                    dt, self
+                                   )
 
-        self.Y[:,:, :, 0] = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
-                                                     self.p1, self.p2, self.p3, 
-                                                     self.compute_moments, 
-                                                     self.physical_system.params, 
-                                                     True
-                                                    ) 
-                                       )/(self.N_q2 * self.N_q1)
+    else:
+        self.f_hat = integrators.RK2(df_hat_dt, self.f_hat,
+                                     dt, self
+                                    )
+
     return

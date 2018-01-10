@@ -680,7 +680,7 @@ def apply_mirror_bcs_fields(self, boundary):
 
 def apply_bcs_fields(self):
 
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     # Obtaining start coordinates for the local zone
@@ -692,44 +692,44 @@ def apply_bcs_fields(self):
     # If local zone includes the left physical boundary:
     if(i_q1_start == 0):
 
-        if(self.nls.boundary_conditions.in_q1_left == 'dirichlet'):
+        if(self.boundary_conditions.in_q1_left == 'dirichlet'):
             apply_dirichlet_bcs_fields(self, 'left')
 
-        elif(self.nls.boundary_conditions.in_q1_left == 'mirror'):
+        elif(self.boundary_conditions.in_q1_left == 'mirror'):
             apply_mirror_bcs_fields(self, 'left')            
 
-        elif(self.nls.boundary_conditions.in_q1_left == 'mirror+dirichlet'):
+        elif(self.boundary_conditions.in_q1_left == 'mirror+dirichlet'):
             apply_mirror_bcs_fields(self, 'left')            
             apply_dirichlet_bcs_fields(self, 'left')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.nls.boundary_conditions.in_q1_left == 'periodic'):
+        elif(self.boundary_conditions.in_q1_left == 'periodic'):
             pass
 
-        elif(self.nls.boundary_conditions.in_q1_left == 'shearing-box'):
+        elif(self.boundary_conditions.in_q1_left == 'shearing-box'):
             apply_shearing_box_bcs_fields(self, 'left')
 
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
     
     # If local zone includes the right physical boundary:
-    if(i_q1_end == self.nls.N_q1 - 1):
+    if(i_q1_end == self.N_q1 - 1):
 
-        if(self.nls.boundary_conditions.in_q1_right == 'dirichlet'):
+        if(self.boundary_conditions.in_q1_right == 'dirichlet'):
             apply_dirichlet_bcs_fields(self, 'right')
 
-        elif(self.nls.boundary_conditions.in_q1_right == 'mirror'):
+        elif(self.boundary_conditions.in_q1_right == 'mirror'):
             apply_mirror_bcs_fields(self, 'right')
         
-        elif(self.nls.boundary_conditions.in_q1_right == 'mirror+dirichlet'):
+        elif(self.boundary_conditions.in_q1_right == 'mirror+dirichlet'):
             apply_mirror_bcs_fields(self, 'right')            
             apply_dirichlet_bcs_fields(self, 'right')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.nls.boundary_conditions.in_q1_right == 'periodic'):
+        elif(self.boundary_conditions.in_q1_right == 'periodic'):
             pass
 
-        elif(self.nls.boundary_conditions.in_q1_right == 'shearing-box'):
+        elif(self.boundary_conditions.in_q1_right == 'shearing-box'):
             apply_shearing_box_bcs_fields(self, 'right')
 
         else:
@@ -738,44 +738,44 @@ def apply_bcs_fields(self):
     # If local zone includes the bottom physical boundary:
     if(i_q2_start == 0):
 
-        if(self.nls.boundary_conditions.in_q2_bottom == 'dirichlet'):
+        if(self.boundary_conditions.in_q2_bottom == 'dirichlet'):
             apply_dirichlet_bcs_fields(self, 'bottom')
 
-        elif(self.nls.boundary_conditions.in_q2_bottom == 'mirror'):
+        elif(self.boundary_conditions.in_q2_bottom == 'mirror'):
             apply_mirror_bcs_fields(self, 'bottom')            
 
-        elif(self.nls.boundary_conditions.in_q2_bottom == 'mirror+dirichlet'):
+        elif(self.boundary_conditions.in_q2_bottom == 'mirror+dirichlet'):
             apply_mirror_bcs_fields(self, 'bottom')            
             apply_dirichlet_bcs_fields(self, 'bottom')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.nls.boundary_conditions.in_q2_bottom == 'periodic'):
+        elif(self.boundary_conditions.in_q2_bottom == 'periodic'):
             pass
 
-        elif(self.nls.boundary_conditions.in_q2_bottom == 'shearing-box'):
+        elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
             apply_shearing_box_bcs_fields(self, 'bottom')
 
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
 
     # If local zone includes the top physical boundary:
-    if(i_q2_end == self.nls.N_q2 - 1):
+    if(i_q2_end == self.N_q2 - 1):
 
-        if(self.nls.boundary_conditions.in_q2_top == 'dirichlet'):
+        if(self.boundary_conditions.in_q2_top == 'dirichlet'):
             apply_dirichlet_bcs_fields(self, 'top')
 
-        elif(self.nls.boundary_conditions.in_q2_top == 'mirror'):
+        elif(self.boundary_conditions.in_q2_top == 'mirror'):
             apply_mirror_bcs_fields(self, 'top')
         
-        elif(self.nls.boundary_conditions.in_q2_top == 'mirror+dirichlet'):
+        elif(self.boundary_conditions.in_q2_top == 'mirror+dirichlet'):
             apply_mirror_bcs_fields(self, 'top')            
             apply_dirichlet_bcs_fields(self, 'top')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.nls.boundary_conditions.in_q2_top == 'periodic'):
+        elif(self.boundary_conditions.in_q2_top == 'periodic'):
             pass
 
-        elif(self.nls.boundary_conditions.in_q2_top == 'shearing-box'):
+        elif(self.boundary_conditions.in_q2_top == 'shearing-box'):
             apply_shearing_box_bcs_fields(self, 'top')
 
         else:
@@ -783,7 +783,7 @@ def apply_bcs_fields(self):
 
     af.eval(self.cell_centered_EM_fields)
 
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_apply_bcs_fields += toc - tic

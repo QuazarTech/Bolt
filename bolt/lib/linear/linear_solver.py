@@ -18,19 +18,20 @@ multiple devices/nodes.
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-from utils.fft_funcs import fft2, ifft2
+from .utils.fft_funcs import fft2, ifft2
 from numpy.fft import fftfreq
 import socket
 from petsc4py import PETSc
 from inspect import signature
 
 # Importing solver functions:
-from .EM_fields_solver import compute_electrostatic_fields
+from .fields.fields_solver import fields_solver
 from .calculate_dfdp_background import calculate_dfdp_background
 from .compute_moments import compute_moments as compute_moments_imported
 from .file_io import dump, load
 from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
+from .utils.broadcasted_primitive_operations import multiply
 
 from . import timestep
 
@@ -83,6 +84,9 @@ class linear_solver(object):
         # Getting number of species:
         self.N_species = len(physical_system.params.mass)
 
+        # Initializing variable to hold time elapsed:
+        self.time_elapsed = 0
+
         # Checking that periodic B.C's are utilized:
         if(    physical_system.boundary_conditions.in_q1_left   != 'periodic' 
            and physical_system.boundary_conditions.in_q1_right  != 'periodic'
@@ -133,20 +137,8 @@ class linear_solver(object):
         self.k_q1, self.k_q2           = self._calculate_k()
         self.p1, self.p2, self.p3      = self._calculate_p_center()
 
-        # Assigning the advection terms along q1 and q2
-        self._A_q1 = \
-            self.physical_system.A_q(self.q1_center, self.q2_center,
-                                     self.p1, self.p2, self.p3, 
-                                     physical_system.params
-                                    )[0]
-
-        self._A_q2 = \
-            self.physical_system.A_q(self.q1_center, self.q2_center,
-                                     self.p1, self.p2, self.p3,
-                                     physical_system.params
-                                    )[1]
-
         # Assigning the function objects to methods of the solver:
+        self._A_q    = self.physical_system.A_q
         self._A_p    = self.physical_system.A_p
         self._source = self.physical_system.source
 
@@ -158,11 +150,6 @@ class linear_solver(object):
         # Initializing f, f_hat and the other EM field quantities:
         self._initialize(physical_system.params)
         
-        # Conversions to be consistent with chosen data structure:
-        self.physical_system.params.mass   = \
-            af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
-        self.physical_system.params.charge = \
-            af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
 
     def get_dist_func(self):
         """
@@ -276,10 +263,10 @@ class linear_solver(object):
         """
         # af.broadcast(function, *args) performs batched operations on
         # function(*args):
-        f     = af.broadcast(self.physical_system.initial_conditions.\
-                             initialize_f, self.q1_center, self.q2_center,
-                             self.p1, self.p2, self.p3, params
-                            )
+        f = af.broadcast(self.physical_system.initial_conditions.\
+                         initialize_f, self.q1_center, self.q2_center,
+                         self.p1, self.p2, self.p3, params
+                        )
         
         # Taking FFT:
         self.f_hat = fft2(f)
@@ -297,88 +284,15 @@ class linear_solver(object):
         # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
         self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2) 
 
-        if(self.single_mode_evolution == True):
-            # Background
-            f_hat[0, 0, :] = 0
-
-            # Finding the indices of the perturbation introduced:
-            i_q1_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
-                                        (self.N_q1, self.N_q2, 
-                                         self.N_p1 * self.N_p2 * self.N_p3
-                                        ),order = 'F'
-                                       )[0]
-
-            i_q2_max = np.unravel_index(af.imax(af.abs(f_hat))[1], 
-                                        (self.N_q1, self.N_q2, 
-                                         self.N_p1 * self.N_p2 * self.N_p3
-                                        ),order = 'F'
-                                       )[1]
-
-            # Taking sum to get a scalar value:
-            params.k_q1 = af.sum(self.k_q1[i_q1_max, i_q2_max])
-            params.k_q2 = af.sum(self.k_q2[i_q1_max, i_q2_max])
-
-            self.f_background = np.array(self.f_background).\
-                                reshape(self.N_p1, self.N_p2, self.N_p3)
-
-            self.p1 = np.array(self.p1).\
-                      reshape(self.N_p1, self.N_p2, self.N_p3)
-            self.p2 = np.array(self.p2).\
-                      reshape(self.N_p1, self.N_p2, self.N_p3)
-            self.p3 = np.array(self.p3).\
-                      reshape(self.N_p1, self.N_p2, self.N_p3)
-
-            self._A_q1 = np.array(self._A_q1).\
-                         reshape(self.N_p1, self.N_p2, self.N_p3)
-            self._A_q2 = np.array(self._A_q2).\
-                         reshape(self.N_p1, self.N_p2, self.N_p3)
-
-            params.rho_background = self.compute_moments('density',
-                                                         self.f_background
-                                                        )
-            
-            params.p1_bulk_background = self.compute_moments('mom_p1_bulk',
-                                                             self.f_background
-                                                            ) / params.rho_background
-            params.p2_bulk_background = self.compute_moments('mom_p2_bulk',
-                                                             self.f_background
-                                                            ) / params.rho_background
-            params.p3_bulk_background = self.compute_moments('mom_p3_bulk',
-                                                             self.f_background
-                                                            ) / params.rho_background
-            
-            params.T_background = ((1 / params.p_dim) * \
-                                   self.compute_moments('energy',
-                                                        self.f_background
-                                                       )
-                                   - params.rho_background * 
-                                     params.p1_bulk_background**2
-                                   - params.rho_background * 
-                                     params.p2_bulk_background**2
-                                   - params.rho_background * 
-                                     params.p3_bulk_background**2
-                                  ) / params.rho_background
-
-            self.dfdp1_background = np.array(self.dfdp1_background).\
-                                    reshape(self.N_p1, self.N_p2, self.N_p3)
-            self.dfdp2_background = np.array(self.dfdp2_background).\
-                                    reshape(self.N_p1, self.N_p2, self.N_p3)
-            self.dfdp3_background = np.array(self.dfdp3_background).\
-                                    reshape(self.N_p1, self.N_p2, self.N_p3)
-
-            # Unable to recover pert_real and pert_imag accurately from the input.
-            # There seems to be some error in recovering these quantities which
-            # is dependant upon the resolution. Using user-defined quantities instead
-            delta_f_hat =   params.pert_real * self.f_background \
-                          + params.pert_imag * self.f_background * 1j 
-
-            self.Y = np.array([delta_f_hat])
-            compute_electrostatic_fields(self)
-            self.Y = np.array([delta_f_hat, 
-                               self.delta_E1_hat, self.delta_E2_hat, self.delta_E3_hat,
-                               self.delta_B1_hat, self.delta_B2_hat, self.delta_B3_hat
-                              ]
-                             )
+        if(self.physical_system.params.EM_fields_enabled == True):
+            rho_initial = multiply(self.physical_system.params.charge,
+                                   self.compute_moments('density')
+                                  )
+            self.fields_solver = fields_solver(self.q1_center, self.q2_center,
+                                               self.k_q1, self.k_q2,
+                                               self.physical_system.params,
+                                               rho_initial
+                                              )
 
         return
 

@@ -2,4 +2,4 @@ Here we define any useful utilitity functions that may be needed by a user while
 
 Implemented utility functions:
 
-- integral_over_p : In the code the default structure for the distribution function has the variation in p along axis 0. We have defined a function that performs this summation along axis 0 to get the integral over p-space.
+- integral_over_v : In the code the default structure for the distribution function has the variation in v along axis 0. We have defined a function that performs this summation along axis 0 to get the integral over v-space.

@@ -5,41 +5,32 @@ import arrayfire as af
 import numpy as np
 from numpy.fft import fftfreq
 
-@af.broadcast
-def multiply(a, b):
-    return(a*b)
+from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 
-def fft_poisson(self, f=None):
+def fft_poisson(self, rho):
     """
     Solves the Poisson Equation using the FFTs:
     Used as a backup solver in case of low resolution runs
     (ie. used on a single node) with periodic boundary
     conditions.
     """
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
-    if (self.nls._comm.size != 1):
+    if (self.comm.size != 1):
         raise Exception('FFT solver can only be used when run in serial')
 
     else:
 
-        N_g_q = self.nls.N_ghost_q
-
-        n = self.nls.compute_moments('density', f)[:, :, N_g_q:-N_g_q,
-                                                   N_g_q:-N_g_q
-                                                  ]
+        N_g = self.N_g
             
         # Reorder from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s) 
-        rho = af.reorder(multiply(self.nls.physical_system.params.charge, (n - af.mean(n))),
-                         2, 3, 0, 1
-                        )
-
+        rho = af.reorder(rho[:, :, N_g:-N_g, N_g:-N_g] , 2, 3, 0, 1)
         # Summing for all the species:
         rho = af.sum(rho, 3)
 
-        k_q1 = fftfreq(rho.shape[0], self.nls.dq1)
-        k_q2 = fftfreq(rho.shape[1], self.nls.dq2)
+        k_q1 = fftfreq(rho.shape[0], self.dq1)
+        k_q2 = fftfreq(rho.shape[1], self.dq2)
 
         k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
 
@@ -58,12 +49,12 @@ def fft_poisson(self, f=None):
         E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 3, 0, 1)
         E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 3, 0, 1)
 
-        self.cell_centered_EM_fields[0, 0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E1_physical
-        self.cell_centered_EM_fields[1, 0, N_g_q:-N_g_q, N_g_q:-N_g_q] = E2_physical
+        self.cell_centered_EM_fields[0, 0, N_g:-N_g, N_g:-N_g] = E1_physical
+        self.cell_centered_EM_fields[1, 0, N_g:-N_g, N_g:-N_g] = E2_physical
 
         af.eval(self.cell_centered_EM_fields)
 
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic

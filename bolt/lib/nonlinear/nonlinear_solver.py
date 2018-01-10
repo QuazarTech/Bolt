@@ -45,6 +45,7 @@ from .file_io import load
 from .utils.bandwidth_test import bandwidth_test
 from .utils.print_with_indent import indent
 from .utils.performance_timings import print_table
+from .utils.broadcasted_primitive_operations import multiply
 from .compute_moments import compute_moments as compute_moments_imported
 from .fields.fields_solver import fields_solver
 
@@ -608,15 +609,17 @@ class nonlinear_solver(object):
                               self.p1_center, self.p2_center, self.p3_center, params
                              )
 
-        if(self.physical_system.params.EM_fields_on):
-            # Conversions to stack mass and charge on axis containing N_s:
-            # This allows for easier operations in field computations:
-            self.physical_system.params.mass   = \
-                af.cast(af.reorder(af.to_array(self.physical_system.params.mass)), af.Dtype.f64)
-            self.physical_system.params.charge = \
-                af.cast(af.reorder(af.to_array(self.physical_system.params.charge)), af.Dtype.f64)
-
-            self.fields_solver = fields_solver(self)
+        if(self.physical_system.params.EM_fields_enabled):
+            rho_initial = multiply(self.physical_system.params.charge,
+                                   self.compute_moments('density')
+                                  )
+            self.fields_solver = fields_solver(self.N_q1, self.N_q2, self.N_ghost_q, 
+                                               self.q1_center, self.q2_center, 
+                                               self.dq1, self.dq2, self._comm,
+                                               self.boundary_conditions, 
+                                               self.physical_system.params,
+                                               rho_initial, self.performance_test_flag
+                                              )
         
     # Injection of solver functions into class as methods:
     _communicate_f      = communicate.\

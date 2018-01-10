@@ -72,26 +72,26 @@ def communicate_fields(self, on_fdtd_grid = False):
     it can also be used to communicate the values on the Yee-grid
     which is used by the FDTD solver.
     """
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
 
-    N_g_q = self.nls.N_ghost_q
+    N_g = self.N_g
 
     # Assigning the values of the af.Array 
     # fields quantities to the PETSc.Vec:
 
     if(on_fdtd_grid is True):
         flattened_global_EM_fields_array = \
-            af.flat(self.yee_grid_EM_fields[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+            af.flat(self.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
         flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
 
     else:
         flattened_global_EM_fields_array = \
-            af.flat(self.cell_centered_EM_fields[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+            af.flat(self.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
         flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
 
     # Takes care of boundary conditions and interzonal communications:
@@ -101,8 +101,8 @@ def communicate_fields(self, on_fdtd_grid = False):
     if(on_fdtd_grid is True):
 
         self.yee_grid_EM_fields = af.moddims(af.to_array(self._local_fields_array),
-                                             6, 1, N_q1_local + 2 * N_g_q,
-                                             N_q2_local + 2 * N_g_q
+                                             6, 1, N_q1_local + 2 * N_g,
+                                             N_q2_local + 2 * N_g
                                             )
         
         af.eval(self.yee_grid_EM_fields)
@@ -110,13 +110,13 @@ def communicate_fields(self, on_fdtd_grid = False):
     else:
 
         self.cell_centered_EM_fields = af.moddims(af.to_array(self._local_fields_array),
-                                                  6, 1, N_q1_local + 2 * N_g_q,
-                                                  N_q2_local + 2 * N_g_q
+                                                  6, 1, N_q1_local + 2 * N_g,
+                                                  N_q2_local + 2 * N_g
                                                  )
         
         af.eval(self.cell_centered_EM_fields)
     
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_communicate_fields += toc - tic

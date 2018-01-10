@@ -42,11 +42,11 @@ def initialize_f(q1, q2, v1, v2, v3, params):
                    - pert_imag_species_2 * af.sin(k_q1_species_2 * q1 + k_q2_species_2 * q2)
                   )
 
-    f_species_1 = rho_species_1 * np.sqrt(m[0] / (2 * np.pi * k * T_b_1)) \
-                                * af.exp(-m[0] * (v1[:, 0] - v1_bulk_1)**2 / (2 * k * T_b_1))
+    f_species_1 = rho_species_1 * af.sqrt(m[0, 0] / (2 * np.pi * k * T_b_1)) \
+                                * af.exp(-m[0, 0] * (v1[:, 0] - v1_bulk_1)**2 / (2 * k * T_b_1))
 
-    f_species_2 = rho_species_2 * np.sqrt(m[1] / (2 * np.pi * k * T_b_2)) \
-                                * af.exp(-m[1] * (v1[:, 1] - v1_bulk_2)**2 / (2 * k * T_b_2))
+    f_species_2 = rho_species_2 * af.sqrt(m[0, 1] / (2 * np.pi * k * T_b_2)) \
+                                * af.exp(-m[0, 1] * (v1[:, 1] - v1_bulk_2)**2 / (2 * k * T_b_2))
 
     f = af.join(1, f_species_1, f_species_2)
     

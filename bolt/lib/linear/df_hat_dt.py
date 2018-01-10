@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 import arrayfire as af
 import numpy as np
 
-from .EM_fields_solver import compute_electrostatic_fields
+from .utils.fft_funcs import fft2, ifft2
+from .utils.broadcasted_primitive_operations import multiply
 
 def df_hat_dt_multimode_evolution(f_hat, self):
     """
@@ -22,92 +22,73 @@ def df_hat_dt_multimode_evolution(f_hat, self):
     -------
     df_dt : The time-derivative of f_hat
     """
-    # Getting the fields:
-    if(   self.physical_system.params.fields_solver == 'electrostatic'
-       or self.physical_system.params.fields_solver == 'fft'
-      ):
-        compute_electrostatic_fields(self, f_hat=f_hat)
+    (A_q1, A_q2) = self._A_q(f_hat, self.time_elapsed, 
+                             self.q1_center, self.q2_center,
+                             self.p1, self.p2, self.p3,
+                             self.physical_system.params
+                            )
 
-    elif(self.physical_system.params.fields_solver == 'fdtd'):
+    df_hat_dt = -1j * (  multiply(self.k_q1, A_q1)
+                       + multiply(self.k_q2, A_q2)
+                      ) * f_hat
+
+    if(self.physical_system.params.source_enabled == True):
         
-        for i in range(self.N_species):
-            mom_bulk_p1 = self.compute_moments('mom_v1_bulk', i, f_hat=f_hat)
-            mom_bulk_p2 = self.compute_moments('mom_v2_bulk', i, f_hat=f_hat)
-            mom_bulk_p3 = self.compute_moments('mom_v3_bulk', i, f_hat=f_hat)
-
-            if(i == 0):
-                self.J1_hat = 2 * af.fft2(  self.physical_system.params.charge[i] 
-                                          * mom_bulk_p1
-                                         )/(self.N_q1 * self.N_q2)
-                
-                self.J2_hat = 2 * af.fft2(  self.physical_system.params.charge[i]
-                                     * mom_bulk_p2
-                                    )/(self.N_q1 * self.N_q2)
-
-                self.J3_hat = 2 * af.fft2(  self.physical_system.params.charge[i]
-                                     * mom_bulk_p3
-                                    )/(self.N_q1 * self.N_q2)
-
-            else:
-                self.J1_hat += 2 * af.fft2(  self.physical_system.params.charge[i] 
-                                      * mom_bulk_p1
-                                     )/(self.N_q1 * self.N_q2)
-                
-                self.J2_hat += 2 * af.fft2(  self.physical_system.params.charge[i]
-                                      * mom_bulk_p2
-                                     )/(self.N_q1 * self.N_q2)
-
-                self.J3_hat += 2 * af.fft2(  self.physical_system.params.charge[i]
-                                      * mom_bulk_p3
-                                     )/(self.N_q1 * self.N_q2)
-
-    else:
-        raise NotImplementedError('Method invalid/not-implemented')
-
-    for i in range(self.N_species):
-        A_q1 = self._A_q(self.q1_center, self.q2_center,
-                         self.p1, self.p2, self.p3,
-                         self.physical_system.params, i
-                        )[0]
-
-        A_q2 = self._A_q(self.q1_center, self.q2_center,
-                         self.p1, self.p2, self.p3,
-                         self.physical_system.params, i
-                        )[1]
-
         # Scaling Appropriately:
-        f       = af.real(af.ifft2(0.5 * self.N_q2 * self.N_q1 * 
-                                   self.f_hat[:, :, i * dof:(i+1) * dof]
-                                  )
+        f = af.real(ifft2(0.5 * self.N_q2 * self.N_q1 * 
+                          f_hat
                          )
+                   )
 
-        C_f_hat = 2 * af.fft2(self._source(f, self.q1_center, self.q2_center,
-                                           self.p1, self.p2, self.p3,
-                                           self.compute_moments, 
-                                           self.physical_system.params, i
-                                          )
-                             )/(self.N_q2 * self.N_q1)
+        C_f_hat = 2 * fft2(self._source(f, self.time_elapsed, 
+                                        self.q1_center, self.q2_center,
+                                        self.p1, self.p2, self.p3,
+                                        self.compute_moments, 
+                                        self.physical_system.params
+                                       )
+                          )/(self.N_q2 * self.N_q1)
 
-        (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.q1_center, self.q2_center,
-                                          self.p1, self.p2, self.p3,
-                                          self.E1_hat, self.E2_hat, self.E3_hat,
-                                          self.B1_hat, self.B2_hat, self.B3_hat,
-                                          self.physical_system.params, i
-                                         )
+        df_hat_dt += C_f_hat
 
-        multiply = lambda a,b:a*b
+    if(self.physical_system.params.EM_fields_enabled == True):
+        
+        if(self.physical_system.params.fields_type == 'electrostatic'):
+            rho = multiply(self.physical_system.params.charge,
+                           self.compute_moments('density', f_hat=f_hat)
+                          )
+            self.fields_solver.compute_electrostatic_fields(rho)
 
-        fields_term =   af.broadcast(multiply, A_p1, self.dfdp1_background[i]) \
-                      + af.broadcast(multiply, A_p2, self.dfdp2_background[i]) \
-                      + af.broadcast(multiply, A_p3, self.dfdp3_background[i])
+        else:
+            J1 = multiply(self.physical_system.params.charge,
+                          self.compute_moments('mom_v1_bulk', f_hat=f_hat)
+                         ) 
+            J2 = multiply(self.physical_system.params.charge,
+                          self.compute_moments('mom_v2_bulk', f_hat=f_hat)
+                         ) 
+            J3 = multiply(self.physical_system.params.charge,
+                          self.compute_moments('mom_v3_bulk', f_hat=f_hat)
+                         ) 
 
-        self.df_hat_dt[:, :, i * dof:(i+1) * dof] = \
-            -1j * (  af.broadcast(multiply, self.k_q1, A_q1)
-                   + af.broadcast(multiply, self.k_q2, A_q2)
-                  ) * f_hat[:, :, i * dof:(i+1) * dof] + C_f_hat - fields_term
-    
-    af.eval(self.df_hat_dt)
-    return(self.df_hat_dt)
+            self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3)
+        
+        # get_fields for linear solver returns the mode amplitudes of the fields
+        # So, we obtain A_p1_hat, A_p2_hat, A_p3_hat
+        (A_p1_hat, A_p2_hat, A_p3_hat) = af.broadcast(self._A_p, f_hat, self.time_elapsed,
+                                                      self.q1_center, self.q2_center,
+                                                      self.p1, self.p2, self.p3,
+                                                      self.fields_solver, self.physical_system.params
+                                                     )
+
+        fields_term =   multiply(A_p1_hat, self.dfdp1_background) \
+                      + multiply(A_p2_hat, self.dfdp2_background) \
+                      + multiply(A_p3_hat, self.dfdp3_background)
+
+        # print(af.sum(af.abs(fields_term)))
+        # print(af.sum(af.abs(df_hat_dt)))
+        df_hat_dt -= fields_term
+
+    af.eval(df_hat_dt)
+    return(df_hat_dt)
 
 def df_hat_dt(f_hat, self):
 

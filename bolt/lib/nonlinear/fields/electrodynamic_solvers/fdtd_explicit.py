@@ -7,11 +7,11 @@ from bolt.lib.nonlinear.communicate import communicate_fields
 
 def fdtd_evolve_E(self, dt):
     
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
-    dq1 = self.nls.dq1
-    dq2 = self.nls.dq2
+    dq1 = self.dq1
+    dq2 = self.dq2
 
     B1 = self.yee_grid_EM_fields[3]
     B2 = self.yee_grid_EM_fields[4]
@@ -36,7 +36,7 @@ def fdtd_evolve_E(self, dt):
 
     af.eval(self.yee_grid_EM_fields)
 
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
@@ -45,11 +45,11 @@ def fdtd_evolve_E(self, dt):
 
 def fdtd_evolve_B(self, dt):
     
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         tic = af.time()
 
-    dq1 = self.nls.dq1
-    dq2 = self.nls.dq2
+    dq1 = self.dq1
+    dq2 = self.dq2
 
     E1 = self.yee_grid_EM_fields[0]
     E2 = self.yee_grid_EM_fields[1]
@@ -73,7 +73,7 @@ def fdtd_evolve_B(self, dt):
 
     af.eval(self.yee_grid_EM_fields)
 
-    if(self.nls.performance_test_flag == True):
+    if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fieldsolver += toc - tic
@@ -105,30 +105,4 @@ def fdtd(self, dt):
     fdtd_evolve_E(self, dt)
     communicate_fields(self, True)
     fdtd_evolve_B(self, dt)
-    return
-
-def yee_grid_to_cell_centered_grid(self):
-    
-    E1_yee = self.yee_grid_EM_fields[0] # (i + 1/2, j)
-    E2_yee = self.yee_grid_EM_fields[1] # (i, j + 1/2)
-    E3_yee = self.yee_grid_EM_fields[2] # (i, j)
-
-    B1_yee = self.yee_grid_EM_fields[3] # (i, j + 1/2)
-    B2_yee = self.yee_grid_EM_fields[4] # (i + 1/2, j)
-    B3_yee = self.yee_grid_EM_fields[5] # (i + 1/2, j + 1/2)
-
-    # Interpolating at the (i + 1/2, j + 1/2) point of the grid:
-    self.cell_centered_EM_fields[0] = 0.5 * (E1_yee + af.shift(E1_yee, 0, 0,  0, -1))
-    self.cell_centered_EM_fields[1] = 0.5 * (E2_yee + af.shift(E2_yee, 0, 0, -1,  0))
-    self.cell_centered_EM_fields[2] = 0.25 * (  E3_yee 
-                                              + af.shift(E3_yee, 0, 0,  0, -1)
-                                              + af.shift(E3_yee, 0, 0, -1,  0)
-                                              + af.shift(E3_yee, 0, 0, -1, -1)
-                                             )
-
-    self.cell_centered_EM_fields[3] = 0.5 * (B1_yee + af.shift(B1_yee, 0, 0, -1,  0))
-    self.cell_centered_EM_fields[4] = 0.5 * (B2_yee + af.shift(B2_yee, 0, 0,  0, -1))
-    self.cell_centered_EM_fields[5] = B3_yee
-
-    af.eval(self.cell_centered_EM_fields)
     return
