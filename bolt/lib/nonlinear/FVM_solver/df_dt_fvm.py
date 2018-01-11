@@ -3,33 +3,44 @@ import arrayfire as af
 # Importing Riemann solver used in calculating fluxes:
 from .riemann_solver import riemann_solver, upwind_flux
 from .reconstruct import reconstruct
+from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 
-# Equation to solve:
-# df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
-# Grid convention considered:
+"""
+Equation to solve:
+When solving only for q-space:
+df/dt + d(C_q1 * f)/dq1 + d(C_q2 * f)/dq2 = C[f]
+Grid convention considered:
 
-#                  (i+1/2, j+1)
-#              X-------o-------X
-#              |               |
-#              |               |
-#   (i, j+1/2) o       o       o (i+1, j+1/2)
-#              | (i+1/2, j+1/2)|
-#              |               |
-#              X-------o-------X
-#                  (i+1/2, j)
+                 (i+1/2, j+1)
+             X-------o-------X
+             |               |
+             |               |
+  (i, j+1/2) o       o       o (i+1, j+1/2)
+             | (i+1/2, j+1/2)|
+             |               |
+             X-------o-------X
+                 (i+1/2, j)
 
-# Using the finite volume method:
-# d(f_{i+1/2, j+1/2})/dt  = ((- (C_q1 * f)_{i + 1, j + 1/2} + (C_q1 * f)_{i, j + 1/2})/dq1
-                          #  (- (C_q2 * f)_{i + 1/2, j + 1} + (C_q2 * f)_{i + 1/2, j})/dq2
-                          #  +  C[f_{i+1/2, j+1/2}]
-                          # )
-
-@af.broadcast
-def multiply(a, b):
-    return(a * b)
-
+Using the finite volume method in q-space:
+d(f_{i+1/2, j+1/2})/dt  = ((- (C_q1 * f)_{i + 1, j + 1/2} + (C_q1 * f)_{i, j + 1/2})/dq1
+                           (- (C_q2 * f)_{i + 1/2, j + 1} + (C_q2 * f)_{i + 1/2, j})/dq2
+                           +  C[f_{i+1/2, j+1/2}]
+                          )
+The same concept is extended to p-space as well.                          
+"""
 
 def df_dt_fvm(f, self):
+    """
+    Returns the expression for df/dt which is then 
+    evolved by a timestepper.
+
+    Parameters
+    ----------
+
+    f : af.Array
+        Array of the distribution function at which df_dt is to 
+        be evaluated.
+    """ 
     
     # Giving shorter name references:
     reconstruction_in_q = self.physical_system.params.reconstruction_method_in_q
@@ -38,6 +49,7 @@ def df_dt_fvm(f, self):
     # Initializing df_dt
     df_dt = 0
 
+    # af.broadcast used to perform batched operations on arrays of different sizes:
     self._C_q1, self._C_q2 = \
         af.broadcast(self._C_q, self.f, self.time_elapsed, 
                      self.q1_center, self.q2_center,
@@ -47,11 +59,11 @@ def df_dt_fvm(f, self):
 
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
-        # Variation of q1 is along axis 1
+        # Variation of q1 is along axis 2
         left_plus_eps_flux, right_minus_eps_flux = \
             reconstruct(self, multiply(self._C_q1, f), 2, reconstruction_in_q)
         
-        # Variation of q2 is along axis 2
+        # Variation of q2 is along axis 3
         bot_plus_eps_flux, top_minus_eps_flux = \
             reconstruct(self, multiply(self._C_q2, f), 3, reconstruction_in_q)
 

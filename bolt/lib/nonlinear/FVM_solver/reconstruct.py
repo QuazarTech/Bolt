@@ -3,7 +3,24 @@ from .reconstruction_methods.ppm import reconstruct_ppm
 from .reconstruction_methods.weno5 import reconstruct_weno5
 
 def reconstruct(self, input_array, axis, reconstruction_method):
+    """
+    Reconstructs the variation within a cell using the
+    reconstruction method specified. 
+
+    Parameters
+    ----------
     
+    input_array: af.Array
+                 Array holding the cells data.
+    
+    axis: int
+          Axis along which the reconstruction method is to be applied.
+
+    reconstruction_method: str
+                           Reconstruction method which needs to be applied.
+
+    """
+
     if(self.performance_test_flag == True):
         tic = af.time()
 

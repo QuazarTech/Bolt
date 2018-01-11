@@ -2,7 +2,20 @@ import arrayfire as af
 
 # Adapted from grim(by Chandra et al.):
 def reconstruct_ppm(input_array, axis):
+    """
+    Reconstructs the input array using PPM
+    reconstruction.
+
+    Parameters
+    ----------
     
+    input_array: af.Array
+                 Array holding the cells data.
+    
+    axis: int
+          Axis along which the reconstruction method is to be applied.
+    """
+
     if(axis == 0):
 
         x0_shift = 2;  y0_shift = 0; z0_shift = 0; w0_shift = 0
@@ -35,11 +48,11 @@ def reconstruct_ppm(input_array, axis):
     else:
         raise Exception('Invalid choice for axis')
 
-    y0 = af.shift(input_array, x0_shift, y0_shift, z0_shift)
-    y1 = af.shift(input_array, x1_shift, y1_shift, z1_shift)
+    y0 = af.shift(input_array, x0_shift, y0_shift, z0_shift, w0_shift)
+    y1 = af.shift(input_array, x1_shift, y1_shift, z1_shift, w1_shift)
     y2 = input_array;
-    y3 = af.shift(input_array, x3_shift, y3_shift, z3_shift)
-    y4 = af.shift(input_array, x4_shift, y4_shift, z4_shift)
+    y3 = af.shift(input_array, x3_shift, y3_shift, z3_shift, w3_shift)
+    y4 = af.shift(input_array, x4_shift, y4_shift, z4_shift, w4_shift)
     
     # Approximants for slopes
     d0 = 2 * (y1-y0)

@@ -4,6 +4,7 @@
 import arrayfire as af
 
 from bolt.lib.nonlinear.communicate import communicate_fields
+from bolt.lib.nonlinear.apply_boundary_conditions import apply_bcs_fields
 
 def fdtd_evolve_E(self, dt):
     
@@ -82,27 +83,40 @@ def fdtd_evolve_B(self, dt):
 
 
 def fdtd(self, dt):
-    # E's and B's are staggered in time such that
-    # B's are defined at (n + 1/2), and E's are defined at n
+    """
+    Evolves the EM fields variables on a Yee-Grid:
+    E's and B's are staggered in time such that
+    B's are defined at (n + 1/2), and E's are defined at n
 
-    # Positions of grid point where field quantities are defined:
-    # B1 --> (i, j + 1/2)
-    # B2 --> (i + 1/2, j)
-    # B3 --> (i + 1/2, j + 1/2)
+    Positions of grid point where field quantities are defined:
+    B1 --> (i, j + 1/2)
+    B2 --> (i + 1/2, j)
+    B3 --> (i + 1/2, j + 1/2)
 
-    # E1 --> (i + 1/2, j)
-    # E2 --> (i, j + 1/2)
-    # E3 --> (i, j)
+    E1 --> (i + 1/2, j)
+    E2 --> (i, j + 1/2)
+    E3 --> (i, j)
 
-    # J1 --> (i + 1/2, j)
-    # J2 --> (i, j + 1/2)
-    # J3 --> (i, j)
+    J1 --> (i + 1/2, j)
+    J2 --> (i, j + 1/2)
+    J3 --> (i, j)
+    
+    Parameters
+    ----------
 
-    # The communicate function transfers the data from the local vectors
-    # to the global vectors, in addition to dealing with the
-    # boundary conditions:
+    dt : float
+         Time-step size to evolve the system
+    """
+
+    # The communicate function transfers the data from the 
+    # local vectors to the global vectors, in addition to  
+    # dealing with periodic boundary conditions:
     communicate_fields(self, True)
+    apply_bcs_fields(self, True)
     fdtd_evolve_E(self, dt)
+    
     communicate_fields(self, True)
+    apply_bcs_fields(self, True)
     fdtd_evolve_B(self, dt)
+    
     return

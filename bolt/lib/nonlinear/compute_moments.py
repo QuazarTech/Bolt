@@ -16,15 +16,13 @@ def compute_moments(self, moment_name, f=None):
     moments_name : str
                    Pass the moment name which needs to be computed.
                    It must be noted that this needs to be defined by the
-                   user under moment_defs under src and passed to the 
+                   user under moments under src and passed to the 
                    physical_system object.
     
     f: af.Array
        Pass this argument as well when you want to compute the 
        moments of the input array and not the one stored by the state vector
        of the object.
-
-    N_s: The species for which you want to compute the moment quantity.
 
     Examples
     --------
@@ -63,13 +61,6 @@ def compute_moments(self, moment_name, f=None):
         p2 = self.p2_center
         p3 = self.p3_center
 
-    # Defining a lambda function to perform broadcasting operations
-    # This is done using af.broadcast, which allows us to perform 
-    # batched operations when operating on arrays of different sizes
-    multiply = lambda a, b:a*b
-
-    # af.broadcast(function, *args) performs batched operations on
-    # function(*args)
     if(f is None):
         try:
             N_q1 = self.f.shape[1]

@@ -212,9 +212,9 @@ class physical_system(object):
         PETSc.Sys.Print('|--------------------------------------------------------------------|')
         PETSc.Sys.Print('|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|')
         PETSc.Sys.Print('|                                                                    |')
-        PETSc.Sys.Print('| Bolt is free software; you can redistribute it and/or modify       |')
-        PETSc.Sys.Print('| it under the terms of the GNU General Public License as            |')
-        PETSc.Sys.Print('| as published by the Free Software Foundation(version 3.0)          |')
+        PETSc.Sys.Print('|  Bolt is free software; you can redistribute it and/or modify it   |')
+        PETSc.Sys.Print('|  under the terms of the GNU General Public License as published    |')
+        PETSc.Sys.Print('|  by the Free Software Foundation(version 3.0)                      |')
         PETSc.Sys.Print('----------------------------------------------------------------------')
         PETSc.Sys.Print('Resolution(Nq1, Nq2, Np1, Np2, Np3):', '(', domain.N_q1, ',', domain.N_q2, 
                         ',',domain.N_p1, ',', domain.N_p2, ',', domain.N_p3, ')'

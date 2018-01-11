@@ -127,7 +127,7 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
         PETSc.Sys.syncPrint(indent(af.info_str(), 2))
-        # PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 
@@ -296,7 +296,6 @@ class nonlinear_solver(object):
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
     
-
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
@@ -596,14 +595,24 @@ class nonlinear_solver(object):
     def _initialize(self, params):
         """
         Called when the solver object is declared. This function is
-        used to initialize the distribution function, and the field
-        quantities using the options as provided by the user.
+        used to initialize the distribution function, using the options
+        as provided by the user.
+
+        Parameters
+        ----------
+
+        params : file/object
+                 params contains all details of which methods to use
+                 in addition to useful physical constant. Additionally, 
+                 it can also be used to inject methods which need to be 
+                 used inside some solver routine
+
         """
         # Initializing with the provided I.C's:
         # af.broadcast, allows us to perform batched operations 
         # when operating on arrays of different sizes
-        # af.broadcast(function, *args) performs batched operations on
-        # function(*args)
+        # af.broadcast(function, *args) performs batched 
+        # operations on function(*args)
         self.f = af.broadcast(self.physical_system.initial_conditions.\
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1_center, self.p2_center, self.p3_center, params

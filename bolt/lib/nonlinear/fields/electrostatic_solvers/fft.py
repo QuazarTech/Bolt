@@ -9,10 +9,17 @@ from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 
 def fft_poisson(self, rho):
     """
-    Solves the Poisson Equation using the FFTs:
+    Solves the Poisson Equation using FFTs:
     Used as a backup solver in case of low resolution runs
     (ie. used on a single node) with periodic boundary
     conditions.
+
+    Parameters
+    ----------
+
+    rho : af.Array
+          Array that holds the charge density for each species
+
     """
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -24,7 +31,7 @@ def fft_poisson(self, rho):
 
         N_g = self.N_g
             
-        # Reorder from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s) 
+        # Reorder from (1, N_s, N_q1, N_q2) --> (N_q1, N_q2, 1, N_s) 
         rho = af.reorder(rho[:, :, N_g:-N_g, N_g:-N_g] , 2, 3, 0, 1)
         # Summing for all the species:
         rho = af.sum(rho, 3)

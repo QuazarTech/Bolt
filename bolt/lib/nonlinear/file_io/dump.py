@@ -97,6 +97,9 @@ def dump_distribution_function(self, file_name):
     >> f   = h5f['distribution_function'][:]
     
     >> h5f.close()
+
+    Alternatively, it can also be used with the load function to resume
+    a long-running calculation.
     """
     N_g_q = self.N_ghost_q
     N_g_p = self.N_ghost_p

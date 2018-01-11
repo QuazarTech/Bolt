@@ -6,107 +6,18 @@ import numpy as np
 
 # Importing functions used used for time-splitting and time-stepping:
 from .temporal_evolution import operator_splitting_methods as split
-from .temporal_evolution import integrators
 
 # Importing solver functions:
-from .FVM_solver.df_dt_fvm import df_dt_fvm
-from .FVM_solver.timestep_df_dt import fvm_timestep_RK2
-
-from .ASL_solver.interpolation_routines import f_interp_2d
-from .ASL_solver.fields_step import fields_step
-
-# Defining the operators:
-# When using FVM:
-def op_fvm(self, dt):
-    
-    self._communicate_f()
-    self._apply_bcs_f()
-
-    if(self.performance_test_flag == True):
-        tic = af.time()
-
-    fvm_timestep_RK2(self, dt)
-
-    if(self.performance_test_flag == True):
-        af.sync()
-        toc = af.time()
-        self.time_fvm_solver += toc - tic
-    
-    # Solving for tau = 0 systems
-    if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                                   self.p1_center, 
-                                                   self.p2_center,
-                                                   self.p3_center
-                                                  ) == 0
-                  )
-      ):
-        if(self.performance_test_flag == True):
-            tic = af.time()
-
-        self.f = self._source(self.f, self.q1_center, self.q2_center,
-                              self.p1_center, self.p2_center, self.p3_center, 
-                              self.compute_moments, 
-                              self.physical_system.params, 
-                              True
-                             ) 
-        
-        if(self.performance_test_flag == True):
-            af.sync()
-            toc = af.time()
-            self.time_sourcets += toc - tic
-
-    af.eval(self.f)
-    return
-
-# When using advective SL method:
-# Advection in q-space:
-def op_advect_q(self, dt):
-    self._communicate_f()
-    self._apply_bcs_f()
-    f_interp_2d(self, dt)
-
-    return
-
-# Used to solve the source term:
-# df/dt = source
-def op_solve_src(self, dt):
-    if(self.performance_test_flag == True):
-        tic = af.time()
-
-    # # Solving for tau = 0 systems
-    # if(af.any_true(self.physical_system.params.tau(self.q1_center, self.q2_center,
-    #                                                self.p1, self.p2, self.p3
-    #                                               ) == 0
-    #               )
-    #   ):
-    #     self.f = self._source(self.f, self.q1_center, self.q2_center,
-    #                           self.p1, self.p2, self.p3, 
-    #                           self.compute_moments, 
-    #                           self.physical_system.params, 
-    #                           True
-    #                          ) 
-
-    # else:
-    #     self.f = integrators.RK2(self._source, self.f, dt,
-    #                              self.q1_center, self.q2_center,
-    #                              self.p1, self.p2, self.p3, 
-    #                              self.compute_moments, 
-    #                              self.physical_system.params
-    #                             )
-    
-    if(self.performance_test_flag == True):
-        af.sync()
-        toc = af.time()
-        self.time_sourcets += toc - tic
-    
-    return
-
-# Used to solve the Maxwell's equations and
-# perform the advections in p-space:
-def op_fields(self, dt):
-    return(fields_step(self, dt))
+from .FVM_solver.fvm_operator import op_fvm
+from .ASL_solver.asl_operators import op_advect_q, op_solve_src, op_fields
 
 def check_divergence(self):
+    """
+    Used to terminate the program if a blowup occurs in any segment
+    of the solver, resulting in the values becoming infinity or 
+    undefined.
+    """
+
     if(   af.any_true(af.isinf(self.f))
        or af.any_true(af.isnan(self.f))
       ):
@@ -114,9 +25,8 @@ def check_divergence(self):
 
 def lie_step(self, dt):
     """
-    Advances the system using a lie-split 
-    scheme. This scheme is 1st order accurate in
-    time.
+    Advances the system using a lie-split scheme. 
+    This scheme is 1st order accurate in time.
 
     Parameters
     ----------
@@ -124,7 +34,7 @@ def lie_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    self.dt            = dt
+    self.dt = dt
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -132,19 +42,20 @@ def lie_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
+           and self.physical_system.params.EM_fields_enabled == True
           ):
             split.lie(self, op_fvm, op_fields, dt)
 
         else:
             op_fvm(self, dt)
 
-
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
+        if(self.physical_system.params.EM_fields_enabled == True):
+            
             def op_advect_q_and_solve_src(self, dt):
+                
                 return(split.lie(self, 
                                  op1 = op_advect_q,
                                  op2 = op_solve_src, 
@@ -155,7 +66,8 @@ def lie_step(self, dt):
             if(self.physical_system.params.solver_method_in_p == 'ASL'):
                 split.lie(self, op_advect_q_and_solve_src, op_fields, dt)
 
-            else: # For FVM:
+            # For FVM in p-space:
+            else: 
                 split.lie(self, op_advect_q_and_solve_src, op_fvm, dt)
 
         else:
@@ -173,9 +85,8 @@ def lie_step(self, dt):
 
 def strang_step(self, dt):
     """
-    Advances the system using a strang-split 
-    scheme. This scheme is 2nd order accurate in
-    time.
+    Advances the system using a strang-split scheme. This scheme is 
+    2nd order accurate in time.
 
     Parameters
     ----------
@@ -183,7 +94,6 @@ def strang_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    # check_maxwells_constraint_equations(self)
     self.dt = dt
 
     if(self.performance_test_flag == True):
@@ -192,7 +102,7 @@ def strang_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
+           and self.physical_system.params.EM_fields_enabled == True
           ):
             split.strang(self, op_fvm, op_fields, dt)
 
@@ -202,24 +112,26 @@ def strang_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
+        if(self.physical_system.params.EM_fields_enabled == True):
+            
             def op_advect_q_and_solve_src(self, dt):
+                
                 return(split.strang(self, 
                                     op1 = op_advect_q,
                                     op2 = op_solve_src, 
                                     dt = dt
                                    )
                       )
-            
+
             if(self.physical_system.params.solver_method_in_p == 'ASL'):
                 split.strang(self, op_advect_q_and_solve_src, op_fields, dt)
 
-            else: # For FVM:
+            # For FVM in p-space:
+            else: 
                 split.strang(self, op_advect_q_and_solve_src, op_fvm, dt)
 
         else:
             split.strang(self, op_advect_q, op_solve_src, dt)
-
 
     check_divergence(self)
     self.time_elapsed += dt 
@@ -233,9 +145,8 @@ def strang_step(self, dt):
 
 def swss_step(self, dt):
     """
-    Advances the system using a SWSS-split 
-    scheme. This scheme is 2nd order accurate in
-    time.
+    Advances the system using a SWSS-split scheme. 
+    This scheme is 2nd order accurate in time.
 
     Parameters
     ----------
@@ -243,27 +154,28 @@ def swss_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    self.dt            = dt
-    
+    self.dt = dt
+
     if(self.performance_test_flag == True):
         tic = af.time()
-    
+
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
+           and self.physical_system.params.EM_fields_enabled == True
           ):
             split.swss(self, op_fvm, op_fields, dt)
 
         else:
             op_fvm(self, dt)
 
-
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
+        if(self.physical_system.params.EM_fields_enabled == True):
+            
             def op_advect_q_and_solve_src(self, dt):
+                
                 return(split.swss(self, 
                                   op1 = op_advect_q,
                                   op2 = op_solve_src, 
@@ -274,7 +186,8 @@ def swss_step(self, dt):
             if(self.physical_system.params.solver_method_in_p == 'ASL'):
                 split.swss(self, op_advect_q_and_solve_src, op_fields, dt)
 
-            else: # For FVM:
+            # For FVM in p-space:
+            else: 
                 split.swss(self, op_advect_q_and_solve_src, op_fvm, dt)
 
         else:
@@ -282,7 +195,7 @@ def swss_step(self, dt):
 
     check_divergence(self)
     self.time_elapsed += dt 
-    
+
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
@@ -290,9 +203,11 @@ def swss_step(self, dt):
 
     return
 
+
 def jia_step(self, dt):
     """
     Advances the system using the Jia split scheme.
+    reference:https://www.sciencedirect.com/science/article/pii/S089571771000436X
 
     NOTE: This scheme is computationally expensive, and 
           should only be used for testing/debugging
@@ -303,7 +218,7 @@ def jia_step(self, dt):
     dt : float
          Time-step size to evolve the system
     """
-    self.dt            = dt
+    self.dt = dt
 
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -311,7 +226,7 @@ def jia_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)
+           and self.physical_system.params.EM_fields_enabled == True
           ):
             split.jia(self, op_fvm, op_fields, dt)
 
@@ -321,8 +236,10 @@ def jia_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(any(charge_particle != 0 for charge_particle in self.physical_system.params.charge)):
+        if(self.physical_system.params.EM_fields_enabled == True):
+            
             def op_advect_q_and_solve_src(self, dt):
+                
                 return(split.jia(self, 
                                  op1 = op_advect_q,
                                  op2 = op_solve_src, 
@@ -333,12 +250,13 @@ def jia_step(self, dt):
             if(self.physical_system.params.solver_method_in_p == 'ASL'):
                 split.jia(self, op_advect_q_and_solve_src, op_fields, dt)
 
-            else: # For FVM:
+            # For FVM in p-space:
+            else: 
                 split.jia(self, op_advect_q_and_solve_src, op_fvm, dt)
 
         else:
             split.jia(self, op_advect_q, op_solve_src, dt)
-    
+
     check_divergence(self)
     self.time_elapsed += dt 
 

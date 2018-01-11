@@ -16,7 +16,19 @@ def minmod(x, y, z):
     return result
 
 def slope_minmod(input_array, axis):
+    """
+    Reconstructs the input array using a 
+    minmod limiter.
+
+    Parameters
+    ----------
     
+    input_array: af.Array
+                 Array holding the cells data.
+    
+    axis: int
+          Axis along which the reconstruction method is to be applied.
+    """
     if(axis == 0):
         
         f_i_plus_one  = af.shift(input_array, -1)

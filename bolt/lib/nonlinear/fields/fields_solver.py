@@ -17,6 +17,65 @@ class fields_solver(object):
     def __init__(self, N_q1, N_q2, N_g, q1, q2, dq1, dq2, comm, boundary_conditions, params,
                  rho_initial, performance_test_flag, initialize_E = None, initialize_B = None
                 ):
+        """
+        Constructor for the fields_solver object, which takes in relevant 
+        quantities for the input. 
+        
+        Additionally, a performance test flag is also passed which when true 
+        stores time which is consumed by each of the major solver routines.
+        This proves particularly useful in analyzing performance bottlenecks 
+        and obtaining benchmarks.
+        
+        Parameters:
+        -----------
+        
+        N_q1: int
+              Number of grid points along q1 dimension.
+        
+        N_q2: int
+              Number of grid points along q2 dimension.
+
+        N_g: int
+             Number of ghost zones taken in position space.
+
+        q1: af.Array
+            The q1 array which describes the q1 zone covered by the proc
+
+        q2: af.Array
+            The q2 array which describes the q2 zone covered by the proc
+
+        dq1: double
+             Step size in q1.
+
+        dq2: double
+             Step size in q2.
+
+        comm: petsc4py.PETSc.Comm
+              This communicator needs to be passed to solve in parallel. When used with
+              the nonlinear solver, the same communicator used by it's native routines is
+              also passed to this object.
+
+        boundary_conditions: file/class
+                             This file describes what boundary conditions are used.
+
+        params : file/object
+                 params contains all details of which methods to use
+                 in addition to useful physical constant. Additionally, 
+                 it can also be used to inject methods which need to be 
+                 used inside some solver routine
+
+        rho_initial: af.Array
+                     The initial charge density array that's passed to an electrostatic 
+                     solver for initialization
+
+        initialize_E: func
+                      Functions which can be used to initialize the values for
+                      electric fields
+
+        initialize_B: func
+                      Functions which can be used to initialize the values for
+                      magnetic fields
+        """
 
         self.N_q1 = N_q1
         self.N_q2 = N_q2
@@ -34,6 +93,9 @@ class fields_solver(object):
         self.params              = params
 
         self.performance_test_flag = performance_test_flag
+        
+        self.initialize_E = initialize_E
+        self.initialize_B = initialize_B
         
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'
@@ -92,18 +154,27 @@ class fields_solver(object):
 
         PETSc.Object.setName(self._glob_fields, 'EM_fields')
         
-        # Alternating upon each call to get_fields:
+        # Alternating upon each call to get_fields for FVM:
         # This ensures that the fields are staggerred correctly in time:
         self.at_n = True
         
         self._initialize(rho_initial)
     
     def _initialize(self, rho_initial):
-        """
+       """
         Called when the solver object is declared. This function is
-        used to initialize the field quantities
-        """
+        used to initialize the EM field quantities using the options 
+        as provided by the user.
 
+        Parameters
+        ----------
+
+        rho_initial : af.Array
+                     The initial charge density array that's passed to an electrostatic 
+                     solver for initialization
+                 
+        """
+ 
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
@@ -155,30 +226,27 @@ class fields_solver(object):
         elif (self.nls.physical_system.params.fields_initialize == 'user-defined'):
 
             if(self.nls.physical_system.params.fields_type != 'user-defined'):            
-                E1, E2, E3 = \
-                    self.physical_system.initial_conditions.initialize_E(self.q1,
-                                                                         self.q2,
-                                                                         self.params
-                                                                        )
+                E1, E2, E3 = self.initialize_E(self.q1,
+                                               self.q2,
+                                               self.params
+                                              )
 
-                B1, B2, B3 = \
-                    self.physical_system.initial_conditions.initialize_B(self.q1_center,
-                                                                         self.q2_center,
-                                                                         self.nls.physical_system.params
-                                                                        )
+                B1, B2, B3 = self.initialize_B(self.q1,
+                                               self.q2,
+                                               self.params
+                                              )
+
             else:
 
-                E1, E2, E3 = \
-                    self.physical_system.params.user_defined_E(self.nls.q1_center,
-                                                               self.nls.q2_center,
-                                                               0
-                                                              )
+                E1, E2, E3 = self.params.user_defined_E(self.q1,
+                                                        self.q2,
+                                                        0
+                                                       )
 
-                B1, B2, B3 = \
-                    self.physical_system.params.user_defined_B(self.nls.q1_center,
-                                                               self.nls.q2_center,
-                                                               0
-                                                              )
+                B1, B2, B3 = self.params.user_defined_B(self.q1,
+                                                        self.q2,
+                                                        0
+                                                       )
 
             self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
         
@@ -266,7 +334,25 @@ class fields_solver(object):
         # ADD SNES BELOW
 
     def evolve_electrodynamic_fields(self, J1, J2, J3, dt):
+        """
+        Evolve the fields using FDTD.
+
+        Parameters
+        ----------
+
+        J1 : af.Array
+             Array which contains the J1 current for each species.        
         
+        J2 : af.Array
+             Array which contains the J2 current for each species.        
+        
+        J3 : af.Array
+             Array which contains the J3 current for each species.        
+        
+        dt: double
+            Timestep size
+        """
+
         self.J1 = af.sum(J1, 1)
         self.J2 = af.sum(J2, 1)
         self.J3 = af.sum(J3, 1)
@@ -301,7 +387,10 @@ class fields_solver(object):
         return
 
     def get_fields(self):
-
+        """
+        Returns the fields value as held by the
+        solver in it's current state.
+        """
         if(self.params.fields_solver != 'fdtd'):
 
             E1 = self.cell_centered_EM_fields[0]
@@ -333,8 +422,9 @@ class fields_solver(object):
                 B2 = self.cell_centered_EM_fields_at_n_plus_half[4]
                 B3 = self.cell_centered_EM_fields_at_n_plus_half[5]
 
-        # Alternating upon each call
-        # TEMP FIX: Need to change to something more clean
-        self.at_n = not(self.at_n)
+        if(self.params.solver_method_in_p == 'FVM'):
+            # Alternating upon each call for FVM:
+            # TEMP FIX: Need to change to something more clean
+            self.at_n = not(self.at_n)
 
         return(E1, E2, E3, B1, B2, B3)
