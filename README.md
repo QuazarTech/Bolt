@@ -16,7 +16,7 @@ The framework has been written with ease of use and extensibility in mind, and c
 
 Where <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c612c13be517545496e8c6e2cb223153.svg?invert_in_darkmode" align=middle width=25.226190000000003pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/0f78a8e240089a351e31b7191713956c.svg?invert_in_darkmode" align=middle width=25.226190000000003pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c01affe9953c41338ec92c5cb19e9dd5.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/60d7e869cdf701e26eaad5a4112ffff2.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>, <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/d38f278b9ebe01f0c37201b197e007d7.svg?invert_in_darkmode" align=middle width=25.561965pt height=22.381919999999983pt/>  and <img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/c90cd766eea8688c8b27fae1e3739f99.svg?invert_in_darkmode" align=middle width=30.926115000000003pt height=24.56552999999997pt/>  are terms that need to be coded in by the user.
 
-The generalized structure that the framework uses can be found in `lib/`. All the functions have been provided docstrings which are indicative of their usage. Additionally, we have validated the solvers by solving the Boltzmann-Equation:
+The generalized structure that the framework uses can be found in `lib/`. The code has been thoroughly documented, with most folders containing their own README which explains the components of the folder and all  functions have been provided docstrings which are indicative of their usage. Additionally, we have validated the solvers by solving the Boltzmann-Equation:
 
 <p align="center"><img src="https://rawgit.com/ShyamSS-95/Bolt/master/.svgs/6012d33f73b29a6e67bdfd25286152d3.svg?invert_in_darkmode" align=middle width=766.6296pt height=38.464304999999996pt/></p>
 
@@ -31,6 +31,8 @@ The solver makes use of [ArrayFire](https://github.com/arrayfire/arrayfire) for 
 * matplotlib
 * pytest
 * mpi4py
+* tqdm
+* prettytable
 
 The documentation is built using sphinx, and requires the following dependencies to be built locally:
 

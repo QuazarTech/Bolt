@@ -49,16 +49,16 @@ def print_table(self, N_iters):
     self._comm.Reduce(np.array([self.time_fieldstep/N_iters]), time_fieldstep,
                       op = MPI.MAX, root = 0
                      )
-    self._comm.Reduce(np.array([self.time_fieldsolver/N_iters]), time_fieldsolver,
+    self._comm.Reduce(np.array([self.fields_solver.time_fieldsolver/N_iters]), time_fieldsolver,
                       op = MPI.MAX, root = 0
                      )
     self._comm.Reduce(np.array([self.time_interp3/N_iters]), time_interp3,
                       op = MPI.MAX, root = 0
                      )
-    self._comm.Reduce(np.array([self.time_communicate_fields/N_iters]), time_communicate_fields,
+    self._comm.Reduce(np.array([self.fields_solver.time_communicate_fields/N_iters]), time_communicate_fields,
                       op = MPI.MAX, root = 0
                      )
-    self._comm.Reduce(np.array([self.time_apply_bcs_fields/N_iters]), time_apply_bcs_fields,
+    self._comm.Reduce(np.array([self.fields_solver.time_apply_bcs_fields/N_iters]), time_apply_bcs_fields,
                       op = MPI.MAX, root = 0
                      )
                      

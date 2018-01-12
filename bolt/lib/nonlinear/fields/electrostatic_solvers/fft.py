@@ -24,7 +24,7 @@ def fft_poisson(self, rho):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    if (self.comm.size != 1):
+    if (self._comm.size != 1):
         raise Exception('FFT solver can only be used when run in serial')
 
     else:

@@ -34,6 +34,7 @@ def compute_moments(self, moment_name, f=None):
     """
     N_g_p = self.N_ghost_p
     
+    # Considering p-arrays non-inclusive of the ghost zones:
     if(N_g_p != 0):
     
         p1 = af.flat(af.moddims(self.p1_center,
@@ -101,7 +102,7 @@ def compute_moments(self, moment_name, f=None):
                            N_q1, N_q2
                           )
 
-    moment = af.broadcast(getattr(self.physical_system.moment_defs, 
+    moment = af.broadcast(getattr(self.physical_system.moments, 
                                   moment_name
                                  ), f, p1, p2, p3, self.dp3 * self.dp2 * self.dp1
                          )

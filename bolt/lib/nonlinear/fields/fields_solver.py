@@ -59,10 +59,9 @@ class fields_solver(object):
                              This file describes what boundary conditions are used.
 
         params : file/object
-                 params contains all details of which methods to use
-                 in addition to useful physical constant. Additionally, 
-                 it can also be used to inject methods which need to be 
-                 used inside some solver routine
+                 params contains all details of which methods to use in addition to useful
+                 physical constants. Additionally, it can also be used to inject methods which
+                 need to be used inside some solver routine
 
         rho_initial: af.Array
                      The initial charge density array that's passed to an electrostatic 
@@ -87,12 +86,15 @@ class fields_solver(object):
         self.dq1 = dq1
         self.dq2 = dq2
 
-        self.comm = comm
+        self._comm = comm
 
         self.boundary_conditions = boundary_conditions
         self.params              = params
 
-        self.performance_test_flag = performance_test_flag
+        self.performance_test_flag   = performance_test_flag
+        self.time_fieldsolver        = 0
+        self.time_apply_bcs_fields   = 0
+        self.time_communicate_fields = 0
         
         self.initialize_E = initialize_E
         self.initialize_B = initialize_B
@@ -141,7 +143,7 @@ class fields_solver(object):
                                                                nproc_in_q2
                                                               ),
                                               stencil_type  = 1,
-                                              comm          = self.comm
+                                              comm          = self._comm
                                              )
 
         # The following global and local vectors are used in
@@ -161,7 +163,7 @@ class fields_solver(object):
         self._initialize(rho_initial)
     
     def _initialize(self, rho_initial):
-       """
+        """
         Called when the solver object is declared. This function is
         used to initialize the EM field quantities using the options 
         as provided by the user.
@@ -172,9 +174,7 @@ class fields_solver(object):
         rho_initial : af.Array
                      The initial charge density array that's passed to an electrostatic 
                      solver for initialization
-                 
         """
- 
         # Obtaining start coordinates for the local zone
         # Additionally, we also obtain the size of the local zone
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
@@ -383,6 +383,34 @@ class fields_solver(object):
             0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
                    + self.cell_centered_EM_fields[:3]
                   )
+
+        return
+
+    def update_user_defined_fields(self, time_elapsed):
+        """
+        Updates the cell-centered EM fields value using the value that is 
+        returned by the user defined function at that particular time.
+
+        Parameters
+        ----------
+
+        time_elapsed : double
+                       Time at which the field values are to be evaluated.
+        """
+
+        E1, E2, E3 = self.params.user_defined_E(self.q1,
+                                                self.q2,
+                                                time_elapsed
+                                               )
+
+        B1, B2, B3 = self.params.user_defined_B(self.q1,
+                                                self.q2,
+                                                time_elapsed
+                                               )
+
+        self.cell_centered_EM_fields = af.join(0, E1, E2, E3, 
+                                               af.join(0, B1, B2, B3)
+                                              )
 
         return
 

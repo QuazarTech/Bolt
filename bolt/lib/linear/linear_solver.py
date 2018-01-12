@@ -106,7 +106,7 @@ class linear_solver(object):
                                                   )
                                              )
 
-        attributes = [a for a in dir(self.physical_system.moment_defs) if not a.startswith('_')]
+        attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof=len(attributes)
                                                    )
@@ -116,7 +116,7 @@ class linear_solver(object):
         PETSc.Sys.Print(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.Print(indent('Device Details:'))
         PETSc.Sys.Print(indent(af.info_str(), 2))
-        # PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.Print()
 
         # Creating PETSc Vecs which are used in dumping to file:

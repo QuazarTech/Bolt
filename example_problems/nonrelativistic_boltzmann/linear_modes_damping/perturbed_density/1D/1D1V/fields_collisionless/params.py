@@ -29,7 +29,7 @@ charge             = af.Array([-10, 5], (1, 2))
 
 # Initial Conditions used in initialize:
 rho_background_species_1 = 1
-rho_background_species_2 = 1
+rho_background_species_2 = 2
 
 temperature_background_species_1 = 1
 temperature_background_species_2 = 1

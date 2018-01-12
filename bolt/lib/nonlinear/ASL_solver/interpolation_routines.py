@@ -35,6 +35,9 @@ def f_interp_2d(self, dt):
     q2_center_new = add(self.q2_center, - A_q2 * dt)
 
     # Reordering from (dof, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_s, dof)
+    # NOTE: To be changed after the implementation of axes specific 
+    # interpolation operators gets completed from ArrayFire's end.
+    # Ref:https://github.com/arrayfire/arrayfire/issues/1955
     self.f = af.approx2(af.reorder(self.f, 2, 3, 1, 0),
                         af.reorder(q1_center_new, 2, 3, 1, 0),
                         af.reorder(q2_center_new, 2, 3, 1, 0),
@@ -69,6 +72,11 @@ def f_interp_p_3d(self, dt):
 
     dt : float
          Time-step size to evolve the system
+
+    NOTE: This function currently makes use of a Strang split approx1, approx2 with
+          reorders to apply along the intended axes. With implementation of approx3
+          complete this would be changed to make use of a single call of approx3.
+          Ref:https://github.com/arrayfire/arrayfire/issues/1837
     """
     # Following Strang Splitting:
     if(self.performance_test_flag == True):

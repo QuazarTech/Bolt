@@ -132,6 +132,8 @@ def jia(self, op1, op2, dt):
     for commutative operations, and 3rd order accurate for
     non-commutative operations
 
+    reference:https://www.sciencedirect.com/science/article/pii/S089571771000436X
+
     Parameters
     ----------
     self: object
@@ -189,6 +191,6 @@ def jia(self, op1, op2, dt):
                                            ) - (1 / 3) * self.cell_centered_EM_fields
     self.yee_grid_EM_fields      = (2 / 3)*(  yee_grid_EM_fields_intermediate1
                                             + yee_grid_EM_fields_intermediate2
-                                           )- (1 / 3) * self.yee_grid_EM_fields
+                                           ) - (1 / 3) * self.yee_grid_EM_fields
 
     return

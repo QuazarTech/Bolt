@@ -43,7 +43,16 @@ def fvm_timestep_RK2(self, dt):
 
         self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
 
+    # Since it will be evaluated again at the midpoint
+    if(self.physical_system.params.fields_type == 'user-defined'):
+        self.time_elapsed += 0.5 * dt
+
     self.f = f_initial + df_dt_fvm(self.f, self) * dt
+
+    # Subtracting the change made to avoid messing 
+    # with the counter on timestep.py
+    if(self.physical_system.params.fields_type == 'user-defined'):
+        self.time_elapsed -= 0.5 * dt
 
     af.eval(self.f)
     return

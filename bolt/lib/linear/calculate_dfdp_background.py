@@ -24,7 +24,7 @@ def calculate_dfdp_background(self):
                         +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
                        ) / (12 * self.dp3)
 
-    # Reordering such that the variations in velocity are along axis 2
+    # Reordering such that the variations in velocity are along axis 0:
     self.dfdp1_background = af.moddims(dfdp1_background, self.N_p1 * self.N_p2 * self.N_p3, self.N_species)
     self.dfdp2_background = af.moddims(dfdp2_background, self.N_p1 * self.N_p2 * self.N_p3, self.N_species)
     self.dfdp3_background = af.moddims(dfdp3_background, self.N_p1 * self.N_p2 * self.N_p3, self.N_species)

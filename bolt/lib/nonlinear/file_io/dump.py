@@ -30,8 +30,7 @@ def dump_moments(self, file_name):
     The above set of statements will create a HDF5 file which contains the
     all the moments which have been defined in the physical_system object.
     The data is always stored with the key 'moments' inside the HDF5 file.
-    Suppose 'density' and 'energy' are two these moments, and are declared
-    the first and second in the moment_exponents object:
+    Suppose 'density' and 'energy' are two functions defined then:
 
     These variables can then be accessed from the file using
     
@@ -44,18 +43,29 @@ def dump_moments(self, file_name):
     >> E   = h5f['moments'][:][:, :, 1]
     
     >> h5f.close()
+
+    However, in the case of multiple species, the following holds:
+
+    >> rho_species_1 = h5f['moments'][:][:, :, 0]
+    
+    >> rho_species_2 = h5f['moments'][:][:, :, 1]
+    
+    >> E_species_1   = h5f['moments'][:][:, :, 2]
+
+    >> E_species_2   = h5f['moments'][:][:, :, 3]
+
     """
     N_g_q = self.N_ghost_q
 
-    i = 0
-    for key in self.physical_system.moment_exponents:
+    attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
+
+    for i in range(len(attributes)):
         if(i == 0):
-            array_to_dump = self.compute_moments(key)[:, N_g_q:-N_g_q,N_g_q:-N_g_q]
+            array_to_dump = self.compute_moments(attributes[i])[:, :, N_g_q:-N_g_q,N_g_q:-N_g_q]
         else:
-            array_to_dump = af.join(0, array_to_dump,
-                                    self.compute_moments(key)[:, N_g_q:-N_g_q,N_g_q:-N_g_q]
+            array_to_dump = af.join(1, array_to_dump,
+                                    self.compute_moments(attributes[i])[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q]
                                    )
-        i += 1
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
@@ -92,7 +102,7 @@ def dump_distribution_function(self, file_name):
 
     >> import h5py
     
-    >> h5f = h5py.File('distribution_function', 'r')
+    >> h5f = h5py.File('distribution_function.h5', 'r')
     
     >> f   = h5f['distribution_function'][:]
     
@@ -100,6 +110,8 @@ def dump_distribution_function(self, file_name):
 
     Alternatively, it can also be used with the load function to resume
     a long-running calculation.
+
+    >> solver.load_distribution_function('distribution_function')
     """
     N_g_q = self.N_ghost_q
     N_g_p = self.N_ghost_p
@@ -131,11 +143,66 @@ def dump_distribution_function(self, file_name):
     return
 
 def dump_EM_fields(self, file_name):
+    """
+    This function is used to EM fields to a file for later usage.
+    This dumps all the EM fields quantities E1, E2, E3, B1, B2, B3 
+    which can then be used later for post-processing
 
-    N_g_q = self.N_ghost_q
-    flattened_global_EM_fields_array = af.flat(self.yee_grid_EM_fields[:, N_g_q:-N_g_q, N_g_q:-N_g_q])
-    flattened_global_EM_fields_array.to_ndarray(self._glob_fields_array)
+    Parameters
+    ----------
+
+    file_name : The EM_fields array will be dumped to this
+                provided file name.
+
+    Returns
+    -------
+
+    This function returns None. However it creates a file 'file_name.h5',
+    containing the data of the EM fields.
+
+    Examples
+    --------
+    
+    >> solver.dump_EM_fields('data_EM_fields')
+
+    The above statement will create a HDF5 file which contains the
+    EM fields data. The data is always stored with the key 
+    'EM_fields'
+
+    This can later be accessed using
+
+    >> import h5py
+    
+    >> h5f = h5py.File('data_EM_fields.h5', 'r')
+    
+    >> EM_fields = h5f['EM_fields'][:]
+
+    >> E1 = EM_fields[:, :, 0]
+    
+    >> E2 = EM_fields[:, :, 1]
+    
+    >> E3 = EM_fields[:, :, 2]
+    
+    >> B1 = EM_fields[:, :, 3]
+    
+    >> B2 = EM_fields[:, :, 4]
+    
+    >> B3 = EM_fields[:, :, 5]
+
+    >> h5f.close()
+
+    Alternatively, it can also be used with the load function to resume
+    a long-running calculation.
+
+    >> solver.load_EM_fields('data_EM_fields')
+    """
+    N_g = self.N_ghost_q
+    
+    flattened_global_EM_fields_array = \
+        af.flat(self.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
+    flattened_global_EM_fields_array.to_ndarray(self.fields_solver._glob_fields_array)
+    
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-    viewer(self._glob_fields)
+    viewer(self.fields_solver._glob_fields)
 
     return

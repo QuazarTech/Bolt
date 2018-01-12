@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Since our solver allows the capability to use different methods in
+p-space and q-space, we need to use operator splitting methods to maintain 
+the correct spatio-temporal order of accuracy.For this purpose, we have defined
+independant steps as operators which may be passed appropriately to the operator 
+splitting methods. This file contains the functions lie_step, strang_step, swss_step
+and jia_step which call the corresponding operator splitting methods according to the
+parameters defined by the user.
+
+NOTE: When FVM is used in the q-space as well as the p-space, there is no splitting introduced
+      since the operation in q-space and p-space are carried out in a single step. In such a 
+      case, all the methods are equivalent.
+""" 
+
 import arrayfire as af
 import numpy as np
 

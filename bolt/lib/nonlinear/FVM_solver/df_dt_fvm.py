@@ -111,11 +111,15 @@ def df_dt_fvm(f, self):
        and self.physical_system.params.EM_fields_enabled == True
       ):
 
-        if(self.physical_system.params.fields_solver == 'fft'):
-            rho = multiply(self.physical_system.params.charge,
-                           self.compute_moments('density', f=f)
-                          )
-            self.fields_solver.compute_electrostatic_fields(rho)
+        if(self.physical_system.params.fields_type == 'electrostatic'):
+            if(self.physical_system.params.fields_solver == 'fft'):
+                rho = multiply(self.physical_system.params.charge,
+                               self.compute_moments('density', f=f)
+                              )
+                self.fields_solver.compute_electrostatic_fields(rho)
+
+        if(self.physical_system.params.fields_type == 'user-defined'):
+            self.fields_solver.update_user_defined_fields(self.time_elapsed)
 
         (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.f, self.time_elapsed,
                                           self.q1_center, self.q2_center,

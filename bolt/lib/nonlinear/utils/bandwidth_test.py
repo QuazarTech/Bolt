@@ -1,3 +1,8 @@
+"""
+Evaluates the Bandwidth of the device run on using
+the STREAMS benchmark.
+"""
+
 import arrayfire as af
 
 def memory_bandwidth(size, n_reads, n_writes, n_evals, time_elapsed):
@@ -14,9 +19,11 @@ def bandwidth_test(n_evals):
     af.sync()
 
     tic = af.time()
+    
     for i in range(n_evals):
         c = a + b
         af.eval(c)
+    
     af.sync()
     toc = af.time()
 

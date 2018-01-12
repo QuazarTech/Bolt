@@ -28,9 +28,7 @@ The solver has the option of using 2 different methods:
 import arrayfire as af
 import numpy as np
 import petsc4py, sys
-
 petsc4py.init(sys.argv)
-
 from petsc4py import PETSc
 import socket
 
@@ -135,24 +133,20 @@ class nonlinear_solver(object):
     
         if(performance_test_flag == True):
         
-            self.time_ts                 = 0
+            self.time_ts = 0
 
-            self.time_interp2            = 0
-            self.time_sourcets           = 0
+            self.time_interp2  = 0
+            self.time_sourcets = 0
 
-            self.time_fvm_solver         = 0
-            self.time_reconstruct        = 0
-            self.time_riemann            = 0
+            self.time_fvm_solver  = 0
+            self.time_reconstruct = 0
+            self.time_riemann     = 0
             
-            self.time_fieldstep          = 0
-            self.time_fieldsolver        = 0
-            self.time_interp3            = 0
+            self.time_fieldstep = 0
+            self.time_interp3   = 0
             
-            self.time_apply_bcs_f        = 0
-            self.time_apply_bcs_fields   = 0
-
-            self.time_communicate_f      = 0
-            self.time_communicate_fields = 0
+            self.time_apply_bcs_f   = 0
+            self.time_communicate_f = 0
 
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'
@@ -257,11 +251,11 @@ class nonlinear_solver(object):
 
 
         # This DA is used by the FileIO routine dump_moments():
-        # Finding the number of definitions for the moments under moment_defs:
-        attributes = [a for a in dir(self.physical_system.moment_defs) if not a.startswith('_')]
-
+        # Finding the number of definitions for the moments:
+        attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof        = len(attributes),
+                                                    dof        =   self.N_species
+                                                                 * len(attributes),
                                                     proc_sizes = (nproc_in_q1, 
                                                                   nproc_in_q2
                                                                  ),
@@ -644,6 +638,9 @@ class nonlinear_solver(object):
 
     dump_distribution_function = dump.dump_distribution_function
     dump_moments               = dump.dump_moments
+    dump_EM_fields             = dump.dump_EM_fields
 
     load_distribution_function = load.load_distribution_function
+    load_EM_fields             = load.load_EM_fields
+    
     print_performance_timings  = print_table

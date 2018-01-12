@@ -62,7 +62,7 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         # af.broadcast(function, *args) performs batched operations on
         # function(*args):
         if(f_hat is None and f is None):
-            moment_hat = af.broadcast(getattr(self.physical_system.moment_defs, 
+            moment_hat = af.broadcast(getattr(self.physical_system.moments, 
                                               moment_name
                                              ), self.f_hat, 
                                       self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
@@ -73,7 +73,7 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
             moment     = af.real(ifft2(moment_hat))
         
         elif(f_hat is not None and f is None):
-            moment_hat = af.broadcast(getattr(self.physical_system.moment_defs, 
+            moment_hat = af.broadcast(getattr(self.physical_system.moments, 
                                               moment_name
                                              ), f_hat,
                                       self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
@@ -84,7 +84,7 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
             moment     = af.real(ifft2(moment_hat))
 
         elif(f_hat is None and f is not None):
-            moment = af.broadcast(getattr(self.physical_system.moment_defs, 
+            moment = af.broadcast(getattr(self.physical_system.moments, 
                                           moment_name
                                          ), f,
                                   self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1

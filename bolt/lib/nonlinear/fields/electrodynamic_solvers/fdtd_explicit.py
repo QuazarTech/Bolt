@@ -84,7 +84,7 @@ def fdtd_evolve_B(self, dt):
 
 def fdtd(self, dt):
     """
-    Evolves the EM fields variables on a Yee-Grid:
+    Evolves the EM fields variables on a Yee-Grid using FDTD:
     E's and B's are staggered in time such that
     B's are defined at (n + 1/2), and E's are defined at n
 
