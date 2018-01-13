@@ -29,7 +29,7 @@ def A_q(f, t, q1, q2, v1, v2, v3, params):
     Parameters:
     -----------
     f : Distribution function array
-        shape:(N_p, N_s, N_q1, N_q2)
+        shape:(N_v, N_s, N_q1, N_q2)
     
     t : Time elapsed
     
@@ -45,7 +45,7 @@ def A_q(f, t, q1, q2, v1, v2, v3, params):
     v2 : The array that holds data for the v2 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
-    v3 : The array that holds data for the p3 dimension in v-space
+    v3 : The array that holds data for the v3 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
     params: The parameters file/object that is originally declared by the user.
@@ -68,7 +68,7 @@ def C_q(f, t, q1, q2, v1, v2, v3, params):
     Parameters:
     -----------
     f : Distribution function array
-        shape:(N_p, N_s, N_q1, N_q2)
+        shape:(N_v, N_s, N_q1, N_q2)
     
     t : Time elapsed
     
@@ -84,7 +84,7 @@ def C_q(f, t, q1, q2, v1, v2, v3, params):
     v2 : The array that holds data for the v2 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
-    v3 : The array that holds data for the p3 dimension in v-space
+    v3 : The array that holds data for the v3 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
     params: The parameters file/object that is originally declared by the user.
@@ -109,7 +109,7 @@ def A_p(f, t, q1, q2, v1, v2, v3,
     Parameters:
     -----------
     f : Distribution function array
-        shape:(N_p, N_s, N_q1, N_q2)
+        shape:(N_v, N_s, N_q1, N_q2)
     
     t : Time elapsed
     
@@ -125,7 +125,7 @@ def A_p(f, t, q1, q2, v1, v2, v3,
     v2 : The array that holds data for the v2 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
-    v3 : The array that holds data for the p3 dimension in v-space
+    v3 : The array that holds data for the v3 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
     fields_solver: The solver object whose method get_fields() is used to 
@@ -157,7 +157,7 @@ def C_p(f, t, q1, q2, v1, v2, v3,
     Parameters:
     -----------
     f : Distribution function array
-        shape:(N_p, N_s, N_q1, N_q2)
+        shape:(N_v, N_s, N_q1, N_q2)
     
     t : Time elapsed
     
@@ -173,7 +173,7 @@ def C_p(f, t, q1, q2, v1, v2, v3,
     v2 : The array that holds data for the v2 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
-    v3 : The array that holds data for the p3 dimension in v-space
+    v3 : The array that holds data for the v3 dimension in v-space
          shape:(N_v, N_s, 1, 1)
 
     fields_solver: The solver object whose method get_fields() is used to 

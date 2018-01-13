@@ -17,11 +17,9 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
     moments_name : str
                    Pass the moment name which needs to be computed.
                    It must be noted that this needs to be defined by the
-                   user under moment_defs under src and passed to the 
+                   user under moments under src and passed to the 
                    physical_system object.
 
-    N_s: The species for which you want to compute the moment quantity.
-    
     f/f_hat: np.ndarray
              Pass this argument as well when you want to compute the 
              moments of the input array and not the one stored by the state vector

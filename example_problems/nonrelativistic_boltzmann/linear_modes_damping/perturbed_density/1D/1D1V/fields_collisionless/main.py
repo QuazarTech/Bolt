@@ -1,5 +1,4 @@
 import arrayfire as af
-af.set_backend('cpu')
 import numpy as np
 import pylab as pl
 
@@ -58,19 +57,6 @@ system = physical_system(domain,
 
 N_g_q = system.N_ghost_q
 
-# Pass this system to the linear solver object when 
-# a single mode only needs to be evolved. This solver
-# would only evolve the single mode, and hence requires
-# much lower time and memory for the computations:
-# linearized_system = physical_system(domain,
-#                                     boundary_conditions,
-#                                     params,
-#                                     initialize,
-#                                     advection_terms,
-#                                     collision_operator.linearized_BGK,
-#                                     moments
-#                                    )
-
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 ls  = linear_solver(system)
@@ -89,13 +75,9 @@ n_nls              = nls.compute_moments('density')
 rho_data_nls[0, 0] = af.max(n_nls[:, 0, N_g_q:-N_g_q, N_g_q:-N_g_q])
 rho_data_nls[0, 1] = af.max(n_nls[:, 1, N_g_q:-N_g_q, N_g_q:-N_g_q])
 
-n_ls = ls.compute_moments('density')
-
-if(ls.single_mode_evolution == True):
-    rho_data_ls[0] = params.rho_background + abs(n_ls)
-else:
-    rho_data_ls[0, 0] = af.max(n_ls[:, 0]) 
-    rho_data_ls[0, 1] = af.max(n_ls[:, 1]) 
+n_ls              = ls.compute_moments('density')
+rho_data_ls[0, 0] = af.max(n_ls[:, 0]) 
+rho_data_ls[0, 1] = af.max(n_ls[:, 1]) 
 
 for time_index, t0 in enumerate(time_array[1:]):
 
@@ -106,13 +88,9 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_nls[time_index + 1, 0] = af.max(n_nls[:, 0, N_g_q:-N_g_q, N_g_q:-N_g_q])
     rho_data_nls[time_index + 1, 1] = af.max(n_nls[:, 1, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
-    n_ls = ls.compute_moments('density')
-
-    if(ls.single_mode_evolution == True):
-        rho_data_ls[time_index + 1] =  params.rho_background + abs(n_ls)
-    else:
-        rho_data_ls[time_index + 1, 0] = af.max(n_ls[:, 0]) 
-        rho_data_ls[time_index + 1, 1] = af.max(n_ls[:, 1]) 
+    n_ls                           = ls.compute_moments('density')
+    rho_data_ls[time_index + 1, 0] = af.max(n_ls[:, 0]) 
+    rho_data_ls[time_index + 1, 1] = af.max(n_ls[:, 1]) 
 
 pl.plot(time_array, rho_data_ls[:, 0], '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls[:, 0], label='Nonlinear Solver')

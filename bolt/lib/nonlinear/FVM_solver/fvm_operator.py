@@ -28,7 +28,7 @@ def op_fvm(self, dt):
         self.f = af.select(tau == 0, 
                            self._source(self.f, self.time_elapsed,
                                         self.q1_center, self.q2_center,
-                                        self.p1, self.p2, self.p3, 
+                                        self.p1_center, self.p2_center, self.p3_center, 
                                         self.compute_moments, 
                                         self.physical_system.params, 
                                         True

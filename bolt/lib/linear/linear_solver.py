@@ -235,6 +235,12 @@ class linear_solver(object):
         quantities are then mapped to the fourier basis by taking FFTs.
         The independant modes are then evolved by using the linear
         solver.
+
+        Parameters:
+        -----------
+        params: The parameters file/object that is originally declared 
+                by the user.
+
         """
         # af.broadcast(function, *args) performs batched 
         # operations on function(*args):
