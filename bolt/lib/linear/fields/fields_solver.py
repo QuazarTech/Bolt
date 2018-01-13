@@ -64,6 +64,38 @@ class fields_solver(object):
         self.J3_hat = af.sum(self.J3_hat, 1)
 
         return
+
+    def update_user_defined_fields(self, time_elapsed):
+        """
+        Updates the EM fields array using the value that is 
+        returned by the user defined function at that particular time.
+
+        Parameters
+        ----------
+
+        time_elapsed : double
+                       Time at which the field values are to be evaluated.
+        """
+
+        E1, E2, E3 = self.params.user_defined_E(self.q1,
+                                                self.q2,
+                                                time_elapsed
+                                               )
+
+        B1, B2, B3 = self.params.user_defined_B(self.q1,
+                                                self.q2,
+                                                time_elapsed
+                                               )
+
+        self.E1_hat = 2 * fft2(E1) / (self.N_q1 * self.N_q2)
+        self.E2_hat = 2 * fft2(E2) / (self.N_q1 * self.N_q2)
+        self.E3_hat = 2 * fft2(E3) / (self.N_q1 * self.N_q2)
+
+        self.B1_hat = 2 * fft2(B1) / (self.N_q1 * self.N_q2)
+        self.B2_hat = 2 * fft2(B2) / (self.N_q1 * self.N_q2)
+        self.B3_hat = 2 * fft2(B3) / (self.N_q1 * self.N_q2)
+
+        return
         
     def get_fields(self):
         

@@ -16,12 +16,12 @@ This is the root folder for the nonlinear solver module under which all the func
 
 - `utils/`: This folder contains the utility functions that are used in the nonlinear solver. These include functions which help in nicer formatting, bandwidth tests, etc...
 
-- `apply_boundary_conditions`: This file contains the functions that are used to apply boundary conditions to the distribution function and the EM fields. The boundary conditions available are periodic, dirichlet, mirror, and shearing box boundary conditions.
+- `apply_boundary_conditions.py`: This file contains the functions that are used to apply boundary conditions to the distribution function and the EM fields. The boundary conditions available are periodic, dirichlet, mirror, and shearing box boundary conditions.
 
-- `communicate`: The functions are responsible for interzonal communication when the code is run in parallel. Additionally it also takes care of the application of periodic boundary conditions.
+- `communicate.py`: The functions are responsible for interzonal communication when the code is run in parallel. Additionally it also takes care of the application of periodic boundary conditions.
 
-- `compute_moments`: This file contains the definition of the compute_moments function which returns the value of the moments as defined by the user under `src/`.
+- `compute_moments.py`: This file contains the definition of the compute_moments function which returns the value of the moments as defined by the user under `src/`.
 
-- `nonlinear_solver`: This file contains the class definition for creating the nonlinear solver object. This object acts as the interface through which the defined system is evolved.
+- `nonlinear_solver.py`: This file contains the class definition for creating the nonlinear solver object. This object acts as the interface through which the defined system is evolved.
 
-- `timestep`: Contains the various timesplitting schemes with which the system can be evolved. It is to be noted that all methods under `timestep` are equivalent when considering FVM in q-space as well as p-space since there is no splitting involved.
+- `timestep.py`: Contains the various timesplitting schemes with which the system can be evolved. It is to be noted that all methods under `timestep.py` are equivalent when considering FVM in q-space as well as p-space since there is no splitting involved.

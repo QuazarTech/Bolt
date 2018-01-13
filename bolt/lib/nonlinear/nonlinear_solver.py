@@ -65,7 +65,7 @@ class nonlinear_solver(object):
         system object as an argument and uses it in intialization and
         evolution of the system in consideration. 
 
-        Additionally, a performance test flag is also passed which when true 
+        Additionally, a performance test flag is also passed which when true,
         stores time which is consumed by each of the major solver routines.
         This proves particularly useful in analyzing performance bottlenecks 
         and obtaining benchmarks.
@@ -131,6 +131,7 @@ class nonlinear_solver(object):
 
         self.performance_test_flag = performance_test_flag
     
+        # Initializing variables which are used to time the components of the solver: 
         if(performance_test_flag == True):
         
             self.time_ts = 0
@@ -356,7 +357,7 @@ class nonlinear_solver(object):
         carried out along all dimensions necessary:
 
         q_expanded form:(N_p1 * N_p2 * N_p3, N_s, N_q1, N_q2)
-        p_expanded form:(N_p1, N_p2, N_p3, N_q1 * N_q2)
+        p_expanded form:(N_p1, N_p2, N_p3, N_s * N_q1 * N_q2)
         
         This function converts the input array from
         p_expanded to q_expanded form.

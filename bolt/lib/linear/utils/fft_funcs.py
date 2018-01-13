@@ -7,6 +7,7 @@ the operation along the axis 2, 3 of the array using reorders.
 
 NOTE: This is just a temporary workaround. A request has been made to arrayfire
       for the implementation of fft which allows targeting specific axes.
+      Reference: https://github.com/arrayfire/arrayfire/issues/2035
 """
 
 import arrayfire as af

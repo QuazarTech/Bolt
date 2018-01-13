@@ -2,52 +2,115 @@
 # -*- coding: utf-8 -*-
 
 def RK2(dx_dt, x_initial, dt, *args):
+    """
+    Integrates the function dx_dt from x_initial(t = t0)
+    to x(t = t0 + dt) using the RK2 method. This method is
+    second order accurate.
+    
+    Parameters
+    ----------
+    
+    dx_dt: function
+           Returns the slope dx_dt which is 
+           used to evolve x
 
+    x_initial: array
+               The value of x at the beginning of the
+               timestep.
+
+    dt: double
+        The timestep size.
+    """
     x = x_initial + dx_dt(x_initial, *args) * (dt / 2)
+    self.time_elapsed += 0.5 * dt 
     x = x_initial + dx_dt(x, *args) * dt
+    self.time_elapsed += 0.5 * dt 
 
     return(x)
 
 def RK4(dx_dt, x_initial, dt, *args):
+    """
+    Integrates the function dx_dt from x_initial(t = t0)
+    to x(t = t0 + dt) using the RK4 method. This method is
+    fourth order accurate.
+    
+    Parameters
+    ----------
+    
+    dx_dt: function
+           Returns the slope dx_dt which is 
+           used to evolve x
 
+    x_initial: array
+               The value of x at the beginning of the
+               timestep.
+
+    dt: double
+        The timestep size.
+    """
     k1 = dx_dt(x_initial, *args)
     x  = x_initial + 0.5 * k1 * dt
+
+    self.time_elapsed += 0.5 * dt 
+
     k2 = dx_dt(x, *args)
     x  = x_initial + 0.5 * k2 * dt
     k3 = dx_dt(x, *args)
     x  = x_initial + k3 * dt
-    k4 = dx_dt(x, *args)
 
+    self.time_elapsed += 0.5 * dt 
+    
+    k4 = dx_dt(x, *args)
     x = x_initial + ((k1 + 2 * k2 + 2 * k3 + k4) / 6) * dt
 
     return(x)
 
 def RK5(dx_dt, x_initial, dt, *args):
+    """
+    Integrates the function dx_dt from x_initial(t = t0)
+    to x(t = t0 + dt) using the RK5 method. This method is
+    5th order accurate.
+    
+    Parameters
+    ----------
+    
+    dx_dt: function
+           Returns the slope dx_dt which is 
+           used to evolve x
+
+    x_initial: array
+               The value of x at the beginning of the
+               timestep.
+
+    dt: double
+        The timestep size.
+    """
 
     k1 = dx_dt(x_initial, *args)
     x  = x_initial + 0.25 * k1 * dt
     
+    self.time_elapsed += 0.25 * dt 
+    
     k2 = dx_dt(x, *args)
-    x  = x_initial + (3 / 32) * (k1 + 3 * k2) * dt
+    x  = x_initial + (1 / 8) * (k1 + k2) * dt
     
     k3 = dx_dt(x, *args)
-    x  = x_initial + (12 / 2197) * (161 * k1 - 600 * k2 + 608 * k3) * dt
+    x  = x_initial - (0.5 * k2 - k3) * dt
+    
+    self.time_elapsed += 0.25 * dt 
     
     k4 = dx_dt(x, *args)
-    x  = x_initial + (1 / 4104) * (  8341  * k1 - 32832 * k2
-                                   + 29440 * k3 - 845   * k4
-                                  ) * dt
+    x  = x_initial + (3 * k1 + 9 * k4) * dt/16
+    
+    self.time_elapsed += 0.25 * dt 
 
     k5 = dx_dt(x, *args)
-    x  = x_initial + (- (8 / 27) * k1 + 2 * k2 - (3544 / 2565) * k3
-                      + (1859 / 4104) * k4 - (11 / 40) * k5
-                     ) * dt
+    x  = x_initial - (3 * k1 - 2 * k2 - 12 * k3 + 12 * k4 - 8 * k5) * dt/7
+
+    self.time_elapsed += 0.25 * dt 
 
     k6 = dx_dt(x, *args)
-    x  = x_initial + 1 / 5 * (  (16 / 27) * k1 + (6656 / 2565) * k3
-                              + (28561 / 11286) * k4 - (9 / 10) * k5
-                              + (2 / 11) * k6
-                             ) * dt
+    x  = x_initial + (7 * k1 + 32 * k3 + 12 * k4 + 32 * k5 + 7 * k6) * dt/90
 
     return(x)
 
@@ -62,11 +125,15 @@ def RK2_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + k1_x * (dt / 2)
     y = y_initial + k1_y * (dt / 2)
 
+    self.time_elapsed += 0.5 * dt 
+
     k2_x = dx_dt(x, *args)
     k2_y = dy_dt(y, *args)
 
     x = x_initial + k2_x * dt
     y = y_initial + k2_y * dt
+
+    self.time_elapsed += 0.5 * dt 
 
     return(x, y)
 
@@ -74,6 +141,8 @@ def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
 
     k1_x = dx_dt(x_initial, *args)
     k1_y = dy_dt(y_initial, *args)
+
+    self.time_elapsed += 0.5 * dt 
 
     x = x_initial + 0.5 * k1_x * dt
     y = y_initial + 0.5 * k1_y * dt
@@ -89,6 +158,8 @@ def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
 
     x = x_initial + k3_x * dt
     y = y_initial + k3_y * dt
+
+    self.time_elapsed += 0.5 * dt 
 
     k4_x = dx_dt(x, *args)
     k4_y = dy_dt(y, *args)
@@ -106,50 +177,42 @@ def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + 0.25 * k1_x * dt
     y = y_initial + 0.25 * k1_y * dt
     
+    self.time_elapsed += 0.25 * dt 
+
     k2_x = dx_dt(x, *args)
     k2_y = dy_dt(y, *args)
 
-    x = x_initial + (3 / 32) * (k1_x + 3 * k2_x) * dt
-    y = y_initial + (3 / 32) * (k1_y + 3 * k2_y) * dt
+    x = x_initial + (1 / 8) * (k1_x + k2_x) * dt
+    x = x_initial + (1 / 8) * (k1_y + k2_y) * dt
     
     k3_x = dx_dt(x, *args)
     k3_y = dy_dt(y, *args)
 
-    x = x_initial + (12 / 2197) * (161 * k1_x - 600 * k2_x + 608 * k3_x) * dt
-    y = y_initial + (12 / 2197) * (161 * k1_y - 600 * k2_y + 608 * k3_y) * dt
-    
+    x = x_initial - (0.5 * k2_x - k3_x) * dt
+    y = y_initial - (0.5 * k2_y - k3_y) * dt
+
+    self.time_elapsed += 0.25 * dt 
+
     k4_x = dx_dt(x, *args)
     k4_y = dy_dt(y, *args)
 
-    x  = x_initial + (1 / 4104) * (  8341  * k1_x - 32832 * k2_x
-                                   + 29440 * k3_x - 845   * k4_x
-                                  ) * dt
-    x  = y_initial + (1 / 4104) * (  8341  * k1_y - 32832 * k2_y
-                                   + 29440 * k3_y - 845   * k4_y
-                                  ) * dt
+    x  = x_initial + (3 * k1_x + 9 * k4_x) * dt/16
+    y  = y_initial + (3 * k1_y + 9 * k4_y) * dt/16
+
+    self.time_elapsed += 0.25 * dt 
 
     k5_x = dx_dt(x, *args)
     k5_y = dy_dt(y, *args)
     
-    x = x_initial + (- (8 / 27) * k1_x + 2 * k2_x - (3544 / 2565) * k3_x
-                     + (1859 / 4104) * k4_x - (11 / 40) * k5_x
-                    ) * dt
-    
-    y = y_initial + (- (8 / 27) * k1_y + 2 * k2_y - (3544 / 2565) * k3_y
-                     + (1859 / 4104) * k4_y - (11 / 40) * k5_y
-                    ) * dt
+    x  = x_initial - (3 * k1_x - 2 * k2_x - 12 * k3_x + 12 * k4_x - 8 * k5_x) * dt/7
+    y  = y_initial - (3 * k1_y - 2 * k2_y - 12 * k3_y + 12 * k4_y - 8 * k5_y) * dt/7
+
+    self.time_elapsed += 0.25 * dt 
 
     k6_x = dx_dt(x, *args)
     k6_y = dy_dt(y, *args)
 
-    x  = x_initial + 1 / 5 * (  (16 / 27) * k1_x + (6656 / 2565) * k3_x
-                              + (28561 / 11286) * k4_x - (9 / 10) * k5_x
-                              + (2 / 11) * k6_x
-                             ) * dt
-
-    y  = y_initial + 1 / 5 * (  (16 / 27) * k1_y + (6656 / 2565) * k3_y
-                              + (28561 / 11286) * k4_y - (9 / 10) * k5_y
-                              + (2 / 11) * k6_y
-                             ) * dt
+    x = x_initial + (7 * k1_x + 32 * k3_x + 12 * k4_x + 32 * k5_x + 7 * k6_x) * dt/90
+    y = y_initial + (7 * k1_y + 32 * k3_y + 12 * k4_y + 32 * k5_y + 7 * k6_y) * dt/90
 
     return(x, y)

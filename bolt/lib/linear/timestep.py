@@ -6,7 +6,6 @@ from . import integrators
 from .df_hat_dt import df_hat_dt
 from .fields.dfields_hat_dt import dfields_hat_dt
 
-
 def RK5_step(self, dt):
 
     if(    self.physical_system.params.EM_fields_enabled == True 
@@ -26,6 +25,7 @@ def RK5_step(self, dt):
     return
 
 def RK4_step(self, dt):
+    
     if(    self.physical_system.params.EM_fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
       ):
@@ -43,6 +43,7 @@ def RK4_step(self, dt):
     return
 
 def RK2_step(self, dt):
+    
     if(    self.physical_system.params.EM_fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
       ):

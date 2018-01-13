@@ -2,18 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-This is the module which contains the functions of the
-linear solver of Bolt. It performs the FFT to map the given 
-input onto the Fourier basis, and evolves each mode of the
-input independantly. It is to be noted that this module
+This is the module which contains the functions of the linear solver of Bolt.
+It performs an FFT to map the given input onto the Fourier basis, and evolves 
+each mode of the input independantly. It is to be noted that this module
 can only be applied to systems with periodic boundary conditions.
-Additionally, this module isn't parallelized to run across
-multiple devices/nodes.
+Additionally, this module isn't parallelized to run across multiple devices/nodes.
 """
 
 # In this code, we shall default to using the positionsExpanded form
 # thoroughout. This means that the arrays defined in the system will
-# be of the form: (N_q1, N_q2, N_p1*N_p2*N_p3)
+# be of the form:(N_p, N_s, N_q1, N_q2)
 
 # Importing dependencies:
 import numpy as np
@@ -55,10 +53,9 @@ class linear_solver(object):
         physical_system: The defined physical system object which holds
                          all the simulation information such as the initial
                          conditions, and the domain info is passed as an
-                         argument in defining an instance of the
-                         nonlinear_solver. This system is then evolved, and
-                         monitored using the various methods under the
-                         nonlinear_solver class.
+                         argument in defining an instance of the linear_solver.
+                         This system is then evolved, and monitored using the
+                         various methods under the linear_solver class.
         """
         self.physical_system = physical_system
 
@@ -98,6 +95,8 @@ class linear_solver(object):
                            )
 
         # Initializing DAs which will be used in file-writing:
+        # This is done so that the output format used by the linear solver matches
+        # with the output format of the nonlinear solver:
         self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                               dof=(  self.N_species
                                                    * self.N_p1 
@@ -106,9 +105,10 @@ class linear_solver(object):
                                                   )
                                              )
 
+        # Getting the number of definitions in moments:
         attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                                    dof=len(attributes)
+                                                    dof = self.N_species * len(attributes)
                                                    )
 
         # Printing backend details:
@@ -124,8 +124,7 @@ class linear_solver(object):
         self._glob_f_array = self._glob_f.getArray()
 
         self._glob_moments       = self._da_dump_moments.createGlobalVec()
-        self._glob_moments_value = self._da_dump_moments.\
-                                   getVecArray(self._glob_moments)
+        self._glob_moments_array = self._glob_moments.getArray()
 
         # Setting names for the objects which will then be
         # used as the key identifiers for the HDF5 files:
@@ -142,40 +141,16 @@ class linear_solver(object):
         self._A_p    = self.physical_system.A_p
         self._source = self.physical_system.source
 
-        if(len(signature(self._source).parameters) == 6):
-            self.single_mode_evolution = True
-        else:
-            self.single_mode_evolution = False
-
         # Initializing f, f_hat and the other EM field quantities:
         self._initialize(physical_system.params)
-        
 
     def get_dist_func(self):
         """
         Returns the distribution function in the same
         format as the nonlinear solver
         """
-        if(self.single_mode_evolution == True):
-            
-            f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-
-            k_q1 = self.physical_system.params.k_q1
-            k_q2 = self.physical_system.params.k_q2
-
-            q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
-            q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
-
-            df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
-                  * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
-                 ).real
-
-            f = np.transpose(f_b + df, (2, 0, 1))
-
-        else:
-            
-            f = 0.5 * self.N_q2 * self.N_q1 * \
-                np.array(af.reorder(af.ifft2(self.Y[:, :, :, 0]), 2, 0, 1)).real
+        f = 0.5 * self.N_q2 * self.N_q1 * \
+            af.real(ifft2(self.f_hat))
 
         return(f)
 
@@ -261,8 +236,8 @@ class linear_solver(object):
         The independant modes are then evolved by using the linear
         solver.
         """
-        # af.broadcast(function, *args) performs batched operations on
-        # function(*args):
+        # af.broadcast(function, *args) performs batched 
+        # operations on function(*args):
         f = af.broadcast(self.physical_system.initial_conditions.\
                          initialize_f, self.q1_center, self.q2_center,
                          self.p1, self.p2, self.p3, params

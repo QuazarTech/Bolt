@@ -34,66 +34,40 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
 
     Will return the density of the system at its current state.
     """
-    if(self.single_mode_evolution == True):
-        pass        
-        # if(f is None):
-        #     delta_moment_hat =   np.sum(getattr(self.physical_system.moment_defs, 
-        #                                         moment_name
-        #                                        )(self.f_hat[N_s], 
-        #                                          self.p1, self.p2, self.p3
-        #                                         )
-        #                                )
-            
-        #     return(delta_moment_hat)
-        
-        # else:
-            
-        #     delta_moment_hat =   np.sum(getattr(self.physical_system.moment_defs, 
-        #                                         moment_name
-        #                                        )(f[N_s], 
-        #                                          self.p1, self.p2, self.p3
-        #                                         )
-        #                                )
-            
-        #     return(delta_moment_hat)
-
-    # When evolving for several modes:
-    else:
-        # af.broadcast(function, *args) performs batched operations on
-        # function(*args):
-        if(f_hat is None and f is None):
-            moment_hat = af.broadcast(getattr(self.physical_system.moments, 
-                                              moment_name
-                                             ), self.f_hat, 
-                                      self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
-                                     )
-
-            # Scaling Appropriately:
-            moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-            moment     = af.real(ifft2(moment_hat))
-        
-        elif(f_hat is not None and f is None):
-            moment_hat = af.broadcast(getattr(self.physical_system.moments, 
-                                              moment_name
-                                             ), f_hat,
-                                      self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
-                                     )
-
-            # Scaling Appropriately:
-            moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-            moment     = af.real(ifft2(moment_hat))
-
-        elif(f_hat is None and f is not None):
-            moment = af.broadcast(getattr(self.physical_system.moments, 
+    if(f_hat is None and f is None):
+        # af.broadcast(function, *args) performs batched operations on function(*args):
+        moment_hat = af.broadcast(getattr(self.physical_system.moments, 
                                           moment_name
-                                         ), f,
+                                         ), self.f_hat, 
                                   self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
                                  )
 
-        else:
-            raise BaseException('Invalid Option: Both f and f_hat cannot \
-                                 be provided as arguments'
-                               )
+        # Scaling Appropriately:
+        moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+        moment     = af.real(ifft2(moment_hat))
+    
+    elif(f_hat is not None and f is None):
+        moment_hat = af.broadcast(getattr(self.physical_system.moments, 
+                                          moment_name
+                                         ), f_hat,
+                                  self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
+                                 )
 
-        af.eval(moment)
-        return(moment)
+        # Scaling Appropriately:
+        moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
+        moment     = af.real(ifft2(moment_hat))
+
+    elif(f_hat is None and f is not None):
+        moment = af.broadcast(getattr(self.physical_system.moments, 
+                                      moment_name
+                                     ), f,
+                              self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
+                             )
+
+    else:
+        raise BaseException('Invalid Option: Both f and f_hat cannot \
+                             be provided as arguments'
+                           )
+
+    af.eval(moment)
+    return(moment)

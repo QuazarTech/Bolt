@@ -45,17 +45,31 @@ def dump_moments(self, file_name):
     >> E   = h5f['moments'][:][:, :, 1]
     
     >> h5f.close()
+
+    However, in the case of multiple species, the following holds:
+
+    >> rho_species_1 = h5f['moments'][:][:, :, 0]
+    
+    >> rho_species_2 = h5f['moments'][:][:, :, 1]
+    
+    >> E_species_1   = h5f['moments'][:][:, :, 2]
+
+    >> E_species_2   = h5f['moments'][:][:, :, 3]
+
     """
-    i = 0
+    attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
     
-    for key in self.physical_system.moment_exponents:
-        self._glob_moments_value[:][:, :, i] = \
-        np.array(self.compute_moments(key))
-        i += 1
+    for i in range(len(attributes)):
+        if(i == 0):
+            array_to_dump = self.compute_moments(attributes[i])
+        else:
+            array_to_dump = af.join(1, array_to_dump,
+                                    self.compute_moments(attributes[i])
+                                   )
     
+    af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_moments)
-
 
 def dump_distribution_function(self, file_name):
     """
@@ -93,30 +107,76 @@ def dump_distribution_function(self, file_name):
     >> f   = h5f['distribution_function'][:]
     
     >> h5f.close()
+
+    Alternatively, it can also be used with the load function to resume
+    a long-running calculation.
+
+    >> solver.load_distribution_function('distribution_function')
     """
-    # if(self.single_mode_evolution == True):
-        
-    #     f_b = self.f_background.reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3)
-
-    #     k_q1 = self.physical_system.params.k_q1
-    #     k_q2 = self.physical_system.params.k_q2
-
-    #     q1 = self.q1_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
-    #     q2 = self.q2_center.to_ndarray().reshape(self.N_q1, self.N_q2, 1)
-
-    #     df = (  self.Y[0].reshape(1, 1, self.N_p1 * self.N_p2 * self.N_p3) \
-    #           * np.exp(1j * (k_q1 * q1 + k_q2 * q2))
-    #          ).real
-
-    #     self._glob_f_value[:] = f_b + df
-
-    # else:
-    #     # Scaling Appropriately:
-    #     self._glob_f_value[:] = 0.5 * self.N_q2 * self.N_q1 \
-    #                                 * np.array(af.ifft2(self.Y[:, :, :, 0])).real
-    
     array_to_dump = 0.5 * self.N_q2 * self.N_q1  * af.real(ifft2(self.f_hat))
     array_to_dump.to_ndarray(self._glob_f_array)
     
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
     viewer(self._glob_f)
+
+def dump_EM_fields(self, file_name):
+    """
+    This function is used to EM fields to a file for later usage.
+    This dumps all the EM fields quantities E1, E2, E3, B1, B2, B3 
+    which can then be used later for post-processing
+
+    Parameters
+    ----------
+
+    file_name : The EM_fields array will be dumped to this
+                provided file name.
+
+    Returns
+    -------
+
+    This function returns None. However it creates a file 'file_name.h5',
+    containing the data of the EM fields.
+
+    Examples
+    --------
+    
+    >> solver.dump_EM_fields('data_EM_fields')
+
+    The above statement will create a HDF5 file which contains the
+    EM fields data. The data is always stored with the key 
+    'EM_fields'
+
+    This can later be accessed using
+
+    >> import h5py
+    
+    >> h5f = h5py.File('data_EM_fields.h5', 'r')
+    
+    >> EM_fields = h5f['EM_fields'][:]
+
+    >> E1 = EM_fields[:, :, 0]
+    
+    >> E2 = EM_fields[:, :, 1]
+    
+    >> E3 = EM_fields[:, :, 2]
+    
+    >> B1 = EM_fields[:, :, 3]
+    
+    >> B2 = EM_fields[:, :, 4]
+    
+    >> B3 = EM_fields[:, :, 5]
+
+    >> h5f.close()
+
+    Alternatively, it can also be used with the load function to resume
+    a long-running calculation.
+
+    >> solver.load_EM_fields('data_EM_fields')
+    """
+    array_to_dump = 0.5 * self.N_q2 * self.N_q1  * af.real(ifft2(self.fields_solver.fields_hat))
+    array_to_dump.to_ndarray(self.fields_solver._glob_fields_array)
+    
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w')
+    viewer(self.fields_solver._glob_fields)
+
+    return

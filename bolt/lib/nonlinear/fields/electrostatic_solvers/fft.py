@@ -10,7 +10,7 @@ from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 def fft_poisson(self, rho):
     """
     Solves the Poisson Equation using FFTs:
-    Used as a backup solver in case of low resolution runs
+    Used as a backup solver for low resolution runs
     (ie. used on a single node) with periodic boundary
     conditions.
 
