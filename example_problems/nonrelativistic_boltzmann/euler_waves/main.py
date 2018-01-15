@@ -1,5 +1,7 @@
 import arrayfire as af
 import numpy as np
+import matplotlib as mpl 
+mpl.use('agg')
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
@@ -53,7 +55,6 @@ def rho_ana(q1, t):
     pert_real_rho = params.pert_rho.real
     pert_imag_rho = params.pert_rho.imag
 
-    omega   = params.omega
     rho_ana = rho_b + (  pert_real_rho * af.cos(params.k_q1 * q1)
                        - pert_imag_rho * af.sin(params.k_q1 * q1)
                       ) * np.exp(1j * params.omega * t).real
@@ -88,7 +89,7 @@ rho_data_nls[0] = af.max(n_nls[:, 0, N_g_q:-N_g_q, N_g_q:-N_g_q])
 rho_data_ana[0] = af.max(rho_ana(nls.q1_center, 0)) 
 
 for time_index, t0 in enumerate(time_array[1:]):
-
+    print('Computing For Time =', t0)
     nls.strang_timestep(dt)
 
     n_nls                        = nls.compute_moments('density')

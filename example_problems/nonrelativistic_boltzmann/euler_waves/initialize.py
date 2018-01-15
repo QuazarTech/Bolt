@@ -27,23 +27,22 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     pert_imag_v1 = params.pert_v1.imag
 
     k_q1 = params.k_q1
-    k_q2 = params.k_q2
 
     # Calculating the perturbed density:
-    rho = rho_b + (  pert_real_rho * af.cos(k_q1 * q1 + k_q2 * q2)
-                   - pert_imag_rho * af.sin(k_q1 * q1 + k_q2 * q2)
+    rho = rho_b + (  pert_real_rho * af.cos(k_q1 * q1)
+                   - pert_imag_rho * af.sin(k_q1 * q1)
                   )
 
     # Calculating the perturbed bulk velocities:
-    v1_bulk = v1_bulk_b + (  pert_real_v1 * af.cos(k_q1 * q1 + k_q2 * q2)
-                           - pert_imag_v1 * af.sin(k_q1 * q1 + k_q2 * q2)
+    v1_bulk = v1_bulk_b + (  pert_real_v1 * af.cos(k_q1 * q1)
+                           - pert_imag_v1 * af.sin(k_q1 * q1)
                           )
     v2_bulk = v2_bulk_b
     v3_bulk = v3_bulk_b
 
     # Calculating the perturbed temperature:
-    T = T_b + (  pert_real_T * af.cos(k_q1 * q1 + k_q2 * q2)
-               - pert_imag_T * af.sin(k_q1 * q1 + k_q2 * q2)
+    T = T_b + (  pert_real_T * af.cos(k_q1 * q1)
+               - pert_imag_T * af.sin(k_q1 * q1)
               )
 
     f = rho * (m / (2 * np.pi * k * T))**(3 / 2) \
