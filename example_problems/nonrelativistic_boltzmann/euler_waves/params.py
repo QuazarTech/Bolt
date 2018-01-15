@@ -37,21 +37,11 @@ v3_bulk_background     = 0
 k_q1  = 2 * np.pi
 gamma = 5 / 3
 
-# Introducing the perturbation amounts:
-# This is obtained from the Sage Worksheet(https://goo.gl/Sh8Nqt):
-# Plugging in the value from the Eigenvectors:
 amplitude = 1e-3
-pert_rho  = amplitude * 1
-pert_v1   = amplitude * np.sqrt(gamma * temperature_background) / rho_background
-pert_T    = amplitude * temperature_background * (gamma - 1) / rho_background
-
-# Plugging in the Eigenvalue:
-# This is used in the analytic solution:
-omega = np.sqrt(temperature_background * gamma)* k_q1 * 1j
 
 # Time parameters:
-N_cfl   = 0.1
-t_final = 0.005
+N_cfl   = 0.32
+t_final = 0.5
 
 # Switch for solver components:
 EM_fields_enabled = False
