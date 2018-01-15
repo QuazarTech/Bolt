@@ -23,23 +23,32 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = af.Array([1, 100], (1, 2))
+#kT0 = 1
+#m0  = 1
+#e0  = 1
+#v0  = (kT0/m0)**0.5
+#plasma_freq = (n * e0**2/m0)
+#t0  = 1/plasma_freq
+
+mass_ion      = 1     #* m0
+mass_electron = 1/100 #* m0
+mass               = af.Array([mass_electron, mass_ion], (1, 2))
 boltzmann_constant = 1
-charge             = af.Array([-1, 1], (1, 2))
+charge             = af.Array([-1, 1], (1, 2)) #e0
 
 # Initial Conditions used in initialize:
-rho_background_e = 1
-rho_background_i = 1
+rho_background_e = 1 # 1/l0^3; l0 = v0 t0; v0 = (2kT0/m0)^0.5
+rho_background_i = 1 # 1/l0^3
 
-temperature_background_e = 1
-temperature_background_i = 1
+temperature_background_i = 1 # kT_i
+temperature_background_e = 1 # kT_i
 
 # Parameter controlling amplitude of perturbation introduced:
 alpha = 0.01
 
 # Time parameters:
 N_cfl   = 0.1
-t_final = 5
+t_final = 5 # t0 = 1/omega_pi
 
 # Switch for solver components:
 EM_fields_enabled = True
