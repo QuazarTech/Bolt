@@ -4,8 +4,8 @@ import matplotlib as mpl
 mpl.use('agg')
 import pylab as pl
 
-from .. import domain
-from .. import params
+from .input_files import domain
+from .input_files import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -58,6 +58,7 @@ def n_ana(q1, t):
 def v1_ana(q1, t):
     
     v1_b = params.v1_bulk_background
+    n_b  = params.density_background
 
     pert_real_v1 = 0
     pert_imag_v1 = 0
@@ -85,23 +86,24 @@ def T_ana(q1, t):
 
     return(T_ana)
 
+
 N_g_q = domain.N_ghost_q
 N     = 2**np.arange(5, 10)
 
 for i in range(N.size):
 
     dq1 = (domain.q1_end - domain.q1_start) / int(N[i])
-    q1  = domain.q1_start + (0.5 + np.arange(int(N[i])) * dq1
+    q1  = domain.q1_start + (0.5 + np.arange(int(N[i]))) * dq1
 
     h5f = h5py.File('dump/N_%04d'%(int(N[i])) + '.h5')
     mom = h5f['moments'][:]
     h5f.close()
 
-    n_nls  = mom[:, :, 0]
-    v1_nls = mom[:, :, 1] / n_nls
-    v2_nls = mom[:, :, 2] / n_nls
-    v3_nls = mom[:, :, 3] / n_nls
-    T_nls  = (1 / params.p_dim) * (  2 * mom[:, :, 4] 
+    n_nls  = mom[0, :, 0].ravel()
+    v1_nls = mom[0, :, 1].ravel() / n_nls
+    v2_nls = mom[0, :, 2].ravel() / n_nls
+    v3_nls = mom[0, :, 3].ravel() / n_nls
+    T_nls  = (1 / params.p_dim) * (  2 * mom[0, :, 4].ravel() 
                                    - n_nls * v1_nls**2
                                    - n_nls * v2_nls**2
                                    - n_nls * v3_nls**2
@@ -111,25 +113,19 @@ for i in range(N.size):
     v1_analytic = v1_ana(q1, t0)
     T_analytic  = T_ana(q1, t0)
 
-    error_n[i] = np.mean(abs(n_nls - n_analytic[:, N_g_q:-N_g_q]
-                            )
-                        )
+    error_n[i]  = np.mean(abs(n_nls - n_analytic))
+    error_v1[i] = np.mean(abs(v1_nls - v1_analytic))
+    error_T[i]  = np.mean(abs(T_nls - T_analytic))
 
-    error_v1[i] = np.mean(abs(v1_nls - v1_analytic[:, N_g_q:-N_g_q]
-                             )
-                         )
+print('Errors Obtained:')
+print('L1 norm of error for density:', error_n)
+print('L1 norm of error for velocity:', error_v1)
+print('L1 norm of error for temperature:', error_T)
 
-    error_T[i] = np.mean(abs(  T_nls - T_analytic[:, N_g_q:-N_g_q]
-                            )
-                        )
-
-print(error_n)
-print(error_v1)
-print(error_T)
-
-print(np.polyfit(np.log10(N), np.log10(error_n), 1))
-print(np.polyfit(np.log10(N), np.log10(error_v1), 1))
-print(np.polyfit(np.log10(N), np.log10(error_T), 1))
+print('\nConvergence Rates:')
+print('Order of convergence for density:', np.polyfit(np.log10(N), np.log10(error_n), 1)[0])
+print('Order of convergence for velocity:', np.polyfit(np.log10(N), np.log10(error_v1), 1)[0])
+print('Order of convergence for temperature:', np.polyfit(np.log10(N), np.log10(error_T), 1)[0])
 
 pl.loglog(N, error_n, '-o', label = 'Density')
 pl.loglog(N, error_v1, '-o', label = 'Velocity')

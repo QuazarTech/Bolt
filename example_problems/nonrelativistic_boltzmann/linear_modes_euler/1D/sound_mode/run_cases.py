@@ -5,10 +5,10 @@ from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 from bolt.lib.linear.linear_solver import linear_solver
 
-from .. import domain
-from .. import boundary_conditions
-from .. import params
-from .. import initialize
+import domain
+import boundary_conditions
+import params
+import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
@@ -17,6 +17,7 @@ import bolt.src.nonrelativistic_boltzmann.moments as moments
 N = 2**np.arange(5, 10)
 
 for i in range(N.size):
+
     domain.N_q1 = int(N[i])
     # Defining the physical system to be solved:
     system = physical_system(domain,

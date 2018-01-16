@@ -4,8 +4,8 @@ import matplotlib as mpl
 mpl.use('agg')
 import pylab as pl
 
-import domain
-import params
+from .input_files import domain
+from .input_files import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -62,16 +62,17 @@ dt = params.N_cfl * dq1 \
 
 time_array = np.arange(0, params.t_final + dt, dt)
 
-q1 = domain.q1_start +   (0.5 + np.arange(domain.N_q1)) * dq1
+q1 = domain.q1_start + (0.5 + np.arange(domain.N_q1)) * dq1
 
 for time_index, t0 in enumerate(time_array):
+    
     h5f   = h5py.File('dump/%04d'%time_index + '.h5')
-    n_nls = h5f['moments'][:][:, :, 0]
+    n_nls = h5f['moments'][:][0, :, 0].ravel()
     h5f.close()
 
     n_ana = n_analytic(q1, t0)
 
-    pl.plot(q1, n_nls[0, :].ravel(), 
+    pl.plot(q1, n_nls, 
             label = 'Nonlinear Solver'
            )
     pl.plot(q1, n_ana, '--', color = 'black', 

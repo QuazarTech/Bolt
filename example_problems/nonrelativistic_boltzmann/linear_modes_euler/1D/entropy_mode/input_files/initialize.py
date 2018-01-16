@@ -23,7 +23,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     pert_real_v1 = 0
     pert_imag_v1 = 0
 
-    pert_real_T = - T_b / n_b
+    pert_real_T = -T_b / n_b
     pert_imag_T = 0
 
     k_q1 = params.k_q1
