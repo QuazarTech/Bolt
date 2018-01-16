@@ -27,8 +27,9 @@ mass               = af.Array([1])
 boltzmann_constant = 1
 charge             = af.Array([0])
 
-# Initial Conditions used in initialize:
-rho_background         = 1
+# Initial Conditions used in initialize
+# NOTE: Density here is number density
+density_background     = 1
 temperature_background = 1
 v1_bulk_background     = 0
 v2_bulk_background     = 0
