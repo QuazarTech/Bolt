@@ -90,6 +90,10 @@ def T_ana(q1, t):
 N_g_q = domain.N_ghost_q
 N     = 2**np.arange(5, 10)
 
+error_n  = np.zeros(N.size)
+error_v1 = np.zeros(N.size)
+error_T  = np.zeros(N.size)
+
 for i in range(N.size):
 
     dq1 = (domain.q1_end - domain.q1_start) / int(N[i])
@@ -109,9 +113,9 @@ for i in range(N.size):
                                    - n_nls * v3_nls**2
                                   ) / n_nls
 
-    n_analytic  = n_ana(q1, t0)
-    v1_analytic = v1_ana(q1, t0)
-    T_analytic  = T_ana(q1, t0)
+    n_analytic  = n_ana(q1, params.t_final)
+    v1_analytic = v1_ana(q1, params.t_final)
+    T_analytic  = T_ana(q1, params.t_final)
 
     error_n[i]  = np.mean(abs(n_nls - n_analytic))
     error_v1[i] = np.mean(abs(v1_nls - v1_analytic))
