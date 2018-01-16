@@ -5,10 +5,10 @@ from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 from bolt.lib.linear.linear_solver import linear_solver
 
-from .input_files import domain
-from .input_files import boundary_conditions
-from .input_files import params
-from .input_files import initialize
+import input_files.domain as domain
+import input_files.boundary_conditions as boundary_conditions
+import input_files.params as params
+import input_files.initialize as initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator

@@ -4,8 +4,8 @@ import matplotlib as mpl
 mpl.use('agg')
 import pylab as pl
 
-from .input_files import domain
-from .input_files import params
+import input_files.domain as domain
+import input_files.params as params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
