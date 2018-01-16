@@ -1,21 +1,11 @@
-import arrayfire as af
 import numpy as np
+import h5py
 import matplotlib as mpl 
 mpl.use('agg')
 import pylab as pl
 
-from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
-from bolt.lib.linear.linear_solver import linear_solver
-
-import domain
-import boundary_conditions
-import params
-import initialize
-
-import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moments as moments
+from .. import domain
+from .. import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -76,7 +66,7 @@ def v1_ana(q1, t):
                    
     v1_ana = v1_b + params.amplitude * pert_v1 * \
                     np.exp(  1j * params.k_q1 * q1 
-                           + params.omega * t
+                           + omega * t
                           ).real
     return(v1_ana)
 
@@ -91,77 +81,47 @@ def T_ana(q1, t):
 
     T_ana = T_b + params.amplitude * pert_T * \
                   np.exp(  1j * params.k_q1 * q1 
-                         + params.omega * t
+                         + omega * t
                         ).real
 
     return(T_ana)
 
-N        = 2**np.arange(5, 10)
-error_n  = np.zeros(N.size)
-error_v1 = np.zeros(N.size)
-error_T  = np.zeros(N.size)
+
+N_g_q = domain.N_ghost_q
+N     = 2**np.arange(5, 10)
 
 for i in range(N.size):
-    domain.N_q1 = int(N[i])
-    # Defining the physical system to be solved:
-    system = physical_system(domain,
-                             boundary_conditions,
-                             params,
-                             initialize,
-                             advection_terms,
-                             collision_operator.BGK,
-                             moments
-                            )
 
-    N_g_q = system.N_ghost_q
+    dq1 = (domain.q1_end - domain.q1_start) / int(N[i])
+    q1  = domain.q1_start + (0.5 + np.arange(int(N[i])) * dq1
 
-    nls = nonlinear_solver(system)
+    h5f = h5py.File('dump/N_%04d'%(int(N[i])) + '.h5')
+    mom = h5f['moments'][:]
+    h5f.close()
 
-    # Timestep as set by the CFL condition:
-    dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                      / max(domain.p1_end, domain.p2_end, domain.p3_end)
-
-    time_array = np.arange(0, params.t_final + dt, dt)
-
-    for time_index, t0 in enumerate(time_array[1:]):
-        print('Computing For Time =', t0)
-        nls.strang_timestep(dt)
-
-    # Performing f = f0 at final time:
-    self.f = nls._source(self.f, self.time_elapsed,
-                         self.q1_center, self.q2_center,
-                         self.p1_center, self.p2_center, self.p3_center, 
-                         self.compute_moments, 
-                         self.physical_system.params, 
-                         True
-                        )
-
-    n_nls  = nls.compute_moments('density')
-    v1_nls = nls.compute_moments('mom_v1_bulk') / n_nls
-    v2_nls = nls.compute_moments('mom_v2_bulk') / n_nls
-    v3_nls = nls.compute_moments('mom_v3_bulk') / n_nls
-    T_nls  = (1 / params.p_dim) * (  2 * nls.compute_moments('energy') 
+    n_nls  = mom[:, :, 0]
+    v1_nls = mom[:, :, 1] / n_nls
+    v2_nls = mom[:, :, 2] / n_nls
+    v3_nls = mom[:, :, 3] / n_nls
+    T_nls  = (1 / params.p_dim) * (  2 * mom[:, :, 4] 
                                    - n_nls * v1_nls**2
                                    - n_nls * v2_nls**2
                                    - n_nls * v3_nls**2
                                   ) / n_nls
 
-    n_analytic  = n_ana(np.array(nls.q1_center), t0)
-    v1_analytic = v1_ana(np.array(nls.q1_center), t0)
-    T_analytic  = T_ana(np.array(nls.q1_center), t0)
+    n_analytic  = n_ana(q1, t0)
+    v1_analytic = v1_ana(q1, t0)
+    T_analytic  = T_ana(q1, t0)
 
-    error_n[i] = np.mean(abs(  np.array(n_nls)[:, :, N_g_q:-N_g_q] 
-                             - n_analytic[:, :, N_g_q:-N_g_q]
+    error_n[i] = np.mean(abs(n_nls - n_analytic[:, N_g_q:-N_g_q]
                             )
                         )
 
-    error_v1[i] = np.mean(abs(  np.array(v1_nls)[:, :, N_g_q:-N_g_q] 
-                              - v1_analytic[:, :, N_g_q:-N_g_q]
+    error_v1[i] = np.mean(abs(v1_nls - v1_analytic[:, N_g_q:-N_g_q]
                              )
                          )
 
-    error_T[i] = np.mean(abs(  np.array(T_nls)[:, :, N_g_q:-N_g_q] 
-                             - T_analytic[:, :, N_g_q:-N_g_q]
+    error_T[i] = np.mean(abs(  T_nls - T_analytic[:, N_g_q:-N_g_q]
                             )
                         )
 
@@ -176,7 +136,7 @@ print(np.polyfit(np.log10(N), np.log10(error_T), 1))
 pl.loglog(N, error_n, '-o', label = 'Density')
 pl.loglog(N, error_v1, '-o', label = 'Velocity')
 pl.loglog(N, error_T, '-o', label = 'Temperature')
-pl.loglog(N, 1/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N, error_n[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()

@@ -22,8 +22,8 @@ import numpy as np
 from .temporal_evolution import operator_splitting_methods as split
 
 # Importing solver functions:
-from .FVM_solver.fvm_operator import op_fvm
-from .ASL_solver.asl_operators import op_advect_q, op_solve_src, op_fields
+from .finite_volume.fvm_operator import op_fvm
+from .semi_lagrangian.asl_operators import op_advect_q, op_solve_src, op_fields
 
 def check_divergence(self):
     """

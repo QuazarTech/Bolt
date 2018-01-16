@@ -1,8 +1,8 @@
-from .reconstruction_methods.minmod import reconstruct_minmod
-from .reconstruction_methods.ppm import reconstruct_ppm
-from .reconstruction_methods.weno5 import reconstruct_weno5
+from .reconstruction.minmod import reconstruct_minmod
+from .reconstruction.ppm import reconstruct_ppm
+from .reconstruction.weno5 import reconstruct_weno5
 
-def reconstruct(self, input_array, axis, reconstruction_method):
+def reconstruct(input_array, axis, reconstruction_method, performance_test_flag):
     """
     Reconstructs the variation within a cell using the
     reconstruction method specified. 
@@ -21,7 +21,7 @@ def reconstruct(self, input_array, axis, reconstruction_method):
 
     """
 
-    if(self.performance_test_flag == True):
+    if(performance_test_flag == True):
         tic = af.time()
 
     if(reconstruction_method == 'piecewise-constant'):
@@ -40,7 +40,7 @@ def reconstruct(self, input_array, axis, reconstruction_method):
     else:
         raise NotImplementedError('Reconstruction method invalid/not-implemented')
     
-    if(self.performance_test_flag == True):
+    if(performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_reconstruct += toc - tic

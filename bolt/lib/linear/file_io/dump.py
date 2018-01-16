@@ -38,11 +38,11 @@ def dump_moments(self, file_name):
     
     >> import h5py
     
-    >> h5f = h5py.File('boltzmann_moments_dump.h5', 'r')
+    >> h5f    = h5py.File('boltzmann_moments_dump.h5', 'r')
     
-    >> rho = h5f['moments'][:][:, :, 0]
+    >> rho    = h5f['moments'][:][:, :, 0]
     
-    >> E   = h5f['moments'][:][:, :, 1]
+    >> energy = h5f['moments'][:][:, :, 1]
     
     >> h5f.close()
 
@@ -52,14 +52,15 @@ def dump_moments(self, file_name):
     
     >> rho_species_2 = h5f['moments'][:][:, :, 1]
     
-    >> E_species_1   = h5f['moments'][:][:, :, 2]
+    >> energy_species_1 = h5f['moments'][:][:, :, 2]
 
-    >> E_species_2   = h5f['moments'][:][:, :, 3]
+    >> energy_species_2 = h5f['moments'][:][:, :, 3]
 
     """
     attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
     
     for i in range(len(attributes)):
+        
         if(i == 0):
             array_to_dump = self.compute_moments(attributes[i])
         else:

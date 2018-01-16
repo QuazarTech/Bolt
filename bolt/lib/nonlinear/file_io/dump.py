@@ -59,6 +59,10 @@ def dump_moments(self, file_name):
 
     attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
 
+    # Removing utility functions:
+    if('integral_over_v' in attributes):
+        attributes.remove('integral_over_v')
+
     for i in range(len(attributes)):
         if(i == 0):
             array_to_dump = self.compute_moments(attributes[i])[:, :, N_g_q:-N_g_q,N_g_q:-N_g_q]

@@ -1,7 +1,7 @@
 import arrayfire as af
 
 # Importing Riemann solver used in calculating fluxes:
-from .riemann_solver import riemann_solver, upwind_flux
+from .riemann import riemann_solver
 from .reconstruct import reconstruct
 from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 
@@ -46,6 +46,9 @@ def df_dt_fvm(f, self):
     reconstruction_in_q = self.physical_system.params.reconstruction_method_in_q
     reconstruction_in_p = self.physical_system.params.reconstruction_method_in_p
     
+    riemann_in_q = self.physical_system.params.riemann_solver_in_q
+    riemann_in_p = self.physical_system.params.riemann_solver_in_p
+
     # Initializing df_dt
     df_dt = 0
 
@@ -61,16 +64,25 @@ def df_dt_fvm(f, self):
         
         # Variation of q1 is along axis 2
         left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct(self, multiply(self._C_q1, f), 2, reconstruction_in_q)
+            reconstruct(multiply(self._C_q1, f), 2, reconstruction_in_q,
+                        self.performance_test_flag
+                       )
         
         # Variation of q2 is along axis 3
         bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct(self, multiply(self._C_q2, f), 3, reconstruction_in_q)
+            reconstruct(multiply(self._C_q2, f), 3, reconstruction_in_q, 
+                        self.performance_test_flag
+                       )
 
         if(self.physical_system.params.riemann_solver_in_q == 'lax-friedrichs'):
-            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 2, reconstruction_in_q)
-            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 3, reconstruction_in_q)
-    
+            f_left_plus_eps, f_right_minus_eps = reconstruct(f, 2, reconstruction_in_q, 
+                                                             self.performance_test_flag
+                                                            )
+
+            f_bot_plus_eps, f_top_minus_eps    = reconstruct(f, 3, reconstruction_in_q,
+                                                             self.performance_test_flag
+                                                            )
+
             # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
             f_left_minus_eps = af.shift(f_right_minus_eps, 0, 0, 1)
             # Extending the same to bot:
@@ -85,11 +97,11 @@ def df_dt_fvm(f, self):
         bot_minus_eps_flux  = af.shift(top_minus_eps_flux,   0, 0, 0, 1)
 
         left_flux  = riemann_solver(self, left_minus_eps_flux, left_plus_eps_flux,
-                                    f_left_minus_eps, f_left_plus_eps, 'q1'
+                                    f_left_minus_eps, f_left_plus_eps, riemann_in_q, 'q1'
                                    )
 
         bot_flux   = riemann_solver(self, bot_minus_eps_flux, bot_plus_eps_flux,
-                                    f_bot_minus_eps, f_bot_plus_eps, 'q2'
+                                    f_bot_minus_eps, f_bot_plus_eps, riemann_in_q, 'q2'
                                    )
 
         right_flux = af.shift(left_flux, 0, 0, -1)
@@ -121,15 +133,47 @@ def df_dt_fvm(f, self):
         if(self.physical_system.params.fields_type == 'user-defined'):
             self.fields_solver.update_user_defined_fields(self.time_elapsed)
 
-        (C_p1, C_p2, C_p3) = af.broadcast(self._C_p, self.f, self.time_elapsed,
-                                          self.q1_center, self.q2_center,
-                                          self.p1_center, self.p2_center, self.p3_center,
-                                          self.fields_solver, self.physical_system.params
-                                         )
+        (self._C_p1, self._C_p2, self._C_p3) = \
+            af.broadcast(self._C_p, self.f, self.time_elapsed,
+                         self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.fields_solver, self.physical_system.params
+                        )
 
-        flux_p1 = self._convert_to_p_expanded(multiply(C_p1, f))
-        flux_p2 = self._convert_to_p_expanded(multiply(C_p2, f))
-        flux_p3 = self._convert_to_p_expanded(multiply(C_p3, f))
+        self._C_p1 = self._convert_to_p_expanded(self._C_p1)
+        self._C_p2 = self._convert_to_p_expanded(self._C_p2)
+        self._C_p3 = self._convert_to_p_expanded(self._C_p3)
+        f          = self._convert_to_p_expanded(f)
+
+        if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
+            
+            f_left_plus_eps, f_right_minus_eps = reconstruct(f, 0, reconstruction_in_p, 
+                                                             self.performance_test_flag
+                                                            )
+
+            f_bot_plus_eps, f_top_minus_eps    = reconstruct(f, 1, reconstruction_in_p,
+                                                             self.performance_test_flag
+                                                            )
+
+            f_back_plus_eps, f_front_minus_eps = reconstruct(f, 2, reconstruction_in_p,
+                                                             self.performance_test_flag
+                                                            )
+    
+            # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
+            f_left_minus_eps = af.shift(f_right_minus_eps, 1)
+            # Extending the same to bot:
+            f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 1)
+            # Extending the same to back:
+            f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
+
+        else:
+            f_left_plus_eps, f_left_minus_eps  = 0, 0
+            f_bot_plus_eps,  f_bot_minus_eps   = 0, 0 
+            f_back_plus_eps, f_back_minus_eps = 0, 0 
+
+        flux_p1 = multiply(self._C_p1, f)
+        flux_p2 = multiply(self._C_p2, f)
+        flux_p3 = multiply(self._C_p3, f)
 
         N_g_p = self.N_ghost_p
 
@@ -159,41 +203,37 @@ def df_dt_fvm(f, self):
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            reconstruct(self, flux_p1, 0, reconstruction_in_p)
+            reconstruct(flux_p1, 0, reconstruction_in_p,
+                        self.performance_test_flag
+                       )
+        
         # Variation of p2 is along axis 1:
         bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            reconstruct(self, flux_p2, 1, reconstruction_in_p)
+            reconstruct(flux_p2, 1, reconstruction_in_p,
+                        self.performance_test_flag
+                       )
+
         # Variation of p3 is along axis 2:
         back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            reconstruct(self, flux_p3, 2, reconstruction_in_p)
+            reconstruct(flux_p3, 2, reconstruction_in_p,
+                        self.performance_test_flag
+                       )
 
         left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
         bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
         back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
-
-        if(self.physical_system.params.riemann_solver_in_p == 'averaged-flux'):
-            
-            left_flux_p1  = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
-            bot_flux_p2   = 0.5 * (bot_minus_eps_flux_p2  + bot_plus_eps_flux_p2)
-            back_flux_p3  = 0.5 * (back_minus_eps_flux_p3 + back_plus_eps_flux_p3)
-
-        elif(self.physical_system.params.riemann_solver_in_p == 'upwind-flux'):
-
-            left_flux_p1 = upwind_flux(left_minus_eps_flux_p1, 
-                                       left_plus_eps_flux_p1,
-                                       self._convert_to_p_expanded(C_p1) 
-                                      )
-
-            bot_flux_p2 = upwind_flux(bot_minus_eps_flux_p2, 
-                                      bot_plus_eps_flux_p2,
-                                      self._convert_to_p_expanded(C_p2) 
+        left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
+                                      f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
                                      )
 
-            back_flux_p3 = upwind_flux(back_minus_eps_flux_p3, 
-                                       back_plus_eps_flux_p3,
-                                       self._convert_to_p_expanded(C_p3) 
-                                      )
+        bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
+                                      f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
+                                     )
+
+        back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
+                                      f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
+                                     )
 
         right_flux_p1 = af.shift(left_flux_p1, -1)
         top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
@@ -202,8 +242,8 @@ def df_dt_fvm(f, self):
         left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
         right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
 
-        bot_flux_p2   = self._convert_to_q_expanded(bot_flux_p2)
-        top_flux_p2   = self._convert_to_q_expanded(top_flux_p2)
+        bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
+        top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
 
         back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
         front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)

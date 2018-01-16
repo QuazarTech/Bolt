@@ -4,7 +4,7 @@
 import arrayfire as af
 
 from bolt.lib.nonlinear.communicate import communicate_fields
-from bolt.lib.nonlinear.apply_boundary_conditions import apply_bcs_fields
+from ..boundaries import apply_bcs_fields
 
 def fdtd_evolve_E(self, dt):
     

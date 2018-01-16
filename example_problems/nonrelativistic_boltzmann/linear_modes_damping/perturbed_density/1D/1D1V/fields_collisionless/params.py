@@ -7,14 +7,14 @@ fields_initialize = 'fft'
 fields_solver     = 'fdtd'
 
 # Method in q-space
-solver_method_in_q = 'FVM'
-solver_method_in_p = 'FVM'
+solver_method_in_q = 'ASL'
+solver_method_in_p = 'ASL'
 
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
-riemann_solver_in_q = 'upwind-flux'
-riemann_solver_in_p = 'upwind-flux'
+riemann_solver_in_q = 'lax-friedrichs'
+riemann_solver_in_p = 'lax-friedrichs'
 
 # Dimensionality considered in velocity space:
 p_dim = 1

@@ -7,10 +7,10 @@ import numpy as np
 from petsc4py import PETSc
 
 from .. import communicate
-from .. import apply_boundary_conditions
+from .boundaries import apply_bcs_fields
 
-from .electrostatic_solvers.fft import fft_poisson
-from .electrodynamic_solvers.fdtd_explicit import fdtd
+from .electrostatic.fft import fft_poisson
+from .electrodynamic.fdtd_explicit import fdtd
 
 class fields_solver(object):
     
@@ -221,7 +221,7 @@ class fields_solver(object):
         if (self.params.fields_initialize == 'fft'):
             fft_poisson(self, rho_initial)
             communicate.communicate_fields(self)
-            apply_boundary_conditions.apply_bcs_fields(self)
+            apply_bcs_fields(self)
 
         elif (self.nls.physical_system.params.fields_initialize == 'user-defined'):
 
@@ -329,7 +329,7 @@ class fields_solver(object):
             
             fft_poisson(self, rho)
             communicate.communicate_fields(self)
-            apply_boundary_conditions.apply_bcs_fields(self)
+            apply_bcs_fields(self)
 
         # ADD SNES BELOW
 

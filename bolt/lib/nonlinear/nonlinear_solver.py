@@ -34,7 +34,7 @@ import socket
 
 # Importing solver libraries:
 from . import communicate
-from . import apply_boundary_conditions
+from . import boundaries
 from . import timestep
 
 from .file_io import dump
@@ -45,7 +45,7 @@ from .utils.print_with_indent import indent
 from .utils.performance_timings import print_table
 from .utils.broadcasted_primitive_operations import multiply
 from .compute_moments import compute_moments as compute_moments_imported
-from .fields.fields_solver import fields_solver
+from .fields.fields import fields_solver
 
 class nonlinear_solver(object):
     """
@@ -254,6 +254,11 @@ class nonlinear_solver(object):
         # This DA is used by the FileIO routine dump_moments():
         # Finding the number of definitions for the moments:
         attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
+
+        # Removing utility functions:
+        if('integral_over_v' in attributes):
+            attributes.remove('integral_over_v')
+
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof        =   self.N_species
                                                                  * len(attributes),
@@ -628,7 +633,7 @@ class nonlinear_solver(object):
     # Injection of solver functions into class as methods:
     _communicate_f      = communicate.\
                           communicate_f
-    _apply_bcs_f        = apply_boundary_conditions.apply_bcs_f
+    _apply_bcs_f        = boundaries.apply_bcs_f
 
     strang_timestep = timestep.strang_step
     lie_timestep    = timestep.lie_step
