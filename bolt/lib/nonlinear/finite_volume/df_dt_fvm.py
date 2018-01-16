@@ -64,24 +64,16 @@ def df_dt_fvm(f, self):
         
         # Variation of q1 is along axis 2
         left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct(multiply(self._C_q1, f), 2, reconstruction_in_q,
-                        self.performance_test_flag
-                       )
+            reconstruct(self, multiply(self._C_q1, f), 2, reconstruction_in_q)
         
         # Variation of q2 is along axis 3
         bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct(multiply(self._C_q2, f), 3, reconstruction_in_q, 
-                        self.performance_test_flag
-                       )
+            reconstruct(self, multiply(self._C_q2, f), 3, reconstruction_in_q)
 
         if(self.physical_system.params.riemann_solver_in_q == 'lax-friedrichs'):
-            f_left_plus_eps, f_right_minus_eps = reconstruct(f, 2, reconstruction_in_q, 
-                                                             self.performance_test_flag
-                                                            )
+            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 2, reconstruction_in_q)
 
-            f_bot_plus_eps, f_top_minus_eps    = reconstruct(f, 3, reconstruction_in_q,
-                                                             self.performance_test_flag
-                                                            )
+            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 3, reconstruction_in_q)
 
             # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
             f_left_minus_eps = af.shift(f_right_minus_eps, 0, 0, 1)
@@ -147,17 +139,9 @@ def df_dt_fvm(f, self):
 
         if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
             
-            f_left_plus_eps, f_right_minus_eps = reconstruct(f, 0, reconstruction_in_p, 
-                                                             self.performance_test_flag
-                                                            )
-
-            f_bot_plus_eps, f_top_minus_eps    = reconstruct(f, 1, reconstruction_in_p,
-                                                             self.performance_test_flag
-                                                            )
-
-            f_back_plus_eps, f_front_minus_eps = reconstruct(f, 2, reconstruction_in_p,
-                                                             self.performance_test_flag
-                                                            )
+            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
+            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 1, reconstruction_in_p)
+            f_back_plus_eps, f_front_minus_eps = reconstruct(self, f, 2, reconstruction_in_p)
     
             # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
             f_left_minus_eps = af.shift(f_right_minus_eps, 1)
@@ -203,21 +187,15 @@ def df_dt_fvm(f, self):
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            reconstruct(flux_p1, 0, reconstruction_in_p,
-                        self.performance_test_flag
-                       )
+            reconstruct(self, flux_p1, 0, reconstruction_in_p)
         
         # Variation of p2 is along axis 1:
         bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            reconstruct(flux_p2, 1, reconstruction_in_p,
-                        self.performance_test_flag
-                       )
+            reconstruct(self, flux_p2, 1, reconstruction_in_p)
 
         # Variation of p3 is along axis 2:
         back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            reconstruct(flux_p3, 2, reconstruction_in_p,
-                        self.performance_test_flag
-                       )
+            reconstruct(self, flux_p3, 2, reconstruction_in_p)
 
         left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
         bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
