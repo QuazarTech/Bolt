@@ -23,30 +23,36 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     pert_real_v1 = 0
     pert_imag_v1 = 0
 
+    pert_real_v2 = 0
+    pert_imag_v2 = 0
+
     pert_real_T = -T_b / n_b
     pert_imag_T = 0
 
     k_q1 = params.k_q1
+    k_q2 = params.k_q2
     amp  = params.amplitude
 
     # Introducing the perturbation amounts:
     # This is obtained from the Sage Worksheet(https://goo.gl/Sh8Nqt):
     # Plugging in the value from the Eigenvectors:
     # Calculating the perturbed density:
-    n = n_b + amp * (  pert_real_n * af.cos(k_q1 * q1)
-                     - pert_imag_n * af.sin(k_q1 * q1)
+    n = n_b + amp * (  pert_real_n * af.cos(k_q1 * q1 + k_q2 * q2)
+                     - pert_imag_n * af.sin(k_q1 * q1 + k_q2 * q2)
                     )
 
     # Calculating the perturbed bulk velocities:
-    v1_bulk = v1_bulk_b + amp * (  pert_real_v1 * af.cos(k_q1 * q1)
-                                 - pert_imag_v1 * af.sin(k_q1 * q1)
+    v1_bulk = v1_bulk_b + amp * (  pert_real_v1 * af.cos(k_q1 * q1 + k_q2 * q2)
+                                 - pert_imag_v1 * af.sin(k_q1 * q1 + k_q2 * q2)
                                 ) 
-    v2_bulk = v2_bulk_b
+    v2_bulk = v2_bulk_b + amp * (  pert_real_v2 * af.cos(k_q1 * q1 + k_q2 * q2)
+                                 - pert_imag_v2 * af.sin(k_q1 * q1 + k_q2 * q2)
+                                ) 
     v3_bulk = v3_bulk_b
 
     # Calculating the perturbed temperature:
-    T = T_b +  amp * (  pert_real_T * af.cos(k_q1 * q1)
-                      - pert_imag_T * af.sin(k_q1 * q1)
+    T = T_b +  amp * (  pert_real_T * af.cos(k_q1 * q1 + k_q2 * q2)
+                      - pert_imag_T * af.sin(k_q1 * q1 + k_q2 * q2)
                      )
 
     f = n * (m / (2 * np.pi * k * T))**(3 / 2) \

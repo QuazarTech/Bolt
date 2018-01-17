@@ -36,6 +36,7 @@ v2_bulk_background     = 0
 v3_bulk_background     = 0
 
 k_q1  = 2 * np.pi
+k_q1  = 4 * np.pi
 gamma = 5 / 3
 
 amplitude = 1e-3
