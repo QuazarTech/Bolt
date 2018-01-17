@@ -6,6 +6,8 @@
 import numpy as np
 import arrayfire as af
 
+from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
+
 # Using af.broadcast, since v1, v2, v3 are of size (1, 1, Nv1*Nv2*Nv3)
 # All moment quantities are of shape (Nq1, Nq2)
 # By wrapping with af.broadcast, we can perform batched operations
@@ -98,6 +100,7 @@ def BGK(f, t, q1, q2, v1, v2, v3, moments, params, flag = False):
           function is made to return f0, thus setting f = f0 wherever tau = 0
     """
     n = moments('density', f)
+    m = params.mass
 
     # Floor used to avoid 0/0 limit:
     eps = 1e-30
@@ -106,10 +109,10 @@ def BGK(f, t, q1, q2, v1, v2, v3, moments, params, flag = False):
     v2_bulk = moments('mom_v2_bulk', f) / (n + eps)
     v3_bulk = moments('mom_v3_bulk', f) / (n + eps)
 
-    T = (1 / params.p_dim) * (  2 * moments('energy', f) 
-                              - n * v1_bulk**2
-                              - n * v2_bulk**2
-                              - n * v3_bulk**2
+    T = (1 / params.p_dim) * (  2 * multiply(moments('energy', f), m)
+                                  - multiply(n, m) * v1_bulk**2
+                                  - multiply(n, m) * v2_bulk**2
+                                  - multiply(n, m) * v3_bulk**2
                              ) / (n + eps) + eps
 
     f_MB = f0(v1, v2, v3, n, T, v1_bulk, v2_bulk, v3_bulk, params)
