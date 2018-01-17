@@ -102,9 +102,6 @@ class nonlinear_solver(object):
         self.N_p2, self.dp2 = physical_system.N_p2, physical_system.dp2
         self.N_p3, self.dp3 = physical_system.N_p3, physical_system.dp3
 
-        # Getting number of species:
-        self.N_species = len(physical_system.params.mass)
-
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
         N_g_q = self.N_ghost_q = physical_system.N_ghost_q
@@ -114,9 +111,20 @@ class nonlinear_solver(object):
         
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
-
         if(self.physical_system.params.num_devices>1):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+
+        # Getting number of species:
+        self.N_species = len(physical_system.params.mass)
+
+        # Having the mass and charge along axis 1:
+        self.physical_system.params.mass  = af.moddims(af.to_array(physical_system.params.mass),
+                                                       1, self.N_species
+                                                      )
+        
+        self.physical_system.params.charge = af.moddims(af.to_array(physical_system.params.charge),
+                                                        1, self.N_species
+                                                       )
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
 

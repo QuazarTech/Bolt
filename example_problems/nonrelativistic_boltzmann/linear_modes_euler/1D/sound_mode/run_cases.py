@@ -39,6 +39,10 @@ for i in range(N.size):
 
     time_array = np.arange(0, params.t_final + dt, dt)
 
+    # Checking that time array doesn't cross final time:
+    if(time_array[-1]>params.t_final):
+        time_array = np.delete(time_array, -1)
+
     for time_index, t0 in enumerate(time_array[1:]):
         print('Computing For Time =', t0)
         nls.strang_timestep(dt)

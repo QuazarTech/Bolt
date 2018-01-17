@@ -30,29 +30,36 @@ def dump_moments(self, file_name):
     The above set of statements will create a HDF5 file which contains the
     all the moments which have been defined in the physical_system object.
     The data is always stored with the key 'moments' inside the HDF5 file.
-    Suppose 'density' and 'energy' are two functions defined then:
+    Suppose 'density', 'mom_v1_bulk' and 'energy' are the 3 functions defined.
+    Then the moments get stored in alphabetical order, ie. 'density', 'energy'...:
 
     These variables can then be accessed from the file using
     
     >> import h5py
     
-    >> h5f = h5py.File('boltzmann_moments_dump.h5', 'r')
+    >> h5f    = h5py.File('boltzmann_moments_dump.h5', 'r')
     
-    >> rho = h5f['moments'][:][:, :, 0]
+    >> rho    = h5f['moments'][:][:, :, 0]
     
-    >> E   = h5f['moments'][:][:, :, 1]
+    >> energy = h5f['moments'][:][:, :, 1]
+    
+    >> mom_p1 = h5f['moments'][:][:, :, 2]
     
     >> h5f.close()
 
     However, in the case of multiple species, the following holds:
 
-    >> rho_species_1 = h5f['moments'][:][:, :, 0]
+    >> rho_species_1    = h5f['moments'][:][:, :, 0]
+ 
+    >> rho_species_1    = h5f['moments'][:][:, :, 1]
     
-    >> rho_species_2 = h5f['moments'][:][:, :, 1]
-    
-    >> E_species_1   = h5f['moments'][:][:, :, 2]
+    >> energy_species_1 = h5f['moments'][:][:, :, 2]
 
-    >> E_species_2   = h5f['moments'][:][:, :, 3]
+    >> energy_species_2 = h5f['moments'][:][:, :, 3]
+    
+    >> mom_p1_species_1 = h5f['moments'][:][:, :, 4]
+
+    >> mom_p1_species_2 = h5f['moments'][:][:, :, 5]
 
     """
     N_g_q = self.N_ghost_q

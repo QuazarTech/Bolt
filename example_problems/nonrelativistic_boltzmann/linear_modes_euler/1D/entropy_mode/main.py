@@ -34,6 +34,10 @@ dt = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 time_array = np.arange(0, params.t_final + dt, dt)
 
+# Checking that time array doesn't cross final time:
+if(time_array[-1]>params.t_final):
+    time_array = np.delete(time_array, -1)
+
 # Storing data at time t = 0:
 n_nls = np.array(nls.compute_moments('density'))
 nls.dump_moments('dump/0000')

@@ -62,6 +62,10 @@ dt = params.N_cfl * dq1 \
 
 time_array = np.arange(0, params.t_final + dt, dt)
 
+# Checking that time array doesn't cross final time:
+if(time_array[-1]>params.t_final):
+    time_array = np.delete(time_array, -1)
+
 q1 = domain.q1_start + (0.5 + np.arange(domain.N_q1)) * dq1
 
 for time_index, t0 in enumerate(time_array):

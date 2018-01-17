@@ -17,15 +17,15 @@ riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
-p_dim = 3
+p_dim = 1
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 4
 
 # Constants:
-mass               = af.Array([1])
+mass               = [1]
 boltzmann_constant = 1
-charge             = af.Array([0])
+charge             = [0]
 
 # Initial Conditions used in initialize
 # NOTE: Density here is number density

@@ -104,10 +104,10 @@ for i in range(N.size):
     h5f.close()
 
     n_nls  = mom[0, :, 0].ravel()
-    v1_nls = mom[0, :, 1].ravel() / n_nls
-    v2_nls = mom[0, :, 2].ravel() / n_nls
-    v3_nls = mom[0, :, 3].ravel() / n_nls
-    T_nls  = (1 / params.p_dim) * (  2 * mom[0, :, 4].ravel() 
+    v1_nls = mom[0, :, 2].ravel() / n_nls
+    v2_nls = mom[0, :, 3].ravel() / n_nls
+    v3_nls = mom[0, :, 4].ravel() / n_nls
+    T_nls  = (1 / params.p_dim) * (  2 * mom[0, :, 1].ravel() 
                                    - n_nls * v1_nls**2
                                    - n_nls * v2_nls**2
                                    - n_nls * v3_nls**2
