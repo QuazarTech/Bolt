@@ -17,7 +17,7 @@ riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
 # Dimensionality considered in velocity space:
-p_dim = 1
+p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4

@@ -59,7 +59,8 @@ def v1_ana(q1, t):
     
     v1_b = params.v1_bulk_background
     n_b  = params.density_background
-
+    T_b  = params.temperature_background
+    
     pert_real_v1 = -np.sqrt(params.gamma * T_b) / n_b
     pert_imag_v1 = 0
     pert_v1      = pert_real_v1 + 1j * pert_imag_v1
