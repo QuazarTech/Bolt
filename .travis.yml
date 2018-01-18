@@ -39,15 +39,14 @@ before_install:
     - export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
     - echo $LD_LIBRARY_PATH
     - cd ../../../../
-    - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.7.6.tar.gz
-    - tar xzf petsc-3.7.6.tar.gz
-    - cd petsc-3.7.6
+    - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.8.3.tar.gz
+    - tar xzf petsc-3.8.3.tar.gz
+    - cd petsc-3.8.3
     - python2 './configure' '--with-debugging=0' '--with-mpi=1' '--with-hdf5' '--download-hdf5' '--download-f2cblaslapack'
-    - make PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6 PETSC_ARCH=arch-linux2-c-opt all
-    - export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.7.6
+    - make PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.8.3 PETSC_ARCH=arch-linux2-c-opt all
+    - export PETSC_DIR=/home/travis/build/ShyamSS-95/Bolt/petsc-3.8.3
     - export PETSC_ARCH=arch-linux2-c-opt
     - cd ..
-    - echo $PWD
     - pip install virtualenv
     - virtualenv venv 
     - source venv/bin/activate
@@ -56,5 +55,7 @@ install:
     - pip install -r requirement.txt
 
 # command to run tests
+# TODO: Include unit tests here.
+# May need to write installer before that
 script:
     - python -c 'import bolt'
