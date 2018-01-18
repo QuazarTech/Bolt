@@ -51,7 +51,7 @@ def lax_friedrichs_flux(left_flux, right_flux, left_f, right_f, c_lax):
               Array holding the values for the distribution function  at the right 
               edge of the cells.
     
-    c_lax : float
+    c_lax : double
             c_lax which it to be used.
     """
     

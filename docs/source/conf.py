@@ -16,10 +16,19 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
+import os
+import sys
+
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = ['numpy', 'scipy', 'mpi4py', 'h5py', 'arrayfire', 'petsc4py']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
 # -- General configuration ------------------------------------------------
@@ -34,10 +43,11 @@
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
-    'sphinx.ext.imgmath',
+    'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'numpydoc']
+    'numpydoc'
+             ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -52,7 +62,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Bolt'
+project = 'Bolt - A Framework for Solving Kinetic Theories'
 copyright = '2017, Shyam Sundar Sankaran, Mani Chandra'
 author = 'Shyam Sundar Sankaran, Mani Chandra'
 
@@ -144,7 +154,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'bolt', 'Bolt Documentation',
-     [author], 1)
+     ['Shyam Sundar Sankaran, Mani Chandra'], 1)
 ]
 
 
@@ -155,7 +165,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Bolt', 'Bolt Documentation',
-     author, 'Bolt', 'One line description of project.',
+     'Shyam Sundar Sankaran, Mani Chandra', 'Bolt', 'One line description of project.',
      'Miscellaneous'),
 ]
 

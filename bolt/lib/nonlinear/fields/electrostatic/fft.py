@@ -3,7 +3,6 @@
 
 import arrayfire as af
 import numpy as np
-from numpy.fft import fftfreq
 
 from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
 
@@ -36,8 +35,8 @@ def fft_poisson(self, rho):
         # Summing for all the species:
         rho = af.sum(rho, 3)
 
-        k_q1 = fftfreq(rho.shape[0], self.dq1)
-        k_q2 = fftfreq(rho.shape[1], self.dq2)
+        k_q1 = np.fft.fftfreq(rho.shape[0], self.dq1)
+        k_q2 = np.fft.fftfreq(rho.shape[1], self.dq2)
 
         k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
 

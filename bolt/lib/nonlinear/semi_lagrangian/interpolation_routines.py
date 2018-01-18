@@ -18,7 +18,7 @@ def f_interp_2d(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     if(self.performance_test_flag == True):
@@ -70,7 +70,7 @@ def f_interp_p_3d(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
 
     NOTE: This function currently makes use of a Strang split approx1, approx2 with

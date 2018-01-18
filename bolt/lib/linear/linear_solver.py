@@ -17,7 +17,6 @@ Additionally, this module isn't parallelized to run across multiple devices/node
 import numpy as np
 import arrayfire as af
 from .utils.fft_funcs import fft2, ifft2
-from numpy.fft import fftfreq
 import socket
 from petsc4py import PETSc
 from inspect import signature
@@ -179,8 +178,8 @@ class linear_solver(object):
         Initializes the wave numbers k_q1 and k_q2 which will be 
         used when solving in fourier space.
         """
-        k_q1 = 2 * np.pi * fftfreq(self.N_q1, self.dq1)
-        k_q2 = 2 * np.pi * fftfreq(self.N_q2, self.dq2)
+        k_q1 = 2 * np.pi * np.fft.fftfreq(self.N_q1, self.dq1)
+        k_q2 = 2 * np.pi * np.fft.fftfreq(self.N_q2, self.dq2)
 
         k_q2, k_q1 = np.meshgrid(k_q2, k_q1)
 

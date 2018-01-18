@@ -25,7 +25,7 @@ def op_advect_q(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     self._communicate_f()
@@ -44,7 +44,7 @@ def op_solve_src(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
 
@@ -92,7 +92,7 @@ def op_fields(self, dt):
     
     Parameters
     ----------
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
 

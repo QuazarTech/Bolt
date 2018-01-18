@@ -104,7 +104,7 @@ def fdtd(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
 

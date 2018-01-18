@@ -28,7 +28,7 @@ def strang(self, op1, op2, dt):
           equation. Should only take the solver object and
           dt as arguments
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     op1(self, 0.5 * dt)
@@ -58,7 +58,7 @@ def lie(self, op1, op2, dt):
           equation. Should only take the solver object and
           dt as arguments
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     op1(self, dt)
@@ -87,7 +87,7 @@ def swss(self, op1, op2, dt):
           equation. Should only take the solver object and
           dt as arguments
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     
     """
@@ -150,7 +150,7 @@ def jia(self, op1, op2, dt):
           equation. Should only take the solver object and
           dt as arguments
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     
     """

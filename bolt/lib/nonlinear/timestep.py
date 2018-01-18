@@ -45,7 +45,7 @@ def lie_step(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     self.dt = dt
@@ -105,7 +105,7 @@ def strang_step(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     self.dt = dt
@@ -165,7 +165,7 @@ def swss_step(self, dt):
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     self.dt = dt
@@ -221,15 +221,14 @@ def swss_step(self, dt):
 def jia_step(self, dt):
     """
     Advances the system using the Jia split scheme.
-    reference:https://www.sciencedirect.com/science/article/pii/S089571771000436X
+    reference:<https://www.sciencedirect.com/science/article/pii/S089571771000436X>
 
-    NOTE: This scheme is computationally expensive, and 
-          should only be used for testing/debugging
+    NOTE: This scheme is computationally expensive, and should only be used for testing/debugging
 
     Parameters
     ----------
 
-    dt : float
+    dt : double
          Time-step size to evolve the system
     """
     self.dt = dt

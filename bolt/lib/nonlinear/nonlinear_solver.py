@@ -13,9 +13,8 @@ The solver has the option of using 2 different methods:
   uses advective interpolation.(non-conservative)
 
     - The interpolation schemes available are 
-      linear and quadratic spline.
-      TODO:Check with Pavan regarding cubic spline?
-
+      linear and cubic spline.
+     
 - Finite volume scheme(conservative):
 
     - Riemann solvers available are the local Lax-Friedrichs and 1st order
