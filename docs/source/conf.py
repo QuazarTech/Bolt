@@ -27,7 +27,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
-MOCK_MODULES = ['numpy', 'scipy', 'mpi4py', 'h5py', 'arrayfire', 'petsc4py']
+MOCK_MODULES = ['numpy', 'scipy', 'mpi4py', 'h5py', 'arrayfire', 'petsc4py', 'prettytable']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
