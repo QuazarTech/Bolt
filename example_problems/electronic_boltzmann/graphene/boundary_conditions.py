@@ -12,12 +12,14 @@ def f_left(f, q1, q2, p1, p2, p3, params):
 
     k       = params.boltzmann_constant
     E_upper = params.E_band
-    T       = 0.*params.T + 3e-4*4.
+    T       = params.T
+    mu      =   params.initial_mu + params.ephi_left_contact
 
-    fermi_dirac = (1./(af.exp( (E_upper - 0.*0.01)/(k*T) ) + 1.)
+    fermi_dirac = (1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
                   )
     
-    q2_contact_start = 2.5; q2_contact_end = 7.5
+    q2_contact_start = params.contact_start
+    q2_contact_end   = params.contact_end
     cond = ((q2 >= q2_contact_start) & \
             (q2 <= q2_contact_end) \
            )
@@ -32,12 +34,14 @@ def f_right(f, q1, q2, p1, p2, p3, params):
 
     k       = params.boltzmann_constant
     E_upper = params.E_band
-    T       = 0.*params.T + 3e-4*4.
+    T       = params.T
+    mu      =   params.initial_mu + params.ephi_right_contact
 
-    fermi_dirac = (1./(af.exp( (E_upper - 0.*0.01)/(k*T) ) + 1.)
+    fermi_dirac = (1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
                   )
     
-    q2_contact_start = 2.5; q2_contact_end = 7.5
+    q2_contact_start = params.contact_start
+    q2_contact_end   = params.contact_end
     cond = ((q2 >= q2_contact_start) & \
             (q2 <= q2_contact_end) \
            )

@@ -18,37 +18,48 @@ time_splitting = 'strang'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver = 'upwind-flux'
 
 # Restart(Set to zero for no-restart):
-t_restart = 0
+restart = 0
+restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/f_eqbm.h5'
+phi_restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/phi_eqbm.h5'
 
 # File-writing Parameters:
-# Set to zero for no file-writing
-dt_dump_f       = 0.1
-dt_dump_moments = 0.01 
+dump_steps = 1000
 
 # Time parameters:
-N_cfl   = 0.45
-t_final = 10
+dt      = 0.1
+t_final = 1000
 
 # Dimensionality considered in velocity space:
 p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices = 4
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
 h_bar              = 1.0545718e-4 # x aJ ps
 boltzmann_constant = 1
-charge_electron    = -0.160217662 # x aC
+charge_electron    = 0.*-0.160217662 # x aC
 speed_of_light     = 300. # x [um/ps]
 fermi_velocity     = speed_of_light/300
 epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
+
+epsilon_relative      = 3.9 # SiO2
+backgate_potential    = -10 # V
+global_chem_potential = 0.03
+contact_start         = 4.5 # um
+contact_end           = 5.5 # um
+
+initial_temperature = 12e-4
+initial_mu          = 0.015
+ephi_left_contact   =   1e-10
+ephi_right_contact  =  -1e-10
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
 mu          = None # chemical potential used in the e-ph operator
@@ -63,13 +74,14 @@ phi         = None # Electric potential in the plane of graphene sheet
 E_band   = None
 vel_band = None
 
-collision_nonlinear_iters = 3
-electrostatic_solver_step = 10000
+collision_operator_nonlinear_iters  = 2
+electrostatic_solver_every_nth_step = 1000000
+solve_for_equilibrium = 0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(1e-3 * q1**0 * p1**0)
+    return(0. * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
@@ -99,3 +111,17 @@ def band_velocity(p_x, p_y):
     af.eval(upper_band_velocity[0], upper_band_velocity[1])
     return(upper_band_velocity)
 
+@af.broadcast
+def fermi_dirac(mu, E_band):
+
+    k = boltzmann_constant
+    T = initial_temperature
+
+    f = (1./(af.exp( (E_band - mu
+                     )/(k*T) 
+                   ) + 1.
+            )
+        )
+
+    af.eval(f)
+    return(f)

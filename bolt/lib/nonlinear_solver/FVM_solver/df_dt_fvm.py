@@ -79,7 +79,7 @@ def df_dt_fvm(f, self, at_n = True):
       ):
         if(self.physical_system.params.fields_type == 'electrostatic'):
 
-            if (params.time_step%params.electrostatic_solver_step==0):
+            if (params.time_step%params.electrostatic_solver_every_nth_step==0):
 
                 if(self.physical_system.params.fields_solver == 'fft'):
 

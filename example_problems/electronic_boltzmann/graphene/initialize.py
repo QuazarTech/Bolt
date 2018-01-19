@@ -10,11 +10,10 @@ from petsc4py import PETSc
 def initialize_f(q1, q2, p1, p2, p3, params):
    
     PETSc.Sys.Print("Initializing f")
-
     k = params.boltzmann_constant
     
-    params.mu          = 0.*q1 + 0.*0.01
-    params.T           = 0.*q1 + 3e-4*4.
+    params.mu          = 0.*q1 + params.initial_mu
+    params.T           = 0.*q1 + params.initial_temperature
     params.vel_drift_x = 0.*q1
     params.vel_drift_y = 0.*q1
     params.phi         = 0.*q1

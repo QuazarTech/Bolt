@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 from numpy.fft import fftfreq
-import pylab as pl
+from bolt.lib.nonlinear_solver.FVM_solver.reconstruct import reconstruct
 import params
 
 class poisson_eqn_3D(object):
@@ -102,6 +102,10 @@ class poisson_eqn_3D(object):
         q2_3D =  q2_2D_start - length_multiples_q2*length_q2_2d + i_q2_3D * self.dq2
         q3_3D =  q3_3D_start + i_q3_3D * self.dq3
 
+        self.q1_3D = q1_3D
+        self.q2_3D = q2_3D
+        self.q3_3D = q3_3D
+
         glob_epsilon  = self.da_3D.createGlobalVec()
         local_epsilon = self.da_3D.createLocalVec()
 
@@ -112,7 +116,8 @@ class poisson_eqn_3D(object):
                                               ]
                                              )
         epsilon_array[:] = params.epsilon0
-        epsilon_array[q3_3D<location_in_q3-self.dq3, :, :] = 10.*params.epsilon0
+        epsilon_array[q3_3D<location_in_q3+self.dq3, :, :] = \
+                params.epsilon_relative*params.epsilon0
         self.epsilon_array = epsilon_array
 
         q2_3D_data_structure, q3_3D_data_structure, q1_3D_data_structure = \
@@ -141,7 +146,8 @@ class poisson_eqn_3D(object):
                            & (q3_3D_data_structure >= location_in_q3) \
                            & (q3_3D_data_structure < location_in_q3 + self.dq3)
 
-        contact_start = 2.5; contact_end = 7.5
+        contact_start = params.contact_start
+        contact_end   = params.contact_end
 
         self.cond_left_contact = \
         (q1_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < q1_2D[N_g] - tol) \
@@ -157,7 +163,7 @@ class poisson_eqn_3D(object):
       & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] > location_in_q3) \
       & (q3_3D_data_structure[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp] < location_in_q3 + self.dq3)
 
-        backgate_potential = -10.
+        backgate_potential = params.backgate_potential
 
         self.q3    = q3_3D_data_structure
         z          = self.q3
@@ -277,9 +283,40 @@ class poisson_eqn_3D(object):
                        + (D_top_edge   - D_bot_edge)  /self.dq2 \
                        + (D_front_edge - D_back_edge) /self.dq3
 
-        laplacian_phi[self.cond_3D] += \
-              -params.charge_electron \
-             * self.density_np[self.cond_2D] / self.dq3
+        if (params.solve_for_equilibrium):
+            # solve \nabla^2 phi = -rho
+            # where rho = \int f_FD(mu) d^3k with mu - e * phi = const
+
+            mu =  params.global_chem_potential \
+                + params.charge_electron*phi_array[self.cond_3D]
+            mu = af.to_array(mu)
+            mu = af.moddims(af.to_array(mu),
+                            1, 
+                            self.obj.N_q1_local, 
+                            self.obj.N_q2_local
+                           )
+            self.obj.f[:, N_g:-N_g, N_g:-N_g] = \
+                params.fermi_dirac(mu, params.E_band)
+
+            density_af = af.moddims(self.obj.compute_moments('density'),
+                                      (self.obj.N_q1_local+2*self.obj.N_ghost)
+                                    * (self.obj.N_q2_local+2*self.obj.N_ghost)
+                                   )
+            density_np = density_af.to_ndarray()
+            density_np =\
+                density_np.reshape([self.obj.N_q2_local+2*self.obj.N_ghost,
+                                    self.obj.N_q1_local+2*self.obj.N_ghost
+                                   ]
+                                  )
+
+            laplacian_phi[self.cond_3D] += \
+                  -params.charge_electron \
+                 * density_np[self.cond_2D] / self.dq3
+        else:
+            # Density is an external source. Not explicitly coupled to phi.
+            laplacian_phi[self.cond_3D] += \
+                  -params.charge_electron \
+                 * self.density_np[self.cond_2D] / self.dq3
 
         residual_array[:, :, :] = \
             laplacian_phi[N_gp:-N_gp, N_gp:-N_gp, N_gp:-N_gp]
@@ -335,20 +372,19 @@ def compute_electrostatic_fields(self):
                          )
     params.phi = self.phi
 
-    # Obtaining the electric field values at (i+0.5, j+0.5):
-    E1 = -(  af.shift(self.phi, -1, 0)
-           - af.shift(self.phi,  1, 0)
-          ) / (2 * self.dq1)
+    # Obtaining the electric field values at (i+0.5, j+0.5) by first
+    # reconstructing phi to the edges and then differencing them. Needed
+    # in case phi develops large gradients
 
-    E2 = -(  af.shift(self.phi, 0, -1)
-           - af.shift(self.phi, 0,  1)
-          ) / (2 * self.dq2)
+    method_in_q = self.physical_system.params.reconstruction_method_in_q
 
-    E3 = -(  af.shift(self.phi, 0, 0, -1)
-           - af.shift(self.phi, 0, 0,  1)
-          ) / (2 * self.dq3)
+    phi_left, phi_right = reconstruct(self, self.phi, 0, method_in_q)
+    E1 = -(phi_right - phi_left)/self.dq1
 
-    af.eval(E1, E2, E3)
+    phi_bottom, phi_top = reconstruct(self, self.phi, 1, method_in_q)
+    E2 = -(phi_top - phi_bottom)/self.dq2
+
+    af.eval(E1, E2)
 
     E1 = af.moddims(E1,
                     1,
@@ -362,15 +398,9 @@ def compute_electrostatic_fields(self):
                     self.N_q2_local + 2*N_g
                    )
 
-    E3 = af.moddims(E3,
-                    1,
-                    self.N_q1_local + 2*N_g,
-                    self.N_q2_local + 2*N_g
-                   )
-
     self.cell_centered_EM_fields[0, :] = E1
     self.cell_centered_EM_fields[1, :] = E2
-    self.cell_centered_EM_fields[2, :] = E3
+    self.cell_centered_EM_fields[2, :] = 0. # TODO: worry about this later
 
     if(self.performance_test_flag == True):
         af.sync()

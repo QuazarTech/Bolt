@@ -211,18 +211,18 @@ class nonlinear_solver(object):
         # Additionally, a DA object also needs to be created for the SNES solver
         # with a DOF of 1:
 	# TODO: Remove the following hardcoded values
-        self.length_multiples_q1 = 1
-        self.length_multiples_q2 = 1
-        self.location_in_q3      = 10.
-        self.q3_3D_start =  0.; self.q3_3D_end = 20.
+        self.length_multiples_q1 = .5
+        self.length_multiples_q2 = .25
         self.dq3 = self.dq1
+        self.location_in_q3      = 0.3
+        self.q3_3D_start =  0.; self.q3_3D_end = 1.3
 
         self.N_q1_poisson = (2*self.length_multiples_q1+1)*self.N_q1
         self.N_q2_poisson = (2*self.length_multiples_q2+1)*self.N_q2
         self.N_q3_poisson = (int)((self.q3_3D_end - self.q3_3D_start) / self.dq3)
         self.N_ghost_poisson = self.N_ghost
-        #self.N_ghost_poisson = 1
 
+        PETSc.Sys.Print("dq3 = ", self.dq3, "N_q3 = ", self.N_q3_poisson)
         self._da_snes = PETSc.DMDA().create([self.N_q1_poisson, 
 	                                     self.N_q2_poisson,
 					     self.N_q3_poisson],
@@ -235,8 +235,8 @@ class nonlinear_solver(object):
                                                               PETSc.DECIDE,
                                                               1
                                                              ),
-                                             stencil_type  = 1,
-                                             dof = 1,
+                                             stencil_type  = 0, # Star stencil
+                                             dof           = 1,
                                              comm          = self._comm
                                            )
         self.snes = PETSc.SNES().create()

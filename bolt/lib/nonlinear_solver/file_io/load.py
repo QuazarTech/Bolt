@@ -24,7 +24,7 @@ def load_distribution_function(self, file_name):
     The above statemant will load the distribution function data stored in the file
     distribution_function.h5 into self.f
     """
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 
+    viewer = PETSc.Viewer().createHDF5(file_name, 
                                        PETSc.Viewer.Mode.READ, 
                                        comm=self._comm
                                       )
@@ -33,7 +33,7 @@ def load_distribution_function(self, file_name):
     N_g = self.N_ghost
     self.f[:, N_g:-N_g, N_g:-N_g] = af.moddims(af.to_array(self._glob_f_array),
                                                self.N_p1 * self.N_p2 * self.N_p3,
-                                               self.N_q1, self.N_q2
+                                               self.N_q1_local, self.N_q2_local
                                               )
 
     return
