@@ -45,8 +45,9 @@ N_cfl   = 0.32
 t_final = 0.5
 
 # Switch for solver components:
-EM_fields_enabled = False
-source_enabled    = True
+EM_fields_enabled        = False
+source_enabled           = True
+instantaneous_collisions = True
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

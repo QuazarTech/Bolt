@@ -13,8 +13,8 @@ Bolt is distributed using the git version control system, and is hosted on Githu
 Dependencies
 -------------
 
-Overview:
-^^^^^^^^^
+Overview
+^^^^^^^^
 
 Bolt has a hard dependency on Python 3+ and the following Python packages:
 
@@ -29,14 +29,14 @@ Bolt has a hard dependency on Python 3+ and the following Python packages:
 
 Before installing the above python packages, the following libraries need to be installed so that their python wrappers can function: 
 
-Building ArrayFire:
-^^^^^^^^^^^^^^^^^^^
+Building ArrayFire
+^^^^^^^^^^^^^^^^^^
 
 - Clone the `arrayfire <https://github.com/arrayfire/arrayfire>`_ repository
 - Build using the instructions that have been provided `here <https://github.com/arrayfire/arrayfire/wiki/Build-Instructions-for-Linux>`_ 
 
-Building PETSc:
-^^^^^^^^^^^^^^^
+Building PETSc
+^^^^^^^^^^^^^^
 
 - Clone the `petsc <https://bitbucket.org/petsc/petsc>`_ repository
 - We suggest that you install PETSc using the following::

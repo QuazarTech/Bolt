@@ -24,26 +24,18 @@ def op_fvm(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    # Solving for tau = 0 systems:
-    tau = self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                          self.p1_center, self.p2_center, 
-                                          self.p3_center
-                                         )
-    if(af.any_true(tau == 0)):
-        
-        self.f = af.select(tau == 0, 
-                           self._source(self.f, self.time_elapsed,
-                                        self.q1_center, self.q2_center,
-                                        self.p1_center, self.p2_center, self.p3_center, 
-                                        self.compute_moments, 
-                                        self.physical_system.params, 
-                                        True
-                                       ),
-                           self.f
-                          )
-
     f_initial = self.f
     self.f    = self.f + df_dt_fvm(self.f, self) * (dt / 2)
+
+    if(self.physical_system.params.instantaneous_collisions == True):
+        
+        self.f = self._source(self.f, self.time_elapsed,
+                              self.q1_center, self.q2_center,
+                              self.p1_center, self.p2_center, self.p3_center, 
+                              self.compute_moments, 
+                              self.physical_system.params, 
+                              True
+                             )
 
     self._communicate_f()
     self._apply_bcs_f()

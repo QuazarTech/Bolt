@@ -30,15 +30,6 @@ N_g_q = system.N_ghost_q
 
 nls = nonlinear_solver(system)
 
-print(np.array(nls.p1_center).reshape(32, 32, 32)[0, 0, :])
-
-pl.plot(np.array(nls.p1_center).reshape(32, 32, 32)[0, 0, :],
-        np.log10(np.array(nls.f[:,:, 18, 4]).reshape(32, 32, 32)[0, 0, :])    
-        )
-pl.ylabel(r'$\log(f)$')
-pl.xlabel('$v_1$')
-pl.savefig('plot.png')
-
 # Timestep as set by the CFL condition:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)

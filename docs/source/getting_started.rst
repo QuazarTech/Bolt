@@ -7,8 +7,8 @@ Overview
 
 Bolt is organized such that a system is defined by making use of the ``physical_system`` class. The object created by ``physical_system`` is then passed as an argument to the solver objects.
 
-Physical System:
-^^^^^^^^^^^^^^^^
+Physical System
+^^^^^^^^^^^^^^^
 An instance of the ``physical_system`` object may be initialized by using::
 
     system = physical_system(domain,
@@ -24,8 +24,8 @@ The arguments in the above command are all python files/objects, where the detai
 
 A detailed breakdown of what is to be contained in these files is demonstrated in the tutorials.
 
-Solvers:
-^^^^^^^^
+Solvers
+^^^^^^^
 
 The solver objects may be declared by using::
 
@@ -55,7 +55,7 @@ Bolt can be run in parallel across multiple nodes. To do so prefix the python co
 Tutorial Notebook
 -----------------
 
-`This <https://example.com>`_ notebook covers the basics of setting up and interacting with the primary features of the code. We consider the example problem of a 1D1V setup of the non-relativistic Boltzmann equation in which we observe the damping of the density with time. The same basic setup is also explored further after activating fields, and the source term(which is taken as the BGK collision operator for this example)  
+`This <http://nbviewer.jupyter.org/github/ShyamSS-95/Bolt/blob/master/example_problems/nonrelativistic_boltzmann/quick_start/tutorial.ipynb>`_ notebook covers the basics of setting up and interacting with the primary features of the code. We consider the example problem of a 1D1V setup of the non-relativistic Boltzmann equation in which we observe the damping of the density with time. The same basic setup is also explored further after activating fields, and the source term(which is taken as the BGK collision operator for this example)  
 
 Example Scripts
 ---------------
