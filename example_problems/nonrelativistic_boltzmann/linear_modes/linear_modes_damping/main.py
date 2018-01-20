@@ -88,8 +88,8 @@ for time_index, t0 in enumerate(time_array[1:]):
     n_ls                        = ls.compute_moments('density')
     rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
+pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()

@@ -20,7 +20,7 @@ An instance of the ``physical_system`` object may be initialized by using::
                              moments
                             )
 
-The arguments in the above command are all python files/objects, where the details regarding the system being solved have been provided.
+The arguments in the above command are all python modules/functions, where the details regarding the system being solved have been provided.
 
 A detailed breakdown of what is to be contained in these files is demonstrated in the tutorials.
 

@@ -47,13 +47,4 @@ for i in range(N.size):
         print('Computing For Time =', t0)
         nls.strang_timestep(dt)
 
-    # Performing f = f0 at final time:
-    nls.f = nls._source(nls.f, nls.time_elapsed,
-                        nls.q1_center, nls.q2_center,
-                        nls.p1_center, nls.p2_center, nls.p3_center, 
-                        nls.compute_moments, 
-                        nls.physical_system.params, 
-                        True
-                       )
-
     nls.dump_moments('dump/N_%04d'%(int(N[i])))

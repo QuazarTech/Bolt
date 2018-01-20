@@ -46,7 +46,7 @@ t_final = 0.5
 
 # Switch for solver components:
 EM_fields_enabled        = False
-source_enabled           = True
+source_enabled           = False
 instantaneous_collisions = True
 
 # Variation of collisional-timescale parameter through phase space:

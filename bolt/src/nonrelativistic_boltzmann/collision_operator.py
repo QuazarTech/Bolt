@@ -121,8 +121,6 @@ def BGK(f, t, q1, q2, v1, v2, v3, moments, params, flag = False):
     if(flag == False):
 
         C_f = -(f - f_MB) / tau
-        # Where ever tau = 0, we replace the same location in C_f as zero:
-        C_f = af.select(tau == 0, 0, C_f)        
         return(C_f)
 
     # Accounting for purely collisional cases(f = f0):

@@ -39,10 +39,11 @@ pert_imag = 0.02
 k_q1 = 2 * np.pi
 k_q2 = 0 * np.pi
 
-EM_fields_enabled = False
-source_enabled    = True
+EM_fields_enabled        = False
+source_enabled           = False
+instantaneous_collisions = True
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0.01 * p1**0 * q1**0)
+    return (0 * p1**0 * q1**0)
