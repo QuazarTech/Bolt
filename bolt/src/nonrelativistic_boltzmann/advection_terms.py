@@ -12,7 +12,7 @@ df/dt + v_x * df/dq1 + v_y * df/dy + (E + v X B)_x * df/dv_x + (E + v X B)_y * d
 In the solver framework this can be described using:
 
 q1 = x  ; q2 = y
-v1 = v_x; v2 = v_y; v3 = v_z
+p1 = v1 = v_x; p2 = v2 = v_y; p3 = v3 = v_z
 
 A_q1 = C_q1 = v_x = v1
 A_q2 = C_q2 = v_y = v2

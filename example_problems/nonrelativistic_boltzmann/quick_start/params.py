@@ -25,8 +25,9 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [-10]
 
-EM_fields_enabled = False
-source_enabled    = True
+EM_fields_enabled        = False
+source_enabled           = False
+instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
@@ -34,7 +35,8 @@ def tau(q1, q2, p1, p2, p3):
     return (0.01 * p1**0 * q1**0)
 
 # Initial Conditions used in initialize:
-rho_background         = 1
+# Here density refers to number density
+density_background     = 1
 temperature_background = 1
 
 p1_bulk_background = 0

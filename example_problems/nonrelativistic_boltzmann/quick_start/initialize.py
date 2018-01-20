@@ -11,8 +11,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     m = params.mass
     k = params.boltzmann_constant
 
-    rho_b = params.rho_background
-    T_b   = params.temperature_background
+    n_b = params.density_background
+    T_b = params.temperature_background
 
     p1_bulk = params.p1_bulk_background
 
@@ -22,12 +22,12 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     k_q1 = params.k_q1
 
     # Calculating the perturbed density:
-    rho = rho_b + (  pert_real * af.cos(k_q1 * q1)
-                   - pert_imag * af.sin(k_q1 * q1)
-                  )
+    n = n_b + (  pert_real * af.cos(k_q1 * q1)
+               - pert_imag * af.sin(k_q1 * q1)
+              )
 
-    f = rho * (m / (2 * np.pi * k * T_b))**(1 / 2) \
-            * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
+    f = n * (m / (2 * np.pi * k * T_b))**(1 / 2) \
+          * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
 
     af.eval(f)
     return (f)
