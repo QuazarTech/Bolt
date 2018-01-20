@@ -92,36 +92,44 @@ def swss(self, op1, op2, dt):
     
     """
     # Storing start values:
-    f_start                       = self.f
-    cell_centered_EM_fields_start = self.cell_centered_EM_fields
-    yee_grid_EM_fields_start      = self.yee_grid_EM_fields
+    f_start = self.f
+
+    if(self.physical_system.params.EM_fields_enabled == True):
+        cell_centered_EM_fields_start = self.fields_solver.cell_centered_EM_fields
+        yee_grid_EM_fields_start      = self.fields_solver.yee_grid_EM_fields
 
     # Performing e^At e^Bt
     op1(self, dt)
     op2(self, dt)
 
     # Storing values obtained in this order:
-    f_intermediate                       = self.f
-    cell_centered_EM_fields_intermediate = self.cell_centered_EM_fields
-    yee_grid_EM_fields_intermediate      = self.yee_grid_EM_fields
+    f_intermediate = self.f
+
+    if(self.physical_system.params.EM_fields_enabled == True):
+        cell_centered_EM_fields_intermediate = self.fields_solver.cell_centered_EM_fields
+        yee_grid_EM_fields_intermediate      = self.fields_solver.yee_grid_EM_fields
 
     # Reassiging starting values:
-    self.f                       = f_start    
-    self.cell_centered_EM_fields = cell_centered_EM_fields_start
-    self.yee_grid_EM_fields      = yee_grid_EM_fields_start
+    self.f = f_start    
+    
+    if(self.physical_system.params.EM_fields_enabled == True):
+        self.fields_solver.cell_centered_EM_fields = cell_centered_EM_fields_start
+        self.fields_solver.yee_grid_EM_fields      = yee_grid_EM_fields_start
 
     # Performing e^Bt e^At:
     op2(self, dt)
     op1(self, dt)
 
     # Averaging solution:
-    self.f                       = 0.5 * (self.f + f_intermediate)
-    self.cell_centered_EM_fields = 0.5 * (  self.cell_centered_EM_fields 
-                                          + cell_centered_EM_fields_intermediate
-                                         )
-    self.yee_grid_EM_fields      = 0.5 * (  self.yee_grid_EM_fields
-                                          + yee_grid_EM_fields_intermediate
-                                         )
+    self.f = 0.5 * (self.f + f_intermediate)
+    
+    if(self.physical_system.params.EM_fields_enabled == True):
+        self.fields_solver.cell_centered_EM_fields = 0.5 * (  self.fields_solver.cell_centered_EM_fields 
+                                                             + cell_centered_EM_fields_intermediate
+                                                           )
+        self.fields_solver.yee_grid_EM_fields      = 0.5 * (  self.fields_solver.yee_grid_EM_fields
+                                                            + yee_grid_EM_fields_intermediate
+                                                           )
 
     return
 
