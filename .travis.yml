@@ -24,21 +24,28 @@ before_install:
     - sudo make install
     - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH 
     - cd ../../
-    - git clone https://github.com/arrayfire/arrayfire.git
-    - cd arrayfire
-    - git submodule init
-    - git submodule update
-    - mkdir build 
-    - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release  -DCMAKE_INSTALL_PREFIX=package -DBUILD_GRAPHICS=OFF
-    - make -j8
-    - sudo make install
-    - cd package
+    - wget https://fs1.transfernow.net/download/5a62d6a6d1844/master/arrayfire.tar.gz
+    - tar xzf arrayfire.tar.gz
+    - cd arrayfire-3
     - export AF_PATH=$PWD
     - cd lib
     - export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
-    - echo $LD_LIBRARY_PATH
-    - cd ../../../../
+    - cd ../../
+    - #git clone https://github.com/arrayfire/arrayfire.git
+    - #cd arrayfire
+    - #git submodule init
+    - #git submodule update
+    - #mkdir build 
+    - #cd build
+    - #cmake .. -DCMAKE_BUILD_TYPE=Release  -DCMAKE_INSTALL_PREFIX=package -DBUILD_GRAPHICS=OFF
+    - #make -j8
+    - #sudo make install
+    - #cd package
+    - #export AF_PATH=$PWD
+    - #cd lib
+    - #export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+    - #echo $LD_LIBRARY_PATH
+    - #cd ../../../../
     - wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-3.8.3.tar.gz
     - tar xzf petsc-3.8.3.tar.gz
     - cd petsc-3.8.3
