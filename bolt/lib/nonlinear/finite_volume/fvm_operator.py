@@ -75,7 +75,7 @@ def op_fvm(self, dt):
         tic = af.time()
 
     if(self.physical_system.params.instantaneous_collisions == True):
-        split.swss(self, timestep_fvm, update_for_instantaneous_collisions, dt)
+        split.strang(self, timestep_fvm, update_for_instantaneous_collisions, dt)
     else:
         timestep_fvm(self, dt)
 
