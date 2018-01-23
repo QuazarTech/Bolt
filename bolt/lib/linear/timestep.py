@@ -53,7 +53,7 @@ def RK5_step(self, dt):
 
     else:
         self.f_hat = integrators.RK5(df_hat_dt, self.f_hat,
-                                     dt, self
+                                     dt, self.fields_solver.fields_hat, self
                                     )
     
     return
@@ -102,7 +102,7 @@ def RK4_step(self, dt):
 
     else:
         self.f_hat = integrators.RK4(df_hat_dt, self.f_hat,
-                                     dt, self
+                                     dt, self.fields_solver.fields_hat, self
                                     )
 
     return
@@ -151,7 +151,7 @@ def RK2_step(self, dt):
 
     else:
         self.f_hat = integrators.RK2(df_hat_dt, self.f_hat,
-                                     dt, self
+                                     dt, self.fields_solver.fields_hat, self
                                     )
 
     return

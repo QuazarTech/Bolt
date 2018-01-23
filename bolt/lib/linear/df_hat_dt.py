@@ -7,7 +7,7 @@ import numpy as np
 from .utils.fft_funcs import fft2, ifft2
 from .utils.broadcasted_primitive_operations import multiply
 
-def df_hat_dt(f_hat, self):
+def df_hat_dt(f_hat, fields_hat, self):
     """
     Returns the value of the derivative of the f_hat with respect to time 
     respect to time. This is used to evolve the system in time.
@@ -17,6 +17,9 @@ def df_hat_dt(f_hat, self):
 
       f_hat  : Fourier mode values for the distribution function at which the slope is computed
                At t = 0 the initial state of the system is passed to this function:
+
+      fields_hat  : Fourier mode values for the fields at which the slope is computed
+                    At t = 0 the initial state of the system is passed to this function:
 
     Output:
     -------
@@ -51,26 +54,17 @@ def df_hat_dt(f_hat, self):
         df_hat_dt += C_f_hat
 
     if(self.physical_system.params.EM_fields_enabled == True):
-        
         if(self.physical_system.params.fields_type == 'electrostatic'):
+            
             rho = multiply(self.physical_system.params.charge,
                            self.compute_moments('density', f_hat=f_hat)
                           )
             self.fields_solver.compute_electrostatic_fields(rho)
 
         elif(self.physical_system.params.fields_type == 'electrodynamic'):
-            J1 = multiply(self.physical_system.params.charge,
-                          self.compute_moments('mom_v1_bulk', f_hat=f_hat)
-                         ) 
-            J2 = multiply(self.physical_system.params.charge,
-                          self.compute_moments('mom_v2_bulk', f_hat=f_hat)
-                         ) 
-            J3 = multiply(self.physical_system.params.charge,
-                          self.compute_moments('mom_v3_bulk', f_hat=f_hat)
-                         ) 
-
-            self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3)
-        
+            # Handled by dfields_hat_dt
+            pass
+            
         elif(self.physical_system.params.fields_type == 'user-defined'):
             self.fields_solver.update_user_defined_fields(self.time_elapsed)
 
