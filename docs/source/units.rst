@@ -15,7 +15,7 @@ The equations governing by the system under consideration is given by:
 
 - As we'd stated earlier, we have a choice of declaring a few variables with respect to absolute reference quantities(independant quantities), and find that the remaining dependant quantities can be expressed in terms of these. For this example, we'll choose appropriate reference units for time :math:`t`, velocity :math:`v`, charge :math:`q` and mass :math:`m`.
 
-- When dealing with a plasma at constant mean density :math:`n_e` , it is convenient to normalize times by introducing the electron plasma frequency :math:`\omega_{pe} = \sqrt{\frac{ne^2}{m}}`. Then all times are normalized using :math:`{\omega_{pe}}^{-1}`. For the sake of convenience, let's call this normalization factor :math:`t_0` (where :math:`t_0 = {\omega_{pe}}^{-1}`):
+- When dealing with a plasma at constant mean density :math:`n_e` , it is convenient to normalize times by introducing the electron plasma frequency :math:`\omega_{pe} = \sqrt{\frac{ne^2}{m \epsilon_0}}`. Then all times are normalized using :math:`{\omega_{pe}}^{-1}`. For the sake of convenience, let's call this normalization factor :math:`t_0` (where :math:`t_0 = {\omega_{pe}}^{-1}`):
 
 .. math::
     t = t_0 \bar{t}
@@ -87,3 +87,35 @@ The table below gives a list of the normalizations we had used in this case, cle
 +--------------------+----------------------------------+ 
 | Electric Potential | :math:`\frac{m_0 v_0^2}{e_0 t_0}`| 
 +--------------------+----------------------------------+
+
+**Derivation For Plasma Frequency**
+
+- Let us start by considering a charge neutral plasma where the positive charges and negative charges are next to each other.
+
+.. image:: images/neutral.png
+   :width: 600
+
+- Now if we move the negative charges by x, then we will end up with the following:
+
+.. image:: images/perturbed.png
+   :width: 600
+
+- Thus, now there is a slab of positive and negative charges which would be exerting a field. Let us consider the field created by the positive slab of charges:
+By Gauss' Law:
+
+.. math::
+  \int \vec{E} \cdot \vec{dA} = \frac{q}{\epsilon_0}
+
+Now the charges are given by the number density multiplied by the volume of the segment, which can be expressed in terms of the area :math:`A` and displacement :math:`x`
+
+.. math::
+  q = n e A x \\
+  \implies \int \vec{E} \vec{dA} = \frac{n e A x}{\epsilon_0} \\
+  \implies E = \frac{n e x}{\epsilon_0}
+
+The force acting on an electron would be:
+
+.. math::
+  F = m_e a = -e E \\
+  \implies a = -\frac{n e^2}{m_e \epsilon_0} x = - \omega^2 x \\
+  \implies \omega = \sqrt{\frac{n e^2}{m_e \epsilon_0}}
