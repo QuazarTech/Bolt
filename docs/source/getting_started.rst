@@ -5,7 +5,7 @@ Getting started with Bolt
 Overview
 ---------
 
-Bolt is organized such that a system is defined by making use of the ``physical_system`` class. The object created by ``physical_system`` is then passed as an argument to the solver objects.
+:math:`\texttt{Bolt}` is organized such that a system is defined by making use of the ``physical_system`` class. The object created by ``physical_system`` is then passed as an argument to the solver objects.
 
 Physical System
 ^^^^^^^^^^^^^^^
@@ -49,13 +49,13 @@ The data about the evolved system can be dumped to file by making use of the met
 Running in Parallel
 ^^^^^^^^^^^^^^^^^^^
 
-Bolt can be run in parallel across multiple nodes. To do so prefix the python command being executed with
+:math:`\texttt{Bolt}` can be run in parallel across multiple nodes. To do so prefix the python command being executed with
 ``mpirun -n <nodes/devices>``. Make sure that ``num_devices`` is set correctly under ``params`` when running on nodes which contain more than a single accelerator(NOTE: The parallelization has only been implemented for the nonlinear solver. The linear solver can only take advantage of shared memory parallelism)
 
 Tutorial Notebook
 -----------------
 
-`This <http://nbviewer.jupyter.org/github/ShyamSS-95/Bolt/blob/master/example_problems/nonrelativistic_boltzmann/quick_start/tutorial.ipynb>`_ notebook covers the basics of setting up and interacting with the primary features of the code. We consider the example problem of a 1D1V setup of the non-relativistic Boltzmann equation in which we observe the damping of the density with time. The same basic setup is also explored further after activating fields, and the source term(which is taken as the BGK collision operator for this example)  
+`This <http://nbviewer.jupyter.org/github/ShyamSS-95/Bolt/blob/master/example_problems/nonrelativistic_boltzmann/quick_start/tutorial.ipynb>`_ notebook covers the basics of setting up and interacting with the primary features of the code. We consider the example problem of a 1D1V setup of the non-relativistic Boltzmann equation in which we observe the damping of the density with time.
 
 Example Scripts
 ---------------

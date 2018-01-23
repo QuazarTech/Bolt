@@ -8,7 +8,7 @@ Overview
 What is Bolt?
 -------------
 
-Bolt is an open-source Python based framework for solving kinetic theory formulations uptil 5-dimensional phase space 
+:math:`\texttt{Bolt}` is an open-source Python based framework for solving kinetic theory formulations uptil 5-dimensional phase space 
 on a range of devices using the finite volume method, and/or the advective Semi-Lagrangian approach originally proposed by Cheng&Knorr. The framework is designed to solve a range of physical systems where the domain of interest can be mapped on to a rectangular grid. It is designed to target a range of hardware platforms via use of the `ArrayFire <http://arrayfire.com>`_ library, and is completely parallelized to run on large clusters by use of the `PETSc <https://www.mcs.anl.gov/petsc/>`_ library. 
 
 The current release has the following capabilities:

@@ -2,7 +2,7 @@
 Theory
 ******
 
-In ``Bolt``, the defined system is evolved by stepping the complete probability distribution function, from which physical parameters of interest about the system may be obtained by coarse-graining the system via use of the ``compute_moments`` method. The implementation allows us to deal with a wide range of boundary conditions with ease, in addition to capturing the dynamics of short-range interactions via a collision operator(input as a source). ``Bolt`` is capable of performing accurate simulations of systems that are governed by the form:
+In :math:`\texttt{Bolt}`, the defined system is evolved by stepping the complete probability distribution function, from which physical parameters of interest about the system may be obtained by coarse-graining the system via use of the ``compute_moments`` method. The implementation allows us to deal with a wide range of boundary conditions with ease, in addition to capturing the dynamics of short-range interactions via a collision operator(input as a source). :math:`\texttt{Bolt}` is capable of performing accurate simulations of systems that are governed by the form:
 
 .. math::
   \frac{\partial f}{\partial t} + A_{q1} \frac{\partial f}{\partial q_1} + A_{q2} \frac{\partial f}{\partial q_2} + A_{p1} \frac{\partial f}{\partial p_1} + A_{p2} \frac{\partial f}{\partial p_2} + A_{p3} \frac{\partial f}{\partial p_3} = S(f)

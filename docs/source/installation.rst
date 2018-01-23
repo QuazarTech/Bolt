@@ -5,7 +5,7 @@ Installation
 Downloading the Source
 -----------------------
 
-Bolt is distributed using the git version control system, and is hosted on Github. The repository can be cloned using::
+:math:`\texttt{Bolt}` is distributed using the git version control system, and is hosted on Github. The repository can be cloned using::
 
     git clone https://github.com/QuazarTech/Bolt.git
 
@@ -16,7 +16,7 @@ Dependencies
 Overview
 ^^^^^^^^
 
-Bolt has a hard dependency on Python 3+ and the following Python packages:
+:math:`\texttt{Bolt}` has a hard dependency on Python 3+ and the following Python packages:
 
 1. `mpi4py <http://mpi4py.scipy.org/>`_ 
 2. `numpy <http://www.numpy.org/>`_ 
@@ -55,7 +55,7 @@ Below are instructions for building the PETSc stack on a few machines that we've
 Installation
 -------------
 
-Before running Bolt it is first necessary to either install the software using the provided ``setup.py`` installer(TODO) or add the root directory to ``PYTHONPATH`` using::
+Before running :math:`\texttt{Bolt}` it is first necessary to either install the software using the provided ``setup.py`` installer(TODO) or add the root directory to ``PYTHONPATH`` using::
 
     user@computer ~/Bolt$ export PYTHONPATH=.:$PYTHONPATH
 
