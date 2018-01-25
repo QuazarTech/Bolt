@@ -1,6 +1,7 @@
 import arrayfire as af
 import numpy as np
 import pylab as pl
+from scipy.integrate import romb
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
@@ -45,53 +46,82 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-# Defining the physical system to be solved:
-system = physical_system(domain,
-                         boundary_conditions,
-                         params,
-                         initialize,
-                         advection_terms,
-                         collision_operator.BGK,
-                         moments
-                        )
+N = 2**np.arange(5, 10)
 
-N_g_q = system.N_ghost_q
+n_error  = np.zeros(N.size)
+v1_error = np.zeros(N.size)
+T_error  = np.zeros(N.size)
 
-# Declaring a linear system object which will evolve the defined physical system:
-nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+n_error1  = np.zeros(N.size)
+v1_error1 = np.zeros(N.size)
+T_error1  = np.zeros(N.size)
 
-# Time parameters:
-dt      = 0.001
-t_final = 0.5
+for i in range(N.size):
+    domain.N_p1 = int(N[i])
+    # Defining the physical system to be solved:
+    system = physical_system(domain,
+                             boundary_conditions,
+                             params,
+                             initialize,
+                             advection_terms,
+                             collision_operator.BGK,
+                             moments
+                            )
 
-time_array  = np.arange(0, t_final + dt, dt)
+    N_g_q = system.N_ghost_q
 
-rho_data_nls = np.zeros(time_array.size)
-rho_data_ls  = np.zeros(time_array.size)
 
-# Storing data at time t = 0:
-n_nls           = nls.compute_moments('density')
-rho_data_nls[0] = af.max(n_nls[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    # Declaring a linear system object which will evolve the defined physical system:
+    nls = nonlinear_solver(system)
 
-n_ls           = ls.compute_moments('density')
-rho_data_ls[0] = af.max(n_ls) 
+    # ls  = linear_solver(system)
 
-for time_index, t0 in enumerate(time_array[1:]):
+    np_f = np.array(nls.f)
+    p1   = np.array(nls.p1_center)
 
-    nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)
+    n_error[i]  = af.sum(af.abs(1 - nls.compute_moments('density')))
+    v1_error[i] = af.sum(af.abs(0.5 - nls.compute_moments('mom_v1_bulk')))
+    T_error[i]  = af.sum(af.abs(0.875 - nls.compute_moments('energy')))
 
-    n_nls                         = nls.compute_moments('density')
-    rho_data_nls[time_index + 1]  = af.max(n_nls[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+print(n_error)
+print(v1_error)
+print(T_error)
+
+print(n_error1)
+print(v1_error1)
+print(T_error1)
+
+# # Time parameters:
+# dt      = 0.001
+# t_final = 0.5
+
+# time_array  = np.arange(0, t_final + dt, dt)
+
+# rho_data_nls = np.zeros(time_array.size)
+# rho_data_ls  = np.zeros(time_array.size)
+
+# # Storing data at time t = 0:
+# n_nls           = nls.compute_moments('density')
+# rho_data_nls[0] = af.max(n_nls[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+
+# n_ls           = ls.compute_moments('density')
+# rho_data_ls[0] = af.max(n_ls) 
+
+# for time_index, t0 in enumerate(time_array[1:]):
+
+#     nls.strang_timestep(dt)
+#     ls.RK4_timestep(dt)
+
+#     n_nls                         = nls.compute_moments('density')
+#     rho_data_nls[time_index + 1]  = af.max(n_nls[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
     
-    n_ls                        = ls.compute_moments('density')
-    rho_data_ls[time_index + 1] = af.max(n_ls) 
+#     n_ls                        = ls.compute_moments('density')
+#     rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho.png')
-pl.clf()
+# pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
+# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+# pl.ylabel(r'MAX($\rho$)')
+# pl.xlabel('Time')
+# pl.legend()
+# pl.savefig('rho.png')
+# pl.clf()

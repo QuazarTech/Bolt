@@ -117,13 +117,17 @@ class nonlinear_solver(object):
         self.N_species = len(physical_system.params.mass)
 
         # Having the mass and charge along axis 1:
-        self.physical_system.params.mass  = af.moddims(af.to_array(physical_system.params.mass),
-                                                       1, self.N_species
-                                                      )
-        
-        self.physical_system.params.charge = af.moddims(af.to_array(physical_system.params.charge),
-                                                        1, self.N_species
-                                                       )
+        self.physical_system.params.mass  = af.cast(af.moddims(af.to_array(physical_system.params.mass),
+                                                               1, self.N_species
+                                                              ), 
+                                                    af.Dtype.f64
+                                                   )
+
+        self.physical_system.params.charge  = af.cast(af.moddims(af.to_array(physical_system.params.charge),
+                                                                 1, self.N_species
+                                                                ), 
+                                                      af.Dtype.f64
+                                                     )
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
 
@@ -132,7 +136,7 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
         PETSc.Sys.syncPrint(indent(af.info_str(), 2))
-        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        # PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 

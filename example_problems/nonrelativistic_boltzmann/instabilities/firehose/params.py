@@ -28,18 +28,11 @@ boltzmann_constant = 1
 charge             = [-10]
 
 # Initial Conditions used in initialize:
-rho_background         = 1
-temperature_background = 1.5
+density_background = 1
 
-p1_bulk_background = 0.5
-p2_bulk_background = 0
-p3_bulk_background = 0
+beta_1 = 300/np.pi
+beta_2 = 3 + 300/np.pi
 
-pert_real = 0.01
-pert_imag = 0.02
-
-k_q1 = 2 * np.pi
-k_q2 = 0 * np.pi
 
 EM_fields_enabled        = False
 source_enabled           = False

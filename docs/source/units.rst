@@ -11,7 +11,7 @@ The equations governing by the system under consideration is given by:
 .. math::
   \frac{\partial f}{\partial t} + v \frac{\partial f}{\partial x} + \frac{qE}{m} \frac{\partial f}{\partial v} = 0 \\
   E = -\frac{\partial \phi}{\partial x} \\
-  \nabla^2 \phi = - \rho = - n q
+  \nabla^2 \phi = - \frac{\rho}{\epsilon_0} = - \frac{n e}{\epsilon_0}
 
 - As we'd stated earlier, we have a choice of declaring a few variables with respect to absolute reference quantities(independant quantities), and find that the remaining dependant quantities can be expressed in terms of these. For this example, we'll choose appropriate reference units for time :math:`t`, velocity :math:`v`, charge :math:`q` and mass :math:`m`.
 
@@ -33,7 +33,7 @@ So the velocity can be expressed as:
 - Expressing the charge and the mass interms of our reference units :math:`e_0` and :math:`m_0` which are typically taken as the electron charge and mass:
 
 .. math::
-    q = e_0 \bar{q} \\
+    e = e_0 \bar{e} \\
     m = m_0 \bar{m}
 
 Now substituting these back into Vlasov-Boltzmann equation, we get:
@@ -88,6 +88,78 @@ The table below gives a list of the normalizations we had used in this case, cle
 | Electric Potential | :math:`\frac{m_0 v_0^2}{e_0 t_0}`| 
 +--------------------+----------------------------------+
 
+
+Exploration of the different scales that can exist:
+===================================================
+
+In this section, we indent to explore the different scales that can exist in plasmas. We hope to elaborate the different time scales, length scales and velocity scales from which the scale that resolves the system under consideration appropriately can be chosen.
+
+Temporal Scales:
+----------------
+
+While the above example just considered the plasma oscillation, there is another timescale that can be considered when magnetic fields prevail in our system of consideration as well:the gyrofrequency which is the angular frequency of the circular motion of the charged particle in the plane perpendicular to the magnetic field. Hence the possible timescales that can be considered depending upon the problem are:
+
+- Plasma Frequency
+- Gyrofrequency
+
+Length Scales:
+--------------
+
+The following length scales can exist in a plasma:
+  
+- Thermal deBroglie Wavelength
+
+.. math::
+  \lambda = \frac{h}{p}
+
+where :math:`h` is the planck constant, and :math:`p` is the momentum of the particle
+
+The relation between the momentum and kinetic energy is given by:
+
+.. math::
+  E_k = \frac{p^2}{2 m}
+
+The effective kinetic energy derived with the statistics of Fermi gas is given as :math:`E_k = \pi k_B T`. Hence, we get the thermal deBroglie wavelength as
+
+.. math::
+  \lambda = \frac{h}{\sqrt{2 m \pi k_B T}}
+
+- Classical Distance of Closest Approach
+
+The potential energy possessed by 2 particles of charge :math:`e_1` and :math:`e_2` separated by distance :math:`r` is given by:
+
+.. math::
+  F = \frac{1}{4 \pi \epsilon} \frac{e_1 e_2}{r}
+
+Now, this energy is to be balanced by the thermal energy of the plasma :math:`E_{thermal} = kT`. Hence at the distance of closest approach:
+
+.. math::
+  \frac{1}{4 \pi \epsilon} \frac{e_1 e_2}{r} = kT
+  \implies r = \frac{1}{4 \pi \epsilon} \frac{e_1 e_2}{kT}
+
+- Gyroradius
+
+This is the radius of the circle in which the charge particle oscillates when subjected to a magnetic field. sThe force on a moving charged particle in a magnetic field is given by the Lorentz force:
+
+.. math::
+  \vec{F} = e(\vec{v} \times \vec{B})
+
+The force would always act perpendicular to the direction of motion, and would hence cause the particle to move in a circle in the plane perpendicular to the magnetic field. Equating this force to the centripetal force, we get:
+
+.. math::
+  \frac{m v_{\perp}^2}{r} = q v_{\perp} B \\
+  \implies r = \frac{m v_{\perp}}{q B}
+
+**Derivation For Gyroradius and Gyrofrequency**
+
+
+Now that we have the radius of gyration, we can calculate the time period of the motion executed, from which the angular frequency can be obtained:
+
+.. math::
+  T = \frac{2 \pi r}{v_{\perp}} \\
+  \omega = \frac{2 \pi}{T} = \frac{v_{\perp}}{r} \\
+  \implies \omega = \frac{qB}{m}
+
 **Derivation For Plasma Frequency**
 
 - Let us start by considering a charge neutral plasma where the positive charges and negative charges are next to each other.
@@ -101,6 +173,7 @@ The table below gives a list of the normalizations we had used in this case, cle
    :width: 600
 
 - Thus, now there is a slab of positive and negative charges which would be exerting a field. Let us consider the field created by the positive slab of charges:
+
 By Gauss' Law:
 
 .. math::
