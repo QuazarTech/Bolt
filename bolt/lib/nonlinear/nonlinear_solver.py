@@ -110,24 +110,27 @@ class nonlinear_solver(object):
         
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
-        if(self.physical_system.params.num_devices>1):
-            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+        af.set_device(1)
+        #if(self.physical_system.params.num_devices>1):
+        #    af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         # Getting number of species:
         self.N_species = len(physical_system.params.mass)
 
         # Having the mass and charge along axis 1:
-        self.physical_system.params.mass  = af.cast(af.moddims(af.to_array(physical_system.params.mass),
-                                                               1, self.N_species
-                                                              ), 
-                                                    af.Dtype.f64
-                                                   )
+        self.physical_system.params.mass  = \
+            af.cast(af.moddims(af.to_array(physical_system.params.mass),
+                               1, self.N_species
+                              ),
+                    af.Dtype.f64
+                   )
 
-        self.physical_system.params.charge  = af.cast(af.moddims(af.to_array(physical_system.params.charge),
-                                                                 1, self.N_species
-                                                                ), 
-                                                      af.Dtype.f64
-                                                     )
+        self.physical_system.params.charge  = \
+            af.cast(af.moddims(af.to_array(physical_system.params.charge),
+                               1, self.N_species
+                              ),
+                    af.Dtype.f64
+                   )
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
 
@@ -628,6 +631,8 @@ class nonlinear_solver(object):
                               initialize_f, self.q1_center, self.q2_center,
                               self.p1_center, self.p2_center, self.p3_center, params
                              )
+
+        self.f_initial = self.f
 
         if(self.physical_system.params.EM_fields_enabled):
             rho_initial = multiply(self.physical_system.params.charge,

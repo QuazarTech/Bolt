@@ -55,6 +55,7 @@ def RK4(dx_dt, x_initial, dt, *args):
 
     k2 = dx_dt(x, *args)
     x  = x_initial + 0.5 * k2 * dt
+
     k3 = dx_dt(x, *args)
     x  = x_initial + k3 * dt
 

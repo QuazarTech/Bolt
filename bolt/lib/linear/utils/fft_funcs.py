@@ -25,7 +25,7 @@ def fft2(array):
 def ifft2(array):
     # Reorder from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s) 
     array = af.reorder(array, 2, 3, 0, 1)
-    array = af.ifft2(array)
+    array = af.ifft2(array, scale=1)/(array.shape[0] * array.shape[1]) # fix for https://github.com/arrayfire/arrayfire/issues/2050
     # Reorder back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2) 
     array = af.reorder(array, 2, 3, 0, 1)
 

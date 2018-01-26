@@ -80,6 +80,21 @@ class linear_solver(object):
         # Getting number of species:
         self.N_species = len(physical_system.params.mass)
 
+        # Having the mass and charge along axis 1:
+        self.physical_system.params.mass  = \
+            af.cast(af.moddims(af.to_array(physical_system.params.mass),
+                               1, self.N_species
+                              ),
+                    af.Dtype.f64
+                   )
+
+        self.physical_system.params.charge  = \
+            af.cast(af.moddims(af.to_array(physical_system.params.charge),
+                               1, self.N_species
+                              ),
+                    af.Dtype.f64
+                   )
+
         # Initializing variable to hold time elapsed:
         self.time_elapsed = 0
 

@@ -5,6 +5,8 @@ import arrayfire as af
 from bolt.lib.linear.utils.fft_funcs import fft2, ifft2
 import numpy as np
 
+# TODO: Change docstring to say that it returns either moment_hat or moment
+# depending on the input
 def compute_moments(self, moment_name, f=None, f_hat=None):
     """
     Used in computing the moments of the distribution function.
@@ -43,6 +45,9 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         # Scaling Appropriately:
         moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
         moment     = af.real(ifft2(moment_hat))
+        
+        af.eval(moment)
+        return(moment)
     
     elif(f_hat is not None and f is None):
         moment_hat = af.broadcast(getattr(self.physical_system.moments, 
@@ -51,9 +56,8 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
                                   self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
                                  )
 
-        # Scaling Appropriately:
-        moment_hat = 0.5 * self.N_q2 * self.N_q1 * moment_hat
-        moment     = af.real(ifft2(moment_hat))
+        af.eval(moment_hat)
+        return(moment_hat)
 
     elif(f_hat is None and f is not None):
         moment = af.broadcast(getattr(self.physical_system.moments, 
@@ -61,11 +65,12 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
                                      ), f,
                               self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
                              )
+        af.eval(moment)
+        return(moment)
 
     else:
         raise BaseException('Invalid Option: Both f and f_hat cannot \
                              be provided as arguments'
                            )
 
-    af.eval(moment)
-    return(moment)
+    return

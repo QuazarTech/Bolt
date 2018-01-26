@@ -52,8 +52,11 @@ def fft_poisson(self, rho):
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
 
         # Non-inclusive of ghost-zones:
-        E1_physical = af.reorder(af.real(af.ifft2(E1_hat)), 2, 3, 0, 1)
-        E2_physical = af.reorder(af.real(af.ifft2(E2_hat)), 2, 3, 0, 1)
+        E1_ifft = af.ifft2(E1_hat, scale=1)/(E1_hat.shape[0] * E1_hat.shape[1])
+        E2_ifft = af.ifft2(E2_hat, scale=1)/(E2_hat.shape[0] * E2_hat.shape[1])
+        
+        E1_physical = af.reorder(af.real(E1_ifft), 2, 3, 0, 1)
+        E2_physical = af.reorder(af.real(E2_ifft), 2, 3, 0, 1)
 
         self.cell_centered_EM_fields[0, 0, N_g:-N_g, N_g:-N_g] = E1_physical
         self.cell_centered_EM_fields[1, 0, N_g:-N_g, N_g:-N_g] = E2_physical

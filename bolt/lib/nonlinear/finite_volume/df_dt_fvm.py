@@ -54,7 +54,7 @@ def df_dt_fvm(f, self):
 
     # af.broadcast used to perform batched operations on arrays of different sizes:
     self._C_q1, self._C_q2 = \
-        af.broadcast(self._C_q, self.f, self.time_elapsed, 
+        af.broadcast(self._C_q, f, self.time_elapsed, 
                      self.q1_center, self.q2_center,
                      self.p1_center, self.p2_center, self.p3_center,
                      self.physical_system.params
@@ -127,7 +127,7 @@ def df_dt_fvm(f, self):
             self.fields_solver.update_user_defined_fields(self.time_elapsed)
 
         (self._C_p1, self._C_p2, self._C_p3) = \
-            af.broadcast(self._C_p, self.f, self.time_elapsed,
+            af.broadcast(self._C_p, f, self.time_elapsed,
                          self.q1_center, self.q2_center,
                          self.p1_center, self.p2_center, self.p3_center,
                          self.fields_solver, self.physical_system.params
@@ -230,6 +230,6 @@ def df_dt_fvm(f, self):
         df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
                  - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
                  - (front_flux_p3 - back_flux_p3)/self.dp3
-    
+
     af.eval(df_dt)
     return(df_dt)
