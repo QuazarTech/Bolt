@@ -110,9 +110,8 @@ class nonlinear_solver(object):
         
         # Declaring the communicator:
         self._comm = PETSc.COMM_WORLD.tompi4py()
-        af.set_device(1)
-        #if(self.physical_system.params.num_devices>1):
-        #    af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+        if(self.physical_system.params.num_devices>1):
+            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         # Getting number of species:
         self.N_species = len(physical_system.params.mass)
