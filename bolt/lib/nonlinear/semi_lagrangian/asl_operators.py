@@ -32,6 +32,7 @@ def op_advect_q(self, dt):
     self._apply_bcs_f()
     f_interp_2d(self, dt)
 
+    af.eval(self.f)
     return
 
 # Used to solve the source term:
@@ -77,6 +78,7 @@ def op_solve_src(self, dt):
                              self.physical_system.params
                             )
     
+    af.eval(self.f)
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()

@@ -72,5 +72,3 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         raise BaseException('Invalid Option: Both f and f_hat cannot \
                              be provided as arguments'
                            )
-
-    return

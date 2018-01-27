@@ -160,6 +160,7 @@ def riemann_solver(self, left_flux, right_flux, left_f, right_f, method, dim):
     else:
         raise NotImplementedError('Riemann solver passed is invalid/not-implemented')
 
+    af.eval(flux)
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()

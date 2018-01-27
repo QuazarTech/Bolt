@@ -87,6 +87,7 @@ def lie_step(self, dt):
         else:
             split.lie(self, op_advect_q, op_solve_src, dt)
 
+    af.eval(self.f)
     check_divergence(self)
     self.time_elapsed += dt 
 
@@ -147,6 +148,7 @@ def strang_step(self, dt):
         else:
             split.strang(self, op_advect_q, op_solve_src, dt)
 
+    af.eval(self.f)
     check_divergence(self)
     self.time_elapsed += dt 
 
@@ -207,6 +209,7 @@ def swss_step(self, dt):
         else:
             split.swss(self, op_advect_q, op_solve_src, dt)
 
+    af.eval(self.f)
     check_divergence(self)
     self.time_elapsed += dt 
 
@@ -270,6 +273,7 @@ def jia_step(self, dt):
         else:
             split.jia(self, op_advect_q, op_solve_src, dt)
 
+    af.eval(self.f)
     check_divergence(self)
     self.time_elapsed += dt 
 

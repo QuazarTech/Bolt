@@ -79,10 +79,10 @@ def op_fvm(self, dt):
     else:
         timestep_fvm(self, dt)
 
+    af.eval(self.f)
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()
         self.time_fvm_solver += toc - tic
     
-    af.eval(self.f)
     return

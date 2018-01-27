@@ -50,11 +50,13 @@ def RK5_step(self, dt):
                                     dfields_hat_dt, self.fields_solver.fields_hat,
                                     dt, self
                                    )
+        af.eval(self.f_hat, self.fields_solver.fields_hat)
 
     else:
         self.f_hat = integrators.RK5(df_hat_dt, self.f_hat,
                                      dt, self.fields_solver.fields_hat, self
                                     )
+        af.eval(self.f_hat)
     
     return
 
@@ -99,11 +101,13 @@ def RK4_step(self, dt):
                                     dfields_hat_dt, self.fields_solver.fields_hat,
                                     dt, self
                                    )
+        af.eval(self.f_hat, self.fields_solver.fields_hat)
 
     else:
         self.f_hat = integrators.RK4(df_hat_dt, self.f_hat,
                                      dt, self.fields_solver.fields_hat, self
                                     )
+        af.eval(self.f_hat)
 
     return
 
@@ -148,10 +152,12 @@ def RK2_step(self, dt):
                                     dfields_hat_dt, self.fields_solver.fields_hat,
                                     dt, self
                                    )
+        af.eval(self.f_hat, self.fields_solver.fields_hat)
 
     else:
         self.f_hat = integrators.RK2(df_hat_dt, self.f_hat,
                                      dt, self.fields_solver.fields_hat, self
                                     )
+        af.eval(self.f_hat)
 
     return

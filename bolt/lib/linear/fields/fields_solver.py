@@ -80,7 +80,10 @@ class fields_solver(object):
         self.B1_hat = 2 * fft2(B1) / (self.N_q1 * self.N_q2)
         self.B2_hat = 2 * fft2(B2) / (self.N_q1 * self.N_q2)
         self.B3_hat = 2 * fft2(B3) / (self.N_q1 * self.N_q2)
-
+    
+        af.eval(self.E1_hat, self.E2_hat, self.E3_hat,
+                self.B1_hat, self.B2_hat, self.B3_hat
+               )
         return
         
     def get_fields(self):

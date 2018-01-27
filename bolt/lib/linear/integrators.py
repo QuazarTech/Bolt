@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import arrayfire as af
+
 def RK2(dx_dt, x_initial, dt, *args):
     """
     Integrates x from x_initial(t = t0) to x(t = t0 + dt) by taking 
@@ -26,6 +28,7 @@ def RK2(dx_dt, x_initial, dt, *args):
     x = x_initial + dx_dt(x, *args) * dt
     args[1].time_elapsed += 0.5 * dt 
 
+    af.eval(x)
     return(x)
 
 def RK4(dx_dt, x_initial, dt, *args):
@@ -64,6 +67,7 @@ def RK4(dx_dt, x_initial, dt, *args):
     k4 = dx_dt(x, *args)
     x = x_initial + ((k1 + 2 * k2 + 2 * k3 + k4) / 6) * dt
 
+    af.eval(x)
     return(x)
 
 def RK5(dx_dt, x_initial, dt, *args):
@@ -113,6 +117,7 @@ def RK5(dx_dt, x_initial, dt, *args):
     k6 = dx_dt(x, *args)
     x  = x_initial + (7 * k1 + 32 * k3 + 12 * k4 + 32 * k5 + 7 * k6) * dt/90
 
+    af.eval(x)
     return(x)
 
 # The following coupled integrators are used when 2 vectors which are coupled 
@@ -169,6 +174,7 @@ def RK2_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
 
     args[0].time_elapsed += 0.5 * dt 
 
+    af.eval(x, y)
     return(x, y)
 
 def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
@@ -234,6 +240,7 @@ def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + ((k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6) * dt
     y = y_initial + ((k1_y + 2 * k2_y + 2 * k3_y + k4_y) / 6) * dt
 
+    af.eval(x, y)
     return(x, y)
 
 def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
@@ -316,4 +323,5 @@ def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + (7 * k1_x + 32 * k3_x + 12 * k4_x + 32 * k5_x + 7 * k6_x) * dt/90
     y = y_initial + (7 * k1_y + 32 * k3_y + 12 * k4_y + 32 * k5_y + 7 * k6_y) * dt/90
 
+    af.eval(x, y)
     return(x, y)
