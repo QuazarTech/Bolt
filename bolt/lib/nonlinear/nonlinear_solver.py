@@ -138,7 +138,7 @@ class nonlinear_solver(object):
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.syncPrint(indent('Device Details:'))
         PETSc.Sys.syncPrint(indent(af.info_str(), 2))
-        # PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.syncPrint(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.syncPrint()
         PETSc.Sys.syncFlush()
 
