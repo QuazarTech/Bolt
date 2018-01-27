@@ -1,7 +1,5 @@
 import arrayfire as af
 import numpy as np
-import pylab as pl 
-pl.style.use('prettyplot')
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
