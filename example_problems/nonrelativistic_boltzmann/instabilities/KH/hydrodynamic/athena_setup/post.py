@@ -57,7 +57,7 @@ for time_index, t0 in enumerate(time):
     
     n = moments[:, :, 0]
 
-    pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 500))
+    pl.contourf(q1, q2, n, np.linspace(0.3, 2.7, 500))
     pl.title('Time = ' + "%.2f"%(t0))
     pl.axes().set_aspect('equal')
     pl.xlabel(r'$x$')

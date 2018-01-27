@@ -4,9 +4,7 @@ import math
 from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -14,10 +12,7 @@ import params
 import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
 
 # Defining the physical system to be solved:

@@ -20,10 +20,7 @@ def RK5_step(self, dt):
 
     """
     # For purely collisional cases:
-    tau = self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                          self.p1, self.p2, self.p3
-                                         )
-    if(af.any_true(tau == 0)):
+    if(self.physical_system.params.instantaneous_collisions == True):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
@@ -33,10 +30,7 @@ def RK5_step(self, dt):
                           True
                          )
 
-        self.f_hat = af.select(tau == 0, 
-                               2 * fft2(f0) / (self.N_q1 * self.N_q2),
-                               self.f_hat
-                              ) 
+        self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
     if(    self.physical_system.params.EM_fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
@@ -71,10 +65,7 @@ def RK4_step(self, dt):
         The timestep size.
     """
     # For purely collisional cases:
-    tau = self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                          self.p1, self.p2, self.p3
-                                         )
-    if(af.any_true(tau == 0)):
+    if(self.physical_system.params.instantaneous_collisions == True):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
@@ -84,10 +75,7 @@ def RK4_step(self, dt):
                           True
                          )
 
-        self.f_hat = af.select(tau == 0, 
-                               2 * fft2(f0) / (self.N_q1 * self.N_q2),
-                               self.f_hat
-                              ) 
+        self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
     if(    self.physical_system.params.EM_fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
@@ -122,10 +110,7 @@ def RK2_step(self, dt):
         The timestep size.
     """
     # For purely collisional cases:
-    tau = self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                          self.p1, self.p2, self.p3
-                                         )
-    if(af.any_true(tau == 0)):
+    if(self.physical_system.params.instantaneous_collisions == True):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
@@ -135,10 +120,7 @@ def RK2_step(self, dt):
                           True
                          )
 
-        self.f_hat = af.select(tau == 0, 
-                               2 * fft2(f0) / (self.N_q1 * self.N_q2),
-                               self.f_hat
-                              ) 
+        self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
     if(    self.physical_system.params.EM_fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
