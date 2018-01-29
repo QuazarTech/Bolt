@@ -121,6 +121,11 @@ class linear_solver(object):
 
         # Getting the number of definitions in moments:
         attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
+
+        # Removing utility functions:
+        if('integral_over_v' in attributes):
+            attributes.remove('integral_over_v')
+
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof = self.N_species * len(attributes)
                                                    )

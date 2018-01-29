@@ -58,7 +58,11 @@ def dump_moments(self, file_name):
 
     """
     attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
-    
+
+    # Removing utility functions:
+    if('integral_over_v' in attributes):
+        attributes.remove('integral_over_v')
+
     for i in range(len(attributes)):
         
         if(i == 0):
