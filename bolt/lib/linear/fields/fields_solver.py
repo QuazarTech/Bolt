@@ -7,7 +7,7 @@ from .electrostatic_solver import compute_electrostatic_fields
 class fields_solver(object):
     
     def __init__(self, q1, q2, k_q1, k_q2, params, 
-                 rho_initial, initialize_E = None, initialize_B = None
+                 rho_hat_initial, initialize_E = None, initialize_B = None
                 ):
 
         self.q1     = q1
@@ -22,9 +22,9 @@ class fields_solver(object):
         self.initialize_E = initialize_E
         self.initialize_B = initialize_B
 
-        self._initialize(rho_initial)
+        self._initialize(rho_hat_initial)
 
-    def _initialize(self, rho_initial):
+    def _initialize(self, rho_hat_initial):
 
         # If option is given as user-defined:
         if(self.params.fields_initialize == 'user-defined'):
@@ -42,7 +42,7 @@ class fields_solver(object):
 
         # Initializing EM fields using Poisson Equation:
         else:
-            compute_electrostatic_fields(self, rho_initial)
+            compute_electrostatic_fields(self, rho_hat_initial)
 
         self.fields_hat = af.join(0, af.join(0, self.E1_hat, self.E2_hat, self.E3_hat), 
                                   self.B1_hat, self.B2_hat, self.B3_hat

@@ -56,10 +56,10 @@ def df_hat_dt(f_hat, fields_hat, self):
     if(self.physical_system.params.EM_fields_enabled == True):
         if(self.physical_system.params.fields_type == 'electrostatic'):
             
-            rho = multiply(self.physical_system.params.charge,
-                           self.compute_moments('density', f_hat=f_hat)
-                          )
-            self.fields_solver.compute_electrostatic_fields(rho)
+            rho_hat = multiply(self.physical_system.params.charge,
+                               self.compute_moments('density', f_hat=f_hat)
+                              )
+            self.fields_solver.compute_electrostatic_fields(rho_hat)
 
         elif(self.physical_system.params.fields_type == 'electrodynamic'):
             # Handled by dfields_hat_dt

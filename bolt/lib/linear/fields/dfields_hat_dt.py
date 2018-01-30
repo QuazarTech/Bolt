@@ -34,19 +34,15 @@ def dfields_hat_dt(f_hat, fields_hat, self):
     -------
     df_dt : The time-derivative of f_hat
     """
-    J1 = multiply(self.physical_system.params.charge,
-                  self.compute_moments('mom_v1_bulk', f_hat=f_hat)
-                 ) 
-    J2 = multiply(self.physical_system.params.charge,
-                  self.compute_moments('mom_v2_bulk', f_hat=f_hat)
-                 ) 
-    J3 = multiply(self.physical_system.params.charge,
-                  self.compute_moments('mom_v3_bulk', f_hat=f_hat)
-                 ) 
-
-    J1_hat = 2 * fft2(J1)/(self.N_q1 * self.N_q2)
-    J2_hat = 2 * fft2(J2)/(self.N_q1 * self.N_q2)
-    J3_hat = 2 * fft2(J3)/(self.N_q1 * self.N_q2)
+    J1_hat = multiply(self.physical_system.params.charge,
+                      self.compute_moments('mom_v1_bulk', f_hat=f_hat)
+                     ) 
+    J2_hat = multiply(self.physical_system.params.charge,
+                      self.compute_moments('mom_v2_bulk', f_hat=f_hat)
+                     ) 
+    J3_hat = multiply(self.physical_system.params.charge,
+                      self.compute_moments('mom_v3_bulk', f_hat=f_hat)
+                     ) 
 
     # Summing along all species:
     J1_hat = af.sum(J1_hat, 1)

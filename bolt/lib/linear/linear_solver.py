@@ -284,14 +284,14 @@ class linear_solver(object):
         # (0.5 * amplitude * (self.N_q1 * self.N_q2)):
         self.f_hat = 2 * self.f_hat / (self.N_q1 * self.N_q2) 
 
-        rho_initial = multiply(self.physical_system.params.charge,
-                               self.compute_moments('density')
-                              )
+        rho_hat_initial = multiply(self.physical_system.params.charge,
+                                   self.compute_moments('density', f_hat=self.f_hat)
+                                  )
         
         self.fields_solver = fields_solver(self.q1_center, self.q2_center,
                                            self.k_q1, self.k_q2,
                                            self.physical_system.params,
-                                           rho_initial
+                                           rho_hat_initial
                                           )
 
         return
