@@ -17,7 +17,7 @@ def compute_electrostatic_fields(self, rho_hat):
     ----------
 
     rho : af.Array
-          Charge density for each of the species.
+          FT for the charge density for each of the species.
           shape:(1, N_s, N_q1, N_q2)
     """
 

@@ -3,7 +3,7 @@ import arrayfire as af
 # Importing Riemann solver used in calculating fluxes:
 from .riemann import riemann_solver
 from .reconstruct import reconstruct
-from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 """
 Equation to solve:

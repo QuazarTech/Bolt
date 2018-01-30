@@ -14,66 +14,30 @@ from .electrodynamic.fdtd_explicit import fdtd
 
 class fields_solver(object):
     
-    def __init__(self, N_q1, N_q2, N_g, q1, q2, dq1, dq2, comm, boundary_conditions, params,
-                 rho_initial, performance_test_flag, initialize_E = None, initialize_B = None
-                ):
+    def __init__(physical_system, rho_initial, performance_test_flag = False):
         """
-        Constructor for the fields_solver object, which takes in relevant 
-        quantities for the input. 
+        Constructor for the fields_solver object, which takes in the physical system
+        object and initial charge density as the input. 
         
         Additionally, a performance test flag is also passed which when true 
         stores time which is consumed by each of the major solver routines.
         This proves particularly useful in analyzing performance bottlenecks 
         and obtaining benchmarks.
-        
+
         Parameters:
         -----------
-        
-        N_q1: int
-              Number of grid points along q1 dimension.
-        
-        N_q2: int
-              Number of grid points along q2 dimension.
-
-        N_g: int
-             Number of ghost zones taken in position space.
-
-        q1: af.Array
-            The q1 array which describes the q1 zone covered by the proc
-
-        q2: af.Array
-            The q2 array which describes the q2 zone covered by the proc
-
-        dq1: double
-             Step size in q1.
-
-        dq2: double
-             Step size in q2.
-
-        comm: petsc4py.PETSc.Comm
-              This communicator needs to be passed to solve in parallel. When used with
-              the nonlinear solver, the same communicator used by it's native routines is
-              also passed to this object.
-
-        boundary_conditions: file/class
-                             This file describes what boundary conditions are used.
-
-        params : file/object
-                 params contains all details of which methods to use in addition to useful
-                 physical constants. Additionally, it can also be used to inject methods which
-                 need to be used inside some solver routine
+        physical_system: The defined physical system object which holds
+                         all the simulation information
 
         rho_initial: af.Array
                      The initial charge density array that's passed to an electrostatic 
                      solver for initialization
 
-        initialize_E: func
-                      Functions which can be used to initialize the values for
-                      electric fields
-
-        initialize_B: func
-                      Functions which can be used to initialize the values for
-                      magnetic fields
+        performance_test_flag: bool
+                               When set to true, the time elapsed in routines for the
+                               fields solver, inter-processor communication of field values 
+                               and application of boundary conditions for the EM_fields
+                               is measured.
         """
 
         self.N_q1 = N_q1
@@ -96,8 +60,8 @@ class fields_solver(object):
         self.time_apply_bcs_fields   = 0
         self.time_communicate_fields = 0
         
-        self.initialize_E = initialize_E
-        self.initialize_B = initialize_B
+        self.initialize_E = initialize.initialize_E
+        self.initialize_B = initialize.initialize_B
         
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'

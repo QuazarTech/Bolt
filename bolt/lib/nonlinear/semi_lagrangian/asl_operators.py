@@ -13,7 +13,7 @@ appropriately by the time-splitting operator methods.
 import arrayfire as af
 from ..temporal_evolution import integrators
 from .interpolation_routines import f_interp_2d, f_interp_p_3d
-from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 # Advection in q-space:
 def op_advect_q(self, dt):

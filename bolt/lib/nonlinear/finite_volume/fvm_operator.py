@@ -1,6 +1,6 @@
 import arrayfire as af
 from .df_dt_fvm import df_dt_fvm
-from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 from bolt.lib.nonlinear.temporal_evolution import operator_splitting_methods as split
 
 def timestep_fvm(self, dt):

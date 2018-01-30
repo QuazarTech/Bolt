@@ -183,6 +183,9 @@ class physical_system(object):
         # Assigning the moments data:
         self.moments = moments
 
+        # Declaring the MPI communicator:
+        self.mpi_communicator = PETSc.COMM_WORLD.tompi4py()
+
         # Finding the number of species:
         N_species = len(params.charge)
 

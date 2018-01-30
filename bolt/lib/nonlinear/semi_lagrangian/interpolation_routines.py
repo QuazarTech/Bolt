@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import add
+from bolt.lib.utils.broadcasted_primitive_operations import add
 
 def f_interp_2d(self, dt):
     """

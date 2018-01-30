@@ -6,9 +6,7 @@ from .electrostatic_solver import compute_electrostatic_fields
 
 class fields_solver(object):
     
-    def __init__(self, q1, q2, k_q1, k_q2, params, 
-                 rho_hat_initial, initialize_E = None, initialize_B = None
-                ):
+    def __init__(physical_system, rho_hat_initial):
 
         self.q1     = q1
         self.q2     = q2

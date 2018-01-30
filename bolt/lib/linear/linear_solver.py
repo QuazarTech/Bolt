@@ -16,13 +16,13 @@ Additionally, this module isn't parallelized to run across multiple devices/node
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-from .utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.fft_funcs import fft2, ifft2
 import socket
 from petsc4py import PETSc
 from inspect import signature
 
 # Importing solver functions:
-from .fields.fields_solver import fields_solver
+from .fields.fields import fields_solver
 from .calculate_dfdp_background import calculate_dfdp_background
 from .compute_moments import compute_moments as compute_moments_imported
 from .file_io import dump, load
@@ -150,10 +150,10 @@ class linear_solver(object):
         PETSc.Object.setName(self._glob_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
 
-        # Intializing position, wavenumber and velocity arrays:
+        # Intializing position, velocity and wave number arrays:
         self.q1_center, self.q2_center = self._calculate_q_center()
-        self.k_q1, self.k_q2           = self._calculate_k()
         self.p1, self.p2, self.p3      = self._calculate_p_center()
+        self.k_q1, self.k_q2           = self._calculate_k()
 
         # Assigning the function objects to methods of the solver:
         self._A_q    = self.physical_system.A_q
@@ -166,32 +166,14 @@ class linear_solver(object):
     def get_dist_func(self):
         """
         Returns the distribution function in the same
-        format as the nonlinear solver
+        format as the nonlinear solver thereby allowing
+        direct comparison with the distribution funcition
+        of the nonlinear solver.
         """
         f = 0.5 * self.N_q2 * self.N_q1 * \
             af.real(ifft2(self.f_hat))
 
         return(f)
-
-    def _calculate_q_center(self):
-        """
-        Initializes the cannonical variables q1, q2 using a centered
-        formulation. The size, and resolution are the same as declared
-        under domain of the physical system object.
-        """
-        q1_center = self.q1_start + (0.5 + np.arange(self.N_q1)) * self.dq1
-        q2_center = self.q2_start + (0.5 + np.arange(self.N_q2)) * self.dq2
-
-        q2_center, q1_center = np.meshgrid(q2_center, q1_center)
-
-        q1_center = af.to_array(q1_center)
-        q2_center = af.to_array(q2_center)
-
-        q1_center = af.reorder(q1_center, 2, 3, 0, 1)
-        q2_center = af.reorder(q2_center, 2, 3, 0, 1)
-
-        af.eval(q1_center, q2_center)
-        return(q1_center, q2_center)
 
     def _calculate_k(self):
         """
@@ -211,40 +193,6 @@ class linear_solver(object):
 
         af.eval(k_q1, k_q2)
         return(k_q1, k_q2)
-
-    def _calculate_p_center(self):
-        """
-        Initializes the cannonical variables p1, p2 and p3 using a centered
-        formulation. The size, and resolution are the same as declared
-        under domain of the physical system object.
-        """
-        p1_center = \
-            self.p1_start + (0.5 + np.arange(0, self.N_p1, 1)) * self.dp1
-        
-        p2_center = \
-            self.p2_start + (0.5 + np.arange(0, self.N_p2, 1)) * self.dp2
-        
-        p3_center = \
-            self.p3_start + (0.5 + np.arange(0, self.N_p3, 1)) * self.dp3
-
-        p2_center, p1_center, p3_center = np.meshgrid(p2_center,
-                                                      p1_center,
-                                                      p3_center
-                                                     )
-
-        # Flattening the obtained arrays:
-        p1_center = af.flat(af.to_array(p1_center))
-        p2_center = af.flat(af.to_array(p2_center))
-        p3_center = af.flat(af.to_array(p3_center))
-
-        if(self.N_species > 1):
-            
-            p1_center = af.tile(p1_center, 1, self.N_species)
-            p2_center = af.tile(p2_center, 1, self.N_species)
-            p3_center = af.tile(p3_center, 1, self.N_species)
-
-        af.eval(p1_center, p2_center, p3_center)
-        return(p1_center, p2_center, p3_center)
 
     def _initialize(self, params):
         """

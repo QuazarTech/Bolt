@@ -39,10 +39,13 @@ from . import timestep
 from .file_io import dump
 from .file_io import load
 
-from .utils.bandwidth_test import bandwidth_test
-from .utils.print_with_indent import indent
-from .utils.performance_timings import print_table
-from .utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.bandwidth_test import bandwidth_test
+from bolt.lib.utils.print_with_indent import indent
+from bolt.lib.utils.performance_timings import print_table
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.calculate_q import calculate_q_center
+from bolt.lib.utils.calculate_p import calculate_p_center
+
 from .compute_moments import compute_moments as compute_moments_imported
 from .fields.fields import fields_solver
 
@@ -72,13 +75,21 @@ class nonlinear_solver(object):
         Parameters:
         -----------
 
-        physical_system: The defined physical system object which holds
+        physical_system: object
+                         The defined physical system object which holds
                          all the simulation information such as the initial
                          conditions, and the domain info is passed as an
                          argument in defining an instance of the
                          nonlinear_solver. This system is then evolved, and
                          monitored using the various methods under the
                          nonlinear_solver class.
+
+        performance_test_flag: bool
+                               When set to true, the time elapsed in each of the 
+                               solver routines is measured. These performance 
+                               stats can be obtained at the end of the run using
+                               the command print_performance_timings, which summarizes
+                               the results in a table.
         """
         self.physical_system = physical_system
 
@@ -103,13 +114,12 @@ class nonlinear_solver(object):
 
         # Getting number of ghost zones, and the boundary 
         # conditions that are utilized:
-        N_g_q = self.N_ghost_q = physical_system.N_ghost_q
-        N_g_p = self.N_ghost_p = physical_system.N_ghost_p
-
+        N_g = self.N_ghost       = physical_system.N_ghost
         self.boundary_conditions = physical_system.boundary_conditions
+
+        # MPI Communicator:
+        self._comm = self.physical_system.mpi_communicator        
         
-        # Declaring the communicator:
-        self._comm = PETSc.COMM_WORLD.tompi4py()
         if(self.physical_system.params.num_devices>1):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
@@ -302,18 +312,28 @@ class nonlinear_solver(object):
         PETSc.Object.setName(self._glob_dump_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
 
+        # Obtaining start coordinates for the local zone
+        # Additionally, we also obtain the size of the local zone
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+
         # Obtaining the array values of the cannonical variables:
-        self.q1_center, self.q2_center                 = self._calculate_q_center()
-        self.p1_center, self.p2_center, self.p3_center = self._calculate_p_center()
+        self.q1_center, self.q2_center = \
+            calculate_q_center(self.q1_start + i_q1_start * self.dq1, 
+                               self.q2_start + i_q2_start * self.dq2,
+                               N_q1_local, N_q2_local, N_g,
+                               self.dq1, self.dq2
+                              )
+
+        self.p1_center, self.p2_center, self.p3_center = \
+            calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
+                               self.N_p1, self.N_p2, self.N_p3,
+                               self.dp1, self.dp2, self.dp3, 
+                               self.N_species
+                              )
 
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
     
-        # Obtaining start coordinates for the local zone
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
-        (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
-
         # Applying dirichlet boundary conditions:        
         if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
             # If local zone includes the left physical boundary:
@@ -385,12 +405,12 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
      
         array = af.moddims(array,
-                             (self.N_p1 + 2 * self.N_ghost_p) 
-                           * (self.N_p2 + 2 * self.N_ghost_p)
-                           * (self.N_p3 + 2 * self.N_ghost_p),
+                             self.N_p1 
+                           * self.N_p2
+                           * self.N_p3,
                            self.N_species,
-                           (N_q1_local + 2 * self.N_ghost_q),
-                           (N_q2_local + 2 * self.N_ghost_q)
+                           (N_q1_local + 2 * self.N_ghost),
+                           (N_q2_local + 2 * self.N_ghost)
                           )
 
         af.eval(array)
@@ -414,9 +434,7 @@ class nonlinear_solver(object):
         ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
         
         array = af.moddims(array,
-                           self.N_p1 + 2 * self.N_ghost_p, 
-                           self.N_p2 + 2 * self.N_ghost_p,
-                           self.N_p3 + 2 * self.N_ghost_p,
+                           self.N_p1, self.N_p2, self.N_p3,
                              self.N_species
                            * (N_q1_local + 2 * self.N_ghost_q)
                            * (N_q2_local + 2 * self.N_ghost_q)
@@ -424,186 +442,6 @@ class nonlinear_solver(object):
 
         af.eval(array)
         return (array)
-
-    def _calculate_q_center(self):
-        """
-        Initializes the cannonical variables q1, q2 using a centered
-        formulation. The size, and resolution are the same as declared
-        under domain of the physical system object.
-
-        Returns in q_expanded form.
-        """
-
-        # Obtaining start coordinates for the local zone
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
-
-        i_q1_center = i_q1_start + 0.5
-        i_q2_center = i_q2_start + 0.5
-
-        i_q1 = (  i_q1_center 
-                + np.arange(-self.N_ghost_q, N_q1_local + self.N_ghost_q)
-               )
-
-        i_q2 = (  i_q2_center
-                + np.arange(-self.N_ghost_q, N_q2_local + self.N_ghost_q)
-               )
-
-        q1_center = self.q1_start + i_q1 * self.dq1
-        q2_center = self.q2_start + i_q2 * self.dq2
-
-        q2_center, q1_center = np.meshgrid(q2_center, q1_center)
-        q1_center, q2_center = af.to_array(q1_center), af.to_array(q2_center)
-
-        # To bring the data structure to the default form:(N_p, N_s, N_q1, N_q2)
-        q1_center = af.reorder(q1_center, 3, 2, 0, 1)
-        q2_center = af.reorder(q2_center, 3, 2, 0, 1)
-
-        af.eval(q1_center, q2_center)
-        return (q1_center, q2_center)
-
-    def _calculate_p_center(self):
-        """
-        Initializes the cannonical variables p1, p2 and p3 using a centered
-        formulation. The size, and resolution are the same as declared
-        under domain of the physical system object.
-        """
-        p1_center = self.p1_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p1 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp1
-        p2_center = self.p2_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p2 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp2
-        p3_center = self.p3_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p3 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp3
-        
-        p2_center, p1_center, p3_center = np.meshgrid(p2_center,
-                                                      p1_center,
-                                                      p3_center
-                                                     )
-
-        # Flattening the arrays:
-        p1_center = af.flat(af.to_array(p1_center))
-        p2_center = af.flat(af.to_array(p2_center))
-        p3_center = af.flat(af.to_array(p3_center))
-
-        if(self.N_species > 1):
-            
-            p1_center = af.tile(p1_center, 1, self.N_species)
-            p2_center = af.tile(p2_center, 1, self.N_species)
-            p3_center = af.tile(p3_center, 1, self.N_species)
-
-        af.eval(p1_center, p2_center, p3_center)
-        return (p1_center, p2_center, p3_center)
-
-    def _calculate_p_left(self):
-
-        p1_left   = self.p1_start + np.arange(-self.N_ghost_p, 
-                                               self.N_p1 + self.N_ghost_p
-                                             ) * self.dp1
-
-        p2_center = self.p2_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p2 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp2
-
-        p3_center = self.p3_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p3 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp3
-
-        p2_left, p1_left, p3_left = np.meshgrid(p2_center,
-                                                p1_left,
-                                                p3_center
-                                               )
-
-        # Flattening the arrays:
-        p1_left = af.flat(af.to_array(p1_left))
-        p2_left = af.flat(af.to_array(p2_left))
-        p3_left = af.flat(af.to_array(p3_left))
-
-        if(self.N_species > 1):
-            
-            p1_left = af.tile(p1_left, 1, self.N_species)
-            p2_left = af.tile(p2_left, 1, self.N_species)
-            p3_left = af.tile(p3_left, 1, self.N_species)
-
-        af.eval(p1_left, p2_left, p3_left)
-        return (p1_left, p2_left, p3_left)
-
-    def _calculate_p_bottom(self):
-
-        p1_center = self.p1_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p1 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp1
-
-        p2_bottom = self.p2_start + np.arange(-self.N_ghost_p, 
-                                               self.N_p2 + self.N_ghost_p
-                                             ) * self.dp2
-
-        p3_center = self.p3_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p3 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp3
-
-        p2_bottom, p1_bottom, p3_bottom = np.meshgrid(p2_bottom,
-                                                      p1_center,
-                                                      p3_center
-                                                     )
-
-        # Flattening the arrays:
-        p1_bottom = af.flat(af.to_array(p1_bottom))
-        p2_bottom = af.flat(af.to_array(p2_bottom))
-        p3_bottom = af.flat(af.to_array(p3_bottom))
-
-        if(self.N_species > 1):
-            
-            p1_bottom = af.tile(p1_bottom, 1, self.N_species)
-            p2_bottom = af.tile(p2_bottom, 1, self.N_species)
-            p3_bottom = af.tile(p3_bottom, 1, self.N_species)
-
-        af.eval(p1_bottom, p2_bottom, p3_bottom)
-        return (p1_bottom, p2_bottom, p3_bottom)
-
-    def _calculate_p_back(self):
-
-        p1_center = self.p1_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p1 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp1
-
-        p2_center = self.p2_start + (0.5 + np.arange(-self.N_ghost_p, 
-                                                      self.N_p2 + self.N_ghost_p
-                                                    )
-                                    ) * self.dp2
-
-        p3_back   = self.p3_start + np.arange(-self.N_ghost_p, 
-                                               self.N_p3 + self.N_ghost_p
-                                             ) * self.dp3
-
-        p2_back, p1_back, p3_back = np.meshgrid(p2_center,
-                                                p1_center,
-                                                p3_center
-                                               )
-
-        # Flattening the arrays:
-        p1_back = af.flat(af.to_array(p1_back))
-        p2_back = af.flat(af.to_array(p2_back))
-        p3_back = af.flat(af.to_array(p3_back))
-        
-        if(self.N_species > 1):
-            
-            p1_back = af.tile(p1_back, 1, self.N_species)
-            p2_back = af.tile(p2_back, 1, self.N_species)
-            p3_back = af.tile(p3_back, 1, self.N_species)
-
-        af.eval(p1_back, p2_back, p3_back)
-        return (p1_back, p2_back, p3_back)
 
     def _initialize(self, params):
         """
@@ -614,7 +452,7 @@ class nonlinear_solver(object):
         Parameters
         ----------
 
-        params : file/object
+        params : module
                  params contains all details of which methods to use
                  in addition to useful physical constant. Additionally, 
                  it can also be used to inject methods which need to be 
@@ -634,21 +472,19 @@ class nonlinear_solver(object):
         self.f_initial = self.f
 
         if(self.physical_system.params.EM_fields_enabled):
+            
             rho_initial = multiply(self.physical_system.params.charge,
                                    self.compute_moments('density')
                                   )
-            self.fields_solver = fields_solver(self.N_q1, self.N_q2, self.N_ghost_q, 
-                                               self.q1_center, self.q2_center, 
-                                               self.dq1, self.dq2, self._comm,
-                                               self.boundary_conditions, 
-                                               self.physical_system.params,
-                                               rho_initial, self.performance_test_flag
+            
+            self.fields_solver = fields_solver(self.physical_system, rho_initial, 
+                                               self.performance_test_flag
                                               )
         
     # Injection of solver functions into class as methods:
-    _communicate_f      = communicate.\
-                          communicate_f
-    _apply_bcs_f        = boundaries.apply_bcs_f
+    _communicate_f = communicate.\
+                     communicate_f
+    _apply_bcs_f   = boundaries.apply_bcs_f
 
     strang_timestep = timestep.strang_step
     lie_timestep    = timestep.lie_step
