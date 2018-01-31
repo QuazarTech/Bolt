@@ -116,7 +116,7 @@ def test_fdtd_mode2():
 
         params.dt = dt
 
-        obj = test(N[i], initialize_fdtd_mode1, params)
+        obj = test(N[i], initialize_fdtd_mode2, params)
         N_g = obj.fields_solver.N_g
 
         B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
@@ -127,17 +127,17 @@ def test_fdtd_mode2():
             J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
             obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
 
-        error_E1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[0, :, N_g:-N_g, N_g:-N_g] -
+        error_E1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[0, :, N_g:-N_g, N_g:-N_g] -
                                     E1_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (E1_initial.elements())
 
-        error_E2[i] = af.sum(af.abs(obj.yee_grid_EM_fields[1, :, N_g:-N_g, N_g:-N_g] -
+        error_E2[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[1, :, N_g:-N_g, N_g:-N_g] -
                                     E2_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (E2_initial.elements())
 
-        error_B3[i] = af.sum(af.abs(obj.yee_grid_EM_fields[5, :, N_g:-N_g, N_g:-N_g] -
+        error_B3[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[5, :, N_g:-N_g, N_g:-N_g] -
                                     B3_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (B3_initial.elements())
