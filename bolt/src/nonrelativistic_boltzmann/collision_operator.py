@@ -6,7 +6,7 @@
 import numpy as np
 import arrayfire as af
 
-from bolt.lib.nonlinear.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 # Using af.broadcast, since v1, v2, v3 are of size (1, 1, Nv1*Nv2*Nv3)
 # All moment quantities are of shape (Nq1, Nq2)

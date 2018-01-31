@@ -3,22 +3,21 @@
 
 import arrayfire as af
 
-from bolt.lib.linear.utils.fft_funcs import fft2, ifft2
-from bolt.lib.linear.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
-# TODO: Change docstring to reflect change in function: accepts rho_hat, not rho
-# and computes fields_hat
 def compute_electrostatic_fields(self, rho_hat):
     """
     Computes the electrostatic fields by making use of FFTs by solving
-    the Poisson equation: div^2 phi = rho
+    the Poisson equation: div^2 phi = rho to return the FT of the 
+    fields.
 
     Parameters
     ----------
 
-    rho : af.Array
-          FT for the charge density for each of the species.
-          shape:(1, N_s, N_q1, N_q2)
+    rho_hat : af.Array
+              FT for the charge density for each of the species.
+              shape:(1, N_s, N_q1, N_q2)
     """
 
     # Summing over all the species:

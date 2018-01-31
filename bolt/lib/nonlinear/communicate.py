@@ -18,8 +18,7 @@ def communicate_f(self):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
-    N_g_q = self.N_ghost_q
-    N_g_p = self.N_ghost_p
+    N_g = self.N_ghost
 
     # Assigning the local array only when Dirichlet
     # boundary conditions are applied. This is needed since
@@ -34,7 +33,7 @@ def communicate_f(self):
         af.flat(self.f).to_ndarray(self._local_f_array)
 
     # Global value is non-inclusive of the ghost-zones:
-    af.flat(self.f[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q]).to_ndarray(self._glob_f_array)
+    af.flat(self.f[:, :, N_g:-N_g, N_g:-N_g]).to_ndarray(self._glob_f_array)
 
     # The following function takes care of interzonal communications
     # Additionally, it also automatically applies periodic BCs when necessary
@@ -43,12 +42,12 @@ def communicate_f(self):
     # Converting back from PETSc.Vec to af.Array:
     f_flattened = af.to_array(self._local_f_array)
     self.f      = af.moddims(f_flattened,
-                               (self.N_p1 + 2 * N_g_p) 
-                             * (self.N_p2 + 2 * N_g_p) 
-                             * (self.N_p3 + 2 * N_g_p),
+                               self.N_p1 
+                             * self.N_p2 
+                             * self.N_p3,
                              self.N_species,
-                             N_q1_local + 2 * N_g_q,
-                             N_q2_local + 2 * N_g_q
+                             N_q1_local + 2 * N_g,
+                             N_q2_local + 2 * N_g
                             )
 
     af.eval(self.f)

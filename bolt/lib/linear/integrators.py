@@ -174,7 +174,8 @@ def RK2_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
 
     args[0].time_elapsed += 0.5 * dt 
 
-    af.eval(x); af.eval(y)
+    af.eval(x)
+    af.eval(y)
     return(x, y)
 
 def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
@@ -240,7 +241,8 @@ def RK4_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + ((k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6) * dt
     y = y_initial + ((k1_y + 2 * k2_y + 2 * k3_y + k4_y) / 6) * dt
 
-    af.eval(x); af.eval(y)
+    af.eval(x)
+    af.eval(y)
     return(x, y)
 
 def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
@@ -323,5 +325,6 @@ def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     x = x_initial + (7 * k1_x + 32 * k3_x + 12 * k4_x + 32 * k5_x + 7 * k6_x) * dt/90
     y = y_initial + (7 * k1_y + 32 * k3_y + 12 * k4_y + 32 * k5_y + 7 * k6_y) * dt/90
 
-    af.eval(x); af.eval(y)
+    af.eval(x)
+    af.eval(y)
     return(x, y)

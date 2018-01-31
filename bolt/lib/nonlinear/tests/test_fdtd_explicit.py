@@ -16,137 +16,80 @@ import numpy as np
 import arrayfire as af
 from petsc4py import PETSc
 
-from bolt.lib.nonlinear_solver.EM_fields_solver.fdtd_explicit import fdtd
-from bolt.lib.nonlinear_solver.communicate import communicate_fields
+from bolt.lib.nonlinear.fields.fields import fields_solver
+from bolt.lib.physical_system import physical_system
+
+from input_files import domain
+from input_files import params
+from input_files import initialize_fdtd_mode1
+from input_files import initialize_fdtd_mode2
+from input_files import boundary_conditions
+
+import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 class test(object):
-    def __init__(self, N):
-        self.q1_start = 0
-        self.q2_start = 0
 
-        self.q1_end = 1
-        self.q2_end = 1
+    def __init__(self, N, initialize, params):
 
-        self.N_q1 = N
-        self.N_q2 = N
+        domain.N_q1 = int(N)
+        domain.N_q2 = int(N)
 
-        self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
-        self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
+        system = physical_system(domain,
+                                 boundary_conditions,
+                                 params,
+                                 initialize,
+                                 advection_terms,
+                                 collision_operator.BGK,
+                                 moments
+                                )
 
-        self.N_ghost = 3 #np.random.randint(3, 5)
+        self.fields_solver = fields_solver(system, 
+                                           None, 
+                                           False
+                                          )
 
-        self.q1_left = self.q1_start \
-            + (np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
-
-        self.q1_center = self.q1_start \
-            + (0.5 + np.arange(-self.N_ghost,self.N_q1 + self.N_ghost)) * self.dq1
-        
-        self.q2_bot = self.q2_start \
-            + (np.arange(-self.N_ghost,self.N_q2 + self.N_ghost)) * self.dq2
-
-        self.q2_center = self.q2_start \
-            + (0.5 + np.arange(-self.N_ghost,self.N_q2 + self.N_ghost)) * self.dq2
-
-        self.q2_left_bot, self.q1_left_bot = np.meshgrid(self.q2_bot, self.q1_left)
-        self.q2_left_center, self.q1_left_center = np.meshgrid(self.q2_center, self.q1_left)
-        self.q2_center_bot, self.q1_center_bot = np.meshgrid(self.q2_bot, self.q1_center)
-
-        self.q2_left_bot, self.q1_left_bot = af.to_array(self.q2_left_bot), af.to_array(self.q1_left_bot)
-        self.q2_left_center, self.q1_left_center = af.to_array(self.q2_left_center), af.to_array(self.q1_left_center)
-        self.q2_center_bot, self.q1_center_bot = af.to_array(self.q2_center_bot), af.to_array(self.q1_center_bot)
-
-        self.q1_left_bot = af.reorder(self.q1_left_bot, 2, 0, 1)
-        self.q2_left_bot = af.reorder(self.q2_left_bot, 2, 0, 1)
-
-        self.q1_left_center = af.reorder(self.q1_left_center, 2, 0, 1)
-        self.q2_left_center = af.reorder(self.q2_left_center, 2, 0, 1)
-
-        self.q1_center_bot = af.reorder(self.q1_center_bot, 2, 0, 1)
-        self.q2_center_bot = af.reorder(self.q2_center_bot, 2, 0, 1)
-
-        self.yee_grid_EM_fields = af.constant(0, 6, self.q1_left_bot.shape[1], 
-                                              self.q2_left_bot.shape[2],
-                                              dtype=af.Dtype.f64
-                                             )
-
-        self._da_fields = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                               dof=6,
-                                               stencil_width=self.N_ghost,
-                                               boundary_type=('periodic',
-                                                              'periodic'),
-                                               stencil_type=1, 
-                                             )
-
-        self._glob_fields  = self._da_fields.createGlobalVec()
-        self._local_fields = self._da_fields.createLocalVec()
-
-        self._glob_fields_array  = self._glob_fields.getArray()
-        self._local_fields_array = self._local_fields.getArray()
-
-        self.boundary_conditions = type('obj', (object, ),
-                                        {'in_q1':'periodic',
-                                         'in_q2':'periodic'
-                                        }
-                                       )
-
-        self.performance_test_flag = False
-
-    _communicate_fields = communicate_fields
-
+        return
 
 def test_fdtd_mode1():
 
-    error_B1 = np.zeros(5)
-    error_B2 = np.zeros(5)
-    error_E3 = np.zeros(5)
+    error_B1 = np.zeros(3)
+    error_B2 = np.zeros(3)
+    error_E3 = np.zeros(3)
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     for i in range(N.size):
 
-        obj = test(N[i])
-
-        dt   = obj.dq1 * np.sqrt(9/5) / 2
+        dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
         time = np.arange(dt, np.sqrt(9/5) + dt, dt)
 
-        N_g = obj.N_ghost
+        params.dt = dt
 
-        A3 = af.sin(  2 * np.pi * (obj.q1_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                    + 4 * np.pi * (obj.q2_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                   )
+        obj = test(N[i], initialize_fdtd_mode1, params)
+        N_g = obj.fields_solver.N_g
 
-        B1_fdtd = (af.shift(A3, 0, 0, -1) - A3) / obj.dq2
-        B2_fdtd = -(af.shift(A3, 0, -1) - A3) / obj.dq1
+        E3_initial = obj.fields_solver.yee_grid_EM_fields[2].copy()
+        B1_initial = obj.fields_solver.yee_grid_EM_fields[3].copy()
+        B2_initial = obj.fields_solver.yee_grid_EM_fields[4].copy()
 
-        E3_fdtd = -6 * np.pi * np.sqrt(5/9) * af.cos(  2 * np.pi * obj.q1_left_bot
-                                                     + 4 * np.pi * obj.q2_left_bot
-                                                    )
-
-        obj.yee_grid_EM_fields[2] = E3_fdtd
-        obj.yee_grid_EM_fields[3] = B1_fdtd
-        obj.yee_grid_EM_fields[4] = B2_fdtd
-
-        E3_initial = obj.yee_grid_EM_fields[2].copy()
-        B1_initial = obj.yee_grid_EM_fields[3].copy()
-        B2_initial = obj.yee_grid_EM_fields[4].copy()
-
-        obj.J1, obj.J2, obj.J3 = 0, 0, 0
-    
         for time_index, t0 in enumerate(time):
-            fdtd(obj, dt)
+            J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
+            obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
         
-        error_B1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[3, N_g:-N_g, N_g:-N_g] -
-                                    B1_initial[0, N_g:-N_g, N_g:-N_g]
+        error_B1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[3, :, N_g:-N_g, N_g:-N_g] -
+                                    B1_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (B1_initial.elements())
 
-        error_B2[i] = af.sum(af.abs(obj.yee_grid_EM_fields[4, N_g:-N_g, N_g:-N_g] -
-                                    B2_initial[0, N_g:-N_g, N_g:-N_g]
+        error_B2[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[4, :, N_g:-N_g, N_g:-N_g] -
+                                    B2_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (B2_initial.elements())
 
-        error_E3[i] = af.sum(af.abs(obj.yee_grid_EM_fields[2, N_g:-N_g, N_g:-N_g] -
-                                    E3_initial[0, N_g:-N_g, N_g:-N_g]
+        error_E3[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[2, :, N_g:-N_g, N_g:-N_g] -
+                                    E3_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (E3_initial.elements())
 
@@ -158,57 +101,44 @@ def test_fdtd_mode1():
     assert (abs(poly_B2[0] + 2) < 0.2) 
     assert (abs(poly_E3[0] + 2) < 0.2)
 
-
 def test_fdtd_mode2():
 
-    error_E1 = np.zeros(5)
-    error_E2 = np.zeros(5)
-    error_B3 = np.zeros(5)
+    error_E1 = np.zeros(3)
+    error_E2 = np.zeros(3)
+    error_B3 = np.zeros(3)
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     for i in range(N.size):
 
-        obj = test(N[i])
-
-        dt   = obj.dq1 * np.sqrt(9/5) / 2
+        dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
         time = np.arange(dt, np.sqrt(9/5) + dt, dt)
 
-        N_g = obj.N_ghost
+        params.dt = dt
 
-        E1_fdtd = 6 * np.pi * np.sqrt(5/9) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
-        E2_fdtd = -3 * np.pi * np.sqrt(5/9) * af.cos(2 * np.pi * obj.q1_left_bot + 4 * np.pi * obj.q2_left_bot)
+        obj = test(N[i], initialize_fdtd_mode1, params)
+        N_g = obj.fields_solver.N_g
 
-        B3_fdtd = -5 * np.pi * af.cos(  2 * np.pi * (obj.q1_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                                      + 4 * np.pi * (obj.q2_left_bot - 0.5 * np.sqrt(5 / 9) * dt)
-                                     )
-
-        obj.yee_grid_EM_fields[0, N_g:-N_g, N_g:-N_g] = E1_fdtd[:, N_g:-N_g, N_g:-N_g]
-        obj.yee_grid_EM_fields[1, N_g:-N_g, N_g:-N_g] = E2_fdtd[:, N_g:-N_g, N_g:-N_g]
-        obj.yee_grid_EM_fields[5, N_g:-N_g, N_g:-N_g] = B3_fdtd[:, N_g:-N_g, N_g:-N_g]
-
-        
-        B3_initial = obj.yee_grid_EM_fields[5].copy()
-        E1_initial = obj.yee_grid_EM_fields[0].copy()
-        E2_initial = obj.yee_grid_EM_fields[1].copy()
-
-        obj.J1, obj.J2, obj.J3 = 0, 0, 0
+        B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
+        E1_initial = obj.fields_solver.yee_grid_EM_fields[0].copy()
+        E2_initial = obj.fields_solver.yee_grid_EM_fields[1].copy()
 
         for time_index, t0 in enumerate(time):
-            fdtd(obj, dt)
+            J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
+            obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
 
-        error_E1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[0, N_g:-N_g, N_g:-N_g] -
-                                    E1_initial[:, N_g:-N_g, N_g:-N_g]
+        error_E1[i] = af.sum(af.abs(obj.yee_grid_EM_fields[0, :, N_g:-N_g, N_g:-N_g] -
+                                    E1_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (E1_initial.elements())
 
-        error_E2[i] = af.sum(af.abs(obj.yee_grid_EM_fields[1, N_g:-N_g, N_g:-N_g] -
-                                    E2_initial[:, N_g:-N_g, N_g:-N_g]
+        error_E2[i] = af.sum(af.abs(obj.yee_grid_EM_fields[1, :, N_g:-N_g, N_g:-N_g] -
+                                    E2_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (E2_initial.elements())
 
-        error_B3[i] = af.sum(af.abs(obj.yee_grid_EM_fields[5, N_g:-N_g, N_g:-N_g] -
-                                    B3_initial[:, N_g:-N_g, N_g:-N_g]
+        error_B3[i] = af.sum(af.abs(obj.yee_grid_EM_fields[5, :, N_g:-N_g, N_g:-N_g] -
+                                    B3_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
                             ) / (B3_initial.elements())
 

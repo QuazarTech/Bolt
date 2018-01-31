@@ -6,7 +6,8 @@ This is the module which contains the functions of the linear solver of Bolt.
 It performs an FFT to map the given input onto the Fourier basis, and evolves 
 each mode of the input independantly. It is to be noted that this module
 can only be applied to systems with periodic boundary conditions.
-Additionally, this module isn't parallelized to run across multiple devices/nodes.
+
+NOTE: This module isn't parallelized to run across multiple devices/nodes.
 """
 
 # In this code, we shall default to using the positionsExpanded form
@@ -16,7 +17,6 @@ Additionally, this module isn't parallelized to run across multiple devices/node
 # Importing dependencies:
 import numpy as np
 import arrayfire as af
-from bolt.lib.utils.fft_funcs import fft2, ifft2
 import socket
 from petsc4py import PETSc
 from inspect import signature
@@ -26,9 +26,14 @@ from .fields.fields import fields_solver
 from .calculate_dfdp_background import calculate_dfdp_background
 from .compute_moments import compute_moments as compute_moments_imported
 from .file_io import dump, load
-from .utils.bandwidth_test import bandwidth_test
-from .utils.print_with_indent import indent
-from .utils.broadcasted_primitive_operations import multiply
+
+from bolt.lib.utils.bandwidth_test import bandwidth_test
+from bolt.lib.utils.print_with_indent import indent
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.calculate_q import calculate_q_center
+from bolt.lib.utils.calculate_p import calculate_p_center
+from bolt.lib.utils.calculate_k import calculate_k
 
 from . import timestep
 
@@ -151,9 +156,23 @@ class linear_solver(object):
         PETSc.Object.setName(self._glob_moments, 'moments')
 
         # Intializing position, velocity and wave number arrays:
-        self.q1_center, self.q2_center = self._calculate_q_center()
-        self.p1, self.p2, self.p3      = self._calculate_p_center()
-        self.k_q1, self.k_q2           = self._calculate_k()
+        self.q1_center, self.q2_center = \
+            calculate_q_center(self.q1_start, self.q2_start,
+                               self.N_q1, self.N_q2, 0,
+                               self.dq1, self.dq2
+                              )
+
+        self.p1_center, self.p2_center, self.p3_center = \
+            calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
+                               self.N_p1, self.N_p2, self.N_p3,
+                               self.dp1, self.dp2, self.dp3, 
+                               self.N_species
+                              )
+
+        self.k_q1, self.k_q2 = calculate_k(self.N_q1, self.N_q2,
+                                           self.physical_system.dq1, 
+                                           self.physical_system.dq2
+                                          )
 
         # Assigning the function objects to methods of the solver:
         self._A_q    = self.physical_system.A_q
@@ -213,7 +232,7 @@ class linear_solver(object):
         # operations on function(*args):
         f = af.broadcast(self.physical_system.initial_conditions.\
                          initialize_f, self.q1_center, self.q2_center,
-                         self.p1, self.p2, self.p3, params
+                         self.p1_center, self.p2_center, self.p3_center, params
                         )
         
         # Taking FFT:
@@ -236,9 +255,7 @@ class linear_solver(object):
                                    self.compute_moments('density', f_hat=self.f_hat)
                                   )
         
-        self.fields_solver = fields_solver(self.q1_center, self.q2_center,
-                                           self.k_q1, self.k_q2,
-                                           self.physical_system.params,
+        self.fields_solver = fields_solver(self.physical_system,
                                            rho_hat_initial
                                           )
 

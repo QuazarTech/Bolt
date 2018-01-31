@@ -4,7 +4,7 @@
 from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
-from bolt.lib.linear.utils.fft_funcs import fft2
+from bolt.lib.utils.fft_funcs import fft2
 
 def load_distribution_function(self, file_name):
     """

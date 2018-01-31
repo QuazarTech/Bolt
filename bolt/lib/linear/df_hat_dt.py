@@ -4,8 +4,8 @@
 import arrayfire as af
 import numpy as np
 
-from .utils.fft_funcs import fft2, ifft2
-from .utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 def df_hat_dt(f_hat, fields_hat, self):
     """
@@ -27,7 +27,7 @@ def df_hat_dt(f_hat, fields_hat, self):
     """
     (A_q1, A_q2) = self._A_q(f_hat, self.time_elapsed, 
                              self.q1_center, self.q2_center,
-                             self.p1, self.p2, self.p3,
+                             self.p1_center, self.p2_center, self.p3_center,
                              self.physical_system.params
                             )
 
@@ -45,7 +45,7 @@ def df_hat_dt(f_hat, fields_hat, self):
 
         C_f_hat = 2 * fft2(self._source(f, self.time_elapsed, 
                                         self.q1_center, self.q2_center,
-                                        self.p1, self.p2, self.p3,
+                                        self.p1_center, self.p2_center, self.p3_center,
                                         self.compute_moments, 
                                         self.physical_system.params
                                        )
@@ -64,15 +64,12 @@ def df_hat_dt(f_hat, fields_hat, self):
         elif(self.physical_system.params.fields_type == 'electrodynamic'):
             # Handled by dfields_hat_dt
             pass
-            
-        elif(self.physical_system.params.fields_type == 'user-defined'):
-            self.fields_solver.update_user_defined_fields(self.time_elapsed)
 
         # get_fields for linear solver returns the mode amplitudes of the fields
         # So, we obtain A_p1_hat, A_p2_hat, A_p3_hat
         (A_p1_hat, A_p2_hat, A_p3_hat) = af.broadcast(self._A_p, f_hat, self.time_elapsed,
                                                       self.q1_center, self.q2_center,
-                                                      self.p1, self.p2, self.p3,
+                                                      self.p1_center, self.p2_center, self.p3_center,
                                                       self.fields_solver, self.physical_system.params
                                                      )
 

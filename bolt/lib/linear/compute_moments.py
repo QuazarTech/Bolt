@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
-from bolt.lib.linear.utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.fft_funcs import fft2, ifft2
 import numpy as np
 
 # TODO: Change docstring to say that it returns either moment_hat or moment
@@ -39,7 +39,8 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         moment_hat = af.broadcast(getattr(self.physical_system.moments, 
                                           moment_name
                                          ), self.f_hat, 
-                                  self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
+                                  self.p1_center, self.p2_center, self.p3_center,
+                                  self.dp3 * self.dp2 * self.dp1
                                  )
 
         # Scaling Appropriately:
@@ -53,7 +54,8 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         moment_hat = af.broadcast(getattr(self.physical_system.moments, 
                                           moment_name
                                          ), f_hat,
-                                  self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
+                                  self.p1_center, self.p2_center, self.p3_center,
+                                  self.dp3 * self.dp2 * self.dp1
                                  )
 
         af.eval(moment_hat)
@@ -63,7 +65,8 @@ def compute_moments(self, moment_name, f=None, f_hat=None):
         moment = af.broadcast(getattr(self.physical_system.moments, 
                                       moment_name
                                      ), f,
-                              self.p1, self.p2, self.p3, self.dp3 * self.dp2 * self.dp1
+                              self.p1_center, self.p2_center, self.p3_center,
+                              self.dp3 * self.dp2 * self.dp1
                              )
         af.eval(moment)
         return(moment)

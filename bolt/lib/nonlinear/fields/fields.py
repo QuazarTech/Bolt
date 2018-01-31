@@ -12,9 +12,11 @@ from .boundaries import apply_bcs_fields
 from .electrostatic.fft import fft_poisson
 from .electrodynamic.fdtd_explicit import fdtd
 
+from bolt.lib.utils.calculate_q import calculate_q_center
+
 class fields_solver(object):
     
-    def __init__(physical_system, rho_initial, performance_test_flag = False):
+    def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """
         Constructor for the fields_solver object, which takes in the physical system
         object and initial charge density as the input. 
@@ -39,29 +41,26 @@ class fields_solver(object):
                                and application of boundary conditions for the EM_fields
                                is measured.
         """
+        self.N_q1 = physical_system.N_q1
+        self.N_q2 = physical_system.N_q2
+        self.N_g  = physical_system.N_ghost
 
-        self.N_q1 = N_q1
-        self.N_q2 = N_q2
-        self.N_g  = N_g
+        self.dq1 = physical_system.dq1
+        self.dq2 = physical_system.dq2
 
-        self.q1 = q1
-        self.q2 = q2
+        self.q1_start = physical_system.q1_start
+        self.q2_start = physical_system.q2_start
 
-        self.dq1 = dq1
-        self.dq2 = dq2
+        self._comm = physical_system.mpi_communicator
 
-        self._comm = comm
-
-        self.boundary_conditions = boundary_conditions
-        self.params              = params
+        self.boundary_conditions = physical_system.boundary_conditions
+        self.params              = physical_system.params
+        self.initialize          = physical_system.initial_conditions
 
         self.performance_test_flag   = performance_test_flag
         self.time_fieldsolver        = 0
         self.time_apply_bcs_fields   = 0
         self.time_communicate_fields = 0
-        
-        self.initialize_E = initialize.initialize_E
-        self.initialize_B = initialize.initialize_B
         
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'
@@ -109,6 +108,18 @@ class fields_solver(object):
                                               stencil_type  = 1,
                                               comm          = self._comm
                                              )
+
+
+        # Obtaining start coordinates for the local zone
+        # Additionally, we also obtain the size of the local zone
+        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
+
+        self.q1_center, self.q2_center = \
+            calculate_q_center(self.q1_start + i_q1_start * self.dq1, 
+                               self.q2_start + i_q2_start * self.dq2,
+                               N_q1_local, N_q2_local, self.N_g,
+                               self.dq1, self.dq2
+                              )
 
         # The following global and local vectors are used in
         # the communication routines for EM fields
@@ -159,7 +170,6 @@ class fields_solver(object):
                                                         dtype=af.Dtype.f64
                                                        )
 
-
         # Field values at (n+1/2)-th timestep:
         self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6, 1, 
                                                                   N_q1_local + 2 * self.N_g,
@@ -174,43 +184,22 @@ class fields_solver(object):
                                               dtype=af.Dtype.f64
                                              )
 
-        if(self.params.fields_type == 'user-defined'):
-            try:
-                assert(self.params.fields_initialize == 'user-defined')
-            except:
-                raise Exception('It is expected that the fields initialization method is also \
-                                 userdefined when the fields type is declared to be userdefined'
-                               )
-        
         if (self.params.fields_initialize == 'fft'):
             fft_poisson(self, rho_initial)
             communicate.communicate_fields(self)
             apply_bcs_fields(self)
 
-        elif (self.nls.physical_system.params.fields_initialize == 'user-defined'):
+        elif (self.params.fields_initialize == 'user-defined'):
 
-            if(self.nls.physical_system.params.fields_type != 'user-defined'):            
-                E1, E2, E3 = self.initialize_E(self.q1,
-                                               self.q2,
-                                               self.params
-                                              )
+            E1, E2, E3 = self.initialize.initialize_E(self.q1_center,
+                                                      self.q2_center,
+                                                      self.params
+                                                     )
 
-                B1, B2, B3 = self.initialize_B(self.q1,
-                                               self.q2,
-                                               self.params
-                                              )
-
-            else:
-
-                E1, E2, E3 = self.params.user_defined_E(self.q1,
-                                                        self.q2,
-                                                        0
-                                                       )
-
-                B1, B2, B3 = self.params.user_defined_B(self.q1,
-                                                        self.q2,
-                                                        0
-                                                       )
+            B1, B2, B3 = self.initialize.initialize_B(self.q1_center,
+                                                      self.q2_center,
+                                                      self.params
+                                                     )
 
             self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
         
@@ -362,13 +351,13 @@ class fields_solver(object):
                        Time at which the field values are to be evaluated.
         """
 
-        E1, E2, E3 = self.params.user_defined_E(self.q1,
-                                                self.q2,
+        E1, E2, E3 = self.params.user_defined_E(self.q1_center,
+                                                self.q2_center,
                                                 time_elapsed
                                                )
 
-        B1, B2, B3 = self.params.user_defined_B(self.q1,
-                                                self.q2,
+        B1, B2, B3 = self.params.user_defined_B(self.q1_center,
+                                                self.q2_center,
                                                 time_elapsed
                                                )
 

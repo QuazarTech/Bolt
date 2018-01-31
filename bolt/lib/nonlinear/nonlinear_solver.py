@@ -240,11 +240,11 @@ class nonlinear_solver(object):
         # utilized by the various methods of the solver.
         self._da_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                          dof           = (  self.N_species 
-                                                          * (self.N_p1 + 2 * N_g_p) 
-                                                          * (self.N_p2 + 2 * N_g_p) 
-                                                          * (self.N_p3 + 2 * N_g_p)
+                                                          * self.N_p1 
+                                                          * self.N_p2 
+                                                          * self.N_p3
                                                          ),
-                                         stencil_width = N_g_q,
+                                         stencil_width = N_g,
                                          boundary_type = (petsc_bc_in_q1,
                                                           petsc_bc_in_q2
                                                          ),
@@ -262,7 +262,7 @@ class nonlinear_solver(object):
                                                                * self.N_p2 
                                                                * self.N_p3
                                                               ),
-                                              stencil_width = N_g_q,
+                                              stencil_width = N_g,
                                               boundary_type = (petsc_bc_in_q1,
                                                                petsc_bc_in_q2
                                                               ),
@@ -338,42 +338,42 @@ class nonlinear_solver(object):
         if(self.physical_system.boundary_conditions.in_q1_left == 'dirichlet'):
             # If local zone includes the left physical boundary:
             if(i_q1_start == 0):
-                self.f[:, :N_g_q] = self.boundary_conditions.\
+                self.f[:, :N_g] = self.boundary_conditions.\
                                     f_left(self.f, self.q1_center, self.q2_center,
                                            self.p1_center, self.p2_center, self.p3_center, 
                                            self.physical_system.params
-                                          )[:, :N_g_q]
+                                          )[:, :N_g]
     
         if(self.physical_system.boundary_conditions.in_q1_right == 'dirichlet'):
             # If local zone includes the right physical boundary:
             if(i_q1_end == self.N_q1 - 1):
-                self.f[:, -N_g_q:] = self.boundary_conditions.\
+                self.f[:, -N_g:] = self.boundary_conditions.\
                                      f_right(self.f, self.q1_center, self.q2_center,
                                              self.p1_center, self.p2_center, self.p3_center, 
                                              self.physical_system.params
-                                            )[:, -N_g_q:]
+                                            )[:, -N_g:]
 
         if(self.physical_system.boundary_conditions.in_q2_bottom == 'dirichlet'):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
-                self.f[:, :, :N_g_q] = self.boundary_conditions.\
+                self.f[:, :, :N_g] = self.boundary_conditions.\
                                        f_bot(self.f, self.q1_center, self.q2_center,
                                              self.p1_center, self.p2_center, self.p3_center, 
                                              self.physical_system.params
-                                            )[:, :, :N_g_q]
+                                            )[:, :, :N_g]
 
         if(self.physical_system.boundary_conditions.in_q2_top == 'dirichlet'):
             # If local zone includes the top physical boundary:
             if(i_q2_end == self.N_q2 - 1):
-                self.f[:, :, -N_g_q:] = self.boundary_conditions.\
+                self.f[:, :, -N_g:] = self.boundary_conditions.\
                                         f_top(self.f, self.q1_center, self.q2_center,
                                               self.p1_center, self.p2_center, self.p3_center, 
                                               self.physical_system.params
-                                             )[:, :, -N_g_q:]
+                                             )[:, :, -N_g:]
 
         # Assigning the value to the PETSc Vecs(for dump at t = 0):
         (af.flat(self.f)).to_ndarray(self._local_f_array)
-        (af.flat(self.f[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])).to_ndarray(self._glob_f_array)
+        (af.flat(self.f[:, :, N_g:-N_g, N_g:-N_g])).to_ndarray(self._glob_f_array)
 
         # Assigning the function objects to methods of the solver:
         self._A_q = physical_system.A_q
@@ -436,8 +436,8 @@ class nonlinear_solver(object):
         array = af.moddims(array,
                            self.N_p1, self.N_p2, self.N_p3,
                              self.N_species
-                           * (N_q1_local + 2 * self.N_ghost_q)
-                           * (N_q2_local + 2 * self.N_ghost_q)
+                           * (N_q1_local + 2 * self.N_ghost)
+                           * (N_q2_local + 2 * self.N_ghost)
                           )
 
         af.eval(array)

@@ -3,8 +3,8 @@
 
 import arrayfire as af
 
-from ..utils.fft_funcs import fft2, ifft2
-from ..utils.broadcasted_primitive_operations import multiply
+from bolt.lib.utils.fft_funcs import fft2, ifft2
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 def dfields_hat_dt(f_hat, fields_hat, self):
     """

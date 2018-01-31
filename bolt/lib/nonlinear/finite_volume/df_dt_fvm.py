@@ -123,9 +123,6 @@ def df_dt_fvm(f, self):
                               )
                 self.fields_solver.compute_electrostatic_fields(rho)
 
-        if(self.physical_system.params.fields_type == 'user-defined'):
-            self.fields_solver.update_user_defined_fields(self.time_elapsed)
-
         (self._C_p1, self._C_p2, self._C_p3) = \
             af.broadcast(self._C_p, f, self.time_elapsed,
                          self.q1_center, self.q2_center,
@@ -159,32 +156,6 @@ def df_dt_fvm(f, self):
         flux_p1 = multiply(self._C_p1, f)
         flux_p2 = multiply(self._C_p2, f)
         flux_p3 = multiply(self._C_p3, f)
-
-        N_g_p = self.N_ghost_p
-
-        # Setting flux values in the ghost zones to zero:
-        if(N_g_p != 0):
-            
-            flux_p1[:N_g_p]        = 0
-            flux_p1[:, :N_g_p]     = 0
-            flux_p1[:, :, :N_g_p]  = 0
-            flux_p1[-N_g_p:]       = 0 * flux_p1[-N_g_p:]
-            flux_p1[:, -N_g_p:]    = 0 * flux_p1[:, -N_g_p:]
-            flux_p1[:, :, -N_g_p:] = 0 * flux_p1[:, :, -N_g_p:]
-
-            flux_p2[:N_g_p]        = 0
-            flux_p2[:, :N_g_p]     = 0
-            flux_p2[:, :, :N_g_p]  = 0
-            flux_p2[-N_g_p:]       = 0 * flux_p2[-N_g_p:]
-            flux_p2[:, -N_g_p:]    = 0 * flux_p2[:, -N_g_p:]
-            flux_p2[:, :, -N_g_p:] = 0 * flux_p2[:, :, -N_g_p:]
-
-            flux_p3[:N_g_p]        = 0
-            flux_p3[:, :N_g_p]     = 0
-            flux_p3[:, :, :N_g_p]  = 0
-            flux_p3[-N_g_p:]       = 0 * flux_p3[-N_g_p:]
-            flux_p3[:, -N_g_p:]    = 0 * flux_p3[:, -N_g_p:]
-            flux_p3[:, :, -N_g_p:] = 0 * flux_p3[:, :, -N_g_p:]
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \

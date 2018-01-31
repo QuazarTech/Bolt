@@ -134,7 +134,7 @@ class physical_system(object):
         # Checking that the given input parameters are physical:
         if(self.N_q1 < 0 or self.N_q2 < 0 or
            self.N_p1 < 0 or self.N_p2 < 0 or self.N_p3 < 0 or
-           domain.N_ghost_q < 0 or domain.N_ghost_p < 0
+           domain.N_ghost < 0
           ):
             raise Exception('Grid resolution for the phase \
                              space cannot be negative'
@@ -157,9 +157,7 @@ class physical_system(object):
 
         # Getting number of ghost zones, and the 
         # boundary conditions that are utilized
-        self.N_ghost_q           = domain.N_ghost_q
-        self.N_ghost_p           = domain.N_ghost_p
-
+        self.N_ghost             = domain.N_ghost
         self.boundary_conditions = boundary_conditions
 
         # Placeholder for all the modules/functions:
@@ -202,6 +200,14 @@ class physical_system(object):
             except:
                 raise Exception('Solver specified isn\'t an electrodynamic solver')
 
+        if(params.fields_type == 'electrostatic'):
+            try:
+                assert(   params.fields_solver.upper() == 'SNES'
+                       or params.fields_solver.upper() == 'FFT'
+                      )
+            except:
+                raise Exception('Solver specified isn\'t an electrostatic solver')
+
         # Printing code signature:
         PETSc.Sys.Print('----------------------------------------------------------------------')
         PETSc.Sys.Print("|                      ,/                                            |")
@@ -235,9 +241,10 @@ class physical_system(object):
             PETSc.Sys.Print('    Reconstruction Method          :', params.reconstruction_method_in_p.upper())
             PETSc.Sys.Print('    Riemann Solver                 :', params.riemann_solver_in_p.upper())
 
-        PETSc.Sys.Print('Fields Type                        :', params.fields_type.upper())
-        PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
-        PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
+        if(params.EM_fields_enabled == True):
+            PETSc.Sys.Print('Fields Type                        :', params.fields_type.upper())
+            PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
+            PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Number of Species                  :', N_species)
         for i in range(N_species):
             PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), params.charge[i])

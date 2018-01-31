@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
-from bolt.lib.linear.utils.fft_funcs import ifft2
+from bolt.lib.utils.fft_funcs import ifft2
 
 def dump_moments(self, file_name):
     """

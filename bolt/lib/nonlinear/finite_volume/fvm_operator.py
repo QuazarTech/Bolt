@@ -4,6 +4,20 @@ from bolt.lib.utils.broadcasted_primitive_operations import multiply
 from bolt.lib.nonlinear.temporal_evolution import operator_splitting_methods as split
 
 def timestep_fvm(self, dt):
+    """
+    Evolves the system defined using FVM. It does so by integrating 
+    the function df_dt using an RK2 stepping scheme. After the initial 
+    evaluation at the midpoint, we evaluate the currents(J^{n+0.5}) and 
+    pass it to the FDTD algo when an electrodynamic case needs to be evolved.
+    The FDTD algo updates the field values, which are used at the next
+    evaluation of df_dt.
+
+    Parameters
+    ----------
+
+    dt : double
+         Time-step size to evolve the system
+    """
 
     f_initial = self.f
     self.f    = self.f + df_dt_fvm(self.f, self) * (dt / 2)
@@ -28,17 +42,7 @@ def timestep_fvm(self, dt):
 
             self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
 
-        # Since it will be evaluated again at the midpoint
-        if(self.physical_system.params.fields_type == 'user-defined'):
-            self.time_elapsed += 0.5 * dt
-
     self.f = f_initial + df_dt_fvm(self.f, self) * dt
-
-    if(self.physical_system.params.EM_fields_enabled == True):
-        # Subtracting the change made to avoid messing 
-        # with the counter on timestep.py
-        if(self.physical_system.params.fields_type == 'user-defined'):
-            self.time_elapsed -= 0.5 * dt
 
 def update_for_instantaneous_collisions(self, dt):
     
@@ -53,20 +57,6 @@ def update_for_instantaneous_collisions(self, dt):
     return
 
 def op_fvm(self, dt):
-    """
-    Evolves the system defined using FVM. It does so by integrating 
-    the function df_dt using an RK2 stepping scheme. After the initial 
-    evaluation at the midpoint, we evaluate the currents(J^{n+0.5}) and 
-    pass it to the FDTD algo when an electrodynamic case needs to be evolved.
-    The FDTD algo updates the field values, which are used at the next
-    evaluation of df_dt.
-
-    Parameters
-    ----------
-
-    dt : double
-         Time-step size to evolve the system
-    """
 
     self._communicate_f()
     self._apply_bcs_f()
