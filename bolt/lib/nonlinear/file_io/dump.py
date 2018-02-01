@@ -62,7 +62,7 @@ def dump_moments(self, file_name):
     >> mom_p1_species_2 = h5f['moments'][:][:, :, 5]
 
     """
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
 
     attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
 
@@ -72,10 +72,10 @@ def dump_moments(self, file_name):
 
     for i in range(len(attributes)):
         if(i == 0):
-            array_to_dump = self.compute_moments(attributes[i])[:, :, N_g_q:-N_g_q,N_g_q:-N_g_q]
+            array_to_dump = self.compute_moments(attributes[i])[:, :, N_g:-N_g,N_g:-N_g]
         else:
             array_to_dump = af.join(1, array_to_dump,
-                                    self.compute_moments(attributes[i])[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q]
+                                    self.compute_moments(attributes[i])[:, :, N_g:-N_g, N_g:-N_g]
                                    )
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
@@ -124,29 +124,14 @@ def dump_distribution_function(self, file_name):
 
     >> solver.load_distribution_function('distribution_function')
     """
-    N_g_q = self.N_ghost_q
-    N_g_p = self.N_ghost_p
+    N_g = self.N_ghost
     
     N_q1_local = self.f.shape[2]
     N_q2_local = self.f.shape[3]
 
-    # The dumped array shouldn't be inclusive of velocity ghost zones:
-    if(N_g_p != 0):
-        array_to_dump = self._convert_to_p_expanded(self.f)[N_g_p:-N_g_p, 
-                                                            N_g_p:-N_g_p,
-                                                            N_g_p:-N_g_p
-                                                           ]
-        array_to_dump = af.moddims(array_to_dump, 
-                                   self.N_p1 * self.N_p2 * self.N_p3,
-                                   self.N_species,
-                                   N_q1_local,
-                                   N_q2_local
-                                  )                                           
+    array_to_dump = self.f
     
-    else:
-        array_to_dump = self.f
-    
-    array_to_dump = af.flat(array_to_dump[:, :, N_g_q:-N_g_q, N_g_q:-N_g_q])
+    array_to_dump = af.flat(array_to_dump[:, :, N_g:-N_g, N_g:-N_g])
     array_to_dump.to_ndarray(self._glob_dump_f_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_dump_f)
@@ -207,7 +192,7 @@ def dump_EM_fields(self, file_name):
 
     >> solver.load_EM_fields('data_EM_fields')
     """
-    N_g = self.N_ghost_q
+    N_g = self.N_ghost
     
     flattened_global_EM_fields_array = \
         af.flat(self.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])

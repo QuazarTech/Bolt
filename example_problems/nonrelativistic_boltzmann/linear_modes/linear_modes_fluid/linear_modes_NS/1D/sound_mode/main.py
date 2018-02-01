@@ -24,8 +24,6 @@ system = physical_system(domain,
                          moments
                         )
 
-N_g_q = system.N_ghost_q
-
 nls = nonlinear_solver(system)
 
 # Timestep as set by the CFL condition:

@@ -20,7 +20,7 @@ riemann_solver_in_p = 'upwind-flux'
 p_dim = 1
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 4
+num_devices = 1
 
 # Constants:
 mass               = [1]
@@ -32,12 +32,8 @@ charge             = [0]
 density_background     = 1
 temperature_background = 1
 v1_bulk_background     = 0
-v2_bulk_background     = 0
-v3_bulk_background     = 0
 
-k_q1  = 2 * np.pi
-gamma = 3
-
+k_q1      = 2 * np.pi
 amplitude = 1e-3
 
 # Time parameters:

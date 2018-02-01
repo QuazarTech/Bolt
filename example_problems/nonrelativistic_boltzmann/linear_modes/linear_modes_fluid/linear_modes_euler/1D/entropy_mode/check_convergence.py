@@ -6,6 +6,7 @@ import pylab as pl
 
 import input_files.domain as domain
 import input_files.params as params
+from input_files.solve_linear_modes import solve_linear_modes
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -37,33 +38,25 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-omega = np.sqrt(params.temperature_background * params.gamma) * params.k_q1 * 1j
-
+eigval, eigvecs = solve_linear_modes(params)
+omega           = eigval[1]
 # Defining the functions for the analytical solution:
 def n_ana(q1, t):
     
-    n_b = params.density_background
+    n_b    = params.density_background
+    pert_n = eigvecs[0, 1]
 
-    pert_real_n = 1
-    pert_imag_n = 0
-    pert_n      = pert_real_n + 1j * pert_imag_n
-
-    n_ana       = n_b + params.amplitude * pert_n * \
-                        np.exp(  1j * params.k_q1 * q1 
-                               + omega * t
-                              ).real
+    n_ana = n_b + params.amplitude * pert_n * \
+                  np.exp(  1j * params.k_q1 * q1 
+                         + omega * t
+                        ).real
 
     return(n_ana)
 
 def v1_ana(q1, t):
     
-    v1_b = params.v1_bulk_background
-    n_b  = params.density_background
-    T_b  = params.temperature_background
-    
-    pert_real_v1 = -np.sqrt(params.gamma * T_b) / n_b
-    pert_imag_v1 = 0
-    pert_v1      = pert_real_v1 + 1j * pert_imag_v1
+    v1_b    = params.v1_bulk_background
+    pert_v1 = eigvecs[1, 1]
                    
     v1_ana = v1_b + params.amplitude * pert_v1 * \
                     np.exp(  1j * params.k_q1 * q1 
@@ -73,12 +66,8 @@ def v1_ana(q1, t):
 
 def T_ana(q1, t):
     
-    T_b = params.temperature_background
-    n_b = params.density_background
-
-    pert_real_T = T_b * (params.gamma - 1) / n_b
-    pert_imag_T = 0
-    pert_T      = pert_real_T + 1j * pert_imag_T
+    T_b    = params.temperature_background
+    pert_T = eigvecs[2, 1]
 
     T_ana = T_b + params.amplitude * pert_T * \
                   np.exp(  1j * params.k_q1 * q1 
@@ -87,9 +76,7 @@ def T_ana(q1, t):
 
     return(T_ana)
 
-
-N_g_q = domain.N_ghost_q
-N     = 2**np.arange(5, 10)
+N = 2**np.arange(5, 10)
 
 error_n  = np.zeros(N.size)
 error_v1 = np.zeros(N.size)

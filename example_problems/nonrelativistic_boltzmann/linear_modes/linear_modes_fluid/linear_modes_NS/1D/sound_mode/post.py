@@ -6,6 +6,7 @@ import pylab as pl
 
 import input_files.domain as domain
 import input_files.params as params
+from input_files.solve_linear_modes import solve_linear_modes
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -37,17 +38,16 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-omega = 0
+
+eigval, eigvecs = solve_linear_modes(params)
+omega           = eigval[0]
 # Defining the functions for the analytical solution:
 def n_analytic(q1, t):
     
-    n_b = params.density_background
+    n_b    = params.density_background
+    pert_n = eigvecs[0, 0]
 
-    pert_real_n = 1
-    pert_imag_n = 0
-    pert_n      = pert_real_n + 1j * pert_imag_n
-
-    n_ana= n_b + params.amplitude * pert_n * \
+    n_ana = n_b + params.amplitude * pert_n * \
                  np.exp(  1j * params.k_q1 * q1 
                         + omega * t
                        ).real

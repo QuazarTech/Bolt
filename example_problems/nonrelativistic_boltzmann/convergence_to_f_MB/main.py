@@ -59,57 +59,51 @@ def set_advection_to_zero(f, t, q1, q2, v1, v2, v3, params):
 advection_terms.A_q = set_advection_to_zero
 advection_terms.C_q = set_advection_to_zero
 
+# Time parameters:
+dt      = 0.001 #* 32 / nls.N_p1
+t_final = 2.0
 
-# error = np.zeros(time_array.size)
-N     = 2**np.arange(9, 10)
-# error = np.zeros(N.size)
+system = physical_system(domain,
+                         boundary_conditions,
+                         params,
+                         initialize,
+                         advection_terms,
+                         collision_operator.BGK,
+                         moments
+                        )
+N_g = system.N_ghost
 
-for i in range(N.size):
-    domain.N_p1 = int(N[i])
-    # Defining the physical system to be solved:
-    system = physical_system(domain,
-                             boundary_conditions,
-                             params,
-                             initialize,
-                             advection_terms,
-                             collision_operator.BGK,
-                             moments
-                            )
-    N_g = system.N_ghost
+# Declaring a linear system object which will evolve the defined physical system:
+nls = nonlinear_solver(system)
 
-    # Declaring a linear system object which will evolve the defined physical system:
-    nls = nonlinear_solver(system)
 
-    # Time parameters:
-    dt      = 0.001 * 32 / nls.N_p1
-    t_final = 10.0
+time_array  = np.arange(0, t_final + dt, dt)
 
-    time_array  = np.arange(0, t_final + dt, dt)
+n_initial  = af.mean(nls.compute_moments('density'))
+v1_initial = af.mean(nls.compute_moments('mom_v1_bulk')) / n_initial
+T_initial  = (  2 * af.mean(nls.compute_moments('energy'))
+               - n_initial * v1_initial**2
+             ) / n_initial
 
-    n_initial  = af.mean(nls.compute_moments('density'))
-    v1_initial = af.mean(nls.compute_moments('mom_v1_bulk')) / n_initial
-    T_initial  = (  2 * af.mean(nls.compute_moments('energy'))
-                   - n_initial * v1_initial**2
-                 ) / n_initial
-
-    f_expected = f_MB(n_initial, v1_initial, T_initial, 
-                      nls.q1_center, nls.p1_center
-                     )
+f_expected = f_MB(n_initial, v1_initial, T_initial, 
+                  nls.q1_center, nls.p1_center
+                 )
     
-    error = np.zeros(time_array.size)
-    for time_index, t0 in enumerate(time_array):
-        # pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel())
-        # pl.plot(np.array(nls.p1_center).ravel(), np.array(f_expected).ravel(), '--', color = 'black')
-        # pl.xlabel(r'$v_1$')
-        # pl.ylabel(r'$f$')
-        # pl.title('Distribution at Time Index = ' + str(time_index))
-        # pl.legend(['Current Distribution', 'Final Expected Distribution'])
-        # pl.savefig('images/%04d'%time_index + '.png')
-        # pl.clf()
-        nls.strang_timestep(dt)
-        error[i] = af.mean(af.abs(nls.f - f_expected))
+error = np.zeros(time_array.size)
+for time_index, t0 in enumerate(time_array):
+    # pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel())
+    # pl.plot(np.array(nls.p1_center).ravel(), np.array(f_expected).ravel(), '--', color = 'black')
+    # pl.xlabel(r'$v_1$')
+    # pl.ylabel(r'$f$')
+    # pl.title('Distribution at Time Index = ' + str(time_index))
+    # pl.legend(['Current Distribution', 'Final Expected Distribution'])
+    # pl.savefig('images/%04d'%time_index + '.png')
+    # pl.clf()
+    
+    nls.strang_timestep(dt)
+    error[time_index] = af.mean(af.abs(nls.f - f_expected))
 
-    pl.semilogy(time_array, error)
-    pl.xlabel('Time')
-    pl.ylabel('Error')
-    pl.savefig('logplot.png')
+pl.semilogy(time_array, error)
+pl.xlabel('Time')
+pl.ylabel('Error')
+pl.savefig('logplot.png')
