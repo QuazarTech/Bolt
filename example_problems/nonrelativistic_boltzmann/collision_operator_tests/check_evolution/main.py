@@ -56,11 +56,11 @@ def f0(v1, n, v_bulk, T):
 
 def BGK(f, t, v1, params):
     dv1 = v1.ravel()[1] - v1.ravel()[0]
-    n   = integrate.trapz(f, dx = dv1, axis = 0)
+    n   = np.sum(f) * dv1
 
-    v_bulk = integrate.trapz(f * v1, dx = dv1, axis = 0) / n
+    v_bulk = np.sum(f * v1) * dv1 / n
 
-    T = (  integrate.trapz(f * v1**2, dx = dv1, axis = 0)
+    T = (  np.sum(f * v1**2) * dv1
          - n * v_bulk**2
         ) / n
 
@@ -78,8 +78,8 @@ advection_terms.A_q = set_advection_to_zero
 advection_terms.C_q = set_advection_to_zero
 
 # Time parameters:
-dt      = 0.001
-t_final = 1.0
+dt      = 0.0001
+t_final = 0.1
 
 system = physical_system(domain,
                          boundary_conditions,
@@ -95,14 +95,25 @@ N_g = system.N_ghost
 nls = nonlinear_solver(system)
 time_array = np.arange(0, t_final + dt, dt)
     
-f_odeint = integrate.odeint(BGK, np.array(nls.f), np.array([0, time_array[-1]]) ,
-                            args = (np.array(nls.p1_center), params),
-                            full_output=1, rtol = 1e-12, atol = 1e-12,
-                           )
+sol = integrate.odeint(BGK, np.array(nls.f), time_array ,
+                       args = (np.array(nls.p1_center), params),
+                       printmessg=1, rtol = 1e-13, atol = 1e-13,
+                      )
+
+error = np.zeros(time_array.size)
 
 for time_index, t0 in enumerate(time_array[1:]):
-    print(t0)
-    nls.strang_timestep(dt)
+    f_odeint = sol[time_index, :].ravel()
+    # error[time_index] = np.mean(abs(np.array(nls.f).ravel() - f_odeint))
+    
+    pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel())
+    pl.plot(np.array(nls.p1_center).ravel(), f_odeint, '--', color = 'black')
 
-error = np.mean(abs(np.array(nls.f).ravel() - f_odeint[0][1]))
-print(error)
+    pl.xlabel(r'$v_1$')
+    pl.ylabel(r'$f$')
+    pl.title('Distribution at Time = ' + str(t0 - dt))
+    pl.legend([r'With $\texttt{bolt.nonlinear\_solver}$', r'With $\texttt{odeint}$'])
+    pl.savefig('images/%04d'%time_index + '.png')
+    pl.clf()
+
+    nls.strang_timestep(dt)

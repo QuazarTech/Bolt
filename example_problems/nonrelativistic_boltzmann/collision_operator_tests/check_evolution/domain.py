@@ -8,7 +8,7 @@ N_q2     = 1
 
 p1_start = -12
 p1_end   = 12
-N_p1     = 1024
+N_p1     = 1025
 
 p2_start = -0.5
 p2_end   = 0.5

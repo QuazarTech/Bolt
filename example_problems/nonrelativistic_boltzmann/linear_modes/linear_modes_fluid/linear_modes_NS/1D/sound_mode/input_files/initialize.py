@@ -50,8 +50,11 @@ def initialize_f(q1, q2, v1, v2, v3, params):
                       - pert_imag_T * af.sin(k_q1 * q1)
                      )
 
-    f = n * (m / (2 * np.pi * k * T))**(1 / 2) \
-          * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T)) \
+    f0 = n * (m / (2 * np.pi * k * T))**(1 / 2) \
+           * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T)) \
+
+    dq1 = af.sum(q1[0, 0, 1, 0] - q1[0, 0, 0, 0])
+    f   = f0 - 0.5 * params.tau(0, 0, 0, 0, 0) * (af.shift(f0, -1) - af.shift(f0, 1)) / dq1
 
     af.eval(f)
     return (f)

@@ -1,5 +1,7 @@
 import arrayfire as af
 import numpy as np
+import pylab as pl 
+pl.style.use('prettyplot')
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
@@ -25,6 +27,12 @@ system = physical_system(domain,
                         )
 
 nls = nonlinear_solver(system)
+
+
+pl.plot(np.array(nls.q1_center[0, 0, 3:-3, 0]).ravel(), np.array(nls.f[16, 0, 3:-3, 0]).ravel())
+pl.xlabel(r'$x$')
+pl.savefig('plot.png')
+exit()
 
 # Timestep as set by the CFL condition:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
