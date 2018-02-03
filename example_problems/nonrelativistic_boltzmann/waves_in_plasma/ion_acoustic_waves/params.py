@@ -23,9 +23,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = af.Array([1, 100], (1, 2))
+mass               = [1, 100]
 boltzmann_constant = 1
-charge             = af.Array([-1, 1], (1, 2))
+charge             = [-1, 1]
 
 # Initial Conditions used in initialize:
 rho_background_e = 1
@@ -42,8 +42,9 @@ N_cfl   = 0.1
 t_final = 5
 
 # Switch for solver components:
-EM_fields_enabled = True
-source_enabled    = True
+EM_fields_enabled        = True
+source_enabled           = True
+instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

@@ -70,16 +70,11 @@ def BGK(f, t, v1, params):
     C_f = -(f - f_MB) / tau
     return(C_f)
 
-
 def set_advection_to_zero(f, t, q1, q2, v1, v2, v3, params):
     return(0 * v1**0, 0 * v2**0)
 
 advection_terms.A_q = set_advection_to_zero
 advection_terms.C_q = set_advection_to_zero
-
-# Time parameters:
-dt      = 0.0001
-t_final = 0.1
 
 system = physical_system(domain,
                          boundary_conditions,
@@ -89,31 +84,44 @@ system = physical_system(domain,
                          collision_operator.BGK,
                          moments
                         )
-N_g = system.N_ghost
 
-# Declaring a linear system object which will evolve the defined physical system:
-nls = nonlinear_solver(system)
-time_array = np.arange(0, t_final + dt, dt)
-    
-sol = integrate.odeint(BGK, np.array(nls.f), time_array ,
+nls       = nonlinear_solver(system)
+f_initial = nls.f.copy()
+
+# Time parameters:
+dt_samples = 1e-4 / 2**np.arange(5)
+t_final    = 0.01
+N_t        = t_final / dt_samples # Number of timesteps
+
+sol = integrate.odeint(BGK, np.array(nls.f), np.array([0, t_final]),
                        args = (np.array(nls.p1_center), params),
-                       printmessg=1, rtol = 1e-13, atol = 1e-13,
+                       rtol = 1e-20, atol = 5e-14
                       )
 
-error = np.zeros(time_array.size)
+f_reference = sol[-1].ravel()
 
-for time_index, t0 in enumerate(time_array[1:]):
-    f_odeint = sol[time_index, :].ravel()
-    # error[time_index] = np.mean(abs(np.array(nls.f).ravel() - f_odeint))
+error = np.zeros(dt_samples.size)
+
+for i in range(dt_samples.size):
+
+    # Declaring a linear system object which will evolve the defined physical system:
+    dt  = dt_samples[i]
     
-    pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel())
-    pl.plot(np.array(nls.p1_center).ravel(), f_odeint, '--', color = 'black')
+    time_array = np.arange(0, t_final + dt, dt)
 
-    pl.xlabel(r'$v_1$')
-    pl.ylabel(r'$f$')
-    pl.title('Distribution at Time = ' + str(t0 - dt))
-    pl.legend([r'With $\texttt{bolt.nonlinear\_solver}$', r'With $\texttt{odeint}$'])
-    pl.savefig('images/%04d'%time_index + '.png')
-    pl.clf()
+    for time_index, t0 in enumerate(time_array[1:]):
+        nls.strang_timestep(dt)
 
-    nls.strang_timestep(dt)
+    error[i] = np.mean(abs(np.array(nls.f) - f_reference))
+    # Setting back to initial value for next iteration:
+    nls.f    = f_initial
+
+print('L1 norm of error:', error)
+print('Order of convergence:', np.polyfit(np.log10(N_t), np.log10(error), 1)[0])
+
+pl.loglog(N_t, error, '-o', label = 'Numerical')
+pl.loglog(N_t, error[0]*32**2/N_t**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.xlabel(r'$N_t$')
+pl.ylabel('Error')
+pl.legend()
+pl.savefig('convergenceplot.png')
