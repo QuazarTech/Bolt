@@ -80,7 +80,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_ls[time_index + 1, 0] = af.max(n_ls[:, 0]) 
     rho_data_ls[time_index + 1, 1] = af.max(n_ls[:, 1]) 
 
-    E_data_nls[time_index] = af.max(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
+    E_data_nls[time_index] = af.max(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
                                          * ifft2(ls.fields_solver.E1_hat)
                                     )

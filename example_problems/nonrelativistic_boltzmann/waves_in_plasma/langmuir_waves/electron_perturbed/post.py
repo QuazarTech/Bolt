@@ -53,11 +53,11 @@ h5f       = h5py.File('dump/0000.h5', 'r')
 f_initial = h5f['distribution_function'][:]
 h5f.close()
 
-maxf_electron_initial = af.max(f_initial[0, :, :domain.N_p1])
-minf_electron_initial = af.min(f_initial[0, :, :domain.N_p1])
+maxf_electron_initial = np.max(f_initial[0, :, :domain.N_p1])
+minf_electron_initial = np.min(f_initial[0, :, :domain.N_p1])
 
-maxf_ion_initial = af.max(f_initial[0, :, -domain.N_p1:])
-minf_ion_initial = af.min(f_initial[0, :, -domain.N_p1:])
+maxf_ion_initial = np.max(f_initial[0, :, -domain.N_p1:])
+minf_ion_initial = np.min(f_initial[0, :, -domain.N_p1:])
 
 maxf_electron = maxf_electron_initial
 minf_electron = minf_electron_initial
@@ -76,17 +76,17 @@ for time_index, t0 in enumerate(time_array):
         f_electron = f[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
         f_ion      = f[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
 
-        if(af.max(f_electron)>maxf_electron):
-            maxf_electron = af.max(f_electron)
+        if(np.max(f_electron)>maxf_electron):
+            maxf_electron = np.max(f_electron)
 
-        if(af.min(f_electron)<minf_electron):
-            minf_electron = af.min(f_electron)
+        if(np.min(f_electron)<minf_electron):
+            minf_electron = np.min(f_electron)
 
-        if(af.max(f_ion)>maxf_ion):
-            maxf_ion = af.max(f_ion)
+        if(np.max(f_ion)>maxf_ion):
+            maxf_ion = np.max(f_ion)
 
-        if(af.min(f_ion)<minf_ion):
-            minf_ion = af.min(f_ion)
+        if(np.min(f_ion)<minf_ion):
+            minf_ion = np.min(f_ion)
 
 delta_f_electron_max = maxf_electron - maxf_electron_initial
 delta_f_electron_min = minf_electron - minf_electron_initial
