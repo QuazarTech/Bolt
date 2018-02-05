@@ -27,12 +27,15 @@ riemann_solver = 'upwind-flux'
 restart = 0
 restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/f_eqbm.h5'
 phi_restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/phi_eqbm.h5'
+electrostatic_solver_every_nth_step = 1000000
+solve_for_equilibrium = 0
+
 
 # File-writing Parameters:
 dump_steps = 1000
 
 # Time parameters:
-dt      = 0.1
+dt      = 0.05
 t_final = 1000
 
 # Dimensionality considered in velocity space:
@@ -58,8 +61,8 @@ contact_end           = 5.5 # um
 
 initial_temperature = 12e-4
 initial_mu          = 0.015
-ephi_left_contact   =   1e-10
-ephi_right_contact  =  -1e-10
+vel_drift_x_in      = 1e-7*fermi_velocity
+vel_drift_x_out     = 1e-7*fermi_velocity
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
 mu          = None # chemical potential used in the e-ph operator
@@ -75,17 +78,15 @@ E_band   = None
 vel_band = None
 
 collision_operator_nonlinear_iters  = 2
-electrostatic_solver_every_nth_step = 1000000
-solve_for_equilibrium = 0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(0. * q1**0 * p1**0)
+    return(np.inf * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
-    return(np.inf * q1**0 * p1**0)
+    return(1. * q1**0 * p1**0)
 
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))

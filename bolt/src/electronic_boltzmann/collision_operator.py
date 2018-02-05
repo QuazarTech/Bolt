@@ -63,16 +63,9 @@ def f0_defect_constant_T(f, p1, p2, p3, params):
     print("    rank = ", params.rank,
 	  "||residual_defect|| = ", error_mass_conservation
 	 )
-
-    density_f = af.sum(f, 0)
-    fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
-    density_fermi_dirac = af.sum(fermi_dirac, 0)
-
     print("    rank = ", params.rank,
           "mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
-          "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g]),
-          "density_f = ", af.mean(density_f[0, N_g:-N_g, N_g:-N_g]),
-          "density_fermi_dirac = ",af.mean(density_fermi_dirac[0, N_g:-N_g, N_g:-N_g])
+          "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g])
          )
     PETSc.Sys.Print("    ------------------")
 
@@ -164,14 +157,8 @@ def f0_defect(f, p1, p2, p3, params):
                          af.max(af.abs(residual[1]))]
                        )
     print("    ||residual_defect|| = ", error_norm)
-    density_f = af.sum(f, 0)
-    fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
-    density_fermi_dirac = af.sum(fermi_dirac, 0)
-
     print("    mu = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]),
-           "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g]),
-           "density_f = ", af.mean(density_f[0, N_g:-N_g, N_g:-N_g]),
-           "density_fermi_dirac = ",af.mean(density_fermi_dirac[0, N_g:-N_g, N_g:-N_g])
+           "T = ", af.mean(params.T[0, N_g:-N_g, N_g:-N_g])
          )
     print("    ------------------")
 
@@ -185,11 +172,10 @@ def f0_ee(f, p1, p2, p3, params):
     T_ee        = params.T_ee
     vel_drift_x = params.vel_drift_x
     vel_drift_y = params.vel_drift_y
-    phi         = 0.*params.charge_electron * params.phi
 
     for n in range(params.collision_nonlinear_iters):
 
-        E_upper = params.E_band + phi
+        E_upper = params.E_band
         k       = params.boltzmann_constant
 
         tmp1        = (E_upper - mu_ee - p1*vel_drift_x - p2*vel_drift_y)
@@ -204,25 +190,25 @@ def f0_ee(f, p1, p2, p3, params):
         af.eval(a_0, a_1, a_2, a_3)
 
         # TODO: Multiply with the integral measure dp1 * dp2
-        a_00 = af.sum(a_0, 2)
-        a_01 = af.sum(a_1, 2)
-        a_02 = af.sum(a_2, 2)
-        a_03 = af.sum(a_3, 2)
+        a_00 = af.sum(a_0, 0)
+        a_01 = af.sum(a_1, 0)
+        a_02 = af.sum(a_2, 0)
+        a_03 = af.sum(a_3, 0)
 
-        a_10 = af.sum(E_upper * a_0, 2)
-        a_11 = af.sum(E_upper * a_1, 2)
-        a_12 = af.sum(E_upper * a_2, 2)
-        a_13 = af.sum(E_upper * a_3, 2)
+        a_10 = af.sum(E_upper * a_0, 0)
+        a_11 = af.sum(E_upper * a_1, 0)
+        a_12 = af.sum(E_upper * a_2, 0)
+        a_13 = af.sum(E_upper * a_3, 0)
 
-        a_20 = af.sum(p1 * a_0, 2)
-        a_21 = af.sum(p1 * a_1, 2)
-        a_22 = af.sum(p1 * a_2, 2)
-        a_23 = af.sum(p1 * a_3, 2)
+        a_20 = af.sum(p1 * a_0, 0)
+        a_21 = af.sum(p1 * a_1, 0)
+        a_22 = af.sum(p1 * a_2, 0)
+        a_23 = af.sum(p1 * a_3, 0)
 
-        a_30 = af.sum(p2 * a_0, 2)
-        a_31 = af.sum(p2 * a_1, 2)
-        a_32 = af.sum(p2 * a_2, 2)
-        a_33 = af.sum(p2 * a_3, 2)
+        a_30 = af.sum(p2 * a_0, 0)
+        a_31 = af.sum(p2 * a_1, 0)
+        a_32 = af.sum(p2 * a_2, 0)
+        a_33 = af.sum(p2 * a_3, 0)
 
         A = [ [a_00, a_01, a_02, a_03], \
               [a_10, a_11, a_12, a_13], \
@@ -242,10 +228,10 @@ def f0_ee(f, p1, p2, p3, params):
         first_moment_x =      p1*(f - fermi_dirac)
         first_moment_y =      p2*(f - fermi_dirac)
 
-        eqn_mass_conservation   = af.sum(zeroth_moment,  2)
-        eqn_energy_conservation = af.sum(second_moment,  2)
-        eqn_mom_x_conservation  = af.sum(first_moment_x, 2)
-        eqn_mom_y_conservation  = af.sum(first_moment_y, 2)
+        eqn_mass_conservation   = af.sum(zeroth_moment,  0)
+        eqn_energy_conservation = af.sum(second_moment,  0)
+        eqn_mom_x_conservation  = af.sum(first_moment_x, 0)
+        eqn_mom_y_conservation  = af.sum(first_moment_y, 0)
 
         residual = [eqn_mass_conservation, \
                     eqn_energy_conservation, \
@@ -258,10 +244,16 @@ def f0_ee(f, p1, p2, p3, params):
                              af.max(af.abs(residual[3]))
                             ]
                            )
-        print("    ||residual_ee|| = ", error_norm)
+        print("    rank = ", params.rank,
+	      "||residual_ee|| = ", error_norm
+	     )
 
-        if (error_norm < 1e-13):
-            return(fermi_dirac)
+#        if (error_norm < 1e-13):
+#            params.mu_ee       = mu_ee      
+#            params.T_ee        = T_ee       
+#            params.vel_drift_x = vel_drift_x
+#            params.vel_drift_y = vel_drift_y
+#            return(fermi_dirac)
 
         b_0 = eqn_mass_conservation  
         b_1 = eqn_energy_conservation
@@ -311,10 +303,10 @@ def f0_ee(f, p1, p2, p3, params):
     first_moment_x =      p1*(f - fermi_dirac)
     first_moment_y =      p2*(f - fermi_dirac)
     
-    eqn_mass_conservation   = af.sum(zeroth_moment,  2)
-    eqn_energy_conservation = af.sum(second_moment,  2)
-    eqn_mom_x_conservation  = af.sum(first_moment_x, 2)
-    eqn_mom_y_conservation  = af.sum(first_moment_y, 2)
+    eqn_mass_conservation   = af.sum(zeroth_moment,  0)
+    eqn_energy_conservation = af.sum(second_moment,  0)
+    eqn_mom_x_conservation  = af.sum(first_moment_x, 0)
+    eqn_mom_y_conservation  = af.sum(first_moment_y, 0)
 
     residual = [eqn_mass_conservation, \
                 eqn_energy_conservation, \
@@ -328,8 +320,17 @@ def f0_ee(f, p1, p2, p3, params):
                          af.max(af.abs(residual[3]))
                         ]
                        )
-    print("    ||residual_ee|| = ", error_norm)
-    print("    ------------------")
+    print("    rank = ", params.rank,
+	  "||residual_ee|| = ", error_norm
+	 )
+    N_g = domain.N_ghost
+    print("    rank = ", params.rank,
+          "mu_ee = ", af.mean(params.mu_ee[0, N_g:-N_g, N_g:-N_g]),
+          "T_ee = ", af.mean(params.T_ee[0, N_g:-N_g, N_g:-N_g]),
+          "<v_x> = ", af.mean(params.vel_drift_x[0, N_g:-N_g, N_g:-N_g]),
+          "<v_y> = ", af.mean(params.vel_drift_y[0, N_g:-N_g, N_g:-N_g])
+         )
+    PETSc.Sys.Print("    ------------------")
 
     return(fermi_dirac)
 
@@ -344,10 +345,10 @@ def RTA(f, q1, q2, p1, p2, p3, moments, params, flag = False):
     
         return(f)
 
-    C_f = -(  f - f0_defect_constant_T(f, p1, p2, p3, params)
+    C_f = -(  f - f0_defect_constant_T(f, p1, p2, p3, params) \
            ) / params.tau_defect(q1, q2, p1, p2, p3) \
-#          -(  f - f0_ee(f, p1, p2, p3, params)
-#           ) / params.tau_ee(q1, q2, p1, p2, p3)
+          -(  f - f0_ee(f, p1, p2, p3, params)
+           ) / params.tau_ee(q1, q2, p1, p2, p3)
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
     # WORKAROUND:
     C_f = af.select(params.tau_defect(q1, q2, p1, p2, p3) == np.inf, 0, C_f)

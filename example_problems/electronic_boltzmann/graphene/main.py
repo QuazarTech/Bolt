@@ -25,7 +25,7 @@ import bolt.src.electronic_boltzmann.collision_operator \
 
 import bolt.src.electronic_boltzmann.moment_defs as moment_defs
 
-pl.rcParams['figure.figsize']  = 6, 7.5
+pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 150
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -328,6 +328,11 @@ while t0 < t_final:
 #                             )
 #
 #q3_index = np.where(nls.poisson.q3_3D[N_g:-N_g] >= nls.location_in_q3)[0][0]
+#pl.plot(nls.poisson.q1_3D[N_g:-N_g],
+#        phi_array[q3_index, nls.poisson.N_q2_3D_local/2, :], 'o-'
+#       )
+#pl.show()
+
 #pl.rcParams['figure.figsize']  = 20, 7.5
 #pl.subplot(121)
 #N_g = domain.N_ghost
