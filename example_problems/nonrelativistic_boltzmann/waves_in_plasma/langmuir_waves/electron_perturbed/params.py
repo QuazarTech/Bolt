@@ -23,36 +23,30 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-#kT0 = 1
-#m0  = 1
-#e0  = 1
-#v0  = (kT0/m0)**0.5
-#plasma_freq = (n * e0**2/m0)
-#t0  = 1/plasma_freq
-
-mass_ion      = 1     #* m0
-mass_electron = 1/100 #* m0
-mass               = af.Array([mass_electron, mass_ion], (1, 2))
+mass               = [1/100, 1] # m_e, m_i
 boltzmann_constant = 1
-charge             = af.Array([-1, 1], (1, 2)) #e0
+charge             = [-1, 1] # e_e, e_i
+
+# e_e*/m_e*E*df_e/dv, e_i/m_i*E*df_i/dv
 
 # Initial Conditions used in initialize:
-rho_background_e = 1 # 1/l0^3; l0 = v0 t0; v0 = (2kT0/m0)^0.5
-rho_background_i = 1 # 1/l0^3
+rho_background_e = 1
+rho_background_i = 1
 
-temperature_background_i = 1 # kT_i
-temperature_background_e = 1 # kT_i
+temperature_background_e = 1
+temperature_background_i = 1
 
 # Parameter controlling amplitude of perturbation introduced:
 alpha = 0.01
 
 # Time parameters:
-N_cfl   = 0.1
-t_final = 5 # t0 = 1/omega_pi
+N_cfl   = 0.9
+t_final = 6
 
 # Switch for solver components:
-EM_fields_enabled = True
-source_enabled    = True
+EM_fields_enabled        = True
+source_enabled           = False
+instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

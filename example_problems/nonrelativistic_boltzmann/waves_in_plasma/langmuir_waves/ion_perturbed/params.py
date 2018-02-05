@@ -33,7 +33,7 @@ charge             = [-1, 1] # e_e, e_i
 rho_background_e = 1
 rho_background_i = 1
 
-temperature_background_e = 2.5
+temperature_background_e = 1
 temperature_background_i = 1
 
 # Parameter controlling amplitude of perturbation introduced:
