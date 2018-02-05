@@ -23,9 +23,11 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = [1, 100]
+mass               = [1/100, 1] # m_e, m_i
 boltzmann_constant = 1
-charge             = [-1, 1]
+charge             = [-1, 1] # e_e, e_i
+
+# e_e*/m_e*E*df_e/dv, e_i/m_i*E*df_i/dv
 
 # Initial Conditions used in initialize:
 rho_background_e = 1

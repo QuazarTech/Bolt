@@ -79,7 +79,23 @@ n_ls              = ls.compute_moments('density')
 rho_data_ls[0, 0] = af.max(n_ls[:, 0]) 
 rho_data_ls[0, 1] = af.max(n_ls[:, 1]) 
 
+q1 = np.array(nls.q1_center[0, 0, :, 0]).ravel()
+p1 = np.array(nls.p1_center[:, 0, 0, 0]).ravel()
+
+p1, q1 = np.meshgrid(p1, q1)
+
 for time_index, t0 in enumerate(time_array[1:]):
+    
+    # if(time_index%10 == 0):
+    #     pl.contourf(p1, q1, 
+    #                 np.swapaxes(np.array(nls.f[:, 0, :, 0]).reshape(nls.N_p1, nls.N_q1 + 6), 0, 1), 
+    #                 100
+    #                )
+    #     pl.xlabel(r'$v$')
+    #     pl.ylabel(r'$x$')
+    #     pl.title('Time = %.2f'%(t0-dt))
+    #     pl.savefig('images/%04d'%(time_index/10) + '.png')
+    #     pl.clf()
 
     print('Computing For Time =', t0)
     
@@ -94,16 +110,42 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_ls[time_index + 1, 0] = af.max(n_ls[:, 0]) 
     rho_data_ls[time_index + 1, 1] = af.max(n_ls[:, 1]) 
 
+pl.plot(time_array, rho_data_nls[:, 0], '--', color = 'C3', label = 'Electrons')
+pl.plot(time_array, rho_data_nls[:, 1], color = 'C0', label='Ions')
+pl.ylabel(r'MAX($\rho$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('rho_nonlinear.png')
+pl.clf()
+
+pl.plot(time_array, rho_data_ls[:, 0], '--', color = 'C3', label = 'Electrons')
+pl.plot(time_array, rho_data_ls[:, 1], color = 'C0', label='Ions')
+pl.ylabel(r'MAX($\rho$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('rho_linear.png')
+pl.clf()
+
+pl.plot(time_array, rho_data_nls[:, 0], color = 'C3', label = 'Electrons(Nonlinear Solver)')
+pl.plot(time_array, rho_data_nls[:, 1], color = 'C0', label = 'Ions(Nonlinear Solver)')
+pl.plot(time_array, rho_data_ls[:, 0], '--', color = 'C3', label = 'Electrons(Linear Solver)')
+pl.plot(time_array, rho_data_ls[:, 1], '--', color = 'C0', label = 'Ions(Linear Solver)')
+pl.ylabel(r'MAX($\rho$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('rho.png')
+pl.clf()
+
+pl.plot(time_array, rho_data_nls[:, 0], label = 'Nonlinear Solver')
 pl.plot(time_array, rho_data_ls[:, 0], '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, rho_data_nls[:, 0], label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
 pl.savefig('rho_e.png')
 pl.clf()
 
+pl.plot(time_array, rho_data_nls[:, 1], label = 'Nonlinear Solver')
 pl.plot(time_array, rho_data_ls[:, 1], '--', color = 'black', label = 'Linear Solver')
-pl.plot(time_array, rho_data_nls[:, 1], label='Nonlinear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
