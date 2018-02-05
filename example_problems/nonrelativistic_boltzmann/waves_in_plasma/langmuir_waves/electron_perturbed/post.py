@@ -53,17 +53,11 @@ h5f       = h5py.File('dump/0000.h5', 'r')
 f_initial = h5f['distribution_function'][:]
 h5f.close()
 
-maxf_electron_initial = np.max(f_initial[0, :, :domain.N_p1])
-minf_electron_initial = np.min(f_initial[0, :, :domain.N_p1])
+delta_f_electron_max = 0
+delta_f_electron_min = 0
 
-maxf_ion_initial = np.max(f_initial[0, :, -domain.N_p1:])
-minf_ion_initial = np.min(f_initial[0, :, -domain.N_p1:])
-
-maxf_electron = maxf_electron_initial
-minf_electron = minf_electron_initial
-
-maxf_ion = maxf_ion_initial
-minf_ion = minf_ion_initial
+delta_f_ion_max = 0
+delta_f_ion_min = 0
 
 # Traversal to determine variation:
 for time_index, t0 in enumerate(time_array):
@@ -73,26 +67,20 @@ for time_index, t0 in enumerate(time_array):
         f   = h5f['distribution_function'][:]
         h5f.close()
 
-        f_electron = f[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
-        f_ion      = f[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+        delta_f_electron = (f - f_initial)[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
+        delta_f_ion      = (f - f_initial)[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
 
-        if(np.max(f_electron)>maxf_electron):
-            maxf_electron = np.max(f_electron)
+        if(np.max(delta_f_electron)>delta_f_electron_max):
+            delta_f_electron_max = np.max(f_electron)
 
-        if(np.min(f_electron)<minf_electron):
-            minf_electron = np.min(f_electron)
+        if(np.min(delta_f_electron)<delta_f_electron_min):
+            delta_f_electron_min = np.min(f_electron)
 
-        if(np.max(f_ion)>maxf_ion):
-            maxf_ion = np.max(f_ion)
+        if(np.max(delta_f_ion)>delta_f_ion_max):
+            delta_f_ion_max = np.max(f_ion)
 
-        if(np.min(f_ion)<minf_ion):
-            minf_ion = np.min(f_ion)
-
-delta_f_electron_max = maxf_electron - maxf_electron_initial
-delta_f_electron_min = minf_electron - minf_electron_initial
-
-delta_f_ion_max = maxf_ion - maxf_ion_initial
-delta_f_ion_min = minf_ion - minf_ion_initial
+        if(np.min(delta_f_ion)<delta_f_ion_min):
+            delta_f_ion_min = np.min(f_ion)
 
 for time_index, t0 in enumerate(time_array):
     
@@ -121,7 +109,7 @@ for time_index, t0 in enumerate(time_array):
         fig.suptitle('Time = %.2f'%(t0 - dt))
         fig.colorbar(c1, ax = ax1)
         fig.colorbar(c2, ax = ax2)
-        pl.savefig('images/' + '%04d'%time_index + '.png')
+        pl.savefig('images/' + '%04d'%(time_index/10) + '.png')
         pl.close(fig)
         pl.clf()
 
@@ -132,6 +120,8 @@ rho_data_ls  = h5f['n_ls'][:]
 rho_data_nls = h5f['n_nls'][:]
 time_array   = h5f['time'][:]
 h5f.close()
+
+pl.rcParams['figure.figsize']  = 12, 7.5
 
 pl.plot(time_array, rho_data_nls[:, 0], '--', color = 'C3', label = 'Electrons')
 pl.plot(time_array, rho_data_nls[:, 1], color = 'C0', label='Ions')
@@ -177,7 +167,7 @@ pl.clf()
 
 pl.plot(time_array, E_data_nls, label = 'Nonlinear Solver')
 pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'SUM($|E|^2$)')
+pl.ylabel(r'MAX($E$)')
 pl.xlabel('Time')
 pl.legend()
 pl.savefig('E.png')
