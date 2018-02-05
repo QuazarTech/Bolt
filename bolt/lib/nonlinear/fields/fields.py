@@ -202,7 +202,23 @@ class fields_solver(object):
                                                      )
 
             self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
+        elif (self.params.fields_initialize == 'fft + user-defined magnetic fields'):
+            fft_poisson(self, rho_initial)
+            communicate.communicate_fields(self)
+            apply_bcs_fields(self)
+
+            E1, E2, E3 = self.cell_centered_EM_fields[0],\
+                         self.cell_centered_EM_fields[1],\
+                         self.cell_centered_EM_fields[2]
+
+            B1, B2, B3 = self.initialize.initialize_B(self.q1_center,
+                                                      self.q2_center,
+                                                      self.params
+                                                     )
         
+            self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
         else:
             raise NotImplementedError('Method not valid/not implemented')
 

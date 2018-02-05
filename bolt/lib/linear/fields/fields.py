@@ -32,6 +32,7 @@ class fields_solver(object):
         self.dq2    = physical_system.dq2
         self.params = physical_system.params
 
+        self.initialize = physical_system.initial_conditions
 
         self.q1_center, self.q2_center = \
             calculate_q_center(physical_system.q1_start, 
@@ -53,13 +54,22 @@ class fields_solver(object):
         # If option is given as user-defined:
         if(self.params.fields_initialize == 'user-defined'):
             
-            E1, E2, E3 = self.initialize_E(self.q1_center, self.q2_center, self.params)
-            B1, B2, B3 = self.initialize_B(self.q1_center, self.q2_center, self.params)
+            E1, E2, E3 = self.initialize.initialize_E(self.q1_center, self.q2_center, self.params)
+            B1, B2, B3 = self.initialize.initialize_B(self.q1_center, self.q2_center, self.params)
 
             # Scaling Appropriately
             self.E1_hat = 2 * fft2(E1) / (self.N_q1 * self.N_q2)
             self.E2_hat = 2 * fft2(E2) / (self.N_q1 * self.N_q2)
             self.E3_hat = 2 * fft2(E3) / (self.N_q1 * self.N_q2)
+            self.B1_hat = 2 * fft2(B1) / (self.N_q1 * self.N_q2)
+            self.B2_hat = 2 * fft2(B2) / (self.N_q1 * self.N_q2)
+            self.B3_hat = 2 * fft2(B3) / (self.N_q1 * self.N_q2)
+
+        elif (self.params.fields_initialize == 'fft + user-defined magnetic fields'):
+            compute_electrostatic_fields(self, rho_hat_initial)
+
+            B1, B2, B3 = self.initialize.initialize_B(self.q1_center, self.q2_center, self.params)
+
             self.B1_hat = 2 * fft2(B1) / (self.N_q1 * self.N_q2)
             self.B2_hat = 2 * fft2(B2) / (self.N_q1 * self.N_q2)
             self.B3_hat = 2 * fft2(B3) / (self.N_q1 * self.N_q2)
