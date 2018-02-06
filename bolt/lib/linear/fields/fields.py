@@ -48,6 +48,45 @@ class fields_solver(object):
 
         self._initialize(rho_hat_initial)
 
+    def initialize_magnetic_fields(self):
+        
+        if('initialize_B' in dir(self.initialize)):
+            
+            B1, B2, B3 = self.initialize.initialize_B(self.q1_center,
+                                                      self.q2_center,
+                                                      self.params
+                                                     )
+
+        elif('initialize_A' in dir(self.initialize)):
+
+            A1, A2, A3 = self.initialize.initialize_A(self.q1_center,
+                                                      self.q2_center,
+                                                      self.params
+                                                     )
+
+            B1 =  A3 * 1j * self.k_q2
+            B2 = -A3 * 1j * self.k_q1
+            B3 =  A2 * 1j * self.k_q1 - A1 * 1j * self.k_q2
+
+        elif('initialize_A3_B3' in dir(self.initialize)):
+
+            A3 = self.initialize.initialize_A3_B3(self.q1_left_bot,
+                                                  self.q2_left_bot,
+                                                  self.params
+                                                 )[0]
+
+            B1 =  A3 * 1j * self.k_q2
+            B2 = -A3 * 1j * self.k_q1
+            B3 = self.initialize.initialize_A3_B3(self.q1_center,
+                                                  self.q2_center,
+                                                  self.params
+                                                 )[1]
+
+        else:
+            raise NotImplementedError('Initialization method for magnetic fields not valid/found')
+
+        af.eval(B1, B2, B3)
+        return(B1, B2, B3)
 
     def _initialize(self, rho_hat_initial):
 
@@ -55,7 +94,7 @@ class fields_solver(object):
         if(self.params.fields_initialize == 'user-defined'):
             
             E1, E2, E3 = self.initialize.initialize_E(self.q1_center, self.q2_center, self.params)
-            B1, B2, B3 = self.initialize.initialize_B(self.q1_center, self.q2_center, self.params)
+            B1, B2, B3 = self.initialize_magnetic_fields()
 
             # Scaling Appropriately
             self.E1_hat = 2 * fft2(E1) / (self.N_q1 * self.N_q2)
@@ -67,8 +106,7 @@ class fields_solver(object):
 
         elif (self.params.fields_initialize == 'fft + user-defined magnetic fields'):
             compute_electrostatic_fields(self, rho_hat_initial)
-
-            B1, B2, B3 = self.initialize.initialize_B(self.q1_center, self.q2_center, self.params)
+            B1, B2, B3 = self.initialize_magnetic_fields()
 
             self.B1_hat = 2 * fft2(B1) / (self.N_q1 * self.N_q2)
             self.B2_hat = 2 * fft2(B2) / (self.N_q1 * self.N_q2)

@@ -12,7 +12,9 @@ from .boundaries import apply_bcs_fields
 from .electrostatic.fft import fft_poisson
 from .electrodynamic.fdtd_explicit import fdtd
 
-from bolt.lib.utils.calculate_q import calculate_q_center
+from bolt.lib.utils.calculate_q import \
+    calculate_q_center, calculate_q_left_center, \
+    calculate_q_center_bot, calculate_q_left_bot
 
 class fields_solver(object):
     
@@ -121,6 +123,27 @@ class fields_solver(object):
                                self.dq1, self.dq2
                               )
 
+        self.q1_left_center, self.q2_left_center = \
+            calculate_q_left_center(self.q1_start + i_q1_start * self.dq1, 
+                                    self.q2_start + i_q2_start * self.dq2,
+                                    N_q1_local, N_q2_local, self.N_g,
+                                    self.dq1, self.dq2
+                                   )
+
+        self.q1_center_bot, self.q2_center_bot = \
+            calculate_q_center_bot(self.q1_start + i_q1_start * self.dq1, 
+                                   self.q2_start + i_q2_start * self.dq2,
+                                   N_q1_local, N_q2_local, self.N_g,
+                                   self.dq1, self.dq2
+                                  )
+
+        self.q1_left_bot, self.q2_left_bot = \
+            calculate_q_left_bot(self.q1_start + i_q1_start * self.dq1, 
+                                 self.q2_start + i_q2_start * self.dq2,
+                                 N_q1_local, N_q2_local, self.N_g,
+                                 self.dq1, self.dq2
+                                )
+
         # The following global and local vectors are used in
         # the communication routines for EM fields
         self._glob_fields  = self._da_fields.createGlobalVec()
@@ -136,7 +159,72 @@ class fields_solver(object):
         self.at_n = True
         
         self._initialize(rho_initial)
-    
+
+    def initialize_magnetic_fields(self):
+        
+        if('initialize_B' in dir(self.initialize)):
+            
+            B1 = self.initialize.initialize_B(self.q1_left_center,
+                                              self.q2_left_center,
+                                              self.params
+                                             )[0]
+
+            B2 = self.initialize.initialize_B(self.q1_center_bot,
+                                              self.q2_center_bot,
+                                              self.params
+                                             )[1]
+
+            B3 = self.initialize.initialize_B(self.q1_center,
+                                              self.q2_center,
+                                              self.params
+                                             )[2]
+
+        elif('initialize_A' in dir(self.initialize)):
+
+            A1 = self.initialize.initialize_A(self.q1_center_bot,
+                                              self.q2_center_bot,
+                                              self.params
+                                             )[0]
+
+            A2 = self.initialize.initialize_A(self.q1_left_center,
+                                              self.q2_left_center,
+                                              self.params
+                                             )[1]
+
+            A3 = self.initialize.initialize_A(self.q1_left_bot,
+                                              self.q2_left_bot,
+                                              self.params
+                                             )[2]
+
+            B1 =  (af.shift(A3, 0, 0, 0, -1) - A3) / self.dq2
+            B2 = -(af.shift(A3, 0, 0,-1,  0) - A3) / self.dq1
+
+            dA2_dq1 = (af.shift(A2, 0, 0,-1,  0) - A2) / self.dq1
+            dA1_dq2 = (af.shift(A1, 0, 0, 0, -1) - A1) / self.dq2
+            B3      = dA2_dq1 - dA1_dq2
+
+        elif('initialize_A3_B3' in dir(self.initialize)):
+
+            A3 = self.initialize.initialize_A3_B3(self.q1_left_bot,
+                                                  self.q2_left_bot,
+                                                  self.params
+                                                 )[0]
+
+            B1 =  (af.shift(A3, 0, 0, 0, -1) - A3) / self.dq2
+            B2 = -(af.shift(A3, 0, 0,-1,  0) - A3) / self.dq1
+
+            B3 = self.initialize.initialize_A3_B3(self.q1_center,
+                                                  self.q2_center,
+                                                  self.params
+                                                 )[1]
+
+        else:
+            raise NotImplementedError('Initialization method for magnetic fields not valid/found')
+
+        self.yee_grid_EM_fields[3:] = af.join(0, B1, B2, B3)
+        af.eval(self.yee_grid_EM_fields)
+        return
+
     def _initialize(self, rho_initial):
         """
         Called when the solver object is declared. This function is
@@ -188,48 +276,59 @@ class fields_solver(object):
             fft_poisson(self, rho_initial)
             communicate.communicate_fields(self)
             apply_bcs_fields(self)
+            
+            # Transferring the information about the electric field to the Yee-grid:
+            self.cell_centered_grid_to_yee_grid('E')
 
         elif (self.params.fields_initialize == 'user-defined'):
 
-            E1, E2, E3 = self.initialize.initialize_E(self.q1_center,
-                                                      self.q2_center,
-                                                      self.params
-                                                     )
+            E1 = self.initialize.initialize_E(self.q1_center_bot,
+                                              self.q2_center_bot,
+                                              self.params
+                                             )[0]
 
-            B1, B2, B3 = self.initialize.initialize_B(self.q1_center,
-                                                      self.q2_center,
-                                                      self.params
-                                                     )
+            E2 = self.initialize.initialize_E(self.q1_left_center,
+                                              self.q2_left_center,
+                                              self.params
+                                             )[1]
 
-            self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            E3 = self.initialize.initialize_E(self.q1_left_bot,
+                                              self.q2_left_bot,
+                                              self.params
+                                             )[2]
+
+            # Get's initialized on the Yee grid:
+            self.yee_grid_EM_fields[:3] = af.join(0, E1, E2, E3)
+            self.initialize_magnetic_fields()
+            self.yee_grid_to_cell_centered_grid()
 
         elif (self.params.fields_initialize == 'fft + user-defined magnetic fields'):
             fft_poisson(self, rho_initial)
             communicate.communicate_fields(self)
             apply_bcs_fields(self)
 
-            E1, E2, E3 = self.cell_centered_EM_fields[0],\
-                         self.cell_centered_EM_fields[1],\
-                         self.cell_centered_EM_fields[2]
+            # Transferring the information about the electric field to the Yee-grid:
+            self.cell_centered_grid_to_yee_grid('E')
+            # Initialize on Yee grid:
+            self.initialize_magnetic_fields()
 
-            B1, B2, B3 = self.initialize.initialize_B(self.q1_center,
-                                                      self.q2_center,
-                                                      self.params
-                                                     )
-        
-            self.cell_centered_EM_fields = af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+            # Transferring the information about the magnetic field to the cell centered grid:
+            self.yee_grid_to_cell_centered_grid('B')
 
         else:
             raise NotImplementedError('Method not valid/not implemented')
 
-        self.cell_centered_grid_to_yee_grid()
-        
         # At t = 0, we take the value of B_{0} = B{1/2}:
         self.cell_centered_EM_fields_at_n = self.cell_centered_EM_fields
         self.cell_centered_EM_fields_at_n_plus_half = self.cell_centered_EM_fields
+        return
 
-    def cell_centered_grid_to_yee_grid(self):
-
+    def cell_centered_grid_to_yee_grid(self, fields_to_transform = None):
+        """
+        Making use of the fields_to_transform option, one can convert
+        the magnetic fields or the electric fields alone. The default
+        option is to convert both when the option is passed as None
+        """
         E1 = self.cell_centered_EM_fields[0]
         E2 = self.cell_centered_EM_fields[1]
         E3 = self.cell_centered_EM_fields[2]
@@ -238,23 +337,29 @@ class fields_solver(object):
         B2 = self.cell_centered_EM_fields[4]
         B3 = self.cell_centered_EM_fields[5]
 
-        self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 0, 1))  # (i+1/2, j)
-        self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 0, 1, 0))  # (i, j+1/2)
-        self.yee_grid_EM_fields[2] = 0.25 * (  E3 
-                                             + af.shift(E3, 0, 0, 1, 0)
-                                             + af.shift(E3, 0, 0, 0, 1) 
-                                             + af.shift(E3, 0, 0, 1, 1)
-                                            )  # (i, j)
+        if(fields_to_transform == 'E' or fields_to_transform == None):
+            self.yee_grid_EM_fields[0] = 0.5 * (E1 + af.shift(E1, 0, 0, 0, 1))  # (i+1/2, j)
+            self.yee_grid_EM_fields[1] = 0.5 * (E2 + af.shift(E2, 0, 0, 1, 0))  # (i, j+1/2)
+            self.yee_grid_EM_fields[2] = 0.25 * (  E3 
+                                                 + af.shift(E3, 0, 0, 1, 0)
+                                                 + af.shift(E3, 0, 0, 0, 1) 
+                                                 + af.shift(E3, 0, 0, 1, 1)
+                                                )  # (i, j)
 
-        self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 0, 1, 0)) # (i, j+1/2)
-        self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 0, 1)) # (i+1/2, j)
-        self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
+        if(fields_to_transform == 'B' or fields_to_transform == None):
+            self.yee_grid_EM_fields[3] = 0.5 * (B1 + af.shift(B1, 0, 0, 1, 0)) # (i, j+1/2)
+            self.yee_grid_EM_fields[4] = 0.5 * (B2 + af.shift(B2, 0, 0, 0, 1)) # (i+1/2, j)
+            self.yee_grid_EM_fields[5] = B3 # (i+1/2, j+1/2)
 
         af.eval(self.yee_grid_EM_fields)
         return
 
-    def yee_grid_to_cell_centered_grid(self):
-        
+    def yee_grid_to_cell_centered_grid(self, fields_to_transform = None):
+        """
+        Making use of the optional fields_to_transform option, one can convert
+        the magnetic fields or the electric fields alone. The default
+        option is to convert both when the option is passed as None
+        """
         E1_yee = self.yee_grid_EM_fields[0] # (i + 1/2, j)
         E2_yee = self.yee_grid_EM_fields[1] # (i, j + 1/2)
         E3_yee = self.yee_grid_EM_fields[2] # (i, j)
@@ -264,17 +369,20 @@ class fields_solver(object):
         B3_yee = self.yee_grid_EM_fields[5] # (i + 1/2, j + 1/2)
 
         # Interpolating at the (i + 1/2, j + 1/2) point of the grid:
-        self.cell_centered_EM_fields[0] = 0.5 * (E1_yee + af.shift(E1_yee, 0, 0,  0, -1))
-        self.cell_centered_EM_fields[1] = 0.5 * (E2_yee + af.shift(E2_yee, 0, 0, -1,  0))
-        self.cell_centered_EM_fields[2] = 0.25 * (  E3_yee 
-                                                  + af.shift(E3_yee, 0, 0,  0, -1)
-                                                  + af.shift(E3_yee, 0, 0, -1,  0)
-                                                  + af.shift(E3_yee, 0, 0, -1, -1)
-                                                 )
 
-        self.cell_centered_EM_fields[3] = 0.5 * (B1_yee + af.shift(B1_yee, 0, 0, -1,  0))
-        self.cell_centered_EM_fields[4] = 0.5 * (B2_yee + af.shift(B2_yee, 0, 0,  0, -1))
-        self.cell_centered_EM_fields[5] = B3_yee
+        if(fields_to_transform == 'E' or fields_to_transform == None):
+            self.cell_centered_EM_fields[0] = 0.5 * (E1_yee + af.shift(E1_yee, 0, 0,  0, -1))
+            self.cell_centered_EM_fields[1] = 0.5 * (E2_yee + af.shift(E2_yee, 0, 0, -1,  0))
+            self.cell_centered_EM_fields[2] = 0.25 * (  E3_yee 
+                                                      + af.shift(E3_yee, 0, 0,  0, -1)
+                                                      + af.shift(E3_yee, 0, 0, -1,  0)
+                                                      + af.shift(E3_yee, 0, 0, -1, -1)
+                                                     )
+
+        if(fields_to_transform == 'B' or fields_to_transform == None):
+            self.cell_centered_EM_fields[3] = 0.5 * (B1_yee + af.shift(B1_yee, 0, 0, -1,  0))
+            self.cell_centered_EM_fields[4] = 0.5 * (B2_yee + af.shift(B2_yee, 0, 0,  0, -1))
+            self.cell_centered_EM_fields[5] = B3_yee
 
         af.eval(self.cell_centered_EM_fields)
         return
