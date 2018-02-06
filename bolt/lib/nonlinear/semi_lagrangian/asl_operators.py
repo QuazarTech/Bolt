@@ -53,30 +53,25 @@ def op_solve_src(self, dt):
         tic = af.time()
 
     # Solving for tau = 0 systems:
-    tau = self.physical_system.params.tau(self.q1_center, self.q2_center,
-                                          self.p1_center, self.p2_center, 
-                                          self.p3_center
-                                         )
-    if(af.any_true(tau == 0)):
-        
-        self.f = af.select(tau == 0, 
-                           self._source(self.f, self.time_elapsed,
-                                        self.q1_center, self.q2_center,
-                                        self.p1_center, self.p2_center, 
-                                        self.p3_center, self.compute_moments, 
-                                        self.physical_system.params, 
-                                        True
-                                       ),
-                           self.f
-                          )
-    
-    self.f = integrators.RK2(self._source, self.f, dt, 
-                             self.time_elapsed, 
-                             self.q1_center, self.q2_center,
-                             self.p1_center, self.p2_center, 
-                             self.p3_center, self.compute_moments, 
-                             self.physical_system.params
-                            )
+    if(self.physical_system.params.instantaneous_collisions == True):
+        self.f = self._source(self.f, self.time_elapsed,
+                              self.q1_center, self.q2_center,
+                              self.p1_center, self.p2_center, self.p3_center, 
+                              self.compute_moments, 
+                              self.physical_system.params, 
+                              True
+                             )
+
+    if(    self.physical_system.params.source_enabled == True 
+       and self.physical_system.params.instantaneous_collisions != True
+      ):
+        self.f = integrators.RK2(self._source, self.f, dt, 
+                                 self.time_elapsed, 
+                                 self.q1_center, self.q2_center,
+                                 self.p1_center, self.p2_center, 
+                                 self.p3_center, self.compute_moments, 
+                                 self.physical_system.params
+                                )
     
     af.eval(self.f)
     if(self.performance_test_flag == True):
