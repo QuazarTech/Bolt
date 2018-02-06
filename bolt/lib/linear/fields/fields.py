@@ -4,7 +4,7 @@
 import numpy as np
 import arrayfire as af
 
-from bolt.lib.utils.fft_funcs import fft2
+from bolt.lib.utils.fft_funcs import fft2, ifft2
 from bolt.lib.utils.calculate_k import calculate_k
 from bolt.lib.utils.calculate_q import calculate_q_center
 from .electrostatic_solver import compute_electrostatic_fields
@@ -57,30 +57,38 @@ class fields_solver(object):
                                                       self.params
                                                      )
 
-        elif('initialize_A' in dir(self.initialize)):
+        # elif('initialize_A' in dir(self.initialize)):
 
-            A1, A2, A3 = self.initialize.initialize_A(self.q1_center,
-                                                      self.q2_center,
-                                                      self.params
-                                                     )
+        #     A1, A2, A3 = self.initialize.initialize_A(self.q1_center,
+        #                                               self.q2_center,
+        #                                               self.params
+        #                                              )
 
-            B1 =  A3 * 1j * self.k_q2
-            B2 = -A3 * 1j * self.k_q1
-            B3 =  A2 * 1j * self.k_q1 - A1 * 1j * self.k_q2
+        #     A1_hat = 2 * fft2(A1) / (self.N_q1 * self.N_q2)
+        #     A2_hat = 2 * fft2(A2) / (self.N_q1 * self.N_q2)
+        #     A3_hat = 2 * fft2(A3) / (self.N_q1 * self.N_q2)
+
+        #     B1 =  ifft2(A3_hat * 1j * self.k_q2)
+        #     B2 = -ifft2(A3_hat * 1j * self.k_q1)
+        #     B3 =  ifft2(A2_hat * 1j * self.k_q1 - A1_hat * 1j * self.k_q2)
 
         elif('initialize_A3_B3' in dir(self.initialize)):
 
-            A3 = self.initialize.initialize_A3_B3(self.q1_left_bot,
-                                                  self.q2_left_bot,
+            A3 = self.initialize.initialize_A3_B3(self.q1_center,
+                                                  self.q2_center,
                                                   self.params
                                                  )[0]
 
-            B1 =  A3 * 1j * self.k_q2
-            B2 = -A3 * 1j * self.k_q1
+            A3_hat = fft2(A3)
+
+            B1 =  ifft2(A3_hat * 1j * self.k_q2)
+            B2 = -ifft2(A3_hat * 1j * self.k_q1)
+
             B3 = self.initialize.initialize_A3_B3(self.q1_center,
                                                   self.q2_center,
                                                   self.params
                                                  )[1]
+            B3 = af.cast(B3, af.Dtype.c64)
 
         else:
             raise NotImplementedError('Initialization method for magnetic fields not valid/found')

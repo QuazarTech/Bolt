@@ -6,6 +6,7 @@ the system.
 import arrayfire as af
 import numpy as np
 
+
 def initialize_f(q1, q2, v1, v2, v3, params):
 
     m_e = params.mass[0, 0]

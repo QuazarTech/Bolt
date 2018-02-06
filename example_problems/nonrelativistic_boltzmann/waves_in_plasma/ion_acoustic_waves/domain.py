@@ -1,4 +1,5 @@
 from numpy import pi
+from params import l0, v0
 
 q1_start = 0      * l0
 q1_end   = 5 * pi * l0

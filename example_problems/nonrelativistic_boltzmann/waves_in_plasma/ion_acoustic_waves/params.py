@@ -1,6 +1,10 @@
 import numpy as np
 import arrayfire as af
 
+import bolt.src.nonrelativistic_boltzmann.units.length_scales as length_scales
+import bolt.src.nonrelativistic_boltzmann.units.time_scales as time_scales
+import bolt.src.nonrelativistic_boltzmann.units.velocity_scales as velocity_scales
+
 # Can be defined as 'electrostatic', 'user-defined', 'electrodynamic'.
 fields_type       = 'electrostatic'
 fields_initialize = 'fft'
@@ -36,9 +40,9 @@ e0 = 1  # e C
 k0 = 1  # k J/K
 eps0 = 1 # eps0 farads/m
 
-l0 = debye_length(n0, T0, e0, eps0, k0)
-v0 = thermal_speed(T0, m0, k0)
-t0 = 1/plasma_freq(n0, e0, eps0, m0)
+l0 = length_scales.debye_length(n0, T0, e0, eps0, k0)
+v0 = velocity_scales.thermal_speed(T0, m0, k0)
+t0 = 1/time_scales.plasma_freq(n0, e0, eps0, m0)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
