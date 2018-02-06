@@ -17,7 +17,22 @@ from bolt.lib.utils.calculate_q import \
     calculate_q_center_bot, calculate_q_left_bot
 
 class fields_solver(object):
+  
+    def compute_divB(self):
     
+        divB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 0, 1))/self.dq1 \
+               + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 0, 1))/self.dq2
+
+        return(divB)
+
+    def compute_divE(self):
+
+        divE =   (af.shift(self.yee_grid_EM_fields[0], 0, 0, -1) - self.yee_grid_EM_fields[0])/self.dq1 \
+               + (af.shift(self.yee_grid_EM_fields[1], 0, 0, 0, -1) - self.yee_grid_EM_fields[1])/self.dq2
+
+        return(divE)
+
+
     def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """
         Constructor for the fields_solver object, which takes in the physical system
@@ -161,6 +176,11 @@ class fields_solver(object):
         self._initialize(rho_initial)
 
     def initialize_magnetic_fields(self):
+
+        if(    'initialize_B' in dir(self.initialize)
+           and 'initialize_A3_B3' in dir(self.initialize)
+          ):
+            raise Exception('Can\'t use both initialize_B and initialize_A3_B3!')
         
         if('initialize_B' in dir(self.initialize)):
             
@@ -179,29 +199,29 @@ class fields_solver(object):
                                               self.params
                                              )[2]
 
-        elif('initialize_A' in dir(self.initialize)):
+        # elif('initialize_A' in dir(self.initialize)):
 
-            A1 = self.initialize.initialize_A(self.q1_center_bot,
-                                              self.q2_center_bot,
-                                              self.params
-                                             )[0]
+        #     A1 = self.initialize.initialize_A(self.q1_center_bot,
+        #                                       self.q2_center_bot,
+        #                                       self.params
+        #                                      )[0]
 
-            A2 = self.initialize.initialize_A(self.q1_left_center,
-                                              self.q2_left_center,
-                                              self.params
-                                             )[1]
+        #     A2 = self.initialize.initialize_A(self.q1_left_center,
+        #                                       self.q2_left_center,
+        #                                       self.params
+        #                                      )[1]
 
-            A3 = self.initialize.initialize_A(self.q1_left_bot,
-                                              self.q2_left_bot,
-                                              self.params
-                                             )[2]
+        #     A3 = self.initialize.initialize_A(self.q1_left_bot,
+        #                                       self.q2_left_bot,
+        #                                       self.params
+        #                                      )[2]
 
-            B1 =  (af.shift(A3, 0, 0, 0, -1) - A3) / self.dq2
-            B2 = -(af.shift(A3, 0, 0,-1,  0) - A3) / self.dq1
+        #     B1 =  (af.shift(A3, 0, 0, 0, -1) - A3) / self.dq2
+        #     B2 = -(af.shift(A3, 0, 0,-1,  0) - A3) / self.dq1
 
-            dA2_dq1 = (af.shift(A2, 0, 0,-1,  0) - A2) / self.dq1
-            dA1_dq2 = (af.shift(A1, 0, 0, 0, -1) - A1) / self.dq2
-            B3      = dA2_dq1 - dA1_dq2
+        #     dA2_dq1 = (af.shift(A2, 0, 0,-1,  0) - A2) / self.dq1
+        #     dA1_dq2 = (af.shift(A1, 0, 0, 0, -1) - A1) / self.dq2
+        #     B3      = dA2_dq1 - dA1_dq2
 
         elif('initialize_A3_B3' in dir(self.initialize)):
 
