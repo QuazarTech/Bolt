@@ -32,7 +32,7 @@ solve_for_equilibrium = 0
 
 
 # File-writing Parameters:
-dump_steps = 1000
+dump_steps = 10
 
 # Time parameters:
 dt      = 0.05

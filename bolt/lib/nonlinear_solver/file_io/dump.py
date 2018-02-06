@@ -5,6 +5,37 @@ from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
 
+def dump_aux_arrays(self, arrays, name, file_name):
+
+    if (self.dump_aux_arrays_initial_call):
+        self._da_aux_arrays = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                                   dof        = len(arrays),
+                                                   proc_sizes = (PETSc.DECIDE,
+                                                                 PETSc.DECIDE
+                                                                ),
+                                                   comm       = self._comm
+                                                 )
+    
+        self._glob_aux       = self._da_aux_arrays.createGlobalVec()
+        self._glob_aux_array = self._glob_aux.getArray()
+
+        self.dump_aux_arrays_initial_call = 0
+
+    N_g = self.N_ghost
+
+    for i in range(len(arrays)):
+        if (i==0):
+            array_to_dump = arrays[0][:, N_g:-N_g, N_g:-N_g]
+        else:
+            array_to_dump = af.join(0, array_to_dump,
+                                    arrays[i][:, N_g:-N_g, N_g:-N_g]
+                                   )
+
+    af.flat(array_to_dump).to_ndarray(self._glob_aux_array)
+    PETSc.Object.setName(self._glob_aux, name)
+    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer(self._glob_aux)
+
 def dump_moments(self, file_name):
     """
     This function is used to dump variables to a file for later usage.

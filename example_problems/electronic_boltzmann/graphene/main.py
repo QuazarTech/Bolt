@@ -135,7 +135,7 @@ else:
         PETSc.Sys.Print("Dumping data...")
         PETSc.Sys.Print("===============")
         
-        nls.dump_moments('dumps/density_eqbm')
+        nls.dump_moments('dumps/moments_eqbm')
         nls.dump_distribution_function('dumps/f_eqbm')
     
         # Dump EM fields
@@ -182,13 +182,20 @@ while t0 < t_final:
     dump_steps = params.dump_steps
     if (time_step%dump_steps==0):
         file_number = '%06d'%(time_step/dump_steps)
-        PETSc.Sys.Print("====================================================")
+        PETSc.Sys.Print("=====================================================")
         PETSc.Sys.Print("Dumping data at time step =", time_step,
                          ", file number =", file_number
                        )
-        PETSc.Sys.Print("====================================================")
-        nls.dump_moments('dumps/density_' + file_number)
+        PETSc.Sys.Print("=====================================================")
+        nls.dump_moments('dumps/moments_' + file_number)
         nls.dump_distribution_function('dumps/f_' + file_number)
+        nls.dump_aux_arrays([params.mu,
+                             params.mu_ee,
+                             params.T_ee,
+                             params.vel_drift_x, params.vel_drift_y],
+                             'lagrange_multipliers',
+                             'dumps/lagrange_multipliers_' + file_number
+                            )
 
         # Dump EM fields
         af.flat(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]).to_ndarray(nls._glob_fields_array)
