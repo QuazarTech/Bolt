@@ -31,7 +31,7 @@ import bolt.src.electronic_boltzmann.collision_operator \
 import bolt.src.electronic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 8, 7.5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -67,7 +67,7 @@ N_g  = domain.N_ghost
 q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * (domain.q1_end - domain.q1_start)/N_q1
 q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_start)/N_q2
 
-q2, q1 = np.meshgrid(q2, q1)
+q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 #dump_index = 0
 #h5f  = h5py.File('dumps/moments_' + '%06d'%(dump_index) + '.h5', 'r')
@@ -117,17 +117,12 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     density = moments[:, :, 0]
     j_x     = moments[:, :, 1]
     j_y     = moments[:, :, 2]
-    pl.contourf(q1, q2, density, 100, cmap='bwr')
+    pl.contourf(q1_meshgrid, q2_meshgrid, density, 100, cmap='bwr')
     pl.title(r'Time = ' + "%.2f"%(file_number*dt*dump_interval))
-    pl.axes().set_aspect('equal')
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.colorbar()
-    pl.savefig('images/density_' + '%06d'%file_number + '.png')
-    pl.clf()
+    #pl.colorbar()
 
     h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
-    lagrange_multipliers = np.swapaxes(h5f['lagrange_multipliers'][:], 0, 1)
+    lagrange_multipliers = h5f['lagrange_multipliers'][:]
     h5f.close()
 
     mu    = lagrange_multipliers[:, :, 0]
@@ -135,48 +130,14 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     T_ee  = lagrange_multipliers[:, :, 2]
     vel_drift_x = lagrange_multipliers[:, :, 3]
     vel_drift_y = lagrange_multipliers[:, :, 4]
-
-
-#h5f  = h5py.File('dumps/fields_000030.h5', 'r')
-#fields = np.swapaxes(h5f['fields'][:], 0, 1)
-#h5f.close()
-#
-#E1 = fields[:, :, 0]
-#E2 = fields[:, :, 1]
-#
-#pl.figure(figsize=(20, 7.5))
-#pl.subplot(121)
-#pl.contourf(q1, q2, E1, 100, cmap='bwr')
-#pl.title('$E_1$')
-#pl.xlabel(r'$x$')
-#pl.ylabel(r'$y$')
-#pl.colorbar()
-#pl.gca().set_aspect('equal')
-#
-#pl.subplot(122)
-#pl.contourf(q1, q2, E2, 100, cmap='bwr')
-#pl.title('$E_2$')
-#pl.xlabel(r'$x$')
-#pl.ylabel(r'$y$')
-#pl.colorbar()
-#pl.gca().set_aspect('equal')
-#pl.savefig('images/E_fields' + '.png')
-#pl.clf()
-
-#for time_index, t0 in enumerate(time):
-#    
-#    h5f  = h5py.File('dumps/density_' + str(time_index) + '.h5', 'r')
-#    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-#    h5f.close()
-#    
-#    n = moments[:, :, 0]
-#
-#    #pl.contourf(q1, q2, n, np.linspace(0.8, 2.2, 500))
-#    pl.contourf(q1, q2, n, 100)
-#    pl.title('Time = ' + "%.2f"%(t0))
-#    pl.axes().set_aspect('equal')
-#    pl.xlabel(r'$x$')
-#    pl.ylabel(r'$y$')
-#    pl.colorbar()
-#    pl.savefig('images/%04d'%time_index + '.png')
-#    pl.clf()
+ 
+    pl.streamplot(q1, q2, vel_drift_x, vel_drift_y, density=2, color='blue',
+                  linewidth=0.7, arrowsize=1
+                 )
+    pl.xlim([domain.q1_start, domain.q1_end])
+    pl.ylim([domain.q2_start, domain.q2_end])
+    pl.gca().set_aspect('equal')
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.savefig('images/dump_' + '%06d'%file_number + '.png')
+    pl.clf()
