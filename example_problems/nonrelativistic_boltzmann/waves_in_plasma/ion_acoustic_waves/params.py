@@ -24,25 +24,27 @@ riemann_solver_in_p = 'upwind-flux'
 # Independent: n0, T0, m0, e0, k0, eps0
 # Dependent  : l0, t0, v0
 
-# Plasma parameters:
-# Number density  ~ 0.1 m^-3
-# Temperature     ~ 1000 K
-# Mass            ~ m_p kg
-# Electric charge ~ 
-# Boltzmann const ~ 
+# Plasma parameters (given):
+# Number density  ~ n; n = |n| units(n)
+# Temperature     ~ T; T = |T| units(T)
 
-# How different are plasmas with 1 K and 1000 K
+# Fundamental consts: 
+# Mass            ~ m_p; m_p = |m_p| units(m_p)
+# Electric charge ~ e;   e   = |e|   units(e)
+# Boltzmann const ~ k;   k   = |k|   units(k)
+# Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
-n0 = 1  # n0 m^-3
-T0 = 1  # T0 K
-m0 = 1  # m_p kg
-e0 = 1  # e C
-k0 = 1  # k J/K
-eps0 = 1 # eps0 farads/m
+# Now choosing units: 
+n0 = 1   # |n| units(n)
+T0 = 1   # |T| units(T)
+m0 = 1   # |m_p| units(m)
+e0 = 1   # |e| units(e)
+k0 = 1   # |k| units(k)
+eps = 1 # |eps0| units(eps0)
 
-l0 = length_scales.debye_length(n0, T0, e0, eps0, k0)
+l0 = length_scales.debye_length(n0, T0, e0, k0, eps0)
 v0 = velocity_scales.thermal_speed(T0, m0, k0)
-t0 = 1/time_scales.plasma_freq(n0, e0, eps0, m0)
+t0 = 1/time_scales.plasma_frequency(n0, e0, m0, eps0)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -74,7 +76,7 @@ N_cfl   = 0.9
 t_final = 6 * t0
 
 # Switch for solver components:
-fields_enabled        = True
+EM_fields_enabled        = True
 source_enabled           = False
 instantaneous_collisions = False
 

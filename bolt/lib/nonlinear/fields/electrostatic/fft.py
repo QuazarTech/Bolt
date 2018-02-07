@@ -30,10 +30,8 @@ def fft_poisson(self, rho):
 
         N_g = self.N_g
             
-        # Reorder from (1, N_s, N_q1, N_q2) --> (N_q1, N_q2, 1, N_s) 
+        # Reorder from (1, 1, N_q1, N_q2) --> (N_q1, N_q2, 1, 1) 
         rho = af.reorder(rho[:, :, N_g:-N_g, N_g:-N_g] , 2, 3, 0, 1)
-        # Summing for all the species:
-        rho = af.sum(rho, 3)
 
         k_q1 = np.fft.fftfreq(rho.shape[0], self.dq1)
         k_q2 = np.fft.fftfreq(rho.shape[1], self.dq2)

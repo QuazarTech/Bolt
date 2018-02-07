@@ -62,6 +62,9 @@ E_data_ls[0]  = af.max(E1_ls)
 
 nls.dump_distribution_function('dump/0000')
 
+print(af.min(nls.f[:1024]))
+print(af.min(nls.f[-1024:]))
+
 for time_index, t0 in enumerate(time_array[1:]):
 
     print('Computing For Time =', t0)

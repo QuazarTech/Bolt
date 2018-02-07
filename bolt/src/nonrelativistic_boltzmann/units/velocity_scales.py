@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def thermal_velocity(T, m, k):
+def thermal_speed(T, m, k):
     v = np.sqrt(k * T / m)
     return(v)
 

@@ -19,19 +19,59 @@ from bolt.lib.utils.calculate_q import \
 class fields_solver(object):
   
     def compute_divB(self):
-    
-        divB =   (self.yee_grid_EM_fields[3] - af.shift(self.yee_grid_EM_fields[3], 0, 0, 1))/self.dq1 \
-               + (self.yee_grid_EM_fields[4] - af.shift(self.yee_grid_EM_fields[4], 0, 0, 0, 1))/self.dq2
+        
+        B1 = self.yee_grid_EM_fields[3]
+        B2 = self.yee_grid_EM_fields[4]
 
+        B1_plus_q1 = af.shift(B1, 0, 0, -1)
+        B2_plus_q2 = af.shift(B2, 0, 0, 0, -1)
+
+        # Evaluating at (i + 0.5, j + 0.5)
+        divB = (B1_plus_q1 - B1) / self.dq1 + (B2_plus_q2 - B2) / self.dq2
         return(divB)
 
     def compute_divE(self):
+        
+        E1 = self.yee_grid_EM_fields[0]
+        E2 = self.yee_grid_EM_fields[1]
 
-        divE =   (af.shift(self.yee_grid_EM_fields[0], 0, 0, -1) - self.yee_grid_EM_fields[0])/self.dq1 \
-               + (af.shift(self.yee_grid_EM_fields[1], 0, 0, 0, -1) - self.yee_grid_EM_fields[1])/self.dq2
+        E1_minus_q1 = af.shift(E1, 0, 0, 1)
+        E2_minus_q2 = af.shift(E2, 0, 0, 0, 1)
 
+        # Evaluating at (i, j)
+        divE = (E1 - E1_minus_q1) / self.dq1 + (E2 - E2_minus_q2) / self.dq2
         return(divE)
 
+    def check_maxwells_contraint_equations(self, rho):
+
+        N_g = self.N_g
+
+        # Checking for ∇.B = 0
+        try:
+            assert(af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))<1e-10)
+        except:
+            raise SystemExit('divB contraint isn\'t preserved')
+
+        # Checking for ∇.E = rho / epsilon
+        rho_by_eps   = rho / self.params.eps
+        rho_left_bot = 0.25 * (  rho_by_eps 
+                               + af.shift(rho_by_eps, 0, 0, 0, 1)
+                               + af.shift(rho_by_eps, 0, 0, 1, 0)
+                               + af.shift(rho_by_eps, 0, 0, 1, 1)
+                              ) 
+
+        try:
+            assert(af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))<1e-10)
+        except:
+            raise SystemExit('divB contraint isn\'t preserved')
+
+        divE  = self.compute_divE()
+        rho_b = af.mean(rho_left_bot) # background
+
+        try:
+            assert(af.mean(af.abs(divE - rho_left_bot + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-5)
+        except:
+            raise SystemExit('divE - rho/Ɛ contraint isn\'t preserved')
 
     def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """
@@ -60,7 +100,8 @@ class fields_solver(object):
         """
         self.N_q1 = physical_system.N_q1
         self.N_q2 = physical_system.N_q2
-        self.N_g  = physical_system.N_ghost
+        
+        self.N_g = physical_system.N_ghost
 
         self.dq1 = physical_system.dq1
         self.dq2 = physical_system.dq2
@@ -172,8 +213,11 @@ class fields_solver(object):
         # Alternating upon each call to get_fields for FVM:
         # This ensures that the fields are staggerred correctly in time:
         self.at_n = True
-        
+
+        # Summing for all species:
+        rho_initial = af.sum(rho_initial, 1)
         self._initialize(rho_initial)
+        self.check_maxwells_contraint_equations(rho_initial)
 
     def initialize_magnetic_fields(self):
 
@@ -230,9 +274,11 @@ class fields_solver(object):
                                                   self.params
                                                  )[0]
 
-            B1 =  (af.shift(A3, 0, 0, 0, -1) - A3) / self.dq2
-            B2 = -(af.shift(A3, 0, 0,-1,  0) - A3) / self.dq1
+            A3_plus_q2 = af.shift(A3, 0, 0,  0, -1)
+            A3_plus_q1 = af.shift(A3, 0, 0, -1,  0)
 
+            B1 =  (A3_plus_q2 - A3) / self.dq2 # -dA3_dq2
+            B2 = -(A3_plus_q1 - A3) / self.dq1 #  dA3_dq1
             B3 = self.initialize.initialize_A3_B3(self.q1_center,
                                                   self.q2_center,
                                                   self.params
@@ -422,6 +468,8 @@ class fields_solver(object):
 
     def compute_electrostatic_fields(self, rho):
 
+        # Summing for all species:
+        rho = af.sum(rho, 1)
         if (self.params.fields_initialize == 'fft'):
             
             fft_poisson(self, rho)
