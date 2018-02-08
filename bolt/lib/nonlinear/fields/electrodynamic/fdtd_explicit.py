@@ -11,8 +11,8 @@ def fdtd_evolve_E(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    eps = self.physical_system.params.eps
-    mu  = self.physical_system.params.mu
+    eps = self.params.eps
+    mu  = self.params.mu
 
     dq1 = self.dq1
     dq2 = self.dq2

@@ -74,7 +74,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
 
         time_array = np.arange(dt, t_final + dt, dt)
         # Checking that time array doesn't cross final time:
-        if(time_array[-1]>params.t_final):
+        if(time_array[-1]>t_final):
             time_array = np.delete(time_array, -1)
 
         for time_index, t0 in enumerate(time_array):

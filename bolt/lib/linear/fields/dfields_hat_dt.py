@@ -44,8 +44,8 @@ def dfields_hat_dt(f_hat, fields_hat, self):
                       self.compute_moments('mom_v3_bulk', f_hat=f_hat)
                      ) 
 
-    eps = params.eps
-    mu  = params.mu
+    eps = self.physical_system.params.eps
+    mu  = self.physical_system.params.mu
 
     # Summing along all species:
     J1_hat = af.sum(J1_hat, 1)

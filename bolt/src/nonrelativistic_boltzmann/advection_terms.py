@@ -137,8 +137,7 @@ def A_p(f, t, q1, q2, v1, v2, v3,
     e = params.charge
     m = params.mass
 
-    eps = params.eps
-    mu  = params.mu
+    E1, E2, E3, B1, B2, B3 = fields_solver.get_fields()
 
     A_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)
     A_p2 = (e/m) * (E2 + v3 * B1 - v1 * B3)
