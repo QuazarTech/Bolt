@@ -49,16 +49,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
 def initialize_A3_B3(q1, q2, params):
     A3 = af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
-
-    #dq1 = q1[1] - q1[0]
-    #dq2 = q2[1] - q2[0]
-    
-    #B1 =  (af.shift(A3, 0, 0, -1) - A3) / dq2
-    #B2 = -(af.shift(A3, 0, -1)    - A3) / dq1
-    #B3 = 1e-5*q1**0.
-    
-    # B1 = -(1/np.sqrt(4 * np.pi)) * af.sin(2 * np.pi * q2)
-    # B2 =  (1/np.sqrt(4 * np.pi)) * af.sin(4 * np.pi * q1)
     B3 = 1e-5 * q1**0
 
     return(A3, B3)

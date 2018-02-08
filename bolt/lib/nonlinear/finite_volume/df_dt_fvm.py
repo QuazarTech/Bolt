@@ -113,7 +113,7 @@ def df_dt_fvm(f, self):
                                  ) 
 
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
-       and self.physical_system.params.EM_fields_enabled == True
+       and self.physical_system.params.fields_enabled == True
       ):
 
         if(self.physical_system.params.fields_type == 'electrostatic'):

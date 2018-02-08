@@ -37,7 +37,7 @@ dt_dump_moments = 0.01
 N_cfl   = 0.45
 t_final = 10
 
-EM_fields_enabled        = False
+fields_enabled        = False
 source_enabled           = False
 instantaneous_collisions = True
 

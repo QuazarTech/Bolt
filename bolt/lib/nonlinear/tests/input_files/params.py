@@ -19,6 +19,6 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [0]
 
-EM_fields_enabled = True
+fields_enabled = True
 
 num_devices = 1

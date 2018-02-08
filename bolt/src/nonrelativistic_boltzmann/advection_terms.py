@@ -7,7 +7,7 @@ nonrelativistic Boltzmann equation.
 
 The equation that we are solving is:
 
-df/dt + v_x * df/dq1 + v_y * df/dy + (E + v X B)_x * df/dv_x + (E + v X B)_y * df/dv_y + (E + v X B)_y * df/dv_z = 0
+df/dt + v_x * df/dq1 + v_y * df/dy + e/m * (E + v X B)_x * df/dv_x + e/m * (E + v X B)_y * df/dv_y + e/m * (E + v X B)_y * df/dv_z = 0
 
 In the solver framework this can be described using:
 
@@ -17,9 +17,9 @@ p1 = v1 = v_x; p2 = v2 = v_y; p3 = v3 = v_z
 A_q1 = C_q1 = v_x = v1
 A_q2 = C_q2 = v_y = v2
 
-A_v1 = C_v1 = q/m * (E_x + v_y * B_z - v_z * B_y) = q/m * (E1 + v2 * B3 - v3 * B2)
-A_v2 = C_v2 = q/m * (E_y + v_z * B_x - v_x * B_z) = q/m * (E2 + v3 * B1 - v1 * B3)
-A_v3 = C_v3 = q/m * (E_z + v_x * B_y - v_y * B_x) = q/m * (E3 + v1 * B2 - v2 * B1)
+A_v1 = C_v1 = e/m * (E_x + v_y * B_z - v_z * B_y) = e/m * (E1 + v2 * B3 - v3 * B2)
+A_v2 = C_v2 = e/m * (E_y + v_z * B_x - v_x * B_z) = e/m * (E2 + v3 * B1 - v1 * B3)
+A_v3 = C_v3 = e/m * (E_z + v_x * B_y - v_y * B_x) = e/m * (E3 + v1 * B2 - v2 * B1)
 """
 
 def A_q(f, t, q1, q2, v1, v2, v3, params):
@@ -134,14 +134,15 @@ def A_p(f, t, q1, q2, v1, v2, v3,
     params: The parameters file/object that is originally declared by the user.
             This can be used to inject other functions/attributes into the function
     """
-    q = params.charge
+    e = params.charge
     m = params.mass
 
-    E1, E2, E3, B1, B2, B3 = fields_solver.get_fields()
+    eps = params.eps
+    mu  = params.mu
 
-    A_p1 = (q/m) * (E1 + v2 * B3 - v3 * B2)
-    A_p2 = (q/m) * (E2 + v3 * B1 - v1 * B3)
-    A_p3 = (q/m) * (E1 + v1 * B2 - v2 * B1)
+    A_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)
+    A_p2 = (e/m) * (E2 + v3 * B1 - v1 * B3)
+    A_p3 = (e/m) * (E1 + v1 * B2 - v2 * B1)
 
     return (A_p1, A_p2, A_p3)
 
@@ -182,13 +183,13 @@ def C_p(f, t, q1, q2, v1, v2, v3,
     params: The parameters file/object that is originally declared by the user.
             This can be used to inject other functions/attributes into the function
     """
-    q = params.charge
+    e = params.charge
     m = params.mass
 
     E1, E2, E3, B1, B2, B3 = fields_solver.get_fields()
 
-    C_p1 = (q/m) * (E1 + v2 * B3 - v3 * B2)
-    C_p2 = (q/m) * (E2 + v3 * B1 - v1 * B3)
-    C_p3 = (q/m) * (E1 + v1 * B2 - v2 * B1)
+    C_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)
+    C_p2 = (e/m) * (E2 + v3 * B1 - v1 * B3)
+    C_p3 = (e/m) * (E1 + v1 * B2 - v2 * B1)
 
     return (C_p1, C_p2, C_p3)

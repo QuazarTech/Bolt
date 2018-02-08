@@ -21,7 +21,7 @@ boltzmann_constant = 1
 charge             = [0]
 eps                = 1
 
-EM_fields_enabled = True
+fields_enabled = True
 
 pert_real = 1e-5
 pert_imag = 2e-5

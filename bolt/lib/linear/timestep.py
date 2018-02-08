@@ -33,7 +33,7 @@ def RK5_step(self, dt):
 
         self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
-    if(    self.physical_system.params.EM_fields_enabled == True 
+    if(    self.physical_system.params.fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
       ):
         # Since the fields and the distribution function are coupled, 
@@ -79,7 +79,7 @@ def RK4_step(self, dt):
 
         self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
-    if(    self.physical_system.params.EM_fields_enabled == True 
+    if(    self.physical_system.params.fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
       ):
         # Since the fields and the distribution function are coupled, 
@@ -125,7 +125,7 @@ def RK2_step(self, dt):
 
         self.f_hat = 2 * fft2(f0) / (self.N_q1 * self.N_q2)
 
-    if(    self.physical_system.params.EM_fields_enabled == True 
+    if(    self.physical_system.params.fields_enabled == True 
        and self.physical_system.params.fields_type == 'electrodynamic'
       ):
         # Since the fields and the distribution function are coupled, 

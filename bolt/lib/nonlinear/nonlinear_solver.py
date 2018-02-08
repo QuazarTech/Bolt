@@ -471,7 +471,7 @@ class nonlinear_solver(object):
 
         self.f_initial = self.f
 
-        if(self.physical_system.params.EM_fields_enabled):
+        if(self.physical_system.params.fields_enabled):
             
             rho_initial = multiply(self.physical_system.params.charge,
                                    self.compute_moments('density')

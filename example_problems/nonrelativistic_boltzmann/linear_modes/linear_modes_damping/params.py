@@ -27,6 +27,7 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [-1]
 eps                = 1
+mu                 = 1
 
 # Initial Conditions used in initialize:
 rho_background         = 1
@@ -42,7 +43,7 @@ pert_imag = 2e-5
 k_q1 = 2 * np.pi
 k_q2 = 4 * np.pi
 
-EM_fields_enabled        = True
+fields_enabled           = True
 source_enabled           = True
 instantaneous_collisions = False
 

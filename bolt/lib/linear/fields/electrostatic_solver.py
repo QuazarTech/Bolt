@@ -26,8 +26,8 @@ def compute_electrostatic_fields(self, rho_hat):
     # Setting the background electric potential to zero:
     phi_hat[: , :, 0, 0] = 0
 
-    self.E1_hat = -phi_hat * 1j * self.k_q1
-    self.E2_hat = -phi_hat * 1j * self.k_q2
+    self.E1_hat = -phi_hat * 1j * self.k_q1 / self.params.eps
+    self.E2_hat = -phi_hat * 1j * self.k_q2 / self.params.eps
     self.E3_hat = 0 * self.E1_hat 
     
     self.B1_hat = 0 * self.E1_hat

@@ -34,7 +34,7 @@ beta_1 = 300/np.pi
 beta_2 = 3 + 300/np.pi
 
 
-EM_fields_enabled        = False
+fields_enabled        = False
 source_enabled           = False
 instantaneous_collisions = False
 

@@ -44,7 +44,7 @@ N_cfl   = 0.9
 t_final = 6
 
 # Switch for solver components:
-EM_fields_enabled        = True
+fields_enabled        = True
 source_enabled           = False
 instantaneous_collisions = False
 

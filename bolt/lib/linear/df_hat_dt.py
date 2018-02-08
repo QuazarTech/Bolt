@@ -53,7 +53,7 @@ def df_hat_dt(f_hat, fields_hat, self):
 
         df_hat_dt += C_f_hat
 
-    if(self.physical_system.params.EM_fields_enabled == True):
+    if(self.physical_system.params.fields_enabled == True):
         if(self.physical_system.params.fields_type == 'electrostatic'):
             
             rho_hat = multiply(self.physical_system.params.charge,

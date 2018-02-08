@@ -27,7 +27,7 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [0]
 
-EM_fields_enabled        = False
+fields_enabled        = False
 source_enabled           = True
 instantaneous_collisions = False
 

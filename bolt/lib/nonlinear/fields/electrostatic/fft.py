@@ -56,8 +56,8 @@ def fft_poisson(self, rho):
         E1_physical = af.reorder(af.real(E1_ifft), 2, 3, 0, 1)
         E2_physical = af.reorder(af.real(E2_ifft), 2, 3, 0, 1)
 
-        self.cell_centered_EM_fields[0, 0, N_g:-N_g, N_g:-N_g] = E1_physical
-        self.cell_centered_EM_fields[1, 0, N_g:-N_g, N_g:-N_g] = E2_physical
+        self.cell_centered_EM_fields[0, 0, N_g:-N_g, N_g:-N_g] = E1_physical / self.params.eps
+        self.cell_centered_EM_fields[1, 0, N_g:-N_g, N_g:-N_g] = E2_physical / self.params.eps
 
         af.eval(self.cell_centered_EM_fields)
 

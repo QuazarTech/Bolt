@@ -44,6 +44,9 @@ def dfields_hat_dt(f_hat, fields_hat, self):
                       self.compute_moments('mom_v3_bulk', f_hat=f_hat)
                      ) 
 
+    eps = params.eps
+    mu  = params.mu
+
     # Summing along all species:
     J1_hat = af.sum(J1_hat, 1)
     J2_hat = af.sum(J2_hat, 1)
@@ -62,9 +65,10 @@ def dfields_hat_dt(f_hat, fields_hat, self):
     # dE2/dt = - dB3/dq1 - J2
     # dE3/dt = dB2/dq1 - dB1/dq2 - J3
 
-    dE1_hat_dt =  B3_hat * 1j * self.k_q2 - J1_hat
-    dE2_hat_dt = -B3_hat * 1j * self.k_q1 - J2_hat
-    dE3_hat_dt =  B2_hat * 1j * self.k_q1 - B1_hat * 1j * self.k_q2 - J3_hat
+    dE1_hat_dt =  B3_hat * 1j * self.k_q2 / (mu * eps) - J1_hat / eps
+    dE2_hat_dt = -B3_hat * 1j * self.k_q1 / (mu * eps) - J2_hat / eps
+    dE3_hat_dt =  (B2_hat * 1j * self.k_q1 - B1_hat * 1j * self.k_q2) / (mu * eps) \
+                 -J3_hat / eps
 
     # dB1/dt = - dE3/dq2
     # dB2/dt = + dE3/dq1

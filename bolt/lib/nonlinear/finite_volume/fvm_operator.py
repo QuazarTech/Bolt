@@ -25,7 +25,7 @@ def timestep_fvm(self, dt):
     self._communicate_f()
     self._apply_bcs_f()
 
-    if(self.physical_system.params.EM_fields_enabled == True):
+    if(self.physical_system.params.fields_enabled == True):
         
         # Evolving electrodynamic fields:
         if(self.physical_system.params.fields_solver == 'fdtd'):

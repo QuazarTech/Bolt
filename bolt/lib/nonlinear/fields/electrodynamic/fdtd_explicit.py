@@ -11,6 +11,9 @@ def fdtd_evolve_E(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
+    eps = self.physical_system.params.eps
+    mu  = self.physical_system.params.mu
+
     dq1 = self.dq1
     dq2 = self.dq2
 
@@ -29,11 +32,11 @@ def fdtd_evolve_E(self, dt):
     # dE2/dt = - dB3/dq1
     # dE3/dt = dB2/dq1 - dB1/dq2
 
-    self.yee_grid_EM_fields[0] +=   (dt / dq2) * (B3 - B3_minus_q2) - self.J1 * dt
-    self.yee_grid_EM_fields[1] +=  -(dt / dq1) * (B3 - B3_minus_q1) - self.J2 * dt
-    self.yee_grid_EM_fields[2] +=   (dt / dq1) * (B2 - B2_minus_q1) \
-                                  - (dt / dq2) * (B1 - B1_minus_q2) \
-                                  - dt * self.J3
+    self.yee_grid_EM_fields[0] +=   (dt / (dq2 * mu * eps)) * (B3 - B3_minus_q2) - self.J1 * dt / eps
+    self.yee_grid_EM_fields[1] +=  -(dt / (dq1 * mu * eps)) * (B3 - B3_minus_q1) - self.J2 * dt / eps
+    self.yee_grid_EM_fields[2] +=   (dt / (dq1 * mu * eps)) * (B2 - B2_minus_q1) \
+                                  - (dt / (dq2 * mu * eps)) * (B1 - B1_minus_q2) \
+                                  - self.J3 * dt / eps
 
     af.eval(self.yee_grid_EM_fields)
 

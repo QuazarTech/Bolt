@@ -42,9 +42,9 @@ e0 = 1   # |e| units(e)
 k0 = 1   # |k| units(k)
 eps = 1 # |eps0| units(eps0)
 
-l0 = length_scales.debye_length(n0, T0, e0, k0, eps0)
+l0 = length_scales.debye_length(n0, T0, e0, k0, eps)
 v0 = velocity_scales.thermal_speed(T0, m0, k0)
-t0 = 1/time_scales.plasma_frequency(n0, e0, m0, eps0)
+t0 = 1/time_scales.plasma_frequency(n0, e0, m0, eps)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -55,6 +55,7 @@ num_devices = 1
 # Constants:
 m_e = 1/100 * m0
 m_i = 1     * m0
+
 mass               = [m_e, m_i] # m_e, m_i
 boltzmann_constant = k0
 charge             = [-1 * e0, 1 * e0] # e_e, e_i
@@ -76,7 +77,7 @@ N_cfl   = 0.9
 t_final = 6 * t0
 
 # Switch for solver components:
-EM_fields_enabled        = True
+fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
 

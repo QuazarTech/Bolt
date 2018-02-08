@@ -6,8 +6,7 @@ from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 from bolt.lib.linear.linear_solver import linear_solver
 
 import physics_tests.nonrelativistic_boltzmann.domain as domain
-import physics_tests.nonrelativistic_boltzmann.boundary_conditions \
-    as boundary_conditions
+import physics_tests.nonrelativistic_boltzmann.boundary_conditions as boundary_conditions
 import physics_tests.nonrelativistic_boltzmann.params as params
 import physics_tests.nonrelativistic_boltzmann.initialize as initialize
 
@@ -67,15 +66,6 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                                  collision_operator.BGK,
                                  moments
                                 )
-        
-        # linearized_system = physical_system(domain,
-        #                                     boundary_conditions,
-        #                                     params,
-        #                                     initialize,
-        #                                     advection_terms,
-        #                                     collision_operator.linearized_BGK,
-        #                                     moments
-        #                                    )
 
         # Declaring a linear system object which will 
         # evolve the defined physical system:
@@ -83,6 +73,9 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         ls  = linear_solver(system)
 
         time_array = np.arange(dt, t_final + dt, dt)
+        # Checking that time array doesn't cross final time:
+        if(time_array[-1]>params.t_final):
+            time_array = np.delete(time_array, -1)
 
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)

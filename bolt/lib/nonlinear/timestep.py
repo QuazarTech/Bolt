@@ -56,7 +56,7 @@ def lie_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and self.physical_system.params.EM_fields_enabled == True
+           and self.physical_system.params.fields_enabled == True
           ):
             split.lie(self, op_fvm, op_fields, dt)
 
@@ -66,7 +66,7 @@ def lie_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(self.physical_system.params.EM_fields_enabled == True):
+        if(self.physical_system.params.fields_enabled == True):
             
             def op_advect_q_and_solve_src(self, dt):
                 
@@ -117,7 +117,7 @@ def strang_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and self.physical_system.params.EM_fields_enabled == True
+           and self.physical_system.params.fields_enabled == True
           ):
             split.strang(self, op_fvm, op_fields, dt)
 
@@ -127,7 +127,7 @@ def strang_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(self.physical_system.params.EM_fields_enabled == True):
+        if(self.physical_system.params.fields_enabled == True):
             
             def op_advect_q_and_solve_src(self, dt):
                 
@@ -178,7 +178,7 @@ def swss_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and self.physical_system.params.EM_fields_enabled == True
+           and self.physical_system.params.fields_enabled == True
           ):
             split.swss(self, op_fvm, op_fields, dt)
 
@@ -188,7 +188,7 @@ def swss_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(self.physical_system.params.EM_fields_enabled == True):
+        if(self.physical_system.params.fields_enabled == True):
             
             def op_advect_q_and_solve_src(self, dt):
                 
@@ -242,7 +242,7 @@ def jia_step(self, dt):
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
-           and self.physical_system.params.EM_fields_enabled == True
+           and self.physical_system.params.fields_enabled == True
           ):
             split.jia(self, op_fvm, op_fields, dt)
 
@@ -252,7 +252,7 @@ def jia_step(self, dt):
     # Advective Semi-lagrangian method
     elif(self.physical_system.params.solver_method_in_q == 'ASL'):
 
-        if(self.physical_system.params.EM_fields_enabled == True):
+        if(self.physical_system.params.fields_enabled == True):
             
             def op_advect_q_and_solve_src(self, dt):
                 
