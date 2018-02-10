@@ -350,9 +350,7 @@ def RTA(f, q1, q2, p1, p2, p3, moments, params, flag = False):
           -(  f - f0_ee(f, p1, p2, p3, params)
            ) / params.tau_ee(q1, q2, p1, p2, p3)
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
-    # WORKAROUND:
-    C_f = af.select(params.tau_defect(q1, q2, p1, p2, p3) == np.inf, 0, C_f)
-#    C_f = af.select(params.tau_ee(q1, q2, p1, p2, p3)     == np.inf, 0, C_f)
+    # TODO: WORKAROUND
 
     af.eval(C_f)
     return(C_f)
