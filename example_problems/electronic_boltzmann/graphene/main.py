@@ -25,34 +25,34 @@ import bolt.src.electronic_boltzmann.collision_operator \
 
 import bolt.src.electronic_boltzmann.moment_defs as moment_defs
 
-pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 150
-pl.rcParams['image.cmap']      = 'jet'
-pl.rcParams['lines.linewidth'] = 1.5
-pl.rcParams['font.family']     = 'serif'
-pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
-pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = False
-pl.rcParams['axes.linewidth']  = 1.5
-pl.rcParams['axes.titlesize']  = 'medium'
-pl.rcParams['axes.labelsize']  = 'medium'
-
-pl.rcParams['xtick.major.size'] = 8
-pl.rcParams['xtick.minor.size'] = 4
-pl.rcParams['xtick.major.pad']  = 8
-pl.rcParams['xtick.minor.pad']  = 8
-pl.rcParams['xtick.color']      = 'k'
-pl.rcParams['xtick.labelsize']  = 'medium'
-pl.rcParams['xtick.direction']  = 'in'
-
-pl.rcParams['ytick.major.size'] = 8
-pl.rcParams['ytick.minor.size'] = 4
-pl.rcParams['ytick.major.pad']  = 8
-pl.rcParams['ytick.minor.pad']  = 8
-pl.rcParams['ytick.color']      = 'k'
-pl.rcParams['ytick.labelsize']  = 'medium'
-pl.rcParams['ytick.direction']  = 'in'
+#pl.rcParams['figure.figsize']  = 12, 7.5
+#pl.rcParams['figure.dpi']      = 150
+#pl.rcParams['image.cmap']      = 'jet'
+#pl.rcParams['lines.linewidth'] = 1.5
+#pl.rcParams['font.family']     = 'serif'
+#pl.rcParams['font.weight']     = 'bold'
+#pl.rcParams['font.size']       = 20
+#pl.rcParams['font.sans-serif'] = 'serif'
+#pl.rcParams['text.usetex']     = False
+#pl.rcParams['axes.linewidth']  = 1.5
+#pl.rcParams['axes.titlesize']  = 'medium'
+#pl.rcParams['axes.labelsize']  = 'medium'
+#
+#pl.rcParams['xtick.major.size'] = 8
+#pl.rcParams['xtick.minor.size'] = 4
+#pl.rcParams['xtick.major.pad']  = 8
+#pl.rcParams['xtick.minor.pad']  = 8
+#pl.rcParams['xtick.color']      = 'k'
+#pl.rcParams['xtick.labelsize']  = 'medium'
+#pl.rcParams['xtick.direction']  = 'in'
+#
+#pl.rcParams['ytick.major.size'] = 8
+#pl.rcParams['ytick.minor.size'] = 4
+#pl.rcParams['ytick.major.pad']  = 8
+#pl.rcParams['ytick.minor.pad']  = 8
+#pl.rcParams['ytick.color']      = 'k'
+#pl.rcParams['ytick.labelsize']  = 'medium'
+#pl.rcParams['ytick.direction']  = 'in'
 
 
 # Defining the physical system to be solved:
@@ -68,8 +68,8 @@ system = physical_system(domain,
 # Time parameters:
 dt      = params.dt
 t_final = params.t_final
-t0      = 0.0 # current time
-params.time_step = time_step = 0
+params.current_time = t0        = 0.0
+params.time_step    = time_step = 0
 
 N_g        = domain.N_ghost
 
@@ -221,7 +221,7 @@ while t0 < t_final:
     mean_density = af.mean(density[0, N_g:-N_g, N_g:-N_g])
     density_pert = density - mean_density
     
-    if (time_step%1==0):
+#    if (time_step%1==0):
 #        chemical_potential =  np.array(params.mu)[0, :, :] \
 #                            - params.charge_electron*np.array(params.phi)[:, :]
 #        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
@@ -236,20 +236,20 @@ while t0 < t_final:
 #        pl.gca().set_aspect('equal')
 #        pl.savefig('/tmp/mu_' + '%06d'%time_step + '.png' )
 #        pl.clf()
-
-        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
-                    np.array(nls.q2_center)[0, N_g:-N_g, N_g:-N_g], \
-                    np.array(density)[0, N_g:-N_g, N_g:-N_g], \
-                    100, cmap='bwr'
-                   )
-        pl.title('Time = ' + "%.2f"%(t0) )
-        pl.xlabel('$x$')
-        pl.ylabel('$y$')
-        pl.colorbar()
-        pl.gca().set_aspect('equal')
-        pl.savefig('/tmp/density_' + '%06d'%time_step + '.png' )
-        pl.clf()
-
+#
+#        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
+#                    np.array(nls.q2_center)[0, N_g:-N_g, N_g:-N_g], \
+#                    np.array(density)[0, N_g:-N_g, N_g:-N_g], \
+#                    100, cmap='bwr'
+#                   )
+#        pl.title('Time = ' + "%.2f"%(t0) )
+#        pl.xlabel('$x$')
+#        pl.ylabel('$y$')
+#        pl.colorbar()
+#        pl.gca().set_aspect('equal')
+#        pl.savefig('/tmp/density_' + '%06d'%time_step + '.png' )
+#        pl.clf()
+#
 #        pl.contourf(np.array(nls.q1_center)[0, N_g:-N_g, N_g:-N_g], \
 #                    np.array(nls.q2_center)[0, N_g:-N_g, N_g:-N_g], \
 #                    np.array(params.phi)[N_g:-N_g, N_g:-N_g], \
@@ -308,9 +308,10 @@ while t0 < t_final:
 #        pl.clf()
 
     nls.strang_timestep(dt)
-    time_step = time_step + 1
-    params.time_step = time_step
-    t0 = t0 + dt
+    t0                  = t0 + dt
+    time_step           = time_step + 1
+    params.time_step    = time_step
+    params.current_time = t0
 
     # Floors
     nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)

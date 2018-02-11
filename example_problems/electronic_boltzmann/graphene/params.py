@@ -63,6 +63,7 @@ initial_temperature = 12e-4
 initial_mu          = 0.015
 vel_drift_x_in      = 1e-7*fermi_velocity
 vel_drift_x_out     = 1e-7*fermi_velocity
+AC_freq             = 1./100 # ps^-1
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
 mu          = None # chemical potential used in the e-ph operator
@@ -82,11 +83,11 @@ collision_operator_nonlinear_iters  = 2
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(np.inf * q1**0 * p1**0)
+    return(1 * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
-    return(1. * q1**0 * p1**0)
+    return(np.inf * q1**0 * p1**0)
 
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))

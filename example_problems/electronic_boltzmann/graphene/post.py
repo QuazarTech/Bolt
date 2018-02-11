@@ -118,7 +118,7 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     j_x     = moments[:, :, 1]
     j_y     = moments[:, :, 2]
     pl.contourf(q1_meshgrid, q2_meshgrid, density, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(file_number*dt*dump_interval))
+    pl.title(r'Time = ' + "%.2f"%(file_number*dt*dump_interval) + " ps")
     #pl.colorbar()
 
     h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
@@ -137,7 +137,7 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     pl.xlim([domain.q1_start, domain.q1_end])
     pl.ylim([domain.q2_start, domain.q2_end])
     pl.gca().set_aspect('equal')
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
+    pl.xlabel(r'$x\;(\mu \mathrm{m})$')
+    pl.ylabel(r'$y\;(\mu \mathrm{m})$')
     pl.savefig('images/dump_' + '%06d'%file_number + '.png')
     pl.clf()
