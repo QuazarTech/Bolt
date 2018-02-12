@@ -35,12 +35,13 @@ riemann_solver_in_p = 'upwind-flux'
 # Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
 # Now choosing units: 
-n0 = 1   # |n| units(n)
-T0 = 1   # |T| units(T)
-m0 = 1   # |m_p| units(m)
-e0 = 1   # |e| units(e)
-k0 = 1   # |k| units(k)
+n0  = 1 # |n| units(n)
+T0  = 1 # |T| units(T)
+m0  = 1 # |m_p| units(m)
+e0  = 1 # |e| units(e)
+k0  = 1 # |k| units(k)
 eps = 1 # |eps0| units(eps0)
+mu  = 1
 
 l0 = length_scales.debye_length(n0, T0, e0, k0, eps)
 v0 = velocity_scales.thermal_speed(T0, m0, k0)
@@ -73,8 +74,8 @@ temperature_background_i = 1   * T0
 alpha = 0.01
 
 # Time parameters:
-N_cfl   = 0.9
-t_final = 6 * t0
+N_cfl   = 0.95
+t_final = 0.05
 
 # Switch for solver components:
 fields_enabled           = True

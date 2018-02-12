@@ -36,7 +36,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 10)
+    N     = 2**np.arange(5, 8)
     error = np.zeros(N.size)
     
     for i in range(N.size):

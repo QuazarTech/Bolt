@@ -41,40 +41,40 @@ pl.rcParams['ytick.direction']  = 'in'
 eigval, eigvecs = solve_linear_modes(params)
 omega           = eigval[1]
 # Defining the functions for the analytical solution:
-def n_ana(q1, t):
+def n_analytic(q1, t):
     
     n_b    = params.density_background
     pert_n = eigvecs[0, 1]
 
-    n_ana = n_b + params.amplitude * pert_n * \
+    n_analytic = n_b + params.amplitude * pert_n * \
                   np.exp(  1j * params.k_q1 * q1 
                          + omega * t
                         ).real
 
-    return(n_ana)
+    return(n_analytic)
 
-def v1_ana(q1, t):
+def v1_analytic(q1, t):
     
     v1_b    = params.v1_bulk_background
     pert_v1 = eigvecs[1, 1]
                    
-    v1_ana = v1_b + params.amplitude * pert_v1 * \
+    v1_analytic = v1_b + params.amplitude * pert_v1 * \
                     np.exp(  1j * params.k_q1 * q1 
                            + omega * t
                           ).real
-    return(v1_ana)
+    return(v1_analytic)
 
-def T_ana(q1, t):
+def T_analytic(q1, t):
     
     T_b    = params.temperature_background
     pert_T = eigvecs[2, 1]
 
-    T_ana = T_b + params.amplitude * pert_T * \
+    T_analytic = T_b + params.amplitude * pert_T * \
                   np.exp(  1j * params.k_q1 * q1 
                          + omega * t
                         ).real
 
-    return(T_ana)
+    return(T_analytic)
 
 N = 2**np.arange(5, 10)
 
@@ -101,9 +101,9 @@ for i in range(N.size):
                                    - n_nls * v3_nls**2
                                   ) / n_nls
 
-    n_analytic  = n_ana(q1, params.t_final)
-    v1_analytic = v1_ana(q1, params.t_final)
-    T_analytic  = T_ana(q1, params.t_final)
+    n_analytic  = n_analytic(q1, params.t_final)
+    v1_analytic = v1_analytic(q1, params.t_final)
+    T_analytic  = T_analytic(q1, params.t_final)
 
     error_n[i]  = np.mean(abs(n_nls - n_analytic))
     error_v1[i] = np.mean(abs(v1_nls - v1_analytic))

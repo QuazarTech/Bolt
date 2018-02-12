@@ -16,7 +16,6 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-
 # Defining the physical system to be solved:
 system = physical_system(domain,
                          boundary_conditions,
@@ -60,10 +59,8 @@ E1_ls         = af.real(0.5 * (ls.N_q1 * ls.N_q2)
                        )
 E_data_ls[0]  = af.max(E1_ls)
 
-nls.dump_distribution_function('dump/0000')
-
-print(af.min(nls.f[:1024]))
-print(af.min(nls.f[-1024:]))
+nls.dump_distribution_function('dump_nls/0000')
+ls.dump_distribution_function('dump_ls/0000')
 
 for time_index, t0 in enumerate(time_array[1:]):
 
@@ -72,8 +69,8 @@ for time_index, t0 in enumerate(time_array[1:]):
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
     
-    if((time_index+1)%10 == 0):
-        nls.dump_distribution_function('dump/%04d'%(time_index+1))
+    nls.dump_distribution_function('dump_nls/%04d'%(time_index+1))
+    ls.dump_distribution_function('dump_ls/%04d'%(time_index+1))
 
     n_nls                           = nls.compute_moments('density')
     rho_data_nls[time_index + 1, 0] = af.max(n_nls[:, 0, N_g:-N_g, N_g:-N_g])

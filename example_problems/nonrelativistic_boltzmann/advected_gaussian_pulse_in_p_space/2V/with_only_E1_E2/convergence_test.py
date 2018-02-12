@@ -93,7 +93,7 @@ def check_error(params):
                                           nls.physical_system.params
                                          )
 
-        f_ana = af.broadcast(initialize.initialize_f, nls.q1_center, nls.q2_center,
+        f_analytic = af.broadcast(initialize.initialize_f, nls.q1_center, nls.q2_center,
                              addition(nls.p1_center, - A_p1 * t_final), 
                              addition(nls.p2_center, - A_p2 * t_final),
                              nls.p3_center, nls.physical_system.params
@@ -103,7 +103,7 @@ def check_error(params):
             nls.strang_timestep(dt)
 
         error[i] = af.mean(af.abs(  nls.f
-                                  - f_ana
+                                  - f_analytic
                                  )
                           )
 

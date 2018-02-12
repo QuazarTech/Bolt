@@ -7,7 +7,10 @@ nonrelativistic Boltzmann equation.
 
 The equation that we are solving is:
 
-df/dt + v_x * df/dq1 + v_y * df/dy + e/m * (E + v X B)_x * df/dv_x + e/m * (E + v X B)_y * df/dv_y + e/m * (E + v X B)_y * df/dv_z = 0
+  df/dt + v_x * df/dq1 + v_y * df/dy 
++ e/m * (E + v X B)_x * df/dv_x 
++ e/m * (E + v X B)_y * df/dv_y 
++ e/m * (E + v X B)_y * df/dv_z = 0
 
 In the solver framework this can be described using:
 

@@ -49,12 +49,12 @@ def n_analytic(q1, q2, t):
     pert_imag_n = 0
     pert_n      = pert_real_n + 1j * pert_imag_n
 
-    n_ana = n_b + params.amplitude * pert_n * \
+    n_analytic = n_b + params.amplitude * pert_n * \
                   np.exp(  1j * (params.k_q1 * q1 + params.k_q2 * q2)  
                          + omega * t
                         ).real
 
-    return(n_ana)
+    return(n_analytic)
 
 dq1 = (domain.q1_end - domain.q1_start) / domain.N_q1
 dq2 = (domain.q2_end - domain.q2_start) / domain.N_q2
@@ -80,13 +80,13 @@ for time_index, t0 in enumerate(time_array):
     n_nls = np.transpose(h5f['moments'][:][:, :, 0], (1, 0))
     h5f.close()
 
-    n_ana = n_analytic(q1, q2, t0)
+    n_analytic = n_analytic(q1, q2, t0)
 
     fig = pl.figure()
 
     ax1 = fig.add_subplot(1,2,1)
     ax1.set_aspect('equal')
-    ax2.contourf(q1, q2, n_ana, 100)
+    ax2.contourf(q1, q2, n_analytic, 100)
 
     ax2 = fig.add_subplot(1,2,2)
     ax2.set_aspect('equal')

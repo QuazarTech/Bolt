@@ -47,12 +47,12 @@ def n_analytic(q1, t):
     n_b    = params.density_background
     pert_n = eigvecs[0, 1]
 
-    n_ana = n_b + params.amplitude * pert_n * \
+    n_analytic = n_b + params.amplitude * pert_n * \
                  np.exp(  1j * params.k_q1 * q1 
                         + omega * t
                        ).real
 
-    return(n_ana)
+    return(n_analytic)
 
 dq1 = (domain.q1_end - domain.q1_start) / domain.N_q1
 
@@ -74,12 +74,12 @@ for time_index, t0 in enumerate(time_array):
     n_nls = h5f['moments'][:][0, :, 0].ravel()
     h5f.close()
 
-    n_ana = n_analytic(q1, t0)
+    n_analytic = n_analytic(q1, t0)
 
     pl.plot(q1, n_nls, 
             label = 'Nonlinear Solver'
            )
-    pl.plot(q1, n_ana, '--', color = 'black', 
+    pl.plot(q1, n_analytic, '--', color = 'black', 
             label = 'Analytical'
            )
 

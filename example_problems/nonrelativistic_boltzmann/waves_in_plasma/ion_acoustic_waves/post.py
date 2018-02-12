@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 20, 10
+pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'bwr'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -49,69 +49,97 @@ dt = params.N_cfl * dq1 \
 
 time_array  = np.arange(0, params.t_final + dt, dt)
 
-h5f       = h5py.File('dump/0000.h5', 'r')
-f_initial = h5f['distribution_function'][:]
-h5f.close()
+# h5f       = h5py.File('dump/0000.h5', 'r')
+# f_initial = h5f['distribution_function'][:]
+# h5f.close()
 
-delta_f_electron_max = 0
-delta_f_electron_min = 0
+# delta_f_electron_max = 0
+# delta_f_electron_min = 0
 
-delta_f_ion_max = 0
-delta_f_ion_min = 0
+# delta_f_ion_max = 0
+# delta_f_ion_min = 0
 
-# Traversal to determine variation:
+# # Traversal to determine variation:
+# for time_index, t0 in enumerate(time_array):
+#     if(time_index%10 == 0):
+
+#         h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
+#         f   = h5f['distribution_function'][:]
+#         h5f.close()
+
+#         delta_f_electron = (f - f_initial)[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
+#         delta_f_ion      = (f - f_initial)[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+
+#         if(np.max(delta_f_electron)>delta_f_electron_max):
+#             delta_f_electron_max = np.max(f_electron)
+
+#         if(np.min(delta_f_electron)<delta_f_electron_min):
+#             delta_f_electron_min = np.min(f_electron)
+
+#         if(np.max(delta_f_ion)>delta_f_ion_max):
+#             delta_f_ion_max = np.max(f_ion)
+
+#         if(np.min(delta_f_ion)<delta_f_ion_min):
+#             delta_f_ion_min = np.min(f_ion)
+
 for time_index, t0 in enumerate(time_array):
-    if(time_index%10 == 0):
 
-        h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
-        f   = h5f['distribution_function'][:]
-        h5f.close()
-
-        delta_f_electron = (f - f_initial)[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
-        delta_f_ion      = (f - f_initial)[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
-
-        if(np.max(delta_f_electron)>delta_f_electron_max):
-            delta_f_electron_max = np.max(f_electron)
-
-        if(np.min(delta_f_electron)<delta_f_electron_min):
-            delta_f_electron_min = np.min(f_electron)
-
-        if(np.max(delta_f_ion)>delta_f_ion_max):
-            delta_f_ion_max = np.max(f_ion)
-
-        if(np.min(delta_f_ion)<delta_f_ion_min):
-            delta_f_ion_min = np.min(f_ion)
-
-for time_index, t0 in enumerate(time_array):
+    h5f   = h5py.File('dump_nls/%04d'%time_index + '.h5', 'r')
+    f_nls = h5f['distribution_function'][:][0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+    h5f.close()
     
-    if(time_index%10 == 0):
-        h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
-        f   = h5f['distribution_function'][:]
-        h5f.close()
+    h5f  = h5py.File('dump_ls/%04d'%time_index + '.h5', 'r')
+    f_ls = h5f['distribution_function'][:][0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+    h5f.close()
 
-        df_electron = (f - f_initial)[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
-        df_ion      = (f - f_initial)[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+    rho_nls = np.sum(f_nls, 1) * (180 / 1024)
+    rho_ls  = np.sum(f_ls, 1) * (180 / 1024)
 
-        fig = pl.figure()
+    pl.plot(rho_nls)
+    pl.plot(rho_ls, '--', color = 'black')
+    pl.savefig('images/' + '%04d'%time_index + '.png')
+    pl.clf()
 
-        ax1 = fig.add_subplot(1,2,1)
-        # ax1.set_aspect('equal')
-        c1 = ax1.contourf(p1, q1, df_electron, np.linspace(delta_f_electron_min, delta_f_electron_max, 100))
-        ax1.set_xlabel(r'$v$')
-        ax1.set_ylabel(r'$x$')
 
-        ax2 = fig.add_subplot(1,2,2)
-        # ax2.set_aspect('equal')
-        c2 = ax2.contourf(p1, q1, df_ion, np.linspace(delta_f_ion_min, delta_f_ion_max, 100))
-        ax2.set_xlabel(r'$v$')
-        ax2.set_ylabel(r'$x$')
+    # if(time_index%10 == 0):
+ 
+    #     h5f   = h5py.File('dump_nls/%04d'%time_index + '.h5', 'r')
+    #     f_nls = h5f['distribution_function'][:]
+    #     h5f.close()
 
-        fig.suptitle('Time = %.2f'%(t0 - dt))
-        fig.colorbar(c1, ax = ax1)
-        fig.colorbar(c2, ax = ax2)
-        pl.savefig('images/' + '%04d'%(time_index/10) + '.png')
-        pl.close(fig)
-        pl.clf()
+    #     h5f  = h5py.File('dump_ls/%04d'%time_index + '.h5', 'r')
+    #     f_ls = h5f['distribution_function'][:]
+    #     h5f.close()
+
+    #     # df_electron = (f - f_initial*0)[0, :, :domain.N_p1].reshape(domain.N_q1, domain.N_p1)
+    #     # df_ion      = (f - f_initial*0)[0, :, -domain.N_p1:].reshape(domain.N_q1, domain.N_p1)
+    #     rho_nls = np.sum(f_nls, 1) * (180 / 1024)
+    #     rho_ls  = np.sum(f_ls, 1) * (180 / 1024)
+
+    #     # fig = pl.figure()
+
+    #     # ax1 = fig.add_subplot(1,2,1)
+    #     # ax1.plot(rho_nls)
+    #     # ax1.set_aspect('equal')
+    #     # c1 = ax1.contourf(p1, q1, df_electron, np.linspace(delta_f_electron_min, delta_f_electron_max, 100))
+    #     # ax1.set_xlabel(r'$v$')
+    #     # ax1.set_ylabel(r'$x$')
+
+    #     # ax2 = fig.add_subplot(1,2,2)
+    #     # ax1.plot(rho_ls, '--', color = 'black')
+    #     # ax2.set_aspect('equal')
+    #     # c2 = ax2.contourf(p1, q1, df_ion, np.linspace(delta_f_ion_min, delta_f_ion_max, 100))
+    #     # ax2.set_xlabel(r'$v$')
+    #     # ax2.set_ylabel(r'$x$')
+
+    #     # fig.suptitle('Time = %.2f'%(t0 - dt))
+    #     # fig.colorbar(c1, ax = ax1)
+    #     # fig.colorbar(c2, ax = ax2)
+    #     pl.plot(rho_nls)
+    #     pl.plot(rho_ls, '--', color = 'black')
+    #     pl.savefig('images/' + '%04d'%time_index + '.png')
+    #     pl.close(fig)
+    #     pl.clf()
 
 h5f = h5py.File('data.h5', 'r')
 E_data_ls    = h5f['E_ls'][:]
