@@ -3,7 +3,6 @@ import numpy as np
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
-from bolt.lib.linear.linear_solver import linear_solver
 
 import physics_tests.nonrelativistic_boltzmann.domain as domain
 import physics_tests.nonrelativistic_boltzmann.boundary_conditions as boundary_conditions
@@ -15,6 +14,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 N = 2**np.arange(5, 10)
+
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
     params.charge[0] = charge_electron
@@ -64,7 +64,6 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
                                 )
 
         nls = nonlinear_solver(system)
-        ls  = linear_solver(system)
 
         # Timestep as set by the CFL condition:
         dt = params.N_cfl * min(nls.dq1, nls.dq2) \
@@ -77,7 +76,5 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
 
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
-            ls.RK4_timestep(dt)
 
         nls.dump_distribution_function('dump_files/nlsf_' + str(N[i]))
-        ls.dump_distribution_function('dump_files/lsf_' + str(N[i]))

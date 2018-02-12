@@ -6,7 +6,7 @@ N_q1     = 32
 
 q2_start = 0
 q2_end   = 1
-N_q2     = 32
+N_q2     = 3
 
 p1_start = -10
 p1_end   = 10
