@@ -101,12 +101,12 @@ back which results in a simple harmonic oscillation given by the plasma frequenc
 
 Let us start by considering a charge neutral plasma where the positive charges and negative charges are next to each other.
 
-.. image:: images/neutral.png
+.. image:: images/doc_neutral.png
    :width: 600
 
 Now if we move the negative charges by x, then we will end up with the following:
 
-.. image:: images/perturbed.png
+.. image:: images/doc_perturbed.png
    :width: 600
 
 Thus, now there is a slab of positive and negative charges which would be exerting a field. Let us consider the field created by the positive slab of charges:

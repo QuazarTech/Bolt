@@ -60,6 +60,14 @@ def dfields_hat_dt(f_hat, fields_hat, self):
     B2_hat = fields_hat[4]
     B3_hat = fields_hat[5]
 
+    # Checking that there is no mean field component:
+    try:
+        assert(af.sum(B1_hat[:, 0, 0] < 1e-13) == 1)
+        assert(af.sum(B2_hat[:, 0, 0] < 1e-13) == 1)
+        assert(af.sum(B3_hat[:, 0, 0] < 1e-13) == 1)
+    except:
+        raise SystemExit('Linear Solver cannot solve for non-zero mean magnetic fields')
+
     # Equations Solved:
     # dE1/dt = + dB3/dq2 - J1
     # dE2/dt = - dB3/dq1 - J2

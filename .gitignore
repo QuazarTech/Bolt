@@ -59,17 +59,29 @@ Thumbs.db
 # build directory #
 ###################
 build/
+
+# Python Generated, IDE Files #
+###############################
 __pycache__/
 .ipynb_checkpoints/
 .cache/
-
-*.mp4
-*.h5
-README_nontex.md
-
 \.idea/
 
-# Files Native to Savio:
-########################
+# Not including run-specific data #
+###################################
+*.mp4
+*.h5
+*.png
+
+# Including Pictures under Documentation #
+##########################################
+!doc*.png
+
+# Nontexed file which used by Readme2Tex #
+##########################################
+README_nontex.md
+
+# Files Native to Runs on Clusters:
+###################################
 submit*
 *.out

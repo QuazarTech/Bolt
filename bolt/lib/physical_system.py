@@ -246,7 +246,16 @@ class physical_system(object):
             PETSc.Sys.Print('Fields Initialization Method       :', params.fields_initialize.upper())
             PETSc.Sys.Print('Fields Solver Method               :', params.fields_solver.upper())
         PETSc.Sys.Print('Number of Species                  :', N_species)
-        # for i in range(N_species):
-        #     PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), params.charge[i])
-        #     PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), params.mass[i])
+        if(type(params.charge) == af.array.Array):
+            for i in range(N_species):
+                PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), 
+                                af.sum(params.charge[0, i])
+                               )
+                PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), 
+                                af.sum(params.mass[0, i])
+                               )
+        else:
+            for i in range(N_species):
+                PETSc.Sys.Print('   Charge(Species %1d)               :'%(i+1), params.charge[i])
+                PETSc.Sys.Print('   Mass(Species %1d)                 :'%(i+1), params.mass[i])
         PETSc.Sys.Print('Number of Devices/Node             :', params.num_devices)
