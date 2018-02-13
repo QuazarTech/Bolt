@@ -124,25 +124,23 @@ class nonlinear_solver(object):
             af.set_device(self._comm.rank%self.physical_system.params.num_devices)
 
         # Getting number of species:
-        self.N_species = len(physical_system.params.mass)
+        N_s = self.N_species = len(physical_system.params.mass)
 
-        # Having the mass and charge along axis 1:
-        self.physical_system.params.mass  = \
-            af.cast(af.moddims(af.to_array(physical_system.params.mass),
-                               1, self.N_species
-                              ),
-                    af.Dtype.f64
-                   )
+        if(type(physical_system.params.mass) == list):
+            # Having a temporary copy of the lists to copy to af.Array:
+            list_mass   = physical_system.params.mass.copy()
+            list_charge = physical_system.params.charge.copy()
 
-        self.physical_system.params.charge  = \
-            af.cast(af.moddims(af.to_array(physical_system.params.charge),
-                               1, self.N_species
-                              ),
-                    af.Dtype.f64
-                   )
+            # Initializing af.Arrays for mass and charge:
+            # Having the mass and charge along axis 1:
+            self.physical_system.params.mass   = af.constant(0, 1, N_s, dtype = af.Dtype.f64)
+            self.physical_system.params.charge = af.constant(0, 1, N_s, dtype = af.Dtype.f64)
+
+            for i in range(N_s):
+                self.physical_system.params.mass[0, i]   = list_mass[i]
+                self.physical_system.params.charge[0, i] = list_charge[i]
 
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
-
         # Printing the backend details for each rank/device/node:
         PETSc.Sys.syncPrint(indent('Rank ' + str(self._comm.rank) + ' of ' + str(self._comm.size-1)))
         PETSc.Sys.syncPrint(indent('On Node: '+ socket.gethostname()))
