@@ -29,7 +29,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
             domain.N_q2 = int(N[i])
             params.k_q2 = 4 * np.pi
 
-        if(p_dim == 2):
+        if(p_dim >= 2):
          
             domain.N_p2     = 32
             domain.p2_start = -10
@@ -45,7 +45,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         if(charge_electron != 0):
             domain.N_p1 = int(N[i])
 
-            if(p_dim == 2):
+            if(p_dim >= 2):
                 domain.N_p2 = int(N[i])
 
             if(p_dim == 3):

@@ -44,7 +44,7 @@ k_q1 = 2 * np.pi
 k_q2 = 0 * np.pi
 
 fields_enabled           = False
-source_enabled           = True
+source_enabled           = False
 instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
