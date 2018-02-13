@@ -9,7 +9,7 @@ import numpy as np
 
 def initialize_f(q1, q2, p1, p2, p3, params):
 
-    m = params.mass_particle
+    m = params.mass
     k = params.boltzmann_constant
 
     pert_real = params.pert_real

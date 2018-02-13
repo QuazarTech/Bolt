@@ -28,9 +28,10 @@ N_cfl   = 0.4
 num_devices = 1
 
 # Constants:
-mass_particle      = 1
+mass               = [1]
 boltzmann_constant = 1
-charge_electron    = -1
+charge             = [-1]
+eps                = 1
 
 pert_real = 0.04
 pert_imag = 0
@@ -38,7 +39,11 @@ pert_imag = 0
 k_q1 = 0.3
 k_q2 = 0
 
+fields_enabled           = True
+source_enabled           = False
+instantaneous_collisions = True
+
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0 * q1**0 * p1**0)
+    return (np.inf * q1**0 * p1**0)

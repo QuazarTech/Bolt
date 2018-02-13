@@ -1,12 +1,14 @@
 import arrayfire as af
 import numpy as np
 import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import h5py
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
-from bolt.lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
+from bolt.lib.linear.linear_solver import linear_solver
+from bolt.lib.utils.fft_funcs import ifft2
 
 import domain
 import boundary_conditions
@@ -15,7 +17,7 @@ import params
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -54,12 +56,12 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.BGK,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-N_g = nls.N_ghost_q
+N_g = nls.N_ghost
 ls  = linear_solver(system)
 
 # Time parameters:
@@ -76,9 +78,9 @@ for time_index, t0 in enumerate(time_array):
     if(time_index%100 == 0):
         print('Computing For Time =', t0)
 
-    E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)
+    E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
-                                         * af.ifft2(ls.E1_hat[:, :, 0])
+                                         * ifft2(ls.fields_solver.E1_hat)
                                     )
 
     E_data_ls[time_index]  = af.sum(E1_ls**2)
