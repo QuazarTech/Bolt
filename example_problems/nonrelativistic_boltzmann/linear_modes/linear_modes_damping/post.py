@@ -1,5 +1,7 @@
 import numpy as np
 import h5py
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import domain
 
@@ -41,21 +43,25 @@ p1  = domain.p1_start + (0.5 + np.arange(domain.N_p1)) * dp1
 p1, q1 = np.meshgrid(p1, q1)
 
 h5f       = h5py.File('dump/0000.h5', 'r')
-f_initial = h5f['distribution_function'][:][0, :, :].reshape(domain.N_p1, domain.N_q1)
+f_initial = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
 h5f.close()
 
-time_array  = np.arange(0, 2.01, 0.01)
+time_array  = np.arange(0, 10.01, 0.01)
 
 for time_index, t0 in enumerate(time_array):
 
     h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
-    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_p1, domain.N_q1)
+    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 
-    pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, 5e-6, 100))
-    pl.xlabel(r'$v$')
-    pl.ylabel(r'$x$')
-    pl.colorbar()
+    k_v = np.fft.fftfreq(1024, 20/1024)
+
+    # pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, 5e-6, 100))
+    pl.semilogy(k_v[:512], abs(np.fft.fft(f[16, :512].ravel())))
+    pl.xlim([0, 4])
+    pl.ylim([1e-10, 10])
+    pl.xlabel(r'$k_v$')
+    pl.ylabel(r'$|\hat{f(v)}|$')
     pl.title('Time = %.2f'%(t0))
     pl.savefig('images/' + '%04d'%time_index + '.png')
     pl.clf()

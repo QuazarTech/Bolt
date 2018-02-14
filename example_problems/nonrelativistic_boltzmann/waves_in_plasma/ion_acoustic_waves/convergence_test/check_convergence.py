@@ -34,7 +34,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N     = 2**np.arange(5, 8)
+N     = 2**np.arange(5, 11)
 error = np.zeros(N.size)
 
 for i in range(N.size):
