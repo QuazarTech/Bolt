@@ -25,7 +25,7 @@ def RK5_step(self, dt):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
-                          self.p1, self.p2, self.p3, 
+                          self.p1_center, self.p2_center, self.p3_center, 
                           self.compute_moments, 
                           self.physical_system.params, 
                           True
@@ -71,7 +71,7 @@ def RK4_step(self, dt):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
-                          self.p1, self.p2, self.p3, 
+                          self.p1_center, self.p2_center, self.p3_center, 
                           self.compute_moments, 
                           self.physical_system.params, 
                           True
@@ -117,7 +117,7 @@ def RK2_step(self, dt):
 
         f0 = self._source(0.5 * self.N_q1 * self.N_q2 * af.real(ifft2(self.f_hat)),
                           self.time_elapsed, self.q1_center, self.q2_center,
-                          self.p1, self.p2, self.p3, 
+                          self.p1_center, self.p2_center, self.p3_center, 
                           self.compute_moments, 
                           self.physical_system.params, 
                           True
