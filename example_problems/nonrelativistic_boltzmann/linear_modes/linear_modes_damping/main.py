@@ -2,6 +2,7 @@ import arrayfire as af
 import numpy as np
 import h5py
 import pylab as pl
+from scipy.ndimage.filters import gaussian_filter
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
@@ -65,7 +66,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 2.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -86,11 +87,15 @@ for time_index, t0 in enumerate(time_array[1:]):
     nls.strang_timestep(dt)
     # nls.dump_distribution_function('dump/%04d'%(time_index+1))
     # ls.RK4_timestep(dt)
-
-#    if(time_index % 100 == 0):
-#        delta_f = nls.f - f_initial
-#        filtered_delta_f = af.to_array(gaussian_filter(np.array(delta_f), (1, 0, 0, 0)))
-#        nls.f = f_initial + filtered_delta_f
+    
+    if(time_index % 100 == 0):
+        # f_hat = af.fft2(nls.f)
+        # f_hat[16] = 0
+        # nls.f = af.abs(af.ifft2(f_hat, scale = 1) / 32)
+        nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.5, 0, 0, 0)))
+        # delta_f = nls.f - f_initial
+        # filtered_delta_f = af.to_array(gaussian_filter(np.array(delta_f), (1, 0, 0, 0)))
+        # nls.f = f_initial + filtered_delta_f
 
     n_nls                         = nls.compute_moments('density')
     rho_data_nls[time_index + 1]  = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
@@ -98,12 +103,27 @@ for time_index, t0 in enumerate(time_array[1:]):
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-#h5f = h5py.File('sigma_1.h5', 'w')
-#h5f.create_dataset('n', data = rho_data_nls)
-#h5f.create_dataset('time', data = time_array)
-#h5f.close()
+h5f = h5py.File('sigma_point5.h5', 'w')
+h5f.create_dataset('n', data = rho_data_nls)
+h5f.create_dataset('time', data = time_array)
+h5f.close()
 
-pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
+h5f = h5py.File('unfiltered.h5', 'r')
+n1 = h5f['n'][:]
+h5f.close()
+
+h5f = h5py.File('sigma_2.h5', 'r')
+n2 = h5f['n'][:]
+h5f.close()
+
+h5f = h5py.File('sigma_1.h5', 'r')
+n3 = h5f['n'][:]
+h5f.close()
+
+pl.plot(time_array, n1, label='Unfiltered')
+pl.plot(time_array, rho_data_nls, label=r'$\sigma=0.5$')
+pl.plot(time_array, n3, label=r'$\sigma=1$')
+pl.plot(time_array, n2, label=r'$\sigma=2$')
 # pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')

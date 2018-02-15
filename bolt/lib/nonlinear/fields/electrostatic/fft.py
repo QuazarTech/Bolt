@@ -27,7 +27,6 @@ def fft_poisson(self, rho):
         raise Exception('FFT solver can only be used when run in serial')
 
     else:
-
         N_g = self.N_g
             
         # Reorder from (1, 1, N_q1, N_q2) --> (N_q1, N_q2, 1, 1) 
@@ -41,20 +40,20 @@ def fft_poisson(self, rho):
         k_q1 = af.to_array(k_q1)
         k_q2 = af.to_array(k_q2)
 
+        # TEMP: Removing background for the time being to not break existing examples:
+        rho     = rho - af.mean(rho)
         rho_hat = af.fft2(rho)
-
-        # TEMP: Removing background for the time being to break existing examples:
-        rho = rho - af.mean(rho)
 
         # Ensuring that there is no background charge density:
         try:
-            assert(af.sum(rho_hat[0, 0] < 1e-13) == 1)
+            assert(af.sum(rho_hat[0, 0] < 1e-10) == 1)
         except:
             raise Exception('Cannot pass rho with a background charge density \
                              when solving using periodic boundary conditions'
                            )            
 
-        potential_hat = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
+        potential_hat       = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
+        potential_hat[0, 0] = 0
 
         E1_hat = -1j * 2 * np.pi * k_q1 * potential_hat
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat

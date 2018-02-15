@@ -21,7 +21,7 @@ def compute_electrostatic_fields(self, rho_hat):
     """
 
     # Summing over all the species:
-    phi_hat = af.sum(multiply(rho_hat, 1 / (self.k_q1**2 + self.k_q2**2)), 1) # (1, 1, N_q1, N_q2)
+    phi_hat = multiply(af.sum(rho_hat, 1), 1 / (self.k_q1**2 + self.k_q2**2)) # (1, 1, N_q1, N_q2)
 
     # Setting the background electric potential to zero:
     phi_hat[: , :, 0, 0] = 0

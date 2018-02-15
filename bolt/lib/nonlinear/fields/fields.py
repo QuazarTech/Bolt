@@ -471,8 +471,7 @@ class fields_solver(object):
 
         # Summing for all species:
         rho = af.sum(rho, 1)
-        if (self.params.fields_initialize == 'fft'):
-            
+        if (self.params.fields_solver == 'fft'):
             fft_poisson(self, rho)
             communicate.communicate_fields(self)
             apply_bcs_fields(self)
