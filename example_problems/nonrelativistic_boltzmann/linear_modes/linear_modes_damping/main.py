@@ -65,7 +65,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 10.0
+t_final = 0.5
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -84,7 +84,7 @@ f_initial = nls.f.copy()
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-    nls.dump_distribution_function('dump/%04d'%(time_index+1))
+    # nls.dump_distribution_function('dump/%04d'%(time_index+1))
     # ls.RK4_timestep(dt)
 
 #    if(time_index % 100 == 0):

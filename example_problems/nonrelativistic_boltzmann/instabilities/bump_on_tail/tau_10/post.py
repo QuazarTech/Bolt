@@ -46,22 +46,33 @@ h5f       = h5py.File('dump/0000.h5', 'r')
 f_initial = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
 h5f.close()
 
-time_array  = np.arange(0, 10.01, 0.01)
+# Time parameters:
+dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
+time_array  = np.arange(0, params.t_final + dt, dt)
+
+# Traversal for the range:
+max_delta_f = 0
 for time_index, t0 in enumerate(time_array):
-
     h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 
-    k_v = np.fft.fftfreq(domain.N_p1, 20/domain.N_p1)
+    delta_f = abs(f-f_initial)
+    if(np.max(delta_f)>max_delta_f):
+        max_delta_f = np.max(delta_f)
 
-    # pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, 5e-6, 100))
-    pl.semilogy(k_v[:domain.N_p1/2], abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:domain.N_p1/2])
-    pl.axvline(x = np.max(k_v), linestyle = '--', color = 'black')
-    pl.ylim([1e-10, 1])
-    pl.xlabel(r'$k_v$')
-    pl.ylabel(r'$|\hat{f(v)}|$')
-    pl.title('Time = %.2f'%(t0))
-    pl.savefig('images/' + '%04d'%time_index + '.png')
-    pl.clf()
+for time_index, t0 in enumerate(time_array):
+
+    if(time_index%10 == 0):
+        h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
+        f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+        h5f.close()
+
+        pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, max_delta_f, 100))
+        pl.xlabel(r'$v$')
+        pl.ylabel(r'$x$')
+        pl.title('Time = %.2f'%(t0))
+        pl.savefig('images/' + '%04d'%time_index/10 + '.png')
+        pl.clf()

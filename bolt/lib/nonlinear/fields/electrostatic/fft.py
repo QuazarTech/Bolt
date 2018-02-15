@@ -43,8 +43,18 @@ def fft_poisson(self, rho):
 
         rho_hat = af.fft2(rho)
 
-        potential_hat       = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
-        potential_hat[0, 0] = 0
+        # TEMP: Removing background for the time being to break existing examples:
+        rho = rho - af.mean(rho)
+
+        # Ensuring that there is no background charge density:
+        try:
+            assert(af.sum(rho_hat[0, 0] < 1e-13) == 1)
+        except:
+            raise Exception('Cannot pass rho with a background charge density \
+                             when solving using periodic boundary conditions'
+                           )            
+
+        potential_hat = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
 
         E1_hat = -1j * 2 * np.pi * k_q1 * potential_hat
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
