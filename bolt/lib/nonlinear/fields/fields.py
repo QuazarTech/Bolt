@@ -531,34 +531,6 @@ class fields_solver(object):
 
         return
 
-    def update_user_defined_fields(self, time_elapsed):
-        """
-        Updates the cell-centered EM fields value using the value that is 
-        returned by the user defined function at that particular time.
-
-        Parameters
-        ----------
-
-        time_elapsed : double
-                       Time at which the field values are to be evaluated.
-        """
-
-        E1, E2, E3 = self.params.user_defined_E(self.q1_center,
-                                                self.q2_center,
-                                                time_elapsed
-                                               )
-
-        B1, B2, B3 = self.params.user_defined_B(self.q1_center,
-                                                self.q2_center,
-                                                time_elapsed
-                                               )
-
-        self.cell_centered_EM_fields = af.join(0, E1, E2, E3, 
-                                               af.join(0, B1, B2, B3)
-                                              )
-
-        return
-
     def get_fields(self):
         """
         Returns the fields value as held by the

@@ -40,9 +40,16 @@ time    = np.arange(dt, t_final + dt, dt)
 h5f = h5py.File('dump/0000.h5', 'r')
 p1  = h5f['p1'][:]
 f   = h5f['distribution_function'][:]
+f_a = h5f['analytic_solution'][:]
 h5f.close()
 
-pl.plot(p1, f)
+pl.plot(p1[:domain.N_p1], f[:domain.N_p1])
+pl.plot(p1[:domain.N_p1], f_a[:domain.N_p1], '--', color = 'black')
+
+pl.plot(p1[-domain.N_p1:], f[-domain.N_p1:])
+pl.plot(p1[-domain.N_p1:], f_a[-domain.N_p1:], '--', color = 'black')
+
+pl.ylim([-1, 1])
 pl.title('Time = 0')
 pl.xlabel(r'$v$')
 pl.ylabel(r'$f$')
@@ -54,11 +61,18 @@ for time_index, t0 in enumerate(time):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     p1  = h5f['p1'][:]
     f   = h5f['distribution_function'][:]
+    f_a = h5f['analytic_solution'][:]
     h5f.close()
 
     if((time_index+1)%4==0):
 
-        pl.plot(p1, f)
+        pl.plot(p1[:domain.N_p1], f[:domain.N_p1])
+        pl.plot(p1[:domain.N_p1], f_a[:domain.N_p1], '--', color = 'black')
+
+        pl.plot(p1[-domain.N_p1:], f[-domain.N_p1:])
+        pl.plot(p1[-domain.N_p1:], f_a[-domain.N_p1:], '-.', color = 'black')
+        
+        pl.ylim([-1, 1])
         pl.title('Time =' + str(t0))
         pl.xlabel(r'$v$')
         pl.ylabel(r'$f$')

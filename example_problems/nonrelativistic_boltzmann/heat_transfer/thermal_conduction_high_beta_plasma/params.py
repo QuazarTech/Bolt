@@ -43,9 +43,9 @@ k0  = 1 # |k| units(k)
 eps = 1 # |eps0| units(eps0)
 mu  = 1
 
-l0 = length_scales.debye_length(n0, T0, e0, k0, eps)
 v0 = velocity_scales.thermal_speed(T0, m0, k0)
-t0 = 1/time_scales.plasma_frequency(n0, e0, m0, eps)
+l0 = length_scales.gyroradius(v0, B0, e0, m0)
+t0 = 1/time_scales.cyclotron_frequency(B0, e0, m0)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -53,25 +53,13 @@ p_dim = 1
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1
 
-# Constants:
-m_e = 1/100 * m0
-m_i = 1     * m0
-
-mass               = [m_e, m_i] # m_e, m_i
+mass               = [1 * m0] 
 boltzmann_constant = k0
-charge             = [-1 * e0, 1 * e0] # e_e, e_i
-
-# e_e*/m_e*E*df_e/dv, e_i/m_i*E*df_i/dv
+charge             = [-1 * e0] 
 
 # Initial Conditions used in initialize:
-n_background_e = 1 * n0  
-n_background_i = 1 * n0
-
-temperature_background_e = 2.5 * T0
-temperature_background_i = 1   * T0
-
-# Parameter controlling amplitude of perturbation introduced:
-alpha = 0.01
+temperature_left  = 3 * T0
+temperature_right = 1 * T0
 
 # Time parameters:
 N_cfl   = 0.95

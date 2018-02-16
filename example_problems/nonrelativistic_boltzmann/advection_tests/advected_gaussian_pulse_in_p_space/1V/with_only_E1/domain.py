@@ -8,7 +8,7 @@ N_q2     = 1
 
 p1_start = -10
 p1_end   = 10
-N_p1     = 32
+N_p1     = 512
 
 p2_start = -0.5
 p2_end   = 0.5
@@ -18,5 +18,4 @@ p3_start = -0.5
 p3_end   = 0.5
 N_p3     = 1
 
-N_ghost_q = 0
-N_ghost_p = 0
+N_ghost = 0

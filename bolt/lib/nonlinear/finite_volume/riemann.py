@@ -132,7 +132,7 @@ def riemann_solver(self, left_flux, right_flux, left_f, right_f, method, dim):
         
         flux = upwind_flux(left_flux, right_flux, velocity)
 
-    elif(self.physical_system.params.riemann_solver_in_q == 'lax-friedrichs'):
+    elif(method == 'lax-friedrichs'):
 
         if(dim == 'q1'):
             c_lax = self.dt/self.dq1 

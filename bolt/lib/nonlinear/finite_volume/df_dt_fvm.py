@@ -121,7 +121,7 @@ def df_dt_fvm(f, self):
                 rho = multiply(self.physical_system.params.charge,
                                self.compute_moments('density', f=f)
                               )
-                # self.fields_solver.compute_electrostatic_fields(rho)
+                self.fields_solver.compute_electrostatic_fields(rho)
 
         (self._C_p1, self._C_p2, self._C_p3) = \
             af.broadcast(self._C_p, f, self.time_elapsed,
@@ -149,9 +149,9 @@ def df_dt_fvm(f, self):
             f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
 
         else:
-            f_left_plus_eps, f_left_minus_eps  = 0, 0
-            f_bot_plus_eps,  f_bot_minus_eps   = 0, 0 
-            f_back_plus_eps, f_back_minus_eps = 0, 0 
+            f_left_plus_eps, f_left_minus_eps = 0, 0
+            f_bot_plus_eps,  f_bot_minus_eps  = 0, 0 
+            f_back_plus_eps, f_back_minus_eps = 0, 0
 
         flux_p1 = multiply(self._C_p1, f)
         flux_p2 = multiply(self._C_p2, f)
@@ -201,6 +201,63 @@ def df_dt_fvm(f, self):
         df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
                  - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
                  - (front_flux_p3 - back_flux_p3)/self.dp3
+
+        # By looping:
+
+        # left_flux_p1_perm  = af.constant(0, 512, 3, dtype = af.Dtype.f64)
+        # right_flux_p1_perm = af.constant(0, 512, 3, dtype = af.Dtype.f64)
+
+        # for i in range(self.N_species):
+        #     flux_p1 = multiply(self._C_p1, f)[:, :, :, i]
+        #     # flux_p2 = multiply(self._C_p2, f)[i * self.N_p1:(i+1) * self.N_p1]
+        #     # flux_p3 = multiply(self._C_p3, f)[i * self.N_p1:(i+1) * self.N_p1]
+
+        #     # Variation of p1 is along axis 0:
+        #     left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
+        #         reconstruct(self, flux_p1, 0, reconstruction_in_p)
+            
+        #     # Variation of p2 is along axis 1:
+        #     # bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
+        #     #     reconstruct(self, flux_p2, 1, reconstruction_in_p)
+
+        #     # Variation of p3 is along axis 2:
+        #     # back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
+        #     #     reconstruct(self, flux_p3, 2, reconstruction_in_p)
+
+        #     left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
+        #     # bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
+        #     # back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
+
+        #     left_flux_p1 = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
+        #     # left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
+        #     #                               f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
+        #     #                              )
+
+        #     # bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
+        #     #                               f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
+        #     #                              )
+
+        #     # back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
+        #     #                               f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
+        #     #                              )
+
+        #     right_flux_p1 = af.shift(left_flux_p1, -1)
+        #     # top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
+        #     # front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
+
+        #     left_flux_p1_perm[:, i]  = af.moddims(left_flux_p1, 512)
+        #     right_flux_p1_perm[:, i] = af.moddims(right_flux_p1, 512)
+
+        #     # left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
+        #     # right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
+
+        #     # bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
+        #     # top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
+
+        #     # back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
+        #     # front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
+
+        # df_dt += - (right_flux_p1_perm - left_flux_p1_perm)/self.dp1 \
 
     af.eval(df_dt)
     return(df_dt)

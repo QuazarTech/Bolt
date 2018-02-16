@@ -56,51 +56,15 @@ system = physical_system(domain,
                         )
 
 N_g = system.N_ghost
-
-
-# Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
-
-divB = nls.fields_solver.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]
-
-print(af.mean(af.abs(divB)))
-
-pl.contourf(np.array(divB).reshape(32, 32), 100)
-pl.colorbar()
-pl.savefig('plot.png')
 
 # Time parameters:
-# dt      = 0.001
-# t_final = 0.5
+dt      = 0.001
+t_final = 0.5
 
-# time_array  = np.arange(0, t_final + dt, dt)
+time_array  = np.arange(0, t_final + dt, dt)
 
-# rho_data_nls = np.zeros(time_array.size)
-# rho_data_ls  = np.zeros(time_array.size)
-
-# # Storing data at time t = 0:
-# n_nls           = nls.compute_moments('density')
-# rho_data_nls[0] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
-
-# n_ls           = ls.compute_moments('density')
-# rho_data_ls[0] = af.max(n_ls) 
-
-# for time_index, t0 in enumerate(time_array[1:]):
-
-#     nls.strang_timestep(dt)
-#     ls.RK4_timestep(dt)
-
-#     n_nls                         = nls.compute_moments('density')
-#     rho_data_nls[time_index + 1]  = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
+for time_index, t0 in enumerate(time_array[1:]):
+    nls.strang_timestep(dt)
+    nls.dump_distribution_function('dump/%04d'%time_index)
     
-#     n_ls                        = ls.compute_moments('density')
-#     rho_data_ls[time_index + 1] = af.max(n_ls) 
-
-# pl.plot(time_array, rho_data_nls, label='Nonlinear Solver')
-# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-# pl.ylabel(r'MAX($\rho$)')
-# pl.xlabel('Time')
-# pl.legend()
-# pl.savefig('rho.png')
-# pl.clf()

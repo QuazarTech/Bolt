@@ -144,7 +144,7 @@ def A_p(f, t, q1, q2, v1, v2, v3,
 
     A_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)
     A_p2 = (e/m) * (E2 + v3 * B1 - v1 * B3)
-    A_p3 = (e/m) * (E1 + v1 * B2 - v2 * B1)
+    A_p3 = (e/m) * (E3 + v1 * B2 - v2 * B1)
 
     return (A_p1, A_p2, A_p3)
 
@@ -192,6 +192,6 @@ def C_p(f, t, q1, q2, v1, v2, v3,
 
     C_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)
     C_p2 = (e/m) * (E2 + v3 * B1 - v1 * B3)
-    C_p3 = (e/m) * (E1 + v1 * B2 - v2 * B1)
+    C_p3 = (e/m) * (E3 + v1 * B2 - v2 * B1)
 
     return (C_p1, C_p2, C_p3)

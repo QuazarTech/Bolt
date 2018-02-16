@@ -54,16 +54,24 @@ def df_hat_dt(f_hat, fields_hat, self):
         df_hat_dt += C_f_hat
 
     if(self.physical_system.params.fields_enabled == True):
+        
         if(self.physical_system.params.fields_type == 'electrostatic'):
             
             rho_hat = multiply(self.physical_system.params.charge,
                                self.compute_moments('density', f_hat=f_hat)
                               )
-            # self.fields_solver.compute_electrostatic_fields(rho_hat)
+            self.fields_solver.compute_electrostatic_fields(rho_hat)
 
         elif(self.physical_system.params.fields_type == 'electrodynamic'):
             # Handled by dfields_hat_dt
             pass
+
+        # Used in debugging; advection tests for p-space where fields are to be held constant 
+        elif(self.physical_system.params.fields_type == 'None'):
+            pass
+
+        else:
+            raise NotImplementedError('Invalid option for fields solver!')
 
         # get_fields for linear solver returns the mode amplitudes of the fields
         # So, we obtain A_p1_hat, A_p2_hat, A_p3_hat

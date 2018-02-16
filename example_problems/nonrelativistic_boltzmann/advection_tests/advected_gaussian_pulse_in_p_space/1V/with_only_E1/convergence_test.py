@@ -4,7 +4,8 @@ import h5py
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
+from bolt.lib.utils.broadcasted_primitive_operations import add
 
 import domain
 import boundary_conditions
@@ -13,7 +14,7 @@ import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -45,10 +46,6 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-@af.broadcast
-def addition(a, b):
-    return(a+b)
-
 N = 2**np.arange(5, 10)
 
 def check_error(params):
@@ -63,12 +60,11 @@ def check_error(params):
                                  initialize,
                                  advection_terms,
                                  collision_operator.BGK,
-                                 moment_defs
+                                 moments
                                 )
 
         # Declaring a linear system object which will evolve the defined physical system:
         nls = nonlinear_solver(system)
-        N_g = nls.N_ghost_q
 
         # Time parameters:
         dt      = 0.01 * 32/nls.N_p1
@@ -76,27 +72,17 @@ def check_error(params):
 
         time_array  = np.arange(dt, t_final + dt, dt)
 
-        # Since only the p = 1 mode is excited:
-
-        E1 = nls.cell_centered_EM_fields_at_n[0]
-        E2 = nls.cell_centered_EM_fields_at_n[1]
-        E3 = nls.cell_centered_EM_fields_at_n[2]
-
-        B1 = nls.cell_centered_EM_fields_at_n[3]
-        B2 = nls.cell_centered_EM_fields_at_n[4]
-        B3 = nls.cell_centered_EM_fields_at_n[5]
-
-        (A_p1, A_p2, A_p3) = af.broadcast(nls._A_p, nls.q1_center, nls.q2_center,
+        (A_p1, A_p2, A_p3) = af.broadcast(nls._A_p, nls.f, 0, nls.q1_center, nls.q2_center,
                                           nls.p1_center, nls.p2_center, nls.p3_center,
-                                          E1, E2, E3, B1, B2, B3,
+                                          nls.fields_solver,
                                           nls.physical_system.params
                                          )
 
         f_analytic = af.broadcast(initialize.initialize_f, nls.q1_center, nls.q2_center,
-                             addition(nls.p1_center, - A_p1 * t_final), 
-                             addition(nls.p2_center, - A_p2 * t_final),
-                             nls.p3_center, nls.physical_system.params
-                            )
+                                  add(nls.p1_center, - A_p1 * t_final), 
+                                  add(nls.p2_center, - A_p2 * t_final),
+                                  nls.p3_center, nls.physical_system.params
+                                 )
 
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
