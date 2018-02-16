@@ -1,9 +1,9 @@
 import numpy as np
 import arrayfire as af
 
-fields_type       = 'electrodynamic'
-fields_initialize = 'fft + user-defined magnetic fields'
-fields_solver     = 'fdtd'
+fields_type       = 'electrostatic'
+fields_initialize = 'fft'
+fields_solver     = 'fft'
 
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
@@ -25,7 +25,7 @@ num_devices = 4
 # Constants:
 mass               = [1]
 boltzmann_constant = 1
-charge             = [-1]
+charge             = [-10]
 eps                = 1
 mu                 = 1
 

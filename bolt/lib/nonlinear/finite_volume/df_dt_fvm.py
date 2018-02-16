@@ -121,7 +121,7 @@ def df_dt_fvm(f, self):
                 rho = multiply(self.physical_system.params.charge,
                                self.compute_moments('density', f=f)
                               )
-                self.fields_solver.compute_electrostatic_fields(rho)
+                # self.fields_solver.compute_electrostatic_fields(rho)
 
         (self._C_p1, self._C_p2, self._C_p3) = \
             af.broadcast(self._C_p, f, self.time_elapsed,
