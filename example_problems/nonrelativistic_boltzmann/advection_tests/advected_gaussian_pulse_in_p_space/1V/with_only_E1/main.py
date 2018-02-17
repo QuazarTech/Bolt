@@ -44,7 +44,6 @@ h5f.close()
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-
     (A_p1, A_p2, A_p3) = af.broadcast(nls._A_p, nls.f, 0, nls.q1_center, nls.q2_center,
                                       nls.p1_center, nls.p2_center, nls.p3_center,
                                       nls.fields_solver,

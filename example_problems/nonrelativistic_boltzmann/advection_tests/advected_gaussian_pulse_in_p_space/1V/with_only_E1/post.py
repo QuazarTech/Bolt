@@ -43,12 +43,13 @@ f   = h5f['distribution_function'][:]
 f_a = h5f['analytic_solution'][:]
 h5f.close()
 
-pl.plot(p1[:domain.N_p1], f[:domain.N_p1])
-pl.plot(p1[:domain.N_p1], f_a[:domain.N_p1], '--', color = 'black')
+pl.plot(p1[:, 0], f[:, 0], label = 'Species-1 Numerical')
+pl.plot(p1[:, 0], f_a[:, 0], '--', color = 'black', label = 'Species-1 Analytic')
 
-pl.plot(p1[-domain.N_p1:], f[-domain.N_p1:])
-pl.plot(p1[-domain.N_p1:], f_a[-domain.N_p1:], '--', color = 'black')
+pl.plot(p1[:, 1], f[:, 1], label = 'Species-2 Numerical')
+pl.plot(p1[:, 1], f_a[:, 1], '-.', color = 'black', label = 'Species-2 Analytic')
 
+pl.legend()
 pl.ylim([-1, 1])
 pl.title('Time = 0')
 pl.xlabel(r'$v$')
@@ -66,12 +67,13 @@ for time_index, t0 in enumerate(time):
 
     if((time_index+1)%4==0):
 
-        pl.plot(p1[:domain.N_p1], f[:domain.N_p1])
-        pl.plot(p1[:domain.N_p1], f_a[:domain.N_p1], '--', color = 'black')
+        pl.plot(p1[:, 0], f[:, 0], label = 'Species-1 Numerical')
+        pl.plot(p1[:, 0], f_a[:, 0], '--', color = 'black', label = 'Species-1 Analytic')
 
-        pl.plot(p1[-domain.N_p1:], f[-domain.N_p1:])
-        pl.plot(p1[-domain.N_p1:], f_a[-domain.N_p1:], '-.', color = 'black')
-        
+        pl.plot(p1[:, 1], f[:, 1], label = 'Species-2 Numerical')
+        pl.plot(p1[:, 1], f_a[:, 1], '-.', color = 'black', label = 'Species-2 Analytic')
+
+        pl.legend()
         pl.ylim([-1, 1])
         pl.title('Time =' + str(t0))
         pl.xlabel(r'$v$')

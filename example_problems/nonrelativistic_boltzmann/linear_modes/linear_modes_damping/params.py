@@ -43,7 +43,7 @@ pert_imag = 2e-5
 k_q1 = 2 * np.pi
 k_q2 = 0 * np.pi
 
-fields_enabled           = True
+fields_enabled           = False
 source_enabled           = False
 instantaneous_collisions = False
 
