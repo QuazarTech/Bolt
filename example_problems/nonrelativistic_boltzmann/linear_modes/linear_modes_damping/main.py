@@ -54,12 +54,12 @@ def lowpass_filter(f):
     k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 1, 1, 38, 9)
     
     # Applying the filter:
-    f_hat_filtered = 0.5 * multiply(f_hat, (  af.tanh((k_v + 0.7 * af.max(k_v)) / 2)
-                                            - af.tanh((k_v + 0.7 * af.min(k_v)) / 2)
+    f_hat_filtered = 0.5 * multiply(f_hat, (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
+                                            - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
                                            )
                                    )
 
-    f_hat = af.select(af.abs(k_v) < 0.7 * af.max(k_v), f_hat, f_hat_filtered)
+    f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
     f = af.real(af.ifft(f_hat))
     return(f) 
 
@@ -100,13 +100,15 @@ f_initial = nls.f.copy()
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
-    nls.f = lowpass_filter(nls.f)
+    # nls.f = lowpass_filter(nls.f)
     # nls.dump_distribution_function('dump/%04d'%(time_index+1))
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     ls.RK4_timestep(dt)
     
-    # if(time_index % 100 == 0):
-          # f_hat = af.fft2(nls.f)
+    if(time_index % 25 == 0):
+        nls.f = lowpass_filter(nls.f)
+        
+        # f_hat = af.fft2(nls.f)
     #     # f_hat[16] = 0
     #     # nls.f = af.abs(af.ifft2(f_hat, scale = 1) / 32)
     #     nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.5, 0, 0, 0)))

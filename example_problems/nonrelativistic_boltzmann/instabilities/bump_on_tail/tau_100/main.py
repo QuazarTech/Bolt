@@ -78,6 +78,7 @@ for time_index, t0 in enumerate(time_array):
     if(time_index%100 == 0):
         print('Computing For Time =', t0)
 
+    nls.dump_distribution_function('dump/%04d'%time_index)
     E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
                                          * ifft2(ls.fields_solver.E1_hat)

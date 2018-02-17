@@ -40,6 +40,7 @@ T0  = 1 # |T| units(T)
 m0  = 1 # |m_p| units(m)
 e0  = 1 # |e| units(e)
 k0  = 1 # |k| units(k)
+B0  = 1 # |B| units(B)
 eps = 1 # |eps0| units(eps0)
 mu  = 1
 
@@ -60,6 +61,15 @@ charge             = [-1 * e0]
 # Initial Conditions used in initialize:
 temperature_left  = 3 * T0
 temperature_right = 1 * T0
+
+# Density:
+# Needs to be set equal when setting up Roberg-Clark
+density_left = density_right = 1
+
+# For Komarov:
+pressure      = 1 * n0 * T0
+density_left  = pressure / temperature_left
+density_right = pressure / temperature_right
 
 # Time parameters:
 N_cfl   = 0.95

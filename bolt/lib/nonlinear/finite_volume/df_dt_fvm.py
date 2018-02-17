@@ -135,169 +135,173 @@ def df_dt_fvm(f, self):
         self._C_p3 = self._convert_to_p_expanded(self._C_p3)
         f          = self._convert_to_p_expanded(f)
 
-        # if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
+        if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
             
-        #     f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
-        #     f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 1, reconstruction_in_p)
-        #     f_back_plus_eps, f_front_minus_eps = reconstruct(self, f, 2, reconstruction_in_p)
+            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
+            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 1, reconstruction_in_p)
+            f_back_plus_eps, f_front_minus_eps = reconstruct(self, f, 2, reconstruction_in_p)
     
-        #     # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
-        #     f_left_minus_eps = af.shift(f_right_minus_eps, 1)
-        #     # Extending the same to bot:
-        #     f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 1)
-        #     # Extending the same to back:
-        #     f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
+            # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
+            f_left_minus_eps = af.shift(f_right_minus_eps, 1)
+            # Extending the same to bot:
+            f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 1)
+            # Extending the same to back:
+            f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
 
-        # else:
-        #     f_left_plus_eps, f_left_minus_eps = 0, 0
-        #     f_bot_plus_eps,  f_bot_minus_eps  = 0, 0 
-        #     f_back_plus_eps, f_back_minus_eps = 0, 0
+        else:
+            f_left_plus_eps, f_left_minus_eps = 0, 0
+            f_bot_plus_eps,  f_bot_minus_eps  = 0, 0 
+            f_back_plus_eps, f_back_minus_eps = 0, 0
 
-        # flux_p1 = multiply(self._C_p1, f)
-        # flux_p2 = multiply(self._C_p2, f)
-        # flux_p3 = multiply(self._C_p3, f)
+        # flipping due to strange error seen when working with
+        # multiple species otherwise:
+        flux_p1 = self._C_p1 * af.flip(af.flip(f))
+        flux_p2 = self._C_p2 * af.flip(af.flip(f))
+        flux_p3 = self._C_p3 * af.flip(af.flip(f))
 
-        # # Variation of p1 is along axis 0:
-        # left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-        #     reconstruct(self, flux_p1, 0, reconstruction_in_p)
+        # Variation of p1 is along axis 0:
+        left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
+            reconstruct(self, flux_p1, 0, reconstruction_in_p)
         
-        # # Variation of p2 is along axis 1:
-        # bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-        #     reconstruct(self, flux_p2, 1, reconstruction_in_p)
+        # Variation of p2 is along axis 1:
+        bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
+            reconstruct(self, flux_p2, 1, reconstruction_in_p)
 
-        # # Variation of p3 is along axis 2:
-        # back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-        #     reconstruct(self, flux_p3, 2, reconstruction_in_p)
+        # Variation of p3 is along axis 2:
+        back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
+            reconstruct(self, flux_p3, 2, reconstruction_in_p)
 
-        # left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
-        # bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
-        # back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
+        left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
+        bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
+        back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
-        # left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
-        #                               f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
-        #                              )
+        left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
+                                      f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
+                                     )
 
-        # bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
-        #                               f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
-        #                              )
+        bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
+                                      f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
+                                     )
 
-        # back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
-        #                               f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
-        #                              )
+        back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
+                                      f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
+                                     )
 
-        # right_flux_p1 = af.shift(left_flux_p1, -1)
-        # top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
-        # front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
+        right_flux_p1 = af.shift(left_flux_p1, -1)
+        top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
+        front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
 
-        # left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
-        # right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
+        left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
+        right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
 
-        # bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
-        # top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
+        bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
+        top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
 
-        # back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
-        # front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
+        back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
+        front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
 
-        # df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
-        #          - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
-        #          - (front_flux_p3 - back_flux_p3)/self.dp3
+        df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
+                 - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
+                 - (front_flux_p3 - back_flux_p3)/self.dp3
 
         # By looping over each species:
-        left_flux_p1_all_species = af.constant(0, 512, 2, dtype = af.Dtype.f64)
-        right_flux_p1_all_species = af.constant(0, 512, 2, dtype = af.Dtype.f64)
+        # left_flux_p1_all_species = af.constant(0, 512, 2, dtype = af.Dtype.f64)
+        # right_flux_p1_all_species = af.constant(0, 512, 2, dtype = af.Dtype.f64)
 
-        for i in range(self.N_species):
+        # for i in range(self.N_species):
 
-            if(i == 1):
-                # shape of arrays self._C_p1 and f is (512, 1, 1, 2)
-                # while array[:, :, :, 0] refers to data for species 1
-                # while array[:, :, :, 1] refers to data for species 2
+        #     if(i == 1):
+        #         # shape of arrays self._C_p1 and f is (512, 1, 1, 2)
+        #         # while array[:, :, :, 0] refers to data for species 1
+        #         # while array[:, :, :, 1] refers to data for species 2
 
-                # Listed below are 3 equivalent methods of calculating flux: 
-                flux_p1_one   = (af.flip(self._C_p1, 3) * af.flip(f, 3))[:, :, :, 0]
-                flux_p1_two   = (af.flip(self._C_p1 * f, 3))[:, :, :, 0]
-                flux_p1_three = (self._C_p1 * f)[:, :, :, 1]
+        #         # Listed below are 3 equivalent methods of calculating flux: 
+        #         flux_p1_one   = (af.flip(self._C_p1, 3) * af.flip(f, 3))[:, :, :, 0]
+        #         flux_p1_two   = (af.flip(self._C_p1 * f, 3))[:, :, :, 0]
+        #         flux_p1_three = (self._C_p1 * f)[:, :, :, 1]
+        #         flux_p1_four  = (af.flip(af.flip(self._C_p1, 3), 3) * af.flip(af.flip(f, 3), 3))[:, :, :, 1]
 
-                print(af.sum(flux_p1_one == flux_p1_two))   # True only on first call;false otherwise
-                print(af.sum(flux_p1_two == flux_p1_three)) # Always true
-                print(af.sum(flux_p1_one == flux_p1_three)) # True only on first call;false otherwise
-                print()
+        #         print(af.sum(flux_p1_one == flux_p1_four))  
+        #         print(af.sum(flux_p1_one == flux_p1_two))   # True only on first call;false otherwise
+        #         print(af.sum(flux_p1_two == flux_p1_three)) # Always true
+        #         print(af.sum(flux_p1_one == flux_p1_three)) # True only on first call;false otherwise
+        #         print()
 
-                # The above shows all to be true on the first call, after which
-                # it shows only flux_p1_two and flux_p1_three to be matching
+        #         # The above shows all to be true on the first call, after which
+        #         # it shows only flux_p1_two and flux_p1_three to be matching
 
-                # This is what gives the correct answer:
-                flux_p1 = flux_p1_one
-                # Using the others produces that odd curve which becomes negative
+        #         # This is what gives the correct answer:
+        #         flux_p1 = flux_p1_four
+        #         # Using the others produces that odd curve which becomes negative
 
-                # self._C_p1 = af.flip(self._C_p1, 3)
-                # f          = af.flip(f, 3)
+        #         # self._C_p1 = af.flip(self._C_p1, 3)
+        #         # f          = af.flip(f, 3)
 
-            else:
-                flux_p1 = (self._C_p1 * f)[:, :, :, 0]
+        #     else:
+        #         flux_p1 = (self._C_p1 * f)[:, :, :, 0]
 
-                # self._C_p1 = af.flip(self._C_p1, 3)
-                # f          = af.flip(f, 3)
+        #         # self._C_p1 = af.flip(self._C_p1, 3)
+        #         # f          = af.flip(f, 3)
 
-            # flux_p1 = multiply(self._C_p1, f)[:, :, :, 0]
+        #     # flux_p1 = multiply(self._C_p1, f)[:, :, :, 0]
             
-            # flux_p2 = multiply(self._C_p2, f)[i * self.N_p1:(i+1) * self.N_p1]
-            # flux_p3 = multiply(self._C_p3, f)[i * self.N_p1:(i+1) * self.N_p1]
+        #     # flux_p2 = multiply(self._C_p2, f)[i * self.N_p1:(i+1) * self.N_p1]
+        #     # flux_p3 = multiply(self._C_p3, f)[i * self.N_p1:(i+1) * self.N_p1]
 
-            # Variation of p1 is along axis 0:
-            left_plus_eps_flux_p1   = flux_p1
-            right_minus_eps_flux_p1 = flux_p1
+        #     # Variation of p1 is along axis 0:
+        #     left_plus_eps_flux_p1   = flux_p1
+        #     right_minus_eps_flux_p1 = flux_p1
 
-            # left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            #     reconstruct(self, flux_p1, 0, reconstruction_in_p)
+        #     # left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
+        #     #     reconstruct(self, flux_p1, 0, reconstruction_in_p)
             
-            # Variation of p2 is along axis 1:
-            # bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            #     reconstruct(self, flux_p2, 1, reconstruction_in_p)
+        #     # Variation of p2 is along axis 1:
+        #     # bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
+        #     #     reconstruct(self, flux_p2, 1, reconstruction_in_p)
 
-            # Variation of p3 is along axis 2:
-            # back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            #     reconstruct(self, flux_p3, 2, reconstruction_in_p)
+        #     # Variation of p3 is along axis 2:
+        #     # back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
+        #     #     reconstruct(self, flux_p3, 2, reconstruction_in_p)
 
-            left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
-            # bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
-            # back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
+        #     left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
+        #     # bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
+        #     # back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
 
-            # Averaging just for a visual check:
-            left_flux_p1 = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
-            # left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
-            #                               f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
-            #                              )
+        #     # Averaging just for a visual check:
+        #     left_flux_p1 = 0.5 * (left_minus_eps_flux_p1 + left_plus_eps_flux_p1)
+        #     # left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
+        #     #                               f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
+        #     #                              )
 
-            # bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
-            #                               f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
-            #                              )
+        #     # bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
+        #     #                               f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
+        #     #                              )
 
-            # back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
-            #                               f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
-            #                              )
+        #     # back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
+        #     #                               f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
+        #     #                              )
 
-            right_flux_p1 = af.shift(left_flux_p1, -1)
-            # top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
-            # front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
+        #     right_flux_p1 = af.shift(left_flux_p1, -1)
+        #     # top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
+        #     # front_flux_p3 = af.shift(back_flux_p3,  0,  0, -1)
 
-            left_flux_p1_all_species[:, i]  = af.moddims(left_flux_p1, 512)
-            right_flux_p1_all_species[:, i] = af.moddims(right_flux_p1, 512)
+        #     left_flux_p1_all_species[:, i]  = af.moddims(left_flux_p1, 512)
+        #     right_flux_p1_all_species[:, i] = af.moddims(right_flux_p1, 512)
 
-            # if(i == 1):
-            #     self._C_p1 = af.flip(self._C_p1, 3)
-            #     f          = af.flip(f, 3)
+        #     # if(i == 1):
+        #     #     self._C_p1 = af.flip(self._C_p1, 3)
+        #     #     f          = af.flip(f, 3)
 
-            # left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
-            # right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
+        #     # left_flux_p1  = self._convert_to_q_expanded(left_flux_p1)
+        #     # right_flux_p1 = self._convert_to_q_expanded(right_flux_p1)
 
-            # bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
-            # top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
+        #     # bot_flux_p2 = self._convert_to_q_expanded(bot_flux_p2)
+        #     # top_flux_p2 = self._convert_to_q_expanded(top_flux_p2)
 
-            # back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
-            # front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
+        #     # back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
+        #     # front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
 
-        df_dt += - (right_flux_p1_all_species - left_flux_p1_all_species)/self.dp1 \
+        # df_dt += - (right_flux_p1_all_species - left_flux_p1_all_species)/self.dp1 \
 
     af.eval(df_dt)
     return(df_dt)
