@@ -50,7 +50,7 @@ time_array  = np.arange(0, 10.01, 0.01)
 
 for time_index, t0 in enumerate(time_array):
 
-    h5f = h5py.File('dump/%04d'%time_index + '.h5', 'r')
+    h5f = h5py.File('dump/%04d'%(10 * time_index) + '.h5', 'r')
     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 

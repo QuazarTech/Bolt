@@ -21,7 +21,7 @@ riemann_solver_in_p = 'upwind-flux'
 reconstruction_method_in_q = 'weno5'
 reconstruction_method_in_p = 'weno5'
 
-t_final = 50
+t_final = 1000
 N_cfl   = 0.4
 
 # Number of devices(GPUs/Accelerators) on each node:

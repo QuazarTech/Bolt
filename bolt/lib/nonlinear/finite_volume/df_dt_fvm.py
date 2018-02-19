@@ -153,7 +153,11 @@ def df_dt_fvm(f, self):
             f_back_plus_eps, f_back_minus_eps = 0, 0
 
         # flipping due to strange error seen when working with
-        # multiple species otherwise:
+        # multiple species on the CPU backend where f != flip(flip(f))
+        # Doesn't seem to be a problem on CUDA:
+        # Yet to test on OpenCL
+        # TODO: Find exact cause for this bug.
+        # f != flip(flip(f)) seems to happen after conversion to p_expanded
         flux_p1 = self._C_p1 * af.flip(af.flip(f))
         flux_p2 = self._C_p2 * af.flip(af.flip(f))
         flux_p3 = self._C_p3 * af.flip(af.flip(f))

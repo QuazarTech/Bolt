@@ -13,8 +13,24 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-N = 2**np.arange(5, 10)
+def lowpass_filter(f):
+    f_hat = af.fft(f)
+    dp1   = (domain.p1_end - domain.p1_start) / domain.N_p1
+    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 
+                    1, 1, f.shape[2], f.shape[3]
+                   )
+    
+    # Applying the filter:
+    f_hat_filtered = 0.5 * (f_hat * (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
+                                     - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
+                                    )
+                           )
 
+    f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
+    f = af.real(af.ifft(f_hat))
+    return(f) 
+
+N = 2**np.arange(5, 10)
 def run_cases(q_dim, p_dim, charge_electron, tau):
 
     params.charge[0] = charge_electron
@@ -76,5 +92,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
 
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
+            if(time_index % 25 == 0):
+                nls.f = lowpass_filter(nls.f)
 
         nls.dump_distribution_function('dump_files/nlsf_' + str(N[i]))

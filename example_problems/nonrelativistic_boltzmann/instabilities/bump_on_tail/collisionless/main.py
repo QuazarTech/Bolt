@@ -52,17 +52,20 @@ pl.rcParams['ytick.direction']  = 'in'
 def lowpass_filter(f):
     f_hat = af.fft(f)
     dp1   = (domain.p1_end - domain.p1_start) / domain.N_p1
-    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 1, 1, 38, 9)
+    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 
+                    1, 1, f.shape[2], f.shape[3]
+                   )
     
     # Applying the filter:
-    f_hat_filtered = 0.5 * multiply(f_hat, (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
-                                            - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
-                                           )
-                                   )
+    f_hat_filtered = 0.5 * (f_hat * (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
+                                     - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
+                                    )
+                           )
 
     f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
     f = af.real(af.ifft(f_hat))
     return(f) 
+
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
