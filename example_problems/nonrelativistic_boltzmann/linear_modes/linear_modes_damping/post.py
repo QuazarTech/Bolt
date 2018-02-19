@@ -57,9 +57,9 @@ for time_index, t0 in enumerate(time_array):
     k_v = np.fft.fftfreq(domain.N_p1, 20/domain.N_p1)
 
     # pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, 5e-6, 100))
-    pl.semilogy(k_v[:domain.N_p1/2], abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:domain.N_p1/2])
+    pl.semilogy(k_v[:int(domain.N_p1/2)], abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:int(domain.N_p1/2)])
     pl.axvline(x = np.max(k_v), linestyle = '--', color = 'black')
-    pl.ylim([1e-10, 1])
+    pl.ylim([1e-14, 1])
     pl.xlabel(r'$k_v$')
     pl.ylabel(r'$|\hat{f(v)}|$')
     pl.title('Time = %.2f'%(t0))

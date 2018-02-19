@@ -49,6 +49,21 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
+def lowpass_filter(f):
+    f_hat = af.fft(f)
+    dp1   = (domain.p1_end - domain.p1_start) / domain.N_p1
+    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 1, 1, 38, 9)
+    
+    # Applying the filter:
+    f_hat_filtered = 0.5 * multiply(f_hat, (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
+                                            - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
+                                           )
+                                   )
+
+    f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
+    f = af.real(af.ifft(f_hat))
+    return(f) 
+
 # Defining the physical system to be solved:
 system = physical_system(domain,
                          boundary_conditions,
@@ -87,7 +102,11 @@ for time_index, t0 in enumerate(time_array):
 
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
-        
+
+    if(time_index % 25 == 0):
+        nls.f = lowpass_filter(nls.f)
+
+    
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)

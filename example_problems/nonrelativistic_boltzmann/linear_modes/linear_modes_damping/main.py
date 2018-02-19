@@ -82,7 +82,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 2.0
+t_final = 10.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -98,15 +98,15 @@ rho_data_ls[0] = af.max(n_ls)
 f_initial = nls.f.copy()
 
 for time_index, t0 in enumerate(time_array[1:]):
-
+    nls.dump_distribution_function('dump/%04d'%time_index)
     nls.strang_timestep(dt)
     # nls.f = lowpass_filter(nls.f)
-    # nls.dump_distribution_function('dump/%04d'%(time_index+1))
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     ls.RK4_timestep(dt)
     
     if(time_index % 25 == 0):
         nls.f = lowpass_filter(nls.f)
+
         
         # f_hat = af.fft2(nls.f)
     #     # f_hat[16] = 0

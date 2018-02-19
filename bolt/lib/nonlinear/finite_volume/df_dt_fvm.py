@@ -115,14 +115,13 @@ def df_dt_fvm(f, self):
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
        and self.physical_system.params.fields_enabled == True
       ):
-
         if(self.physical_system.params.fields_type == 'electrostatic'):
             if(self.physical_system.params.fields_solver == 'fft'):
                 rho = multiply(self.physical_system.params.charge,
                                self.compute_moments('density', f=f)
                               )
                 self.fields_solver.compute_electrostatic_fields(rho)
-
+        
         (self._C_p1, self._C_p2, self._C_p3) = \
             af.broadcast(self._C_p, f, self.time_elapsed,
                          self.q1_center, self.q2_center,
@@ -134,7 +133,7 @@ def df_dt_fvm(f, self):
         self._C_p2 = self._convert_to_p_expanded(self._C_p2)
         self._C_p3 = self._convert_to_p_expanded(self._C_p3)
         f          = self._convert_to_p_expanded(f)
-
+        
         if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
             
             f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
