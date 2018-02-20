@@ -106,8 +106,8 @@ for time_index, t0 in enumerate(time_array):
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
 
-    if(time_index % 25 == 0):
-        nls.f = lowpass_filter(nls.f)
+#    if(time_index % 25 == 0):
+#        nls.f = lowpass_filter(nls.f)
 
     
 h5f = h5py.File('data.h5', 'w')

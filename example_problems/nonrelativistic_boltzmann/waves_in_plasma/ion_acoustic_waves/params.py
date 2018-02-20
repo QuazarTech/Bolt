@@ -6,9 +6,9 @@ import bolt.src.nonrelativistic_boltzmann.units.time_scales as time_scales
 import bolt.src.nonrelativistic_boltzmann.units.velocity_scales as velocity_scales
 
 # Can be defined as 'electrostatic', 'user-defined', 'electrodynamic'.
-fields_type       = 'electrostatic'
+fields_type       = 'None'
 fields_initialize = 'fft'
-fields_solver     = 'fft'
+fields_solver     = 'None'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
@@ -54,12 +54,12 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-m_e = 1/100 * m0
-m_i = 1     * m0
+m_e = 1 * m0
+m_i = 1 * m0
 
 mass               = [m_e, m_i] # m_e, m_i
 boltzmann_constant = k0
-charge             = [-1 * e0, 1 * e0] # e_e, e_i
+charge             = [1 * e0, -1 * e0] # e_e, e_i
 
 # e_e*/m_e*E*df_e/dv, e_i/m_i*E*df_i/dv
 
@@ -67,8 +67,8 @@ charge             = [-1 * e0, 1 * e0] # e_e, e_i
 n_background_e = 1 * n0  
 n_background_i = 1 * n0
 
-temperature_background_e = 2.5 * T0
-temperature_background_i = 1   * T0
+temperature_background_e = 1 * T0
+temperature_background_i = 1 * T0
 
 # Parameter controlling amplitude of perturbation introduced:
 alpha = 0.01
@@ -78,7 +78,7 @@ N_cfl   = 0.32
 t_final = 0.2
 
 # Switch for solver components:
-fields_enabled           = True
+fields_enabled           = False #True
 source_enabled           = False
 instantaneous_collisions = False
 

@@ -31,7 +31,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     f_i = n_i * np.sqrt(1 / (2 * np.pi)) \
               * af.exp(-0.5 * (v1[:, 1])**2)
 
-    f = af.join(1, f_e, f_i)
+    f = af.join(1, f_i, f_e)
     
     af.eval(f)
     return (f)

@@ -17,7 +17,7 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-N = 2**np.arange(5, 11)
+N = 2**np.arange(5, 10)
 for i in range(N.size):
     domain.N_q1 = int(N[i])
     domain.N_p1 = int(N[i])
@@ -40,7 +40,7 @@ for i in range(N.size):
     dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-    t_final    = 0.1
+    t_final    = 0.01
     time_array = np.arange(0, t_final + dt, dt)
 
     for time_index, t0 in enumerate(time_array[1:]):
