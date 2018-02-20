@@ -1,9 +1,9 @@
 import numpy as np
 import arrayfire as af
 
-fields_type       = 'electrodynamic'
+fields_type       = 'electrostatic'
 fields_initialize = 'fft'
-fields_solver     = 'fdtd'
+fields_solver     = 'fft'
 
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
@@ -23,9 +23,9 @@ p_dim = 1
 num_devices = 4
 
 # Constants:
-mass               = [1]
+mass               = [1, 1]
 boltzmann_constant = 1
-charge             = [-1]
+charge             = [-1, 1]
 eps                = 1
 mu                 = 1
 
@@ -46,7 +46,7 @@ k_q2 = 0 * np.pi
 N_cfl   = 0.32
 t_final = 0.1
 
-fields_enabled           = False
+fields_enabled           = True
 source_enabled           = True
 instantaneous_collisions = False
 

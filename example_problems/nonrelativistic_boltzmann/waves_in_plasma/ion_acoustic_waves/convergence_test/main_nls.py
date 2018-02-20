@@ -40,8 +40,10 @@ for i in range(N.size):
     dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-    t_final    = 0.01
-    time_array = np.arange(0, t_final + dt, dt)
+    time_array = np.arange(dt, params.t_final + dt, dt)
+    # Checking that time array doesn't cross final time:
+    if(time_array[-1]>params.t_final):
+        time_array = np.delete(time_array, -1)
 
     for time_index, t0 in enumerate(time_array[1:]):
 

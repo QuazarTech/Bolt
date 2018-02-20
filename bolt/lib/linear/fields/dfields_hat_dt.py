@@ -62,9 +62,9 @@ def dfields_hat_dt(f_hat, fields_hat, self):
 
     # Checking that there is no mean field component:
     try:
-        assert(af.mean(af.abs(B1_hat[:, 0, 0])) < 1e-11)
-        assert(af.mean(af.abs(B2_hat[:, 0, 0])) < 1e-11)
-        assert(af.mean(af.abs(B3_hat[:, 0, 0])) < 1e-11)
+        assert(af.mean(af.abs(B1_hat[:, 0, 0])) < 1e-12)
+        assert(af.mean(af.abs(B2_hat[:, 0, 0])) < 1e-12)
+        assert(af.mean(af.abs(B3_hat[:, 0, 0])) < 1e-12)
     except:
         raise SystemExit('Linear Solver cannot solve for non-zero mean magnetic fields')
 

@@ -293,7 +293,7 @@ def RK5_coupled(dx_dt, x_initial, dy_dt, y_initial, dt, *args):
     k2_y = dy_dt(x, y, *args)
 
     x = x_initial + (1 / 8) * (k1_x + k2_x) * dt
-    x = x_initial + (1 / 8) * (k1_y + k2_y) * dt
+    y = y_initial + (1 / 8) * (k1_y + k2_y) * dt
     
     k3_x = dx_dt(x, y, *args)
     k3_y = dy_dt(x, y, *args)

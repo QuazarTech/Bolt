@@ -38,10 +38,11 @@ for i in range(N.size):
     # Timestep as set by the CFL condition:
     dt = params.N_cfl * min(ls.dq1, ls.dq2) \
                       / max(domain.p1_end, domain.p2_end, domain.p3_end)
+    time_array = np.arange(dt, params.t_final + dt, dt)
+    # Checking that time array doesn't cross final time:
+    if(time_array[-1]>params.t_final):
+        time_array = np.delete(time_array, -1)
 
-    t_final    = 0.01
-    time_array = np.arange(0, t_final + dt, dt)
-    
     for time_index, t0 in enumerate(time_array[1:]):
         print('Computing For Time =', t0)
         ls.RK4_timestep(dt)
