@@ -49,24 +49,6 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-def lowpass_filter(f):
-    f_hat = af.fft(f)
-    dp1   = (domain.p1_end - domain.p1_start) / domain.N_p1
-    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 
-                    1, 1, f.shape[2], f.shape[3]
-                   )
-    
-    # Applying the filter:
-    f_hat_filtered = 0.5 * (f_hat * (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
-                                     - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
-                                    )
-                           )
-
-    f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
-    f = af.real(af.ifft(f_hat))
-    return(f) 
-
-
 # Defining the physical system to be solved:
 system = physical_system(domain,
                          boundary_conditions,
@@ -92,9 +74,17 @@ time_array  = np.arange(0, params.t_final + dt, dt)
 E_data_ls  = np.zeros_like(time_array)
 E_data_nls = np.zeros_like(time_array)
 
+n_data_ls  = np.zeros_like(time_array)
+n_data_nls = np.zeros_like(time_array)
+
 for time_index, t0 in enumerate(time_array):
+    
     if(time_index%100 == 0):
+        
         print('Computing For Time =', t0)
+        
+        nls.dump_distribution_function('dump_f/%04d'%time_index)
+        # nls.dump_moments('dump_moments/%04d'%time_index)
 
     E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
@@ -103,16 +93,17 @@ for time_index, t0 in enumerate(time_array):
 
     E_data_ls[time_index]  = af.sum(E1_ls**2)
 
+    n_data_nls[time_index] = af.max(nls.compute_moments('density'))
+    n_data_ls[time_index]  = af.max(ls.compute_moments('density'))
+
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
 
-#    if(time_index % 25 == 0):
-#        nls.f = lowpass_filter(nls.f)
-
-    
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)
+h5f.create_dataset('density_ls', data = n_data_ls)
+h5f.create_dataset('density_nls', data = n_data_nls)
 h5f.create_dataset('time', data = time_array)
 h5f.close()
 

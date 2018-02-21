@@ -44,9 +44,9 @@ B0  = 1 # |B| units(B)
 eps = 1 # |eps0| units(eps0)
 mu  = 1
 
-v0 = velocity_scales.thermal_speed(T0, m0, k0)
-l0 = length_scales.gyroradius(v0, B0, e0, m0)
-t0 = 1/time_scales.cyclotron_frequency(B0, e0, m0)
+v0 = 1 #velocity_scales.thermal_speed(T0, m0, k0)
+l0 = 1 #length_scales.gyroradius(v0, B0, e0, m0)
+t0 = 1 #1/time_scales.cyclotron_frequency(B0, e0, m0)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -63,10 +63,6 @@ temperature_left  = 3 * T0
 temperature_right = 1 * T0
 
 # Density:
-# Needs to be set equal when setting up Roberg-Clark
-density_left = density_right = 1
-
-# For Komarov:
 pressure      = 1 * n0 * T0
 density_left  = pressure / temperature_left
 density_right = pressure / temperature_right
@@ -76,7 +72,7 @@ N_cfl   = 0.95
 t_final = 0.05
 
 # Switch for solver components:
-fields_enabled           = True
+fields_enabled           = False
 source_enabled           = False
 instantaneous_collisions = False
 

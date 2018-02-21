@@ -158,9 +158,13 @@ def df_dt_fvm(f, self):
         # Yet to test on OpenCL
         # TODO: Find exact cause for this bug.
         # f != flip(flip(f)) seems to happen after conversion to p_expanded
-        flux_p1 = self._C_p1 * af.flip(af.flip(f))
-        flux_p2 = self._C_p2 * af.flip(af.flip(f))
-        flux_p3 = self._C_p3 * af.flip(af.flip(f))
+        # flux_p1 = self._C_p1 * af.flip(af.flip(f))
+        # flux_p2 = self._C_p2 * af.flip(af.flip(f))
+        # flux_p3 = self._C_p3 * af.flip(af.flip(f))
+
+        flux_p1 = self._C_p1 * f
+        flux_p2 = self._C_p2 * f
+        flux_p3 = self._C_p3 * f
 
         # Variation of p1 is along axis 0:
         left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \

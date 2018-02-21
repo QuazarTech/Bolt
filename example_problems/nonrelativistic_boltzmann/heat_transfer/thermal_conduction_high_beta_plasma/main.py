@@ -66,5 +66,5 @@ time_array  = np.arange(0, t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array[1:]):
     nls.strang_timestep(dt)
-    nls.dump_distribution_function('dump/%04d'%time_index)
+    nls.dump_moments('dump/%04d'%time_index)
     

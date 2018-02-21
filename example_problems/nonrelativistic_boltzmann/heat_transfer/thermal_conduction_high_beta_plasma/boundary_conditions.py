@@ -20,20 +20,23 @@ in_q2_top    = 'periodic'
 # NOTE: We have only considered 3 ghost zones. However, more can be taken
 
 def f_left(f, t, q1, q2, p1, p2, p3, params):
+
     n_left = params.density_left
     T_left = params.temperature_left
+
     m      = params.mass
     k      = params.boltzmann_constant
 
-    # Do I add a drift velocity here as they've added in Roberg-Clark et al.?
     f = n_left * (m / (2 * np.pi * k * T_left))**(3 / 2) \
                * af.exp(-m * p1**2 / (2 * k * T_left)) \
                * af.exp(-m * p2**2 / (2 * k * T_left)) \
                * af.exp(-m * p3**2 / (2 * k * T_left))
 
 def f_right(f, t, q1, q2, p1, p2, p3, params):
+
     n_right = params.density_right
     T_right = params.temperature_right
+
     m       = params.mass
     k       = params.boltzmann_constant
 

@@ -4,10 +4,11 @@ import matplotlib as mpl
 mpl.use('agg')
 import pylab as pl
 import domain
+import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.dpi']      = 150
 pl.rcParams['image.cmap']      = 'bwr'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -42,22 +43,37 @@ p1  = domain.p1_start + (0.5 + np.arange(domain.N_p1)) * dp1
 
 p1, q1 = np.meshgrid(p1, q1)
 
-time_array = np.arange(0, 10.01, 0.01)
+h5f       = h5py.File('dump_f/0000.h5', 'r')
+f_initial = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+h5f.close()
 
+# Time parameters:
+dt = params.N_cfl * dq1 \
+                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+
+time_array  = np.arange(0, params.t_final + dt, dt)
+
+# Traversal for the range:
+max_delta_f = 0
 for time_index, t0 in enumerate(time_array):
-
-    h5f = h5py.File('dump/%04d'%(10 * time_index) + '.h5', 'r')
+    h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 
-    k_v = np.fft.fftfreq(domain.N_p1, 20/domain.N_p1)
+    delta_f = abs(f-f_initial)
+    if(np.max(delta_f)>max_delta_f):
+        max_delta_f = np.max(delta_f)
 
-    # pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, 5e-6, 100))
-    pl.semilogy(k_v[:int(domain.N_p1/2)], abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:int(domain.N_p1/2)])
-    pl.axvline(x = np.max(k_v), linestyle = '--', color = 'black')
-    pl.ylim([1e-14, 1])
-    pl.xlabel(r'$k_v$')
-    pl.ylabel(r'$|\hat{f(v)}|$')
+for time_index, t0 in enumerate(time_array):
+
+    h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
+    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+    h5f.close()
+
+    pl.contourf(p1, q1, abs(f-f_initial), np.linspace(0, max_delta_f, 100))
+    pl.xlabel(r'$v$')
+    pl.ylabel(r'$x$')
     pl.title('Time = %.2f'%(t0))
-    pl.savefig('images/' + '%04d'%time_index + '.png')
+    pl.colorbar()
+    pl.savefig('images/' + '%04d'%(time_index) + '.png')
     pl.clf()

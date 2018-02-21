@@ -74,9 +74,17 @@ time_array  = np.arange(0, params.t_final + dt, dt)
 E_data_ls  = np.zeros_like(time_array)
 E_data_nls = np.zeros_like(time_array)
 
+n_data_ls  = np.zeros_like(time_array)
+n_data_nls = np.zeros_like(time_array)
+
 for time_index, t0 in enumerate(time_array):
+    
     if(time_index%100 == 0):
+        
         print('Computing For Time =', t0)
+        
+        nls.dump_distribution_function('dump_f/%04d'%time_index)
+        # nls.dump_moments('dump_moments/%04d'%time_index)
 
     E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
@@ -85,12 +93,17 @@ for time_index, t0 in enumerate(time_array):
 
     E_data_ls[time_index]  = af.sum(E1_ls**2)
 
+    n_data_nls[time_index] = af.max(nls.compute_moments('density'))
+    n_data_ls[time_index]  = af.max(ls.compute_moments('density'))
+
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
-        
+
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)
+h5f.create_dataset('density_ls', data = n_data_ls)
+h5f.create_dataset('density_nls', data = n_data_nls)
 h5f.create_dataset('time', data = time_array)
 h5f.close()
 
