@@ -21,7 +21,7 @@ def test_collisional():
     check_convergence()
 
 def test_fields_collisionless():
-    run_cases(1, 1, -1, tau_collisionless)
+#    run_cases(1, 1, -1, tau_collisionless)
     check_convergence()
 
 def test_fields_collisional():

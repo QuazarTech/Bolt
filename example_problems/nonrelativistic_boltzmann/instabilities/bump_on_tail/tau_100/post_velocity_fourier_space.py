@@ -8,7 +8,7 @@ import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 150
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'bwr'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -50,20 +50,20 @@ dt = params.N_cfl * dq1 \
 time_array  = np.arange(0, params.t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-
-    h5f = h5py.File('dump_f/%04d'%(10 * time_index) + '.h5', 'r')
-    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
-    h5f.close()
-
-    k_v = np.fft.fftfreq(domain.N_p1, 20/domain.N_p1)
-
-    pl.semilogy(k_v[:int(domain.N_p1/2)], 
-                abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:int(domain.N_p1/2)]
-               )
-    pl.axvline(x = np.max(k_v), linestyle = '--', color = 'black')
-    pl.ylim([1e-14, 1])
-    pl.xlabel(r'$k_v$')
-    pl.ylabel(r'$|\hat{f(v)}|$')
-    pl.title('Time = %.2f'%(t0))
-    pl.savefig('images/' + '%04d'%time_index + '.png')
-    pl.clf()
+    if(time_index % 10 == 0):
+        h5f = h5py.File('dump_f/%04d'%(time_index) + '.h5', 'r')
+        f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+        h5f.close()
+    
+        k_v = np.fft.fftfreq(domain.N_p1, 20/domain.N_p1)
+    
+        pl.semilogy(k_v[:int(domain.N_p1/2)], 
+                    abs(np.fft.fft(f[16, :].ravel()) / domain.N_p1)[:int(domain.N_p1/2)]
+                   )
+        pl.axvline(x = np.max(k_v), linestyle = '--', color = 'black')
+        pl.ylim([1e-14, 1])
+        pl.xlabel(r'$k_v$')
+        pl.ylabel(r'$|\hat{f(v)}|$')
+        pl.title('Time = %.2f'%(t0))
+        pl.savefig('images/' + '%04d'%(time_index /10) + '.png')
+        pl.clf()

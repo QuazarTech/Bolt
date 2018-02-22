@@ -8,7 +8,7 @@ import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 150
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -41,7 +41,7 @@ q1  = domain.q1_start + (0.5 + np.arange(domain.N_q1)) * dq1
 dp1 = (domain.p1_end - domain.p1_start) / domain.N_p1
 p1  = domain.p1_start + (0.5 + np.arange(domain.N_p1)) * dp1
 
-p1, q1 = np.meshgrid(p1, q1)
+#p1, q1 = np.meshgrid(p1, q1)
 
 # Time parameters:
 dt = params.N_cfl * dq1 \
@@ -70,10 +70,14 @@ for time_index, t0 in enumerate(time_array):
     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 
-    pl.contourf(p1, q1, f, np.linspace(min_f, max_f, 100))
-    pl.xlabel(r'$v$')
-    pl.ylabel(r'$x$')
-    pl.title('Time = %.2f'%(t0))
-    pl.colorbar()
-    pl.savefig('images/' + '%04d'%(time_index) + '.png')
-    pl.clf()
+    if(time_index%10==0):
+        #pl.contourf(p1, q1, f, np.linspace(min_f, max_f, 100))
+        pl.plot(p1, np.sum(f, 0).ravel() / domain.N_q1)
+        pl.xlabel(r'$v$')
+        pl.ylabel(r'$\bar{f}(v)$')
+        pl.ylim(ymax=0.5)
+        #pl.ylabel(r'$x$')
+        pl.title('Time = %.2f'%(t0))
+        #pl.colorbar()
+        pl.savefig('images/' + '%04d'%(time_index/10) + '.png')
+        pl.clf()

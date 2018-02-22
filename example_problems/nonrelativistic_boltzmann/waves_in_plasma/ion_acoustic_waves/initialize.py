@@ -21,7 +21,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     T_b_i = params.temperature_background_i
 
     n_e = n_b_e + 0 * q1
-    n_i = n_b_i + params.alpha * af.cos(q1)
+    n_i = n_b_i + params.alpha * af.cos(4 * np.pi * q1)
     T_e = T_b_e
     T_i = T_b_i
 

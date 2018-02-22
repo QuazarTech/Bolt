@@ -81,7 +81,7 @@ for i in range(N.size):
         nls.strang_timestep(dt)
 
     error[i] = af.mean(af.abs(  nls.f[10, :, N_g:-N_g, N_g:-N_g] 
-                              - f_reference[:, :, N_g:-N_g, N_g:-N_g]
+                              - f_reference[10, :, N_g:-N_g, N_g:-N_g]
                              )
                       )
 
@@ -92,7 +92,7 @@ print('\nConvergence Rate:')
 print('Order of convergence:', np.polyfit(np.log10(N), np.log10(error), 1)[0])
 
 pl.loglog(N, error, '-o', label = 'Numerical')
-pl.loglog(N, error_n[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()

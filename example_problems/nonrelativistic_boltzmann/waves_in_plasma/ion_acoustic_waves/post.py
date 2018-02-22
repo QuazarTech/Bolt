@@ -141,11 +141,11 @@ pl.rcParams['ytick.direction']  = 'in'
     #     pl.close(fig)
     #     pl.clf()
 
-h5f            = h5py.File('data_nls.h5', 'r')
-n_nls          = h5f['n'][:]
-E_nls          = h5f['E'][:]
-time_array_nls = h5f['time'][:]
-h5f.close()
+#h5f            = h5py.File('data_nls.h5', 'r')
+#n_nls          = h5f['n'][:]
+#E_nls          = h5f['E'][:]
+#time_array_nls = h5f['time'][:]
+#h5f.close()
 
 h5f           = h5py.File('data_ls.h5', 'r')
 n_ls          = h5f['n'][:]
@@ -153,13 +153,13 @@ E_ls          = h5f['E'][:]
 time_array_ls = h5f['time'][:]
 h5f.close()
 
-pl.plot(time_array_nls, n_nls[:, 0], '--', color = 'C3', label = 'Electrons')
-pl.plot(time_array_nls, n_nls[:, 1], color = 'C0', label='Ions')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho_nonlinear.png')
-pl.clf()
+#pl.plot(time_array_nls, n_nls[:, 0], '--', color = 'C3', label = 'Electrons')
+#pl.plot(time_array_nls, n_nls[:, 1], color = 'C0', label='Ions')
+#pl.ylabel(r'MAX($\rho$)')
+#pl.xlabel('Time')
+#pl.legend()
+#pl.savefig('rho_nonlinear.png')
+#pl.clf()
 
 pl.plot(time_array_ls, n_ls[:, 0], '--', color = 'C3', label = 'Electrons')
 pl.plot(time_array_ls, n_ls[:, 1], color = 'C0', label='Ions')
@@ -169,36 +169,36 @@ pl.legend()
 pl.savefig('rho_linear.png')
 pl.clf()
 
-pl.plot(time_array_nls, n_nls[:, 0], color = 'C3', label = 'Electrons(Nonlinear Solver)')
-pl.plot(time_array_nls, n_nls[:, 1], color = 'C0', label = 'Ions(Nonlinear Solver)')
-pl.plot(time_array_ls, n_ls[:, 0], '--', color = 'C3', label = 'Electrons(Linear Solver)')
-pl.plot(time_array_ls, n_ls[:, 1], '--', color = 'C0', label = 'Ions(Linear Solver)')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho.png')
-pl.clf()
-
-pl.plot(time_array_nls, n_nls[:, 0], label = 'Nonlinear Solver')
-pl.plot(time_array_ls, n_ls[:, 0], '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho_e.png')
-pl.clf()
-
-pl.plot(time_array_nls, n_nls[:, 1], label = 'Nonlinear Solver')
-pl.plot(time_array_ls, n_ls[:, 1], '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($\rho$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('rho_i.png')
-pl.clf()
-
-pl.plot(time_array_nls, E_nls, label = 'Nonlinear Solver')
-pl.plot(time_array_ls, E_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($E$)')
-pl.xlabel('Time')
-pl.legend()
-pl.savefig('E.png')
-pl.clf()
+#pl.plot(time_array_nls, n_nls[:, 0], color = 'C3', label = 'Electrons(Nonlinear Solver)')
+#pl.plot(time_array_nls, n_nls[:, 1], color = 'C0', label = 'Ions(Nonlinear Solver)')
+#pl.plot(time_array_ls, n_ls[:, 0], '--', color = 'C3', label = 'Electrons(Linear Solver)')
+#pl.plot(time_array_ls, n_ls[:, 1], '--', color = 'C0', label = 'Ions(Linear Solver)')
+#pl.ylabel(r'MAX($\rho$)')
+#pl.xlabel('Time')
+#pl.legend()
+#pl.savefig('rho.png')
+#pl.clf()
+#
+#pl.plot(time_array_nls, n_nls[:, 0], label = 'Nonlinear Solver')
+#pl.plot(time_array_ls, n_ls[:, 0], '--', color = 'black', label = 'Linear Solver')
+#pl.ylabel(r'MAX($\rho$)')
+#pl.xlabel('Time')
+#pl.legend()
+#pl.savefig('rho_e.png')
+#pl.clf()
+#
+#pl.plot(time_array_nls, n_nls[:, 1], label = 'Nonlinear Solver')
+#pl.plot(time_array_ls, n_ls[:, 1], '--', color = 'black', label = 'Linear Solver')
+#pl.ylabel(r'MAX($\rho$)')
+#pl.xlabel('Time')
+#pl.legend()
+#pl.savefig('rho_i.png')
+#pl.clf()
+#
+#pl.plot(time_array_nls, E_nls, label = 'Nonlinear Solver')
+#pl.plot(time_array_ls, E_ls, '--', color = 'black', label = 'Linear Solver')
+#pl.ylabel(r'MAX($E$)')
+#pl.xlabel('Time')
+#pl.legend()
+#pl.savefig('E.png')
+#pl.clf()
