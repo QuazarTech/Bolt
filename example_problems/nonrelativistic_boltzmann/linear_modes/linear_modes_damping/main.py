@@ -86,7 +86,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 10.0
+t_final = 2.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -151,5 +151,5 @@ pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
-pl.savefig('rho.png')
+pl.savefig('rho.svg')
 pl.clf()

@@ -34,8 +34,7 @@ def load_distribution_function(self, file_name):
                                       )
     self._glob_dump_f.load(viewer)
 
-    N_g_q = self.N_ghost_q
-    N_g_p = self.N_ghost_p
+    N_g = self.N_ghost
 
     # Distribution function non inclusive of the ghost zones in p, q:
     f_no_ghost_zones = af.to_array(self._glob_f_array)
@@ -44,33 +43,12 @@ def load_distribution_function(self, file_name):
                                   self.N_species * N_q1_local * N_q2_local
                                  )
 
-    if(N_g_p != 0):
-        f_with_ghost_zones_in_p = af.constant(0, self.N_p1 + 2 * N_g_p, 
-                                              self.N_p2 + 2 * N_g_p,
-                                              self.N_p3 + 2 * N_g_p,
-                                              self.N_species * N_q1_local * N_q2_local,
-                                              dtype = af.Dtype.f64
-                                             )
-
-        f_with_ghost_zones_in_p[N_g_p:-N_g_p, N_g_p:-N_g_p, N_g_p:-N_g_p, :] = \
-            f_no_ghost_zones
-
-        f_no_ghost_zones_in_q = af.moddims(f_with_ghost_zones_in_p, 
-                                             (self.N_p1 + 2 * self.N_ghost_p)
-                                           * (self.N_p2 + 2 * self.N_ghost_p) 
-                                           * (self.N_p3 + 2 * self.N_ghost_p),
-                                           self.N_species, N_q1_local, N_q2_local
-                                          )    
-    
-    else:
-        f_no_ghost_zones_in_q = f_no_ghost_zones
-
-    self.f[:, N_g_q:-N_g_q, N_g_q:-N_g_q] = af.moddims(f_no_ghost_zones_in_q,
-                                                         (self.N_p1 + 2 * self.N_ghost_p)
-                                                       * (self.N_p2 + 2 * self.N_ghost_p) 
-                                                       * (self.N_p3 + 2 * self.N_ghost_p),
-                                                       N_q1_local, N_q2_local
-                                                      )
+    self.f[:, N_g:-N_g, N_g:-N_g] = af.moddims(f_no_ghost_zones_in_q,
+                                                 (self.N_p1 + 2 * self.N_ghost_p)
+                                               * (self.N_p2 + 2 * self.N_ghost_p) 
+                                               * (self.N_p3 + 2 * self.N_ghost_p),
+                                               N_q1_local, N_q2_local
+                                              )
 
     return
 
@@ -104,7 +82,7 @@ def load_EM_fields(self, file_name):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
-    N_g = self.N_ghost_q
+    N_g = self.N_ghost
     
     self.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g] = \
         af.moddims(af.to_array(self.fields_solver._glob_fields_array), 

@@ -10,7 +10,7 @@ N_q2     = 3
 
 p1_start = -10
 p1_end   = 10
-N_p1     = 128
+N_p1     = 32
 
 if(p_dim > 1):
     p2_start = -10

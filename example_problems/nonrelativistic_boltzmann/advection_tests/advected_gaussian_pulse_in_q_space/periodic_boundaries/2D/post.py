@@ -1,12 +1,14 @@
 import numpy as np
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
-pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['figure.dpi']      = 300
+pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
@@ -46,7 +48,7 @@ q2  = h5f['q2'][:].reshape(N_q1, N_q2)
 n   = h5f['n'][:].reshape(N_q1, N_q2)
 h5f.close()
 
-pl.contourf(q1, q2, n, 100,cmap = 'gist_heat')
+pl.contourf(q1, q2, n, 100)
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
@@ -54,17 +56,25 @@ pl.axes().set_aspect('equal')
 pl.savefig('images/0000.png')
 pl.clf()
 
+n_to_plot = 0
+
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    if((time_index + 1)%4 == 0):
-        pl.contourf(q1, q2, n, 100, cmap = 'gist_heat')
-        pl.title('Time =' + str(t0))
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$y$')
-        pl.axes().set_aspect('equal')
-        pl.savefig('images/%04d'%((time_index+1)/4) + '.png')
-        pl.clf()
+    if((time_index + 1)%40 == 0):
+        n_to_plot += n
+
+pl.contourf(q1, q2, n_to_plot, 100)
+pl.title('Periodic Boundary Conditions')
+# pl.title('Time =' + str(t0))
+pl.xlabel(r'$x$')
+pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
+        # pl.savefig('images/%04d'%((time_index+1)/4) + '.png')
+        # pl.clf()
+
+# pl.savefig('trial.svg')
+pl.savefig('trial.png')

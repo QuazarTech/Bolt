@@ -14,7 +14,7 @@ def apply_shearing_box_bcs_f(self, boundary):
               Boundary along which the boundary condition is to be applied.
     """
 
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
     q     = self.physical_system.params.q 
     omega = self.physical_system.params.omega
     
@@ -22,7 +22,7 @@ def apply_shearing_box_bcs_f(self, boundary):
     L_q2  = self.q2_end - self.q2_start
 
     if(boundary == 'left'):
-        sheared_coordinates = self.q2_center[:, :, :N_g_q] - q * omega * L_q1 * self.time_elapsed
+        sheared_coordinates = self.q2_center[:, :, :N_g] - q * omega * L_q1 * self.time_elapsed
         
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
@@ -40,18 +40,18 @@ def apply_shearing_box_bcs_f(self, boundary):
         # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
         # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
 
-        self.f[:, :, :N_g_q] = af.reorder(af.approx2(af.reorder(self.f[:, :, :N_g_q], 2, 3, 0, 1),
-                                                     af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
+        self.f[:, :, :N_g] = af.reorder(af.approx2(af.reorder(self.f[:, :, :N_g], 2, 3, 0, 1),
+                                                     af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
                                                      af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                                      af.INTERP.BICUBIC_SPLINE,
-                                                     xp = af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
-                                                     yp = af.reorder(self.q2_center[:, :, :N_g_q], 2, 3, 0, 1)
+                                                     xp = af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
+                                                     yp = af.reorder(self.q2_center[:, :, :N_g], 2, 3, 0, 1)
                                                     ),
                                           2, 3, 0, 1
                                          )
         
     elif(boundary == 'right'):
-        sheared_coordinates = self.q2_center[:, :, -N_g_q:] + q * omega * L_q1 * self.time_elapsed
+        sheared_coordinates = self.q2_center[:, :, -N_g:] + q * omega * L_q1 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
@@ -69,19 +69,19 @@ def apply_shearing_box_bcs_f(self, boundary):
         # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
         # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
 
-        self.f[:, :, -N_g_q:] = af.reorder(af.approx2(af.reorder(self.f[:, :, -N_g_q:], 2, 3, 0, 1),
-                                                      af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
+        self.f[:, :, -N_g:] = af.reorder(af.approx2(af.reorder(self.f[:, :, -N_g:], 2, 3, 0, 1),
+                                                      af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
                                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                                       af.INTERP.BICUBIC_SPLINE,
-                                                      xp = af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
-                                                      yp = af.reorder(self.q2_center[:, :, -N_g_q:], 2, 3, 0, 1)
+                                                      xp = af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
+                                                      yp = af.reorder(self.q2_center[:, :, -N_g:], 2, 3, 0, 1)
                                                      ),
                                             2, 3, 0, 1
                                            )
 
     elif(boundary == 'bottom'):
 
-        sheared_coordinates = self.q1_center[:, :, :, :N_g_q] - q * omega * L_q2 * self.time_elapsed
+        sheared_coordinates = self.q1_center[:, :, :, :N_g] - q * omega * L_q2 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
@@ -99,19 +99,19 @@ def apply_shearing_box_bcs_f(self, boundary):
         # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
         # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
 
-        self.f[:, :, :, :N_g_q] = af.reorder(af.approx2(af.reorder(self.f[:, :, :, :N_g_q], 2, 3, 0, 1),
+        self.f[:, :, :, :N_g] = af.reorder(af.approx2(af.reorder(self.f[:, :, :, :N_g], 2, 3, 0, 1),
                                                         af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                                        af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1),
+                                                        af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1),
                                                         af.INTERP.BICUBIC_SPLINE,
-                                                        xp = af.reorder(self.q1_center[:, :, :, :N_g_q], 2, 3, 0, 1),
-                                                        yp = af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1)
+                                                        xp = af.reorder(self.q1_center[:, :, :, :N_g], 2, 3, 0, 1),
+                                                        yp = af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1)
                                                        ),
                                              2, 3, 0, 1
                                             )
 
     elif(boundary == 'top'):
 
-        sheared_coordinates = self.q1_center[:, :, :, -N_g_q:] + q * omega * L_q2 * self.time_elapsed
+        sheared_coordinates = self.q1_center[:, :, :, -N_g:] + q * omega * L_q2 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
@@ -129,12 +129,12 @@ def apply_shearing_box_bcs_f(self, boundary):
         # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
         # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
 
-        self.f[:, :, :, -N_g_q:] = af.reorder(af.approx2(af.reorder(self.f[:, :, :, -N_g_q:], 2, 3, 0, 1),
+        self.f[:, :, :, -N_g:] = af.reorder(af.approx2(af.reorder(self.f[:, :, :, -N_g:], 2, 3, 0, 1),
                                                          af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                                         af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
+                                                         af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1),
                                                          af.INTERP.BICUBIC_SPLINE,
-                                                         xp = af.reorder(self.q1_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
-                                                         yp = af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1)
+                                                         xp = af.reorder(self.q1_center[:, :, :, -N_g:], 2, 3, 0, 1),
+                                                         yp = af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1)
                                                         ),
                                               2, 3, 0, 1
                                              )
@@ -155,7 +155,7 @@ def apply_dirichlet_bcs_f(self, boundary):
               Boundary along which the boundary condition is to be applied.
     """
 
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
     
     if(self._A_q1.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
                                 * (self.N_p2 + 2 * self.N_ghost_p) 
@@ -189,25 +189,25 @@ def apply_dirichlet_bcs_f(self, boundary):
         f_left = self.boundary_conditions.f_left(self.f, *args)
         # Only changing inflowing characteristics:
         f_left = af.select(A_q1>0, f_left, self.f)
-        self.f[:, :, :N_g_q] = f_left[:, :, :N_g_q]
+        self.f[:, :, :N_g] = f_left[:, :, :N_g]
 
     elif(boundary == 'right'):
         f_right = self.boundary_conditions.f_right(self.f, *args)
         # Only changing inflowing characteristics:
         f_right = af.select(A_q1<0, f_right, self.f)
-        self.f[:, :, -N_g_q:] = f_right[:, :, -N_g_q:]
+        self.f[:, :, -N_g:] = f_right[:, :, -N_g:]
 
     elif(boundary == 'bottom'):
         f_bottom = self.boundary_conditions.f_bottom(self.f, *args)
         # Only changing inflowing characteristics:
         f_bottom = af.select(A_q2>0, f_bottom, self.f)
-        self.f[:, :, :, :N_g_q] = f_bottom[:, :, :, :N_g_q]
+        self.f[:, :, :, :N_g] = f_bottom[:, :, :, :N_g]
 
     elif(boundary == 'top'):
         f_top = self.boundary_conditions.f_top(self.f, *args)
         # Only changing inflowing characteristics:
         f_top = af.select(A_q2<0, f_top, self.f)
-        self.f[:, :, :, -N_g_q:] = f_top[:, :, :, -N_g_q:]
+        self.f[:, :, :, -N_g:] = f_top[:, :, :, -N_g:]
 
     else:
         raise Exception('Invalid choice for boundary')
@@ -225,75 +225,75 @@ def apply_mirror_bcs_f(self, boundary):
               Boundary along which the boundary condition is to be applied.
     """
 
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
-        self.f[:, :, :N_g_q] = af.flip(self.f[:, :, N_g_q:2 * N_g_q], 2)
+        self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
         
         # The points in the ghost zone need to have direction 
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p1
-        self.f[:, :, :N_g_q] = \
+        self.f[:, :, :N_g] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
                                                 0
                                                )
-                                       )[:, :, :N_g_q]
+                                       )[:, :, :N_g]
 
     elif(boundary == 'right'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
         #      -6  -5  -4  -3  -2  -1
         # For mirror boundary conditions:
         # -1 = -6; -2 = -5; -3 = -4;
-        self.f[:, :, -N_g_q:] = af.flip(self.f[:, :, -2 * N_g_q:-N_g_q], 2)
+        self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
 
         # The points in the ghost zone need to have direction 
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p1
-        self.f[:, :, -N_g_q:] = \
+        self.f[:, :, -N_g:] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
                                                 0
                                                )
-                                       )[:, :, -N_g_q:]
+                                       )[:, :, -N_g:]
 
     elif(boundary == 'bottom'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
-        self.f[:, :, :, :N_g_q] = af.flip(self.f[:, :, :, N_g_q:2 * N_g_q], 3)
+        self.f[:, :, :, :N_g] = af.flip(self.f[:, :, :, N_g:2 * N_g], 3)
 
         # The points in the ghost zone need to have direction 
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p2
-        self.f[:, :, :, :N_g_q] = \
+        self.f[:, :, :, :N_g] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
                                                 1
                                                )
-                                       )[:, :, :, :N_g_q]
+                                       )[:, :, :, :N_g]
 
     elif(boundary == 'top'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
         #      -6  -5  -4  -3  -2  -1
         # For mirror boundary conditions:
         # -1 = -6; -2 = -5; -3 = -4;
-        self.f[:, :, :, -N_g_q:] = af.flip(self.f[:, :, :, -2 * N_g_q:-N_g_q], 3)
+        self.f[:, :, :, -N_g:] = af.flip(self.f[:, :, :, -2 * N_g:-N_g], 3)
 
         # The points in the ghost zone need to have direction 
         # of velocity reversed as compared to the physical zones 
         # they are mirroring. To do this we flip the axis that 
         # contains the variation in p2
-        self.f[:, :, :, -N_g_q:] = \
+        self.f[:, :, :, -N_g:] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
                                                 1
                                                )
-                                       )[:, :, :, -N_g_q:]
+                                       )[:, :, :, -N_g:]
 
     else:
         raise Exception('Invalid choice for boundary')

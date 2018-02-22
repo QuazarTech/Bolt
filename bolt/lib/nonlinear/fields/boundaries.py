@@ -18,7 +18,7 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
 
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
     q     = self.physical_system.params.q 
     omega = self.physical_system.params.omega
     
@@ -26,7 +26,7 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
     L_q2  = self.q2_end - self.q2_start
 
     if(boundary == 'left'):
-        sheared_coordinates = self.q2_center[:, :, :N_g_q] - q * omega * L_q1 * self.time_elapsed
+        sheared_coordinates = self.q2_center[:, :, :N_g] - q * omega * L_q1 * self.time_elapsed
         
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
@@ -43,13 +43,13 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.yee_grid_EM_fields[:, :, :N_g_q] = \
-                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :N_g_q], 2, 3, 0, 1),
-                                      af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
+            self.yee_grid_EM_fields[:, :, :N_g] = \
+                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :N_g], 2, 3, 0, 1),
+                                      af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :N_g_q], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :N_g], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
@@ -57,19 +57,19 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         else:
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.cell_centered_EM_fields[:, :, :N_g_q] = \
-                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :N_g_q], 2, 3, 0, 1),
-                                      af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
+            self.cell_centered_EM_fields[:, :, :N_g] = \
+                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :N_g], 2, 3, 0, 1),
+                                      af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :N_g_q], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :N_g_q], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :N_g], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :N_g], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
         
     elif(boundary == 'right'):
-        sheared_coordinates = self.q2_center[:, :, -N_g_q:] + q * omega * L_q1 * self.time_elapsed
+        sheared_coordinates = self.q2_center[:, :, -N_g:] + q * omega * L_q1 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q2_end) != 0):
@@ -87,13 +87,13 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.yee_grid_EM_fields[:, :, -N_g_q:] = \
-                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, -N_g_q:], 2, 3, 0, 1),
-                                      af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
+            self.yee_grid_EM_fields[:, :, -N_g:] = \
+                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, -N_g:], 2, 3, 0, 1),
+                                      af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, -N_g_q:], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, -N_g:], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
@@ -102,20 +102,20 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         else:
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.cell_centered_EM_fields[:, :, -N_g_q:] = \
-                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, -N_g_q:],2, 3, 0, 1),
-                                      af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
+            self.cell_centered_EM_fields[:, :, -N_g:] = \
+                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, -N_g:],2, 3, 0, 1),
+                                      af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, -N_g_q:], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, -N_g_q:], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, -N_g:], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, -N_g:], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
 
     elif(boundary == 'bottom'):
 
-        sheared_coordinates = self.q1_center[:, :, :, :N_g_q] - q * omega * L_q2 * self.time_elapsed
+        sheared_coordinates = self.q1_center[:, :, :, :N_g] - q * omega * L_q2 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
@@ -133,13 +133,13 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.yee_grid_EM_fields[:, :, :, :N_g_q] = \
-                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :, :N_g_q], 2, 3, 0, 1),
+            self.yee_grid_EM_fields[:, :, :, :N_g] = \
+                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :, :N_g], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                      af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1),
+                                      af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :, :N_g_q], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :, :N_g], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
@@ -147,20 +147,20 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         else:
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.cell_centered_EM_fields[:, :, :, :N_g_q] = \
-                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :, :N_g_q], 2, 3, 0, 1),
+            self.cell_centered_EM_fields[:, :, :, :N_g] = \
+                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :, :N_g], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                      af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1),
+                                      af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :, :N_g_q], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :, :N_g_q], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :, :N_g], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :, :N_g], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
 
     elif(boundary == 'top'):
 
-        sheared_coordinates = self.q1_center[:, :, :, -N_g_q:] + q * omega * L_q2 * self.time_elapsed
+        sheared_coordinates = self.q1_center[:, :, :, -N_g:] + q * omega * L_q2 * self.time_elapsed
 
         # Applying periodic boundary conditions to the points which are out of domain:
         while(af.sum(sheared_coordinates>self.q1_end) != 0):
@@ -178,13 +178,13 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.yee_grid_EM_fields[:, :, :, -N_g_q:] = \
-                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :, -N_g_q:], 2, 3, 0, 1),
+            self.yee_grid_EM_fields[:, :, :, -N_g:] = \
+                af.reorder(af.approx2(af.reorder(self.yee_grid_EM_fields[:, :, :, -N_g:], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                      af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
+                                      af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :, -N_g:], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
@@ -193,13 +193,13 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
         else:
             # Reordering from (N_p, N_s, N_q1, N_q2) --> (N_q1, N_q2, N_p, N_s)
             # and reordering back from (N_q1, N_q2, N_p, N_s) --> (N_p, N_s, N_q1, N_q2)
-            self.cell_centered_EM_fields[:, :, :, -N_g_q:] = \
-                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :, -N_g_q:], 2, 3, 0, 1),
+            self.cell_centered_EM_fields[:, :, :, -N_g:] = \
+                af.reorder(af.approx2(af.reorder(self.cell_centered_EM_fields[:, :, :, -N_g:], 2, 3, 0, 1),
                                       af.reorder(sheared_coordinates, 2, 3, 0, 1),
-                                      af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
+                                      af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1),
                                       af.INTERP.BICUBIC_SPLINE,
-                                      xp = af.reorder(self.q1_center[:, :, :, -N_g_q:], 2, 3, 0, 1),
-                                      yp = af.reorder(self.q2_center[:, :, :, -N_g_q:], 2, 3, 0, 1)
+                                      xp = af.reorder(self.q1_center[:, :, :, -N_g:], 2, 3, 0, 1),
+                                      yp = af.reorder(self.q2_center[:, :, :, -N_g:], 2, 3, 0, 1)
                                      ),
                            2, 3, 0, 1
                           )
@@ -224,7 +224,7 @@ def apply_dirichlet_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
     
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
 
     # These arguments are defined since they are required by all the function calls:
     # So the functions can be called instead using function(*args)
@@ -233,182 +233,182 @@ def apply_dirichlet_bcs_fields(self, boundary, on_fdtd_grid):
     if(boundary == 'left'):
         if(on_fdtd_grid == True):
             E1 = self.boundary_conditions.\
-                 E1_left(self.yee_grid_EM_fields[0],*args)[:, :, :N_g_q]
+                 E1_left(self.yee_grid_EM_fields[0],*args)[:, :, :N_g]
 
             E2 = self.boundary_conditions.\
-                 E2_left(self.yee_grid_EM_fields[1],*args)[:, :, :N_g_q]
+                 E2_left(self.yee_grid_EM_fields[1],*args)[:, :, :N_g]
 
             E3 = self.boundary_conditions.\
-                 E3_left(self.yee_grid_EM_fields[2],*args)[:, :, :N_g_q]
+                 E3_left(self.yee_grid_EM_fields[2],*args)[:, :, :N_g]
             
             B1 = self.boundary_conditions.\
-                 B1_left(self.yee_grid_EM_fields[3],*args)[:, :, :N_g_q]
+                 B1_left(self.yee_grid_EM_fields[3],*args)[:, :, :N_g]
 
             B2 = self.boundary_conditions.\
-                 B2_left(self.yee_grid_EM_fields[4],*args)[:, :, :N_g_q]
+                 B2_left(self.yee_grid_EM_fields[4],*args)[:, :, :N_g]
 
             B3 = self.boundary_conditions.\
-                 B3_left(self.yee_grid_EM_fields[5],*args)[:, :, :N_g_q]
+                 B3_left(self.yee_grid_EM_fields[5],*args)[:, :, :N_g]
 
-            self.yee_grid_EM_fields[:, :, :N_g_q] = \
+            self.yee_grid_EM_fields[:, :, :N_g] = \
                     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         else:
             E1 = self.boundary_conditions.\
-                 E1_left(self.cell_centered_EM_fields[0],*args)[:, :, :N_g_q]
+                 E1_left(self.cell_centered_EM_fields[0],*args)[:, :, :N_g]
 
             E2 = self.boundary_conditions.\
-                 E2_left(self.cell_centered_EM_fields[1],*args)[:, :, :N_g_q]
+                 E2_left(self.cell_centered_EM_fields[1],*args)[:, :, :N_g]
 
             E3 = self.boundary_conditions.\
-                 E3_left(self.cell_centered_EM_fields[2],*args)[:, :, :N_g_q]
+                 E3_left(self.cell_centered_EM_fields[2],*args)[:, :, :N_g]
             
             B1 = self.boundary_conditions.\
-                 B1_left(self.cell_centered_EM_fields[3],*args)[:, :, :N_g_q]
+                 B1_left(self.cell_centered_EM_fields[3],*args)[:, :, :N_g]
 
             B2 = self.boundary_conditions.\
-                 B2_left(self.cell_centered_EM_fields[4],*args)[:, :, :N_g_q]
+                 B2_left(self.cell_centered_EM_fields[4],*args)[:, :, :N_g]
 
             B3 = self.boundary_conditions.\
-                 B3_left(self.cell_centered_EM_fields[5],*args)[:, :, :N_g_q]
+                 B3_left(self.cell_centered_EM_fields[5],*args)[:, :, :N_g]
 
-            self.cell_centered_EM_fields[:, :, :N_g_q] = \
+            self.cell_centered_EM_fields[:, :, :N_g] = \
                     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
     elif(boundary == 'right'):
         if(on_fdtd_grid == True):
             E1 = self.boundary_conditions.\
-                 E1_right(self.yee_grid_EM_fields[0],*args)[:, :, -N_g_q:]
+                 E1_right(self.yee_grid_EM_fields[0],*args)[:, :, -N_g:]
             
             E2 = self.boundary_conditions.\
-                 E2_right(self.yee_grid_EM_fields[1],*args)[:, :, -N_g_q:]
+                 E2_right(self.yee_grid_EM_fields[1],*args)[:, :, -N_g:]
 
             E3 = self.boundary_conditions.\
-                 E3_right(self.yee_grid_EM_fields[2],*args)[:, :, -N_g_q:]
+                 E3_right(self.yee_grid_EM_fields[2],*args)[:, :, -N_g:]
             
             B1 = self.boundary_conditions.\
-                 B1_right(self.yee_grid_EM_fields[3],*args)[:, :, -N_g_q:]
+                 B1_right(self.yee_grid_EM_fields[3],*args)[:, :, -N_g:]
             
             B2 = self.boundary_conditions.\
-                 B2_right(self.yee_grid_EM_fields[4],*args)[:, :, -N_g_q:]
+                 B2_right(self.yee_grid_EM_fields[4],*args)[:, :, -N_g:]
             
             B3 = self.boundary_conditions.\
-                 B3_right(self.yee_grid_EM_fields[5],*args)[:, :, -N_g_q:]
+                 B3_right(self.yee_grid_EM_fields[5],*args)[:, :, -N_g:]
 
-            self.yee_grid_EM_fields[:, :, -N_g_q:] = \
+            self.yee_grid_EM_fields[:, :, -N_g:] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         else:
             E1 = self.boundary_conditions.\
-                 E1_right(self.cell_centered_EM_fields[0],*args)[:, :, -N_g_q:]
+                 E1_right(self.cell_centered_EM_fields[0],*args)[:, :, -N_g:]
             
             E2 = self.boundary_conditions.\
-                 E2_right(self.cell_centered_EM_fields[1],*args)[:, :, -N_g_q:]
+                 E2_right(self.cell_centered_EM_fields[1],*args)[:, :, -N_g:]
 
             E3 = self.boundary_conditions.\
-                 E3_right(self.cell_centered_EM_fields[2],*args)[:, :, -N_g_q:]
+                 E3_right(self.cell_centered_EM_fields[2],*args)[:, :, -N_g:]
             
             B1 = self.boundary_conditions.\
-                 B1_right(self.cell_centered_EM_fields[3],*args)[:, :, -N_g_q:]
+                 B1_right(self.cell_centered_EM_fields[3],*args)[:, :, -N_g:]
             
             B2 = self.boundary_conditions.\
-                 B2_right(self.cell_centered_EM_fields[4],*args)[:, :, -N_g_q:]
+                 B2_right(self.cell_centered_EM_fields[4],*args)[:, :, -N_g:]
             
             B3 = self.boundary_conditions.\
-                 B3_right(self.cell_centered_EM_fields[5],*args)[:, :, -N_g_q:]
+                 B3_right(self.cell_centered_EM_fields[5],*args)[:, :, -N_g:]
 
-            self.cell_centered_EM_fields[:, :, -N_g_q:] = \
+            self.cell_centered_EM_fields[:, :, -N_g:] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
     elif(boundary == 'bottom'):
         if(on_fdtd_grid == True):
             
             E1 = self.boundary_conditions.\
-                 E1_bottom(self.yee_grid_EM_fields[0],*args)[:, :, :, :N_g_q]
+                 E1_bottom(self.yee_grid_EM_fields[0],*args)[:, :, :, :N_g]
 
             E2 = self.boundary_conditions.\
-                 E2_bottom(self.yee_grid_EM_fields[1],*args)[:, :, :, :N_g_q]
+                 E2_bottom(self.yee_grid_EM_fields[1],*args)[:, :, :, :N_g]
             
             E3 = self.boundary_conditions.\
-                 E3_bottom(self.yee_grid_EM_fields[2],*args)[:, :, :, :N_g_q]
+                 E3_bottom(self.yee_grid_EM_fields[2],*args)[:, :, :, :N_g]
            
             B1 = self.boundary_conditions.\
-                 B1_bottom(self.yee_grid_EM_fields[3],*args)[:, :, :, :N_g_q]
+                 B1_bottom(self.yee_grid_EM_fields[3],*args)[:, :, :, :N_g]
 
             B2 = self.boundary_conditions.\
-                 B2_bottom(self.yee_grid_EM_fields[4],*args)[:, :, :, :N_g_q]
+                 B2_bottom(self.yee_grid_EM_fields[4],*args)[:, :, :, :N_g]
 
             B3 = self.boundary_conditions.\
-                 B3_bottom(self.yee_grid_EM_fields[5],*args)[:, :, :, :N_g_q]
+                 B3_bottom(self.yee_grid_EM_fields[5],*args)[:, :, :, :N_g]
 
-            self.yee_grid_EM_fields[:, :, :, :N_g_q] = \
+            self.yee_grid_EM_fields[:, :, :, :N_g] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         else:
             E1 = self.boundary_conditions.\
-                 E1_bottom(self.cell_centered_EM_fields[0],*args)[:, :, :, :N_g_q]
+                 E1_bottom(self.cell_centered_EM_fields[0],*args)[:, :, :, :N_g]
 
             E2 = self.boundary_conditions.\
-                 E2_bottom(self.cell_centered_EM_fields[1],*args)[:, :, :, :N_g_q]
+                 E2_bottom(self.cell_centered_EM_fields[1],*args)[:, :, :, :N_g]
             
             E3 = self.boundary_conditions.\
-                 E3_bottom(self.cell_centered_EM_fields[2],*args)[:, :, :, :N_g_q]
+                 E3_bottom(self.cell_centered_EM_fields[2],*args)[:, :, :, :N_g]
            
             B1 = self.boundary_conditions.\
-                 B1_bottom(self.cell_centered_EM_fields[3],*args)[:, :, :, :N_g_q]
+                 B1_bottom(self.cell_centered_EM_fields[3],*args)[:, :, :, :N_g]
 
             B2 = self.boundary_conditions.\
-                 B2_bottom(self.cell_centered_EM_fields[4],*args)[:, :, :, :N_g_q]
+                 B2_bottom(self.cell_centered_EM_fields[4],*args)[:, :, :, :N_g]
 
             B3 = self.boundary_conditions.\
-                 B3_bottom(self.cell_centered_EM_fields[5],*args)[:, :, :, :N_g_q]
+                 B3_bottom(self.cell_centered_EM_fields[5],*args)[:, :, :, :N_g]
 
-            self.cell_centered_EM_fields[:, :, :, :N_g_q] = \
+            self.cell_centered_EM_fields[:, :, :, :N_g] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
     elif(boundary == 'top'):
         if(on_fdtd_grid == True):
             E1 = self.boundary_conditions.\
-                 E1_top(self.yee_grid_EM_fields[0],*args)[:, :, :, -N_g_q:]
+                 E1_top(self.yee_grid_EM_fields[0],*args)[:, :, :, -N_g:]
 
             E2 = self.boundary_conditions.\
-                 E2_top(self.yee_grid_EM_fields[1],*args)[:, :, :, -N_g_q:]
+                 E2_top(self.yee_grid_EM_fields[1],*args)[:, :, :, -N_g:]
 
             E3 = self.boundary_conditions.\
-                 E3_top(self.yee_grid_EM_fields[2],*args)[:, :, :, -N_g_q:]
+                 E3_top(self.yee_grid_EM_fields[2],*args)[:, :, :, -N_g:]
             
             B1 = self.boundary_conditions.\
-                 B1_top(self.yee_grid_EM_fields[3],*args)[:, :, :, -N_g_q:]
+                 B1_top(self.yee_grid_EM_fields[3],*args)[:, :, :, -N_g:]
 
             B2 = self.boundary_conditions.\
-                 B2_top(self.yee_grid_EM_fields[4],*args)[:, :, :, -N_g_q:]
+                 B2_top(self.yee_grid_EM_fields[4],*args)[:, :, :, -N_g:]
 
             B3 = self.boundary_conditions.\
-                 B3_top(self.yee_grid_EM_fields[5],*args)[:, :, :, -N_g_q:]
+                 B3_top(self.yee_grid_EM_fields[5],*args)[:, :, :, -N_g:]
             
-            self.yee_grid_EM_fields[:, :, :, -N_g_q:] = \
+            self.yee_grid_EM_fields[:, :, :, -N_g:] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
 
         else:
             E1 = self.boundary_conditions.\
-                 E1_top(self.cell_centered_EM_fields[0],*args)[:, :, :, -N_g_q:]
+                 E1_top(self.cell_centered_EM_fields[0],*args)[:, :, :, -N_g:]
 
             E2 = self.boundary_conditions.\
-                 E2_top(self.cell_centered_EM_fields[1],*args)[:, :, :, -N_g_q:]
+                 E2_top(self.cell_centered_EM_fields[1],*args)[:, :, :, -N_g:]
 
             E3 = self.boundary_conditions.\
-                 E3_top(self.cell_centered_EM_fields[2],*args)[:, :, :, -N_g_q:]
+                 E3_top(self.cell_centered_EM_fields[2],*args)[:, :, :, -N_g:]
             
             B1 = self.boundary_conditions.\
-                 B1_top(self.cell_centered_EM_fields[3],*args)[:, :, :, -N_g_q:]
+                 B1_top(self.cell_centered_EM_fields[3],*args)[:, :, :, -N_g:]
 
             B2 = self.boundary_conditions.\
-                 B2_top(self.cell_centered_EM_fields[4],*args)[:, :, :, -N_g_q:]
+                 B2_top(self.cell_centered_EM_fields[4],*args)[:, :, :, -N_g:]
 
             B3 = self.boundary_conditions.\
-                 B3_top(self.cell_centered_EM_fields[5],*args)[:, :, :, -N_g_q:]
+                 B3_top(self.cell_centered_EM_fields[5],*args)[:, :, :, -N_g:]
             
-            self.cell_centered_EM_fields[:, :, :, -N_g_q:] = \
+            self.cell_centered_EM_fields[:, :, :, -N_g:] = \
                 af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
     
     else:
@@ -431,7 +431,7 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
 
-    N_g_q = self.N_ghost_q
+    N_g = self.N_ghost
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
@@ -439,11 +439,11 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
         if(on_fdtd_grid == True):
-            self.yee_grid_EM_fields[:, :, :N_g_q] = \
-                af.flip(self.yee_grid_EM_fields[:, :, N_g_q:2 * N_g_q], 2)
+            self.yee_grid_EM_fields[:, :, :N_g] = \
+                af.flip(self.yee_grid_EM_fields[:, :, N_g:2 * N_g], 2)
         else:
-            self.cell_centered_EM_fields[:, :, :N_g_q] = \
-                af.flip(self.cell_centered_EM_fields[:, :, N_g_q:2 * N_g_q], 2)
+            self.cell_centered_EM_fields[:, :, :N_g] = \
+                af.flip(self.cell_centered_EM_fields[:, :, N_g:2 * N_g], 2)
 
     elif(boundary == 'right'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
@@ -452,11 +452,11 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         # -1 = -6; -2 = -5; -3 = -4;
         
         if(on_fdtd_grid == True):
-            self.yee_grid_EM_fields[:, :, -N_g_q:] = \
-                af.flip(self.yee_grid_EM_fields[:, :, -2 * N_g_q:-N_g_q], 2)
+            self.yee_grid_EM_fields[:, :, -N_g:] = \
+                af.flip(self.yee_grid_EM_fields[:, :, -2 * N_g:-N_g], 2)
         else:
-            self.cell_centered_EM_fields[:, :, -N_g_q:] = \
-                af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g_q:-N_g_q], 2)
+            self.cell_centered_EM_fields[:, :, -N_g:] = \
+                af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g:-N_g], 2)
 
     elif(boundary == 'bottom'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
@@ -465,12 +465,12 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         # 0 = 5; 1 = 4; 2 = 3;
 
         if(on_fdtd_grid == True):
-            self.yee_grid_EM_fields[:, :, :, :N_g_q] = \
-                af.flip(self.yee_grid_EM_fields[:, :, :, N_g_q:2 * N_g_q], 3)
+            self.yee_grid_EM_fields[:, :, :, :N_g] = \
+                af.flip(self.yee_grid_EM_fields[:, :, :, N_g:2 * N_g], 3)
 
         else:
-            self.cell_centered_EM_fields[:, :, :, :N_g_q] = \
-                af.flip(self.cell_centered_EM_fields[:, :, :, N_g_q:2 * N_g_q], 3)
+            self.cell_centered_EM_fields[:, :, :, :N_g] = \
+                af.flip(self.cell_centered_EM_fields[:, :, :, N_g:2 * N_g], 3)
 
     elif(boundary == 'top'):
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
@@ -479,12 +479,12 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         # -1 = -6; -2 = -5; -3 = -4;
 
         if(on_fdtd_grid == True):
-            self.yee_grid_EM_fields[:, :, :, -N_g_q:] = \
-                af.flip(self.yee_grid_EM_fields[:, :, :, -2 * N_g_q:-N_g_q], 3)
+            self.yee_grid_EM_fields[:, :, :, -N_g:] = \
+                af.flip(self.yee_grid_EM_fields[:, :, :, -2 * N_g:-N_g], 3)
         
         else:
-            self.cell_centered_EM_fields[:, :, :, -N_g_q:] = \
-                af.flip(self.cell_centered_EM_fields[:, :, :, -2 * N_g_q:-N_g_q], 3)
+            self.cell_centered_EM_fields[:, :, :, -N_g:] = \
+                af.flip(self.cell_centered_EM_fields[:, :, :, -2 * N_g:-N_g], 3)
 
     else:
         raise Exception('Invalid choice for boundary')
