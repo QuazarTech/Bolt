@@ -46,7 +46,7 @@ def fft_poisson(self, rho):
 
         # Ensuring that there is no background charge density:
         try:
-            assert(af.sum(af.abs(rho_hat[0, 0])) < 1e-7)
+            assert(af.sum(af.abs(rho_hat[0, 0])) < 1e-5)
         except:
             raise Exception('Cannot pass rho with a background charge density \
                              when solving using periodic boundary conditions'

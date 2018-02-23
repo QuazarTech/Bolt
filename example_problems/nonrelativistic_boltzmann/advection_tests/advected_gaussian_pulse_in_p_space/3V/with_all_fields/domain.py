@@ -18,5 +18,4 @@ p3_start = -10
 p3_end   = 10
 N_p3     = 128
 
-N_ghost_q = 0
-N_ghost_p = 0
+N_ghost = 0

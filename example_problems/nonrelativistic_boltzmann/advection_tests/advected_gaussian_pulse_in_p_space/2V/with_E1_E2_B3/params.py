@@ -24,6 +24,7 @@ num_devices = 1
 mass               = [1]
 boltzmann_constant = 1
 charge             = [-10]
+eps                = 1
 
 # Initial Conditions used in initialize:
 rho_background         = 1

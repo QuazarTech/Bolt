@@ -8,7 +8,7 @@ import numpy as np
 
 def initialize_f(q1, q2, p1, p2, p3, params):
 
-    m = params.mass_particle
+    m = params.mass
     k = params.boltzmann_constant
 
     rho_b = params.rho_background
@@ -26,3 +26,21 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     af.eval(f)
     return (f)
+
+def initialize_E(q1, q2, params):
+    
+    E1 = 0.01 * q1**0
+    E2 = 0.002 * q1**0
+    E3 = 0.0003 * q1**0
+
+    af.eval(E1, E2, E3)
+    return(E1, E2, E3)
+
+def initialize_B(q1, q2, params):
+
+    B1 = 0.4 * q1**0
+    B2 = 10.5 * q1**0 
+    B3 = 20.6 * q1**0
+
+    af.eval(B1, B2, B3)
+    return(B1, B2, B3)

@@ -24,8 +24,6 @@ system = physical_system(domain,
                          moments
                         )
 
-N_g_q = system.N_ghost_q
-
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 
@@ -42,10 +40,14 @@ h5f.create_dataset('p1', data = nls.p1_center)
 h5f.create_dataset('p2', data = nls.p2_center)
 h5f.close()
 
+f_initial = nls.f.copy()
+
 for time_index, t0 in enumerate(time_array[1:]):
 
     nls.strang_timestep(dt)
 
+    print(af.mean(af.abs(nls.f - f_initial)))
+    
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
     h5f.create_dataset('distribution_function', data = nls.f)
     h5f.create_dataset('p1', data = nls.p1_center)

@@ -61,18 +61,19 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
     h5f.close()
 
-    pl.contourf(q1[3:-3, 3:-3],
-                q2[3:-3, 3:-3],
-                n[3:-3, 3:-3],
-                100,
-                cmap = 'gist_heat'
-               )
-    pl.title('Time =' + str(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.axes().set_aspect('equal')
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
-    pl.clf()
+pl.contourf(q1[3:-3, 3:-3],
+            q2[3:-3, 3:-3],
+            n[3:-3, 3:-3],
+            100,
+            cmap = 'gist_heat'
+           )
+# pl.title('Time =' + str(t0))
+pl.xlabel(r'$x$')
+pl.ylabel(r'$y$')
+pl.axes().set_aspect('equal')
+pl.savefig('plot.png')
+# pl.savefig('images/%04d'%(time_index+1) + '.png')
+pl.clf()
 
 # pl.plot(q2[66, 10:-10], n[66, 10:-10])
 # pl.title('Time = 0')

@@ -6,7 +6,7 @@ import h5py
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -15,7 +15,7 @@ import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -76,7 +76,7 @@ def residual(t_final, E1, E2, B3, charge, mass):
     residual = np.append(diff_p1, diff_p2)
     return(residual)
 
-N = 2**np.arange(5, 10)
+N = 2**np.arange(5, 7)
 
 dt_odeint         = 0.001
 t_final_odeint    = 3
@@ -95,24 +95,23 @@ def check_error(params):
                                  initialize,
                                  advection_terms,
                                  collision_operator.BGK,
-                                 moment_defs
+                                 moments
                                 )
 
         nls = nonlinear_solver(system)
-        N_g = nls.N_ghost_q
 
         # Time parameters:
         dt = 0.001 * 32/nls.N_p1
         
         # First, we check when the blob returns to (0, 0)
-        E1 = nls.cell_centered_EM_fields[0]
-        E2 = nls.cell_centered_EM_fields[1]
-        B3 = nls.cell_centered_EM_fields[5]
+        E1 = nls.fields_solver.cell_centered_EM_fields[0]
+        E2 = nls.fields_solver.cell_centered_EM_fields[1]
+        B3 = nls.fields_solver.cell_centered_EM_fields[5]
 
         sol = odeint(dp_dt, np.array([0, 0]), time_array_odeint,
                      args = (af.mean(E1), af.mean(E2), af.mean(B3), 
-                             params.charge_electron,
-                             params.mass_particle
+                             params.charge[0],
+                             params.mass[0]
                             ),
                      atol = 1e-12, rtol = 1e-12
                     ) 
@@ -126,8 +125,8 @@ def check_error(params):
         t_final_approx = time_array_odeint[np.argmin(dist_from_origin[1:])]
         t_final        = root(residual, t_final_approx, 
                               args = (af.mean(E1), af.mean(E2), af.mean(B3), 
-                                      params.charge_electron,
-                                      params.mass_particle
+                                      params.charge[0],
+                                      params.mass[0]
                                      ),
                               method = 'lm', tol = 1e-12
                              ).x

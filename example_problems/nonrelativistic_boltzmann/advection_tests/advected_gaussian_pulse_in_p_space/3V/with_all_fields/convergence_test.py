@@ -5,7 +5,7 @@ import h5py
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -14,7 +14,7 @@ import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -79,16 +79,15 @@ def check_error(params):
                                  initialize,
                                  advection_terms,
                                  collision_operator.BGK,
-                                 moment_defs
+                                 moments
                                 )
 
         # Declaring a linear system object which will evolve the defined physical system:
         nls = nonlinear_solver(system)
-        N_g = nls.N_ghost_q
 
         # Time parameters:
         dt      = 0.001 * 32/nls.N_p1
-        t_final = 0.1
+        t_final = 0.2
 
         time_array  = np.arange(dt, t_final + dt, dt)
 
@@ -96,19 +95,19 @@ def check_error(params):
             time_array = np.delete(time_array, -1)
 
         # Finding final resting point of the blob:
-        E1 = nls.cell_centered_EM_fields[0]
-        E2 = nls.cell_centered_EM_fields[1]
-        E3 = nls.cell_centered_EM_fields[2]
+        E1 = nls.fields_solver.cell_centered_EM_fields[0]
+        E2 = nls.fields_solver.cell_centered_EM_fields[1]
+        E3 = nls.fields_solver.cell_centered_EM_fields[2]
         
-        B1 = nls.cell_centered_EM_fields[3]
-        B2 = nls.cell_centered_EM_fields[4]
-        B3 = nls.cell_centered_EM_fields[5]
+        B1 = nls.fields_solver.cell_centered_EM_fields[3]
+        B2 = nls.fields_solver.cell_centered_EM_fields[4]
+        B3 = nls.fields_solver.cell_centered_EM_fields[5]
 
         sol = odeint(dp_dt, np.array([0, 0, 0]), time_array,
                      args = (af.mean(E1), af.mean(E2), af.mean(E3), 
                              af.mean(B1), af.mean(B2), af.mean(B3), 
-                             params.charge_electron,
-                             params.mass_particle
+                             af.sum(params.charge[0]),
+                             af.sum(params.mass[0])
                             ),
                      atol = 1e-12, rtol = 1e-12
                     ) 
@@ -138,39 +137,40 @@ params.reconstruction_method_in_p = 'weno5'
 weno5_err = check_error(params)
 weno5_con = np.polyfit(np.log10(N), np.log10(weno5_err), 1)
 
-params.reconstruction_method_in_p = 'ppm'
+# params.reconstruction_method_in_p = 'ppm'
 
-ppm_err = check_error(params)
-ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
+# ppm_err = check_error(params)
+# ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
 
-params.reconstruction_method_in_p = 'minmod'
+# params.reconstruction_method_in_p = 'minmod'
 
-minmod_err = check_error(params)
-minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
+# minmod_err = check_error(params)
+# minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
 
-params.reconstruction_method_in_p = 'piecewise-constant'
+# params.reconstruction_method_in_p = 'piecewise-constant'
 
-pc_err = check_error(params)
-pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
+# pc_err = check_error(params)
+# pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
 
-params.solver_method_in_p         = 'ASL'
+# params.solver_method_in_p         = 'ASL'
 
-asl_err = check_error(params)
-asl_con = np.polyfit(np.log10(N), np.log10(asl_err), 1)
+# asl_err = check_error(params)
+# asl_con = np.polyfit(np.log10(N), np.log10(asl_err), 1)
 
+print('Error with WENO5 reconstruction:', weno5_err)
 print('Convergence with WENO5 reconstruction:', weno5_con[0])
-print('Convergence with PPM reconstruction:', ppm_con[0])
-print('Convergence with minmod reconstruction:', minmod_con[0])
-print('Convergence with piecewise-constant reconstruction:', pc_con[0])
-print('Convergence with ASL:', asl_con[0])
+# print('Convergence with PPM reconstruction:', ppm_con[0])
+# print('Convergence with minmod reconstruction:', minmod_con[0])
+# print('Convergence with piecewise-constant reconstruction:', pc_con[0])
+# print('Convergence with ASL:', asl_con[0])
 
-pl.loglog(N, weno5_err, '-o',label = 'WENO5')
-pl.loglog(N, ppm_err, '-o', label = 'PPM')
-pl.loglog(N, minmod_err, '-o', label = 'minmod')
-pl.loglog(N, pc_err, '-o', label = 'Piecewise-Constant')
-pl.loglog(N, asl_err, '-o', label = 'ASL')
-pl.loglog(N, 1e-3/N, '--', color = 'black', label = r'$O(N^{-1})$')
-pl.loglog(N, 1e-2/N**2, '-.', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N, weno5_err, '-o',label = 'Numerical')
+# pl.loglog(N, ppm_err, '-o', label = 'PPM')
+# pl.loglog(N, minmod_err, '-o', label = 'minmod')
+# pl.loglog(N, pc_err, '-o', label = 'Piecewise-Constant')
+# pl.loglog(N, asl_err, '-o', label = 'ASL')
+# pl.loglog(N, 1e-3/N, '--', color = 'black', label = r'$O(N^{-1})$')
+pl.loglog(N, weno5_err[0] * 32**2/N**2, '-.', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()

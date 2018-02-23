@@ -5,7 +5,7 @@ import h5py
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -14,7 +14,7 @@ import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -59,7 +59,7 @@ def dpdt(p, t, E1, E2, B3, charge, mass):
     dp_dt  = np.append(dp1_dt, dp2_dt)
     return(dp_dt)
 
-N = 2**np.arange(5, 10)
+N = 2**np.arange(5, 8)
 
 def check_error(params):
     error = np.zeros(N.size)
@@ -74,12 +74,11 @@ def check_error(params):
                                  initialize,
                                  advection_terms,
                                  collision_operator.BGK,
-                                 moment_defs
+                                 moments
                                 )
 
         # Declaring a linear system object which will evolve the defined physical system:
         nls = nonlinear_solver(system)
-        N_g = nls.N_ghost_q
 
         # Time parameters:
         dt      = 0.001 * 32/nls.N_p1
@@ -88,14 +87,18 @@ def check_error(params):
         time_array  = np.arange(dt, t_final + dt, dt)
 
         # Finding final resting point of the blob:
-        E1 = nls.cell_centered_EM_fields[0]
-        E2 = nls.cell_centered_EM_fields[1]
-        B3 = nls.cell_centered_EM_fields[5]
+        E1 = nls.fields_solver.cell_centered_EM_fields[0]
+        E2 = nls.fields_solver.cell_centered_EM_fields[1]
+        B3 = nls.fields_solver.cell_centered_EM_fields[5]
+
+        print(af.mean(E1))
+        print(af.mean(E2))
+        print(af.mean(B3))
 
         sol = odeint(dpdt, np.array([0, 0]), time_array,
                      args = (af.mean(E1), af.mean(E2), af.mean(B3), 
-                             params.charge_electron,
-                             params.mass_particle
+                             af.sum(params.charge[0, 0]),
+                             af.sum(params.mass[0, 0])
                             )
                     ) 
 

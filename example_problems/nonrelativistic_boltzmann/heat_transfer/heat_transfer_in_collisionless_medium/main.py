@@ -4,11 +4,7 @@ import pylab as pl
 import h5py
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
-
-from bolt.lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -16,11 +12,8 @@ import params
 import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -59,7 +52,7 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.BGK,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:
@@ -74,17 +67,17 @@ temp_data_nls = np.zeros_like(time_array)
 
 n_nls = nls.compute_moments('density')
 
-p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
-p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
-p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
+p1_bulk_nls = nls.compute_moments('mom_v1_bulk') / n_nls
+p2_bulk_nls = nls.compute_moments('mom_v2_bulk') / n_nls
+p3_bulk_nls = nls.compute_moments('mom_v3_bulk') / n_nls
 
-T_nls = (  nls.compute_moments('energy')
+T_nls = (  2 * nls.compute_moments('energy')
          - n_nls * p1_bulk_nls**2
          - n_nls * p2_bulk_nls**2
          - n_nls * p3_bulk_nls**2
         ) / n_nls
 
-temp_data_nls[0] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
+temp_data_nls[0] = af.mean(T_nls[:, :, nls.N_ghost:-nls.N_ghost])
 
 for time_index, t0 in enumerate(time_array):
 
@@ -92,17 +85,17 @@ for time_index, t0 in enumerate(time_array):
 
     n_nls = nls.compute_moments('density')
 
-    p1_bulk_nls = nls.compute_moments('mom_p1_bulk') / n_nls
-    p2_bulk_nls = nls.compute_moments('mom_p2_bulk') / n_nls
-    p3_bulk_nls = nls.compute_moments('mom_p3_bulk') / n_nls
+    p1_bulk_nls = nls.compute_moments('mom_v1_bulk') / n_nls
+    p2_bulk_nls = nls.compute_moments('mom_v2_bulk') / n_nls
+    p3_bulk_nls = nls.compute_moments('mom_v3_bulk') / n_nls
 
-    T_nls = (  nls.compute_moments('energy')
+    T_nls = (  2 * nls.compute_moments('energy')
              - n_nls * p1_bulk_nls**2
              - n_nls * p2_bulk_nls**2
              - n_nls * p3_bulk_nls**2
             ) / n_nls
 
-    temp_data_nls[time_index] = af.mean(T_nls[nls.N_ghost:-nls.N_ghost])
+    temp_data_nls[time_index] = af.mean(T_nls[:, :, nls.N_ghost:-nls.N_ghost])
     nls.strang_timestep(dt)
         
 h5f = h5py.File('numerical.h5', 'w')
