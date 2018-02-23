@@ -52,16 +52,16 @@ def df_dt_fvm(f, self):
     # Initializing df_dt
     df_dt = 0
 
-    # af.broadcast used to perform batched operations on arrays of different sizes:
-    self._C_q1, self._C_q2 = \
-        af.broadcast(self._C_q, f, self.time_elapsed, 
-                     self.q1_center, self.q2_center,
-                     self.p1_center, self.p2_center, self.p3_center,
-                     self.physical_system.params
-                    )
-
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
-        
+    
+        # af.broadcast used to perform batched operations on arrays of different sizes:
+        self._C_q1, self._C_q2 = \
+            af.broadcast(self._C_q, f, self.time_elapsed, 
+                         self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params
+                        )
+            
         # Variation of q1 is along axis 2
         left_plus_eps_flux, right_minus_eps_flux = \
             reconstruct(self, multiply(self._C_q1, f), 2, reconstruction_in_q)

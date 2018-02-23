@@ -157,56 +157,66 @@ def apply_dirichlet_bcs_f(self, boundary):
 
     N_g = self.N_ghost
     
-    if(self._A_q1.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
-                                * (self.N_p2 + 2 * self.N_ghost_p) 
-                                * (self.N_p3 + 2 * self.N_ghost_p)
-      ):
-        # If A_q1 is of shape (Np1 * Np2 * Np3)
-        # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q1 = af.tile(self._A_q1, 1, 1,
-                       self.f.shape[2],
-                       self.f.shape[3]
-                      )
+    if(self.physical_system.params.solver_method_in_q == 'FVM'):
+        velocity_q1, velocity_q2 = \
+            af.broadcast(self._C_q, self.f, self.time_elapsed, 
+                         self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params
+                        )
 
-    if(self._A_q2.elements() ==   (self.N_p1 + 2 * self.N_ghost_p) 
-                                * (self.N_p2 + 2 * self.N_ghost_p) 
-                                * (self.N_p3 + 2 * self.N_ghost_p)
-      ):
-        # If A_q2 is of shape (Np1 * Np2 * Np3)
-        # We tile to get it to form (Np1 * Np2 * Np3, Nq1, Nq2)
-        A_q2 = af.tile(self._A_q2, 1, 1, 
-                       self.f.shape[2],
-                       self.f.shape[3]
-                      )
+    else:
+        velocity_q1, velocity_q2 = \
+            af.broadcast(self._A_q, self.f, self.time_elapsed, 
+                         self.q1_center, self.q2_center,
+                         self.p1_center, self.p2_center, self.p3_center,
+                         self.physical_system.params
+                        )
+
+    if(velocity_q1.elements() == self.N_p1 * self.N_p2 * self.N_p3):
+        # If velocity_q1 is of shape (Np1 * Np2 * Np3)
+        # We tile to get it to form (Np1 * Np2 * Np3, 1, Nq1, Nq2)
+        velocity_q1 = af.tile(velocity_q1, 1, 1,
+                              self.f.shape[2],
+                              self.f.shape[3]
+                             )
+
+    if(velocity_q2.elements() == self.N_p1 * self.N_p2 * self.N_p3):
+        # If velocity_q2 is of shape (Np1 * Np2 * Np3)
+        # We tile to get it to form (Np1 * Np2 * Np3, 1, Nq1, Nq2)
+        velocity_q2 = af.tile(velocity_q2, 1, 1,
+                              self.f.shape[2],
+                              self.f.shape[3]
+                             )
 
     # Arguments that are passing to the called functions:
-    args = (self.time_elapsed, self.q1_center, self.q2_center,
+    args = (self.f, self.time_elapsed, self.q1_center, self.q2_center,
             self.p1_center, self.p2_center, self.p3_center, 
             self.physical_system.params
            )
 
     if(boundary == 'left'):
-        f_left = self.boundary_conditions.f_left(self.f, *args)
+        f_left = self.boundary_conditions.f_left(*args)
         # Only changing inflowing characteristics:
-        f_left = af.select(A_q1>0, f_left, self.f)
+        f_left = af.select(velocity_q1>0, f_left, self.f)
         self.f[:, :, :N_g] = f_left[:, :, :N_g]
 
     elif(boundary == 'right'):
-        f_right = self.boundary_conditions.f_right(self.f, *args)
+        f_right = self.boundary_conditions.f_right(*args)
         # Only changing inflowing characteristics:
-        f_right = af.select(A_q1<0, f_right, self.f)
+        f_right = af.select(velocity_q1<0, f_right, self.f)
         self.f[:, :, -N_g:] = f_right[:, :, -N_g:]
 
     elif(boundary == 'bottom'):
-        f_bottom = self.boundary_conditions.f_bottom(self.f, *args)
+        f_bottom = self.boundary_conditions.f_bottom(*args)
         # Only changing inflowing characteristics:
-        f_bottom = af.select(A_q2>0, f_bottom, self.f)
+        f_bottom = af.select(velocity_q2>0, f_bottom, self.f)
         self.f[:, :, :, :N_g] = f_bottom[:, :, :, :N_g]
 
     elif(boundary == 'top'):
-        f_top = self.boundary_conditions.f_top(self.f, *args)
+        f_top = self.boundary_conditions.f_top(*args)
         # Only changing inflowing characteristics:
-        f_top = af.select(A_q2<0, f_top, self.f)
+        f_top = af.select(velocity_q2<0, f_top, self.f)
         self.f[:, :, :, -N_g:] = f_top[:, :, :, -N_g:]
 
     else:
