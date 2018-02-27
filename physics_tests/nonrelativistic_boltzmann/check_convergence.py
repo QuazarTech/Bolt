@@ -36,7 +36,7 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(7, 10)
+    N     = np.array([128, 192, 256, 384, 512]) #2**np.arange(7, 10)
     error = np.zeros(N.size)
     
     for i in range(N.size):
@@ -56,12 +56,13 @@ def check_convergence():
     print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
-    pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
+    pl.loglog(N, error[0]*128**2/N**2, '--', color = 'black', 
               label = r'$O(N^{-2})$'
              )
     pl.legend(loc = 'best')
     pl.ylabel('Error')
     pl.xlabel('$N$')
+    pl.savefig('convergence_plot.svg')
     pl.savefig('convergence_plot.png')
 
     assert(abs(poly[0] + 2)<0.25)

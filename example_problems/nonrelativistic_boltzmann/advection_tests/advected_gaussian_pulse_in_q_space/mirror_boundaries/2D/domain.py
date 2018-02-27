@@ -6,8 +6,8 @@ q2_start = 0
 q2_end   = 1
 N_q2     = 256
 
-p1_start = -8
-p1_end   = 8
+p1_start = -4
+p1_end   = 4
 N_p1     = 4
 
 p2_start = -4

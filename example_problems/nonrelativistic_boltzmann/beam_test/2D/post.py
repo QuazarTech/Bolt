@@ -1,11 +1,13 @@
 import numpy as np
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 4
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -33,7 +35,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.0025
+dt      = 0.001
 t_final = 2.5
 time    = np.arange(dt, t_final + dt, dt)
 

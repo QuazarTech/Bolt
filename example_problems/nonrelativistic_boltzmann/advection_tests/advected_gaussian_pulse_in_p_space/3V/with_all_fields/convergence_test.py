@@ -2,6 +2,8 @@ import arrayfire as af
 import numpy as np
 from scipy.integrate import odeint
 import h5py
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 
 from bolt.lib.physical_system import physical_system
@@ -86,7 +88,7 @@ def check_error(params):
         nls = nonlinear_solver(system)
 
         # Time parameters:
-        dt      = 0.001 * 32/nls.N_p1
+        dt      = 0.0001 * 32/nls.N_p1
         t_final = 0.2
 
         time_array  = np.arange(dt, t_final + dt, dt)

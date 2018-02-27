@@ -47,7 +47,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N     = 2**np.arange(6, 11)
+N     = 2**np.arange(5, 8) 
 error = np.zeros(N.size)
 
 for i in range(N.size):
@@ -70,10 +70,14 @@ for i in range(N.size):
     N_g = nls.N_ghost
 
     # Time parameters:
-    dt      = 0.005 * 32/nls.N_q1
+    dt      = 0.01 * 32/nls.N_q1
     t_final = 1.0
 
     time_array = np.arange(dt, t_final + dt, dt)
+    
+    # Checking that time array doesn't cross final time:
+    if(time_array[-1]>t_final):
+        time_array = np.delete(time_array, -1)
 
     f_reference = nls.f.copy()
     

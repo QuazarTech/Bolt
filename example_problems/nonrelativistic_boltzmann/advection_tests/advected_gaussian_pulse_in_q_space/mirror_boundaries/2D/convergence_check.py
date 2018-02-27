@@ -47,7 +47,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N     = 2**np.arange(5, 10)
+N     = 2**np.arange(5, 8)
 error = np.zeros(N.size)
 
 for i in range(N.size):
@@ -71,7 +71,7 @@ for i in range(N.size):
 
     # Time parameters:
     dt      = 0.01 * 32/nls.N_q1
-    t_final = 1.0
+    t_final = 2.0
 
     time_array = np.arange(dt, t_final + dt, dt)
 
@@ -80,10 +80,11 @@ for i in range(N.size):
     for time_index, t0 in enumerate(time_array):
         nls.strang_timestep(dt)
 
-    error[i] = af.mean(af.abs(  nls.f[10, :, N_g:-N_g, N_g:-N_g] 
-                              - f_reference[10, :, N_g:-N_g, N_g:-N_g]
+    error[i] = af.mean(af.abs(  nls.f[:, :, N_g:-N_g, N_g:-N_g] 
+                              - f_reference[:, :, N_g:-N_g, N_g:-N_g]
                              )
                       )
+    print(error)
 
 print('Error Obtained:')
 print('L1 norm of error:', error)

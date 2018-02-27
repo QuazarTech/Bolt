@@ -68,10 +68,21 @@ ls  = linear_solver(system)
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array  = np.arange(0, params.t_final + dt, dt)
+time_array = np.arange(0, params.t_final + dt, dt)
+n_data     = np.zeros(time_array.size)
 
 for time_index, t0 in enumerate(time_array):
-    nls.dump_distribution_function('dump_f/%04d'%time_index)
+    if(time_index%10 == 0):
+        nls.dump_distribution_function('dump_f/%04d'%time_index)
+
+    n_data[time_index] = af.max(nls.compute_moments('density')[:, :, 3:-3, 3:-3])
     print('Computing For Time =', t0)
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
+
+import h5py
+h5f = h5py.File('data.h5', 'w')
+h5f.create_dataset('n', data = n_data)
+h5f.create_dataset('time', data = time_array)
+h5f.close()
+

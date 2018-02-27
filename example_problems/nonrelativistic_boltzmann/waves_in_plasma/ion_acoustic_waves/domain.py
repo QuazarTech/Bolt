@@ -12,7 +12,7 @@ N_q2     = 3
 # Velocity
 p1_start = -130 * v0
 p1_end   = 130  * v0
-N_p1     = 2048
+N_p1     = 128
 
 p2_start = -0.5 * v0
 p2_end   = 0.5  * v0

@@ -54,29 +54,30 @@ max_f = 0
 min_f = 1
 for time_index, t0 in enumerate(time_array):
 
-    h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
-    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
-    h5f.close()
-
-    if(np.max(f)>max_f):
-        max_f = np.max(f)
-
-    if(np.min(f)<min_f):
-        min_f = np.min(f)
-
+    if(time_index%10 == 0):
+        h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
+        f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+        h5f.close()
+    
+        if(np.max(f)>max_f):
+            max_f = np.max(f)
+    
+        if(np.min(f)<min_f):
+            min_f = np.min(f)
+    
 for time_index, t0 in enumerate(time_array):
 
-    h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
-    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
-    h5f.close()
-
     if(time_index%10==0):
-        #pl.contourf(p1, q1, f, np.linspace(min_f, max_f, 100))
-        pl.plot(p1, np.sum(f, 0).ravel() / domain.N_q1)
+        h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
+        f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+        h5f.close()
+
+        pl.contourf(p1, q1, f, np.linspace(min_f, max_f, 100))
+        #pl.plot(p1, np.sum(f, 0).ravel() / domain.N_q1)
         pl.xlabel(r'$v$')
-        pl.ylabel(r'$\bar{f}(v)$')
-        pl.ylim(ymax=0.5)
-        #pl.ylabel(r'$x$')
+        #pl.ylabel(r'$\bar{f}(v)$')
+        #pl.ylim(ymax=0.5)
+        pl.ylabel(r'$x$')
         pl.title('Time = %.2f'%(t0))
         #pl.colorbar()
         pl.savefig('images/' + '%04d'%(time_index/10) + '.png')

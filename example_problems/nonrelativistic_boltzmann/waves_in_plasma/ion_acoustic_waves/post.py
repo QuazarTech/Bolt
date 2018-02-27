@@ -167,6 +167,7 @@ pl.ylabel(r'MAX($\rho$)')
 pl.xlabel('Time')
 pl.legend()
 pl.savefig('rho_linear.png')
+pl.savefig('rho_linear.svg')
 pl.clf()
 
 #pl.plot(time_array_nls, n_nls[:, 0], color = 'C3', label = 'Electrons(Nonlinear Solver)')

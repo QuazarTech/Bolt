@@ -14,7 +14,7 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-N = 2**np.arange(5, 10)
+N = np.array([128, 192, 256, 384, 512]) #2**np.arange(5, 10)
 def run_cases(q_dim, p_dim, charge_electron, tau):
     params.charge[0] = charge_electron
     params.tau       = tau

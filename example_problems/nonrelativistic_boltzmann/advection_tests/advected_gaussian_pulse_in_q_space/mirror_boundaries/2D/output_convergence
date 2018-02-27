@@ -1,0 +1,407 @@
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 64 , 64 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0
+   Mass(Species 1)                 : 1
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0015.savio2
+    Device Details:
+--------------------------------------------------------------------------
+A process has executed an operation involving a call to the
+"fork()" system call to create a child process.  Open MPI is currently
+operating in a condition that could result in memory corruption or
+other system errors; your job may hang, crash, or produce silent
+data corruption.  The use of fork() (or system() or other calls that
+create child processes) is strongly discouraged.
+
+The process that invoked fork was:
+
+  Local host:          [[64784,1],0] (PID 1226)
+
+If you are *absolutely sure* that your application will successfully
+and correctly survive a call to fork(), you may disable this warning
+by setting the mpi_warn_on_fork MCA parameter to 0.
+--------------------------------------------------------------------------
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 128 , 128 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0015.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 256 , 256 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0015.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 512 , 512 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0015.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 1024 , 1024 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0015.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 64 , 64 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0
+   Mass(Species 1)                 : 1
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0017.savio2
+    Device Details:
+--------------------------------------------------------------------------
+A process has executed an operation involving a call to the
+"fork()" system call to create a child process.  Open MPI is currently
+operating in a condition that could result in memory corruption or
+other system errors; your job may hang, crash, or produce silent
+data corruption.  The use of fork() (or system() or other calls that
+create child processes) is strongly discouraged.
+
+The process that invoked fork was:
+
+  Local host:          [[31965,1],0] (PID 29499)
+
+If you are *absolutely sure* that your application will successfully
+and correctly survive a call to fork(), you may disable this warning
+by setting the mpi_warn_on_fork MCA parameter to 0.
+--------------------------------------------------------------------------
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 128 , 128 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0017.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 256 , 256 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0017.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+----------------------------------------------------------------------
+|                      ,/                                            |
+|                    ,'/          ____        ____                   |
+|                  ,' /          / __ )____  / / /_                  |
+|                ,'  /_____,    / __  / __ \/ / __/                  |
+|              .'____    ,'    / /_/ / /_/ / / /_                    |
+|                   /  ,'     /_____/\____/_/\__/                    |
+|                  / ,'                                              |
+|                 /,'                                                |
+|                /'                                                  |
+|--------------------------------------------------------------------|
+|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|
+|                                                                    |
+|  Bolt is free software; you can redistribute it and/or modify it   |
+|  under the terms of the GNU General Public License as published    |
+|  by the Free Software Foundation(version 3.0)                      |
+----------------------------------------------------------------------
+Resolution(Nq1, Nq2, Np1, Np2, Np3): ( 512 , 512 , 4 , 4 , 1 )
+Solver Method in q-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Solver Method in p-space           : FVM
+    Reconstruction Method          : WENO5
+    Riemann Solver                 : UPWIND-FLUX
+Number of Species                  : 1
+   Charge(Species 1)               : 0.0
+   Mass(Species 1)                 : 1.0
+Number of Devices/Node             : 1
+
+Backend Details for Nonlinear Solver:
+    Rank 0 of 0
+    On Node: n0017.savio2
+    Device Details:
+        ArrayFire v3.6.0 (CUDA 64bit)
+        [0] : Tesla_K80 (Compute 3.7)
+
+[4.17801553e-06 0.00000000e+00 0.00000000e+00 0.00000000e+00
+ 0.00000000e+00]
+[4.17801553e-06 2.63319474e-06 0.00000000e+00 0.00000000e+00
+ 0.00000000e+00]
+[4.17801553e-06 2.63319474e-06 1.58023645e-06 0.00000000e+00
+ 0.00000000e+00]
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mKeyboardInterrupt[0m                         Traceback (most recent call last)
+[0;32m/global/scratch/manic/Bolt/example_problems/nonrelativistic_boltzmann/advection_tests/advected_gaussian_pulse_in_q_space/mirror_boundaries/2D/convergence_check.py[0m in [0;36m<module>[0;34m()[0m
+[1;32m     79[0m [0;34m[0m[0m
+[1;32m     80[0m     [0;32mfor[0m [0mtime_index[0m[0;34m,[0m [0mt0[0m [0;32min[0m [0menumerate[0m[0;34m([0m[0mtime_array[0m[0;34m)[0m[0;34m:[0m[0;34m[0m[0m
+[0;32m---> 81[0;31m         [0mnls[0m[0;34m.[0m[0mstrang_timestep[0m[0;34m([0m[0mdt[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m     82[0m [0;34m[0m[0m
+[1;32m     83[0m     error[i] = af.mean(af.abs(  nls.f[:, :, N_g:-N_g, N_g:-N_g] 
+
+[0;32m/global/scratch/manic/Bolt/bolt/lib/nonlinear/timestep.py[0m in [0;36mstrang_step[0;34m(self, dt)[0m
+[1;32m    123[0m [0;34m[0m[0m
+[1;32m    124[0m         [0;32melse[0m[0;34m:[0m[0;34m[0m[0m
+[0;32m--> 125[0;31m             [0mop_fvm[0m[0;34m([0m[0mself[0m[0;34m,[0m [0mdt[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m    126[0m [0;34m[0m[0m
+[1;32m    127[0m     [0;31m# Advective Semi-lagrangian method[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m/global/scratch/manic/Bolt/bolt/lib/nonlinear/finite_volume/fvm_operator.py[0m in [0;36mop_fvm[0;34m(self, dt)[0m
+[1;32m     68[0m         [0msplit[0m[0;34m.[0m[0mstrang[0m[0;34m([0m[0mself[0m[0;34m,[0m [0mtimestep_fvm[0m[0;34m,[0m [0mupdate_for_instantaneous_collisions[0m[0;34m,[0m [0mdt[0m[0;34m)[0m[0;34m[0m[0m
+[1;32m     69[0m     [0;32melse[0m[0;34m:[0m[0;34m[0m[0m
+[0;32m---> 70[0;31m         [0mtimestep_fvm[0m[0;34m([0m[0mself[0m[0;34m,[0m [0mdt[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m     71[0m [0;34m[0m[0m
+[1;32m     72[0m     [0maf[0m[0;34m.[0m[0meval[0m[0;34m([0m[0mself[0m[0;34m.[0m[0mf[0m[0;34m)[0m[0;34m[0m[0m
+
+[0;32m/global/scratch/manic/Bolt/bolt/lib/nonlinear/finite_volume/fvm_operator.py[0m in [0;36mtimestep_fvm[0;34m(self, dt)[0m
+[1;32m     23[0m     [0mself[0m[0;34m.[0m[0mf[0m    [0;34m=[0m [0mself[0m[0;34m.[0m[0mf[0m [0;34m+[0m [0mdf_dt_fvm[0m[0;34m([0m[0mself[0m[0;34m.[0m[0mf[0m[0;34m,[0m [0mself[0m[0;34m)[0m [0;34m*[0m [0;34m([0m[0mdt[0m [0;34m/[0m [0;36m2[0m[0;34m)[0m[0;34m[0m[0m
+[1;32m     24[0m [0;34m[0m[0m
+[0;32m---> 25[0;31m     [0mself[0m[0;34m.[0m[0m_communicate_f[0m[0;34m([0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m     26[0m     [0mself[0m[0;34m.[0m[0m_apply_bcs_f[0m[0;34m([0m[0;34m)[0m[0;34m[0m[0m
+[1;32m     27[0m [0;34m[0m[0m
+
+[0;32m/global/scratch/manic/Bolt/bolt/lib/nonlinear/communicate.py[0m in [0;36mcommunicate_f[0;34m(self)[0m
+[1;32m     34[0m [0;34m[0m[0m
+[1;32m     35[0m     [0;31m# Global value is non-inclusive of the ghost-zones:[0m[0;34m[0m[0;34m[0m[0m
+[0;32m---> 36[0;31m     [0maf[0m[0;34m.[0m[0mflat[0m[0;34m([0m[0mself[0m[0;34m.[0m[0mf[0m[0;34m[[0m[0;34m:[0m[0;34m,[0m [0;34m:[0m[0;34m,[0m [0mN_g[0m[0;34m:[0m[0;34m-[0m[0mN_g[0m[0;34m,[0m [0mN_g[0m[0;34m:[0m[0;34m-[0m[0mN_g[0m[0;34m][0m[0;34m)[0m[0;34m.[0m[0mto_ndarray[0m[0;34m([0m[0mself[0m[0;34m.[0m[0m_glob_f_array[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m     37[0m [0;34m[0m[0m
+[1;32m     38[0m     [0;31m# The following function takes care of interzonal communications[0m[0;34m[0m[0;34m[0m[0m
+
+[0;32m~/miniconda3/lib/python3.6/site-packages/arrayfire-3.6.0-py3.6.egg/arrayfire/array.py[0m in [0;36mto_ndarray[0;34m(self, output)[0m
+[1;32m   1367[0m             [0;32mraise[0m [0mRuntimeError[0m[0;34m([0m[0;34m"When output is not None, it must be contiguous"[0m[0;34m)[0m[0;34m[0m[0m
+[1;32m   1368[0m [0;34m[0m[0m
+[0;32m-> 1369[0;31m         [0msafe_call[0m[0;34m([0m[0mbackend[0m[0;34m.[0m[0mget[0m[0;34m([0m[0;34m)[0m[0;34m.[0m[0maf_get_data_ptr[0m[0;34m([0m[0mc_void_ptr_t[0m[0;34m([0m[0moutput[0m[0;34m.[0m[0mctypes[0m[0;34m.[0m[0mdata[0m[0;34m)[0m[0;34m,[0m [0mtmp[0m[0;34m.[0m[0marr[0m[0;34m)[0m[0;34m)[0m[0;34m[0m[0m
+[0m[1;32m   1370[0m         [0;32mreturn[0m [0moutput[0m[0;34m[0m[0m
+[1;32m   1371[0m [0;34m[0m[0m
+
+[0;31mKeyboardInterrupt[0m: 
