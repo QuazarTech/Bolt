@@ -76,7 +76,7 @@ def residual(t_final, E1, E2, B3, charge, mass):
     residual = np.append(diff_p1, diff_p2)
     return(residual)
 
-N = 2**np.arange(5, 7)
+N = np.array([32, 48, 64, 96, 128])
 
 dt_odeint         = 0.001
 t_final_odeint    = 3
@@ -110,8 +110,8 @@ def check_error(params):
 
         sol = odeint(dp_dt, np.array([0, 0]), time_array_odeint,
                      args = (af.mean(E1), af.mean(E2), af.mean(B3), 
-                             params.charge[0],
-                             params.mass[0]
+                             af.sum(params.charge[0]),
+                             af.sum(params.mass[0])
                             ),
                      atol = 1e-12, rtol = 1e-12
                     ) 
@@ -132,6 +132,10 @@ def check_error(params):
                              ).x
 
         time_array  = np.arange(dt, float("{0:.3f}".format(t_final[0])) + dt, dt)
+
+        if(time_array[-1]>t_final):
+            time_array = np.delete(time_array, -1)
+    
         f_reference = nls.f
 
         for time_index, t0 in enumerate(time_array):
@@ -151,34 +155,35 @@ params.reconstruction_method_in_p = 'weno5'
 weno5_err = check_error(params)
 weno5_con = np.polyfit(np.log10(N), np.log10(weno5_err), 1)
 
-params.reconstruction_method_in_p = 'ppm'
+# params.reconstruction_method_in_p = 'ppm'
 
-ppm_err = check_error(params)
-ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
+# ppm_err = check_error(params)
+# ppm_con = np.polyfit(np.log10(N), np.log10(ppm_err), 1)
 
-params.reconstruction_method_in_p = 'minmod'
+# params.reconstruction_method_in_p = 'minmod'
 
-minmod_err = check_error(params)
-minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
+# minmod_err = check_error(params)
+# minmod_con = np.polyfit(np.log10(N), np.log10(minmod_err), 1)
 
-params.reconstruction_method_in_p = 'piecewise-constant'
+# params.reconstruction_method_in_p = 'piecewise-constant'
 
-pc_err = check_error(params)
-pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
+# pc_err = check_error(params)
+# pc_con = np.polyfit(np.log10(N), np.log10(pc_err), 1)
 
+print('Error with WENO5 reconstruction:', weno5_err)
 print('Convergence with WENO5 reconstruction:', weno5_con[0])
-print('Convergence with PPM reconstruction:', ppm_con[0])
-print('Convergence with minmod reconstruction:', minmod_con[0])
-print('Convergence with piecewise-constant reconstruction:', pc_con[0])
+# print('Convergence with PPM reconstruction:', ppm_con[0])
+# print('Convergence with minmod reconstruction:', minmod_con[0])
+# print('Convergence with piecewise-constant reconstruction:', pc_con[0])
 
-pl.loglog(N, weno5_err, '-o',label = 'WENO5')
-pl.loglog(N, ppm_err, '-o', label = 'PPM')
-pl.loglog(N, minmod_err, '-o', label = 'minmod')
-pl.loglog(N, pc_err, '-o', label = 'Piecewise-Constant')
-pl.loglog(N, 1e-3/N, '--', color = 'black', label = r'$O(N^{-1})$')
-pl.loglog(N, 1e-2/N**2, '-.', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N, weno5_err, '-o',label = 'Numerical')
+# pl.loglog(N, ppm_err, '-o', label = 'PPM')
+# pl.loglog(N, minmod_err, '-o', label = 'minmod')
+# pl.loglog(N, pc_err, '-o', label = 'Piecewise-Constant')
+# pl.loglog(N, 1e-3/N, '--', color = 'black', label = r'$O(N^{-1})$')
+pl.loglog(N, weno5_err[0] * 32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()
-pl.title('With Upwind-Flux Riemann Solver')
+# pl.title('With Upwind-Flux Riemann Solver')
 pl.savefig('convergenceplot.png')

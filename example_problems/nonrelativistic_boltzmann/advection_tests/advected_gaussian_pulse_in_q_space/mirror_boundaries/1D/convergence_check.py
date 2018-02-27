@@ -47,7 +47,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N     = 2**np.arange(5, 8)
+N     = 2**np.arange(6, 9)
 error = np.zeros(N.size)
 
 for i in range(N.size):
@@ -66,11 +66,12 @@ for i in range(N.size):
 
     # Declaring a linear system object which will evolve the defined physical system:
     nls = nonlinear_solver(system)
+    n_nls_initial = nls.compute_moments('density')
     N_g = nls.N_ghost
 
     # Time parameters:
     dt      = 0.01 * 32/nls.N_q1
-    t_final = 1.0
+    t_final = 2.0
 
     time_array = np.arange(dt, t_final + dt, dt)
 
@@ -78,6 +79,14 @@ for i in range(N.size):
     
     for time_index, t0 in enumerate(time_array):
         nls.strang_timestep(dt)
+
+    n_nls    = nls.compute_moments('density')
+
+    N_g      = nls.N_ghost
+    # error[i] = af.mean(af.abs(  n_nls[:, :, N_g:-N_g, N_g:-N_g] 
+    #                           - n_nls_initial[:, :, N_g:-N_g, N_g:-N_g]
+    #                          )
+    #                   )
 
     error[i] = af.mean(af.abs(  nls.f[:, :, N_g:-N_g, N_g:-N_g] 
                               - f_reference[:, :, N_g:-N_g, N_g:-N_g]

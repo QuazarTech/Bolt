@@ -8,7 +8,7 @@ import numpy as np
 
 def initialize_f(q1, q2, p1, p2, p3, params):
 
-    rho = 0.001 * af.exp(-500 * (q1 - 0.5)**2)
+    rho = 0.01 * af.exp(-200 * (q1 - 0.5)**2)
     f   = p1 * rho
 
     f[:] = 0
