@@ -62,16 +62,14 @@ system = physical_system(domain,
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
-ls  = linear_solver(system)
 
 # Time parameters:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array  = np.arange(0, params.t_final + dt, dt)
+time_array = np.arange(0, params.t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
-    nls.dump_distribution_function('dump_f/%04d'%time_index)
+    nls.dump_moments('dump_moments/%04d'%time_index)
     print('Computing For Time =', t0)
     nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)

@@ -52,7 +52,7 @@ error = np.zeros(N.size)
 
 for i in range(N.size):
     
-    domain.N_q1 = int(N[i])
+    domain.N_q2 = int(N[i])
 
     # Defining the physical system to be solved:
     system = physical_system(domain,
@@ -70,7 +70,7 @@ for i in range(N.size):
     N_g = nls.N_ghost
 
     # Time parameters:
-    dt      = 0.01 * 32/nls.N_q1
+    dt      = 0.01 * 32/nls.N_q2
     t_final = 2.0
 
     time_array = np.arange(dt, t_final + dt, dt)

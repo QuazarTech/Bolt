@@ -60,17 +60,12 @@ class fields_solver(object):
                                + af.shift(rho_by_eps, 0, 0, 1, 1)
                               ) 
 
-        try:
-            assert(af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))<1e-10)
-        except:
-            raise SystemExit('divB contraint isn\'t preserved')
-
         divE  = self.compute_divE()
         rho_b = af.mean(rho_left_bot) # background
 
         # TODO: Need to look into this further:
         # try:
-        #     assert(af.mean(af.abs(divE - rho_left_bot + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-1)
+        #     assert(af.mean(af.abs(divE - rho_left_bot + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-7)
         # except:
         #     raise SystemExit('divE - rho/Ɛ contraint isn\'t preserved')
 
@@ -120,6 +115,8 @@ class fields_solver(object):
         self.time_fieldsolver        = 0
         self.time_apply_bcs_fields   = 0
         self.time_communicate_fields = 0
+
+        self.time_elapsed = 0
         
         petsc_bc_in_q1 = 'ghosted'
         petsc_bc_in_q2 = 'ghosted'
@@ -528,6 +525,9 @@ class fields_solver(object):
             0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
                    + self.cell_centered_EM_fields[:3]
                   )
+
+        # Update time elapsed:
+        self.time_elapsed += dt
 
         return
 

@@ -1,6 +1,10 @@
 import numpy as np
 import arrayfire as af
 
+import bolt.src.nonrelativistic_boltzmann.units.length_scales as length_scales
+import bolt.src.nonrelativistic_boltzmann.units.time_scales as time_scales
+import bolt.src.nonrelativistic_boltzmann.units.velocity_scales as velocity_scales
+
 fields_type       = 'electrodynamic'
 fields_initialize = 'fft + user-defined magnetic fields'
 fields_solver     = 'fdtd'
@@ -38,6 +42,7 @@ T0  = 1 # |T| units(T)
 m0  = 1 # |m_p| units(m)
 e0  = 1 # |e| units(e)
 k0  = 1 # |k| units(k)
+B0  = 1
 eps = 1 # |eps0| units(eps0)
 mu  = 1 # |mu0| units(mu0)
 

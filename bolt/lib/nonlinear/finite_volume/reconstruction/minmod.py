@@ -5,7 +5,7 @@ def minmod(x, y, z):
 
     min_of_all = af.minof(af.minof(af.abs(x),af.abs(y)), af.abs(z))
 
-    # af.sign(x) = 1 for x<0 and sign(x) for x>0:
+    # af.sign(x) = 1 for x<0 and af.sign(x) = 0 for x>0:
     signx = 1 - 2 * af.sign(x)
     signy = 1 - 2 * af.sign(y)
     signz = 1 - 2 * af.sign(z)

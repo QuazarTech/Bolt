@@ -2,11 +2,11 @@ from params import l0, v0
 
 q1_start = 0    * l0
 q1_end   = 2048 * l0
-N_q1     = 1024
+N_q1     = 512
 
 q2_start = 0  * l0
 q2_end   = 96 * l0
-N_q2     = 48
+N_q2     = 24
 
 p1_start = -15 * v0
 p1_end   = 15  * v0

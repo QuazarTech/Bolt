@@ -85,8 +85,8 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.0002
-t_final = 2.0
+dt      = 0.0005
+t_final = 1.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -155,10 +155,10 @@ pl.savefig('n.png')
 pl.savefig('n.svg')
 pl.clf()
 
-pl.semilogy(time_array, rho_data_nls, label = 'Nonlinear Solver')
+pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
 # pl.plot(time_array, n3, label=r'$\sigma=1$')
 # pl.plot(time_array, n2, label=r'$\sigma=2$')
-pl.semilogy(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'MAX($n$)')
 pl.xlabel('Time')
 pl.legend()

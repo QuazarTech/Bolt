@@ -15,6 +15,9 @@ We check the fall off in error with the increase in resolution
 import numpy as np
 import arrayfire as af
 from petsc4py import PETSc
+import matplotlib as mpl
+mpl.use('agg')
+import pylab as pl
 
 from bolt.lib.nonlinear.fields.fields import fields_solver
 from bolt.lib.physical_system import physical_system
@@ -28,6 +31,36 @@ from input_files import boundary_conditions
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
+
+# Optimized plot parameters to make beautiful plots:
+pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.dpi']      = 300
+pl.rcParams['image.cmap']      = 'gist_heat'
+pl.rcParams['lines.linewidth'] = 1.5
+pl.rcParams['font.family']     = 'serif'
+pl.rcParams['font.weight']     = 'bold'
+pl.rcParams['font.size']       = 20
+pl.rcParams['font.sans-serif'] = 'serif'
+pl.rcParams['text.usetex']     = True
+pl.rcParams['axes.linewidth']  = 1.5
+pl.rcParams['axes.titlesize']  = 'medium'
+pl.rcParams['axes.labelsize']  = 'medium'
+
+pl.rcParams['xtick.major.size'] = 8
+pl.rcParams['xtick.minor.size'] = 4
+pl.rcParams['xtick.major.pad']  = 8
+pl.rcParams['xtick.minor.pad']  = 8
+pl.rcParams['xtick.color']      = 'k'
+pl.rcParams['xtick.labelsize']  = 'medium'
+pl.rcParams['xtick.direction']  = 'in'
+
+pl.rcParams['ytick.major.size'] = 8
+pl.rcParams['ytick.minor.size'] = 4
+pl.rcParams['ytick.major.pad']  = 8
+pl.rcParams['ytick.minor.pad']  = 8
+pl.rcParams['ytick.color']      = 'k'
+pl.rcParams['ytick.labelsize']  = 'medium'
+pl.rcParams['ytick.direction']  = 'in'
 
 class test(object):
 
@@ -54,11 +87,11 @@ class test(object):
 
 def test_fdtd_mode1():
 
-    error_B1 = np.zeros(3)
-    error_B2 = np.zeros(3)
-    error_E3 = np.zeros(3)
+    N = 2**np.arange(5, 10)
 
-    N = 2**np.arange(5, 8)
+    error_B1 = np.zeros(N.size)
+    error_B2 = np.zeros(N.size)
+    error_E3 = np.zeros(N.size)
 
     for i in range(N.size):
 
@@ -97,17 +130,31 @@ def test_fdtd_mode1():
     poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
     poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
 
+    print(error_B1)
+    print(error_B2)
+    print(error_E3)
+
+    pl.loglog(N, error_B1, '-o', label = r'$B_x$')
+    pl.loglog(N, error_B2, '-o', label = r'$B_y$')
+    pl.loglog(N, error_E3, '-o', label = r'$E_z$')
+    pl.loglog(N, error_B1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.xlabel(r'$N$')
+    pl.ylabel('Error')
+    pl.legend()
+    pl.savefig('convergenceplot.png')
+    pl.savefig('convergenceplot.svg')
+
     assert (abs(poly_B1[0] + 2) < 0.2)
     assert (abs(poly_B2[0] + 2) < 0.2) 
     assert (abs(poly_E3[0] + 2) < 0.2)
 
 def test_fdtd_mode2():
 
-    error_E1 = np.zeros(3)
-    error_E2 = np.zeros(3)
-    error_B3 = np.zeros(3)
+    N = 2**np.arange(5, 10)
 
-    N = 2**np.arange(5, 8)
+    error_E1 = np.zeros(N.size)
+    error_E2 = np.zeros(N.size)
+    error_B3 = np.zeros(N.size)
 
     for i in range(N.size):
 
@@ -142,10 +189,26 @@ def test_fdtd_mode2():
                                    )
                             ) / (B3_initial.elements())
 
+    print(error_E1)
+    print(error_E2)
+    print(error_B3)
+
     poly_E1 = np.polyfit(np.log10(N), np.log10(error_E1), 1)
     poly_E2 = np.polyfit(np.log10(N), np.log10(error_E2), 1)
     poly_B3 = np.polyfit(np.log10(N), np.log10(error_B3), 1)
 
+    pl.loglog(N, error_E1, '-o', label = r'$E_x$')
+    pl.loglog(N, error_E2, '-o', label = r'$E_y$')
+    pl.loglog(N, error_B3, '-o', label = r'$B_z$')
+    pl.loglog(N, error_E1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.xlabel(r'$N$')
+    pl.ylabel('Error')
+    pl.legend()
+    pl.savefig('convergenceplot.png')
+    pl.savefig('convergenceplot.svg')
+
     assert (abs(poly_E1[0] + 2) < 0.2)
     assert (abs(poly_E2[0] + 2) < 0.2)
     assert (abs(poly_B3[0] + 2) < 0.2)
+
+test_fdtd_mode1()

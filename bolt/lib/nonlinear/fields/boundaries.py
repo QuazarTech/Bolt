@@ -18,9 +18,9 @@ def apply_shearing_box_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
 
-    N_g = self.N_ghost
-    q     = self.physical_system.params.q 
-    omega = self.physical_system.params.omega
+    N_g = self.N_g
+    q     = self.params.q 
+    omega = self.params.omega
     
     L_q1  = self.q1_end - self.q1_start
     L_q2  = self.q2_end - self.q2_start
@@ -224,11 +224,11 @@ def apply_dirichlet_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
     
-    N_g = self.N_ghost
+    N_g = self.N_g
 
     # These arguments are defined since they are required by all the function calls:
     # So the functions can be called instead using function(*args)
-    args = (self.time_elapsed, self.q1_center, self.q2_center, self.physical_system.params)
+    args = (self.time_elapsed, self.q1_center, self.q2_center, self.params)
     
     if(boundary == 'left'):
         if(on_fdtd_grid == True):
@@ -431,7 +431,7 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
                   fields on the Yee grid or on the cell centered grid.
     """
 
-    N_g = self.N_ghost
+    N_g = self.N_g
 
     if(boundary == 'left'):
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....

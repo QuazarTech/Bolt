@@ -9,7 +9,7 @@ from params import B0
 
 def initialize_f(q1, q2, v1, v2, v3, params):
     
-    f = 0 * q1**0 * p1**0
+    f = 0 * q1**0 * v1**0
     
     af.eval(f)
     return (f)
