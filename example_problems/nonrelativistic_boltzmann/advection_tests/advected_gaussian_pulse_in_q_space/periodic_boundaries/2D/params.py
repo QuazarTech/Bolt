@@ -9,8 +9,8 @@ fields_solver     = 'fft'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'

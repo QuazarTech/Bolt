@@ -85,7 +85,7 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
+dt      = 0.0002
 t_final = 2.0
 
 time_array  = np.arange(0, t_final + dt, dt)
@@ -102,14 +102,14 @@ rho_data_ls[0] = af.max(n_ls)
 f_initial = nls.f.copy()
 
 for time_index, t0 in enumerate(time_array[1:]):
-    nls.dump_distribution_function('dump/%04d'%time_index)
+    #nls.dump_distribution_function('dump/%04d'%time_index)
     nls.strang_timestep(dt)
     # nls.f = lowpass_filter(nls.f)
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     ls.RK4_timestep(dt)
     
-    if(time_index % 25 == 0):
-        nls.f = lowpass_filter(nls.f)
+#    if(time_index % 25 == 0):
+#        nls.f = lowpass_filter(nls.f)
 
         
         # f_hat = af.fft2(nls.f)
@@ -148,8 +148,20 @@ pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
 # pl.plot(time_array, n3, label=r'$\sigma=1$')
 # pl.plot(time_array, n2, label=r'$\sigma=2$')
 pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($\rho$)')
+pl.ylabel(r'MAX($n$)')
 pl.xlabel('Time')
 pl.legend()
-pl.savefig('rho.svg')
+pl.savefig('n.png')
+pl.savefig('n.svg')
+pl.clf()
+
+pl.semilogy(time_array, rho_data_nls, label = 'Nonlinear Solver')
+# pl.plot(time_array, n3, label=r'$\sigma=1$')
+# pl.plot(time_array, n2, label=r'$\sigma=2$')
+pl.semilogy(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.ylabel(r'MAX($n$)')
+pl.xlabel('Time')
+pl.legend()
+pl.savefig('n_semilogy.png')
+pl.savefig('n_semilogy.svg')
 pl.clf()

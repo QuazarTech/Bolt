@@ -46,7 +46,7 @@ class test(object):
                                 )
 
         self.fields_solver = fields_solver(system, 
-                                           None, 
+                                           af.randu(1, dtype = af.Dtype.f64), 
                                            False
                                           )
 

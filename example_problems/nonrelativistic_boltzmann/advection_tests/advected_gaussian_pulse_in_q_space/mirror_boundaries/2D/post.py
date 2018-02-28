@@ -71,17 +71,12 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-x = np.where(x>1, 1 - (x-1), x)
-y = np.where(y>1, 1 - (y-1), y)
+x = np.where(x>1, x-1, x)
+x = np.where(x>1, x-1, x)
+y = np.where(y>1, y-1, y)
 
-x = np.where(x<0, abs(x), x)
-y = np.where(y<0, abs(y), y)
-
-
-x = np.where(x>1, 1 - (x-1), x)
-
-y = np.where(y<0, abs(y), y)
-x = np.where(x<0, abs(x), x)
+x = np.where(x<0, x+1, x)
+y = np.where(y<0, y+1, y)
 
 pos = np.where(np.abs(np.diff(y)) >= 0.5)[0]
 
