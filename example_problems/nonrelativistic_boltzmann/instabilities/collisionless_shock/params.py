@@ -19,8 +19,8 @@ solver_method_in_p = 'FVM'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 # Units: l0, t0, m0, e0, n0, T0, v0
 # Independent: n0, T0, m0, e0, k0, eps0
@@ -46,7 +46,7 @@ B0  = 1
 eps = 1 # |eps0| units(eps0)
 mu  = 1 # |mu0| units(mu0)
 
-v0 = velocity_scales.thermal_speed(T0, m0, k0) ##??
+v0 = 1 #velocity_scales.thermal_speed(T0, m0, k0) ##??
 l0 = length_scales.gyroradius(v0, B0, e0, m0)
 t0 = 1/time_scales.cyclotron_frequency(B0, e0, m0)
 
@@ -61,8 +61,8 @@ mass               = [1 * m0, 1 * m0]
 boltzmann_constant = 1 * k0
 charge             = [-1 * e0, 1 * e0]
 
-density = 1  * n0
-v1_bulk = 10 * v0
+density = 1 * n0
+v1_bulk = 5 * v0
 beta    = 2
  
 fields_enabled           = True

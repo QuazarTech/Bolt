@@ -1,9 +1,9 @@
 import numpy as np
 import arrayfire as af
 
-fields_type       = 'electrostatic'
+fields_type       = 'electrodynamic'
 fields_initialize = 'fft'
-fields_solver     = 'fft'
+fields_solver     = 'fdtd'
 
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'

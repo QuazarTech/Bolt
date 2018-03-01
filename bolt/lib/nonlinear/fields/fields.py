@@ -35,11 +35,19 @@ class fields_solver(object):
         E1 = self.yee_grid_EM_fields[0]
         E2 = self.yee_grid_EM_fields[1]
 
-        E1_minus_q1 = af.shift(E1, 0, 0, 1)
-        E2_minus_q2 = af.shift(E2, 0, 0, 0, 1)
+        # E1_minus_q1 = af.shift(E1, 0, 0, 1)
+        # E2_minus_q2 = af.shift(E2, 0, 0, 0, 1)
 
-        # Evaluating at (i, j)
-        divE = (E1 - E1_minus_q1) / self.dq1 + (E2 - E2_minus_q2) / self.dq2
+        # # Evaluating at (i, j)
+        # divE = (E1 - E1_minus_q1) / self.dq1 + (E2 - E2_minus_q2) / self.dq2
+        
+        # Evaluating at (i+0.5, j+0.5)
+        E1_left_center = 0.25 * (E1 + af.shift(E1, 0, 0, 0, -1) + af.shift(E1, 0, 0, 1) + af.shift(E1, 0, 0, 1, -1))
+        E2_center_bot  = 0.25 * (E2 + af.shift(E2, 0, 0, 0, 1) + af.shift(E2, 0, 0, -1) + af.shift(E2, 0, 0, -1, 1))
+
+        divE =   (af.shift(E1_left_center, 0, 0, -1) - E1_left_center) / self.dq1 \
+               + (af.shift(E2_center_bot, 0, 0, 0, -1) - E2_center_bot) / self.dq2
+
         return(divE)
 
     def check_maxwells_contraint_equations(self, rho):
@@ -52,17 +60,25 @@ class fields_solver(object):
         except:
             raise SystemExit('divB contraint isn\'t preserved')
 
+        print('divB =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
+
         # Checking for ∇.E = rho / epsilon
-        rho_by_eps   = rho / self.params.eps
-        rho_left_bot = 0.25 * (  rho_by_eps 
-                               + af.shift(rho_by_eps, 0, 0, 0, 1)
-                               + af.shift(rho_by_eps, 0, 0, 1, 0)
-                               + af.shift(rho_by_eps, 0, 0, 1, 1)
-                              ) 
+        # rho_by_eps   = rho / self.params.eps
+        # rho_left_bot = 0.25 * (  rho_by_eps 
+        #                        + af.shift(rho_by_eps, 0, 0, 0, 1)
+        #                        + af.shift(rho_by_eps, 0, 0, 1, 0)
+        #                        + af.shift(rho_by_eps, 0, 0, 1, 1)
+        #                       ) 
 
         divE  = self.compute_divE()
-        rho_b = af.mean(rho_left_bot) # background
+        # rho_b = af.mean(rho_left_bot) # background
 
+
+        rho_by_eps = rho / self.params.eps
+        rho_b = af.mean(rho) # background
+        divE  = self.compute_divE()
+
+        print('divE-rho =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
         # TODO: Need to look into this further:
         # try:
         #     assert(af.mean(af.abs(divE - rho_left_bot + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-7)

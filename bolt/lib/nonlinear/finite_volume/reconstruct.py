@@ -35,6 +35,7 @@ def reconstruct(self, input_array, axis, reconstruction_method):
         left_face_value, right_face_value = reconstruct_ppm(input_array, axis)
 
     elif(reconstruction_method == 'weno5'):
+        raise SystemExit('WENO5 is currently buggy. Avoid Using!!!')
         left_face_value, right_face_value = reconstruct_weno5(input_array, axis)
 
     else:

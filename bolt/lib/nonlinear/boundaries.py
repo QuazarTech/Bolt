@@ -173,7 +173,7 @@ def apply_dirichlet_bcs_f(self, boundary):
                          self.physical_system.params
                         )
 
-    if(velocity_q1.elements() == self.N_p1 * self.N_p2 * self.N_p3):
+    if(velocity_q1.elements() == self.N_species * self.N_p1 * self.N_p2 * self.N_p3):
         # If velocity_q1 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, 1, Nq1, Nq2)
         velocity_q1 = af.tile(velocity_q1, 1, 1,
@@ -181,7 +181,7 @@ def apply_dirichlet_bcs_f(self, boundary):
                               self.f.shape[3]
                              )
 
-    if(velocity_q2.elements() == self.N_p1 * self.N_p2 * self.N_p3):
+    if(velocity_q2.elements() == self.N_species * self.N_p1 * self.N_p2 * self.N_p3):
         # If velocity_q2 is of shape (Np1 * Np2 * Np3)
         # We tile to get it to form (Np1 * Np2 * Np3, 1, Nq1, Nq2)
         velocity_q2 = af.tile(velocity_q2, 1, 1,
