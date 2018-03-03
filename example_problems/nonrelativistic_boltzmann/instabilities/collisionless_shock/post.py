@@ -10,7 +10,7 @@ import params
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 100
-pl.rcParams['image.cmap']      = 'gist_heat'
+pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
@@ -54,22 +54,8 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
 
-# max_n = 0
-# min_n = 1e10
-
-# for time_index, t0 in enumerate(time_array):
-    
-#     h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
-#     moments = np.swapaxes(h5f['moments'][:], 0, 1)
-#     h5f.close()
-    
-#     n = moments[:, :, 0]
-
-#     if(np.max(n)>max_n):
-#         max_n = np.max(n)
-
-#     if(np.min(n)<min_n):
-#         min_n = np.min(n)
+max_n = 0
+min_n = 1e10
 
 for time_index, t0 in enumerate(time_array):
     
@@ -79,7 +65,21 @@ for time_index, t0 in enumerate(time_array):
     
     n = moments[:, :, 0]
 
-    pl.contourf(q1, q2, n, 100) #np.linspace(min_n, max_n, 100))
+    if(np.max(n)>max_n):
+        max_n = np.max(n)
+
+    if(np.min(n)<min_n):
+        min_n = np.min(n)
+
+for time_index, t0 in enumerate(time_array):
+    
+    h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
+    h5f.close()
+    
+    n = moments[:, :, 0]
+
+    pl.contourf(q1, q2, n, np.linspace(min_n, max_n, 100))
     pl.title('Time = ' + "%.2f"%(t0))
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')

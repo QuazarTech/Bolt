@@ -5,25 +5,23 @@ import bolt.src.nonrelativistic_boltzmann.units.length_scales as length_scales
 import bolt.src.nonrelativistic_boltzmann.units.time_scales as time_scales
 import bolt.src.nonrelativistic_boltzmann.units.velocity_scales as velocity_scales
 
+# Can be defined as 'electrostatic', 'user-defined', 'electrodynamic'.
 fields_type       = 'electrodynamic'
-fields_initialize = 'fft + user-defined magnetic fields'
+fields_initialize = 'user-defined'
 fields_solver     = 'fdtd'
-
-# Dimensionality considered in velocity space:
-p_dim = 3
 
 # Method in q-space
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-riemann_solver_in_q = 'upwind-flux'
-riemann_solver_in_p = 'upwind-flux'
-
 reconstruction_method_in_q = 'minmod'
 reconstruction_method_in_p = 'minmod'
 
-# Units: l0, t0, m0, e0, n0, T0, v0
-# Independent: n0, T0, m0, e0, k0, eps0
+riemann_solver_in_q = 'upwind-flux'
+riemann_solver_in_p = 'upwind-flux'
+
+# Units: l0, t0, m0, e0, n0, T0, v0, B0, E0
+# Independent: n0, T0, m0, e0, k0, eps0, E0, B0
 # Dependent  : l0, t0, v0
 
 # Plasma parameters (given):
@@ -37,39 +35,48 @@ reconstruction_method_in_p = 'minmod'
 # Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
 # Now choosing units: 
-n0  = 1 # |n| units(n)
-T0  = 1 # |T| units(T)
-m0  = 1 # |m_p| units(m)
-e0  = 1 # |e| units(e)
-k0  = 1 # |k| units(k)
-B0  = 1
-eps = 1 # |eps0| units(eps0)
-mu  = 1 # |mu0| units(mu0)
+n0  = 1. # |n| units(n)
+T0  = 1. # |T| units(T)
+m0  = 1. # |m_p| units(m)
+e0  = 1. # |e| units(e)
+k0  = 1. # |k| units(k)
+B0  = 1. # |B| units(B)
+E0  = 1. # |E| units(E)
+eps = 1. # |eps0| units(eps0)
+mu  = 1. # |mu0| units(mu0)
 
-v0 = 1 #velocity_scales.thermal_speed(T0, m0, k0) ##??
-l0 = length_scales.gyroradius(v0, B0, e0, m0)
-t0 = 1/time_scales.cyclotron_frequency(B0, e0, m0)
+v0 = velocity_scales.thermal_speed(T0, m0, k0)
+# What are the choice of scales in the absence of fields??
+l0 = 1 #length_scales.debye_length(n0, T0, e0, k0, eps)
+t0 = 1 #1/time_scales.plasma_frequency(n0, e0, m0, eps)
 
-t_final = 100 * t0
-N_cfl   = 0.4
+# Dimensionality considered in velocity space:
+p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 4
 
-# Constants:
-mass               = [1 * m0, 1 * m0]
-boltzmann_constant = 1 * k0
-charge             = [-1 * e0, 1 * e0]
+mass               = [1 * m0]
+boltzmann_constant = k0
+charge             = [0 * e0]
 
-density = 1 * n0
-v1_bulk = 5 * v0
-beta    = 2
- 
-fields_enabled           = True
+plasma_beta = np.inf # For zero magnetic fields
+
+# Boundary conditions for the left zone:
+n_left       = 1 * n0
+v1_bulk_left = 1 * v0
+T_left       = 1 * T0
+
+# Time parameters:
+N_cfl   = 0.32
+t_final = 10.0
+
+# Switch for solver components:
+fields_enabled           = False
 source_enabled           = False
 instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * q1**0 * p1**0)
+    return (np.inf * t0 * p1**0 * q1**0)

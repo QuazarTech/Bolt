@@ -60,9 +60,10 @@ class fields_solver(object):
         except:
             raise SystemExit('divB contraint isn\'t preserved')
 
-        print('divB =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
+        print("Maxwell's Constraints:")
+        print('MEAN(|∇.B|) =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
 
-        # Checking for ∇.E = rho / epsilon
+        # Checking for ∇.E = ρ/ε
         # rho_by_eps   = rho / self.params.eps
         # rho_left_bot = 0.25 * (  rho_by_eps 
         #                        + af.shift(rho_by_eps, 0, 0, 0, 1)
@@ -78,7 +79,7 @@ class fields_solver(object):
         rho_b = af.mean(rho) # background
         divE  = self.compute_divE()
 
-        print('divE-rho =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+        print('MEAN(|∇.E-ρ|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
         # TODO: Need to look into this further:
         # try:
         #     assert(af.mean(af.abs(divE - rho_left_bot + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-7)
