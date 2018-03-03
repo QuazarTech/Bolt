@@ -45,10 +45,13 @@ E0  = 1. # |E| units(E)
 eps = 1. # |eps0| units(eps0)
 mu  = 1. # |mu0| units(mu0)
 
-v0 = velocity_scales.thermal_speed(T0, m0, k0)
-# What are the choice of scales in the absence of fields??
-l0 = 1 #length_scales.debye_length(n0, T0, e0, k0, eps)
-t0 = 1 #1/time_scales.plasma_frequency(n0, e0, m0, eps)
+# Length of domain:
+L = 1.
+
+# Velocity, length and time scales:
+v0 = velocity_scales.sound_speed(T0, k0, 5/3)
+l0 = L # |L| units(L)
+t0 = l0 / v0
 
 # Dimensionality considered in velocity space:
 p_dim = 3
@@ -69,14 +72,14 @@ T_left       = 1 * T0
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 10.0
+t_final = 10 * t0
 
 # Switch for solver components:
 fields_enabled           = False
-source_enabled           = False
+source_enabled           = True
 instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * t0 * p1**0 * q1**0)
+    return (1 * t0 * p1**0 * q1**0)
