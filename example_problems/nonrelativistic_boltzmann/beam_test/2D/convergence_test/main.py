@@ -29,7 +29,7 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 
 # Time parameters:
-dt      = 0.0025
+dt      = 0.001 #25
 t_final = 2.5
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -42,8 +42,6 @@ h5f.create_dataset('q2', data = nls.q2_center)
 h5f.create_dataset('n', data = n_nls)
 h5f.close()
 
-f_initial = nls.f.copy()
-
 for time_index, t0 in enumerate(time_array):
     
     print('Computing for Time =', t0)
@@ -54,5 +52,3 @@ for time_index, t0 in enumerate(time_array):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
     h5f.create_dataset('n', data = n_nls)
     h5f.close()
-
-print(af.mean(af.abs(nls.f[:, :, 3:-3, 3:-3] - f_initial[:, :, 3:-3, 3:-3])))
