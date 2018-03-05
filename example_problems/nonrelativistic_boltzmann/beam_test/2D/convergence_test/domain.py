@@ -1,10 +1,10 @@
 q1_start = 0
-q1_end   = 6
-N_q1     = 258*4
+q1_end   = 1
+N_q1     = 32
 
 q2_start = 0
 q2_end   = 1
-N_q2     = 43*4
+N_q2     = 32
 
 p1_start = -4
 p1_end   = 4

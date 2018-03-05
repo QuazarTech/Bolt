@@ -30,7 +30,7 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001 #25
-t_final = 2.5
+t_final = 1.0
 
 time_array = np.arange(dt, t_final + dt, dt)
 

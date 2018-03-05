@@ -6,8 +6,8 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 4
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
