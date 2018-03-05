@@ -24,8 +24,10 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     N_lower = int(round(0.4 * N))
     N_upper = int(round(0.6 * N))
 
-    f[:, :, :, N_lower:N_upper] = f_activated[:, :, :, N_lower:N_upper]
-    f                           = af.exp(-250 * (q2 - 0.5)**2) * f
+    print(N_lower)
+    print(N_upper)
+
+    f[:, :, :, N_lower:N_upper] = (af.exp(-250 * (q2 - 0.5)**2) * f_activated)[:, :, :, N_lower:N_upper]
     return(f)
 
 @af.broadcast

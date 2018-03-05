@@ -47,8 +47,8 @@ for i in range(N.size):
     mult        = lambda a,b:a*b
     f_reference = 0 * nls.f
     
-    f_reference[:, :, :, N_lower:N_upper] = \
-        af.broadcast(mult, nls.f**0, af.exp(-250 * (nls.q2_center - 0.5)**2))[:, :, :, N_lower:N_upper] 
+    f_reference[3, :, :, N_lower:N_upper] = \
+        af.broadcast(mult, nls.f**0, af.exp(-250 * (nls.q2_center - 0.5)**2))[3, :, :, N_lower:N_upper] 
 
     for time_index, t0 in enumerate(time_array):
         print('Computing for Time =', t0)
@@ -57,3 +57,4 @@ for i in range(N.size):
     error[i] = af.mean(af.abs(nls.f[:, :, 3:-3, 3:-3] - f_reference[:, :, 3:-3, 3:-3]))
 
 print(error)
+print(np.polyfit(np.log10(N), np.log10(error), 1))

@@ -30,9 +30,23 @@ nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001 #25
-t_final = 1.0
+t_final = 0.5
 
 time_array = np.arange(dt, t_final + dt, dt)
+
+N_lower = int(round(0.4 * int(round(np.sqrt(nls.q1_center.elements())))))
+N_upper = int(round(0.6 * int(round(np.sqrt(nls.q1_center.elements())))))
+
+print(N_lower)
+print(N_upper)
+
+mult        = lambda a,b:a*b
+f_reference = 0 * nls.f
+
+f_reference[3, :, :, N_lower:N_upper] = \
+    af.broadcast(mult, nls.f**0, af.exp(-250 * (nls.q2_center - 0.5)**2))[3, :, :, N_lower:N_upper] 
+
+print(af.mean(af.abs(nls.f[:, :, :3, 3:-3] - f_reference[:, :, :3, 3:-3])))
 
 n_nls = nls.compute_moments('density')
 
@@ -40,7 +54,9 @@ h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('q1', data = nls.q1_center)
 h5f.create_dataset('q2', data = nls.q2_center)
 h5f.create_dataset('n', data = n_nls)
+h5f.create_dataset('n_ref', data = nls.compute_moments('density', f_reference))
 h5f.close()
+
 
 for time_index, t0 in enumerate(time_array):
     

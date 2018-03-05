@@ -36,13 +36,14 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 2.5
+t_final = 0.5
 time    = np.arange(dt, t_final + dt, dt)
 
-h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
-q2  = h5f['q2'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
-n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+h5f   = h5py.File('dump/0000.h5', 'r')
+q1    = h5f['q1'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+q2    = h5f['q2'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+n     = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+n_ref = h5f['n_ref'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
 h5f.close()
 
 pl.contourf(q1[3:-3, 3:-3],
@@ -59,23 +60,27 @@ pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
-    h5f.close()
+    if((time_index+1) % 10 == 0):
+        h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+        n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+        h5f.close()
 
-    pl.contourf(q1[3:-3, 3:-3],
-                q2[3:-3, 3:-3],
-                n[3:-3, 3:-3],
-                100,
-                cmap = 'gist_heat'
-               )
-    # pl.title('Time =' + str(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.axes().set_aspect('equal')
-    # pl.savefig('plot.png')
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
-    pl.clf()
+        pl.contourf(q1[3:-3, 3:-3],
+                    q2[3:-3, 3:-3],
+                    abs(n-n_ref)[3:-3, 3:-3],
+                    100,
+                    cmap = 'gist_heat'
+                   )
+        pl.title('Time =' + str(t0))
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$y$')
+        pl.axes().set_aspect('equal')
+        pl.colorbar()
+        # pl.savefig('plot.png')
+        pl.savefig('images/%04d'%(time_index+1) + '.png')
+        pl.clf()
+
+print(np.mean(abs(n[3:-3, 3:-3] - n_ref[3:-3, 3:-3])))
 
 # pl.plot(q2[66, 10:-10], n[66, 10:-10])
 # pl.title('Time = 0')

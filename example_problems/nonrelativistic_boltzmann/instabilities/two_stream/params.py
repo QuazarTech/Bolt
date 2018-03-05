@@ -15,10 +15,10 @@ solver_method_in_p = 'FVM'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
-t_final = 500
+t_final = 50
 N_cfl   = 0.4
 
 # Number of devices(GPUs/Accelerators) on each node:
