@@ -47,7 +47,7 @@ dq2 = (domain.q2_end - domain.q2_start) / N_q2
 dt = params.N_cfl * min(dq1, dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array = np.arange(0, params.t_final + dt, dt)
+time_array = np.arange(0, 1.37 + dt, dt)
 
 q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
 q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
@@ -59,30 +59,31 @@ min_n = 1e10
 
 for time_index, t0 in enumerate(time_array):
     
-    h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
+    if(time_index % 20 == 0):    
+        h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+        
+        n = moments[:, :, 0]
     
-    n = moments[:, :, 0]
-
-    if(np.max(n)>max_n):
-        max_n = np.max(n)
-
-    if(np.min(n)<min_n):
-        min_n = np.min(n)
-
+        if(np.max(n)>max_n):
+            max_n = np.max(n)
+    
+        if(np.min(n)<min_n):
+            min_n = np.min(n)
+    
 for time_index, t0 in enumerate(time_array):
+    if(time_index % 20 == 0):    
+        h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+        
+        n = moments[:, :, 0]
     
-    h5f  = h5py.File('dump_moments/%04d'%(time_index) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
-    
-    n = moments[:, :, 0]
-
-    pl.contourf(q1, q2, n, np.linspace(min_n, max_n, 100))
-    pl.title('Time = ' + "%.2f"%(t0))
-    pl.xlabel(r'$x$')
-    pl.ylabel(r'$y$')
-    pl.colorbar()
-    pl.savefig('images/%04d'%time_index + '.png')
-    pl.clf()
+        pl.plot(q1[:, 0], n[:, 0])
+        pl.title('Time = ' + "%.2f"%(t0))
+        pl.xlabel(r'$x$')
+        pl.ylabel(r'$n$')
+        pl.ylim([min_n, max_n])
+        pl.savefig('images/%04d'%(time_index/20) + '.png')
+        pl.clf()

@@ -72,7 +72,7 @@ T_left       = 1 * T0
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 10 * t0
+t_final = 200 * t0
 
 # Switch for solver components:
 fields_enabled           = False
@@ -82,4 +82,4 @@ instantaneous_collisions = False
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1 * t0 * p1**0 * q1**0)
+    return (0.001 * t0 * p1**0 * q1**0)

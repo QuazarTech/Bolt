@@ -8,7 +8,7 @@ import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -67,7 +67,7 @@ for time_index, t0 in enumerate(time_array):
     
 for time_index, t0 in enumerate(time_array):
 
-    if(time_index%10==0):
+    if(time_index%500==0):
         h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
         f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
         h5f.close()
@@ -80,5 +80,5 @@ for time_index, t0 in enumerate(time_array):
         pl.ylabel(r'$x$')
         pl.title('Time = %.2f'%(t0))
         #pl.colorbar()
-        pl.savefig('images/' + '%04d'%(time_index/10) + '.png')
+        pl.savefig('images/' + '%04d'%(time_index/500) + '.png')
         pl.clf()

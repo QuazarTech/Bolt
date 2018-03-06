@@ -6,9 +6,18 @@ the system.
 import arrayfire as af
 import numpy as np
 
-def initialize_f(q1, q2, p1, p2, p3, params):
+def initialize_f(q1, q2, v1, v2, v3, params):
+    k            = params.boltzmann_constant
+    n_left       = params.n_left
+    v1_bulk_left = params.v1_bulk_left
+    T_left       = params.T_left
+
+    f =   q1**0 * n_left * (params.mass / (2 * np.pi * k * T_left))**(3 / 2) \
+        * af.exp(-(v1 - v1_bulk_left)**2 / (2 * k * T_left)) \
+        * af.exp(-v2**2 / (2 * k * T_left)) \
+        * af.exp(-v3**2 / (2 * k * T_left))
     
-    f = 0 * q1**0 * p1**0
+    #f = 1e-14 * q1**0 * p1**0
     af.eval(f)
     return (f)
 

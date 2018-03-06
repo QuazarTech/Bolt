@@ -31,14 +31,13 @@ N_g = nls.N_ghost
 # Time parameters:
 dt = params.N_cfl * params.t0 * min(nls.dq1, nls.dq2) \
                               / max(domain.p1_end, domain.p2_end, domain.p3_end)
-
+print(dt)
 time_array = np.arange(0, params.t_final + dt, dt)
 
 for time_index, t0 in enumerate(time_array):
 
-    nls.dump_moments('dump_moments/%04d'%time_index)
-
-    if(time_index % 10 == 0):
+    if(time_index % 20 == 0):
         PETSc.Sys.Print('Computing For Time =', t0)
+        nls.dump_moments('dump_moments/%04d'%time_index)
     
     nls.strang_timestep(dt)
