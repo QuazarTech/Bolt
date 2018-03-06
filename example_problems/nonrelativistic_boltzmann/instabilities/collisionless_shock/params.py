@@ -40,18 +40,14 @@ T0  = 1. # |T| units(T)
 m0  = 1. # |m_p| units(m)
 e0  = 1. # |e| units(e)
 k0  = 1. # |k| units(k)
-B0  = 1. # |B| units(B)
 E0  = 1. # |E| units(E)
 eps = 1. # |eps0| units(eps0)
 mu  = 1. # |mu0| units(mu0)
+c   = 1. # |c| units(c)
 
 # Length of domain:
-L = 1.
+L = 1. # |L| units(L)
 
-# Velocity, length and time scales:
-v0 = velocity_scales.sound_speed(T0, k0, 5/3)
-l0 = L # |L| units(L)
-t0 = l0 / v0
 
 # Dimensionality considered in velocity space:
 p_dim = 3
@@ -59,27 +55,46 @@ p_dim = 3
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
 
-mass               = [1 * m0]
+# Mass of electron and ion:
+m_e = 1/10 * m0
+m_i = 1    * m0
+
+# Charge of electron and ion:
+e_e = -1 * e0
+e_i =  1 * e0
+
+mass               = [m_e, m_i]
 boltzmann_constant = k0
-charge             = [0 * e0]
+charge             = [e_e, e_i]
 
-plasma_beta = np.inf # For zero magnetic fields
+# Boundary conditions for the density and temperature of left zone, 
+# Setup as initial conditions throughout domain:
+n_left = 1 * n0
+T_left = 1 * T0
 
-# Boundary conditions for the left zone:
-n_left       = 1 * n0
+plasma_beta = 10 # β = p / (B^2 / 2μ)
+# Setting magnetic field along x using plasma beta:
+B1 = np.sqrt(2 * mu * n_left * T_left / plasma_beta)
+
+# Velocity, length and time scales:
+t0 = time_scales.cyclotron_frequency(B1, e_i, m_i)
+v0 = velocity_scales.alfven_velocity(B1, n_left, m_i, mu)
+l0 = v0 * t0 
+
+# Setting bulk velocity of left boundary:
+# Also setup as initial conditions throughout domain:
 v1_bulk_left = 1 * v0
-T_left       = 1 * T0
 
 # Time parameters:
-N_cfl   = 0.32
+N_cfl   = 0.2
 t_final = 200 * t0
 
 # Switch for solver components:
-fields_enabled           = False
-source_enabled           = True
+fields_enabled           = True
+source_enabled           = False
 instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0.001 * t0 * p1**0 * q1**0)
+    return (np.inf * t0 * p1**0 * q1**0)

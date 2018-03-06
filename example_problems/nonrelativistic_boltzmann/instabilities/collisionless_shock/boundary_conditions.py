@@ -36,14 +36,12 @@ def E3_left(E3, t, q1, q2, params):
 
 @af.broadcast
 def B1_left(B1, t, q1, q2, params):
-    return(  np.sqrt(2 * params.n_left * params.T_left / params.plasma_beta) 
-           * params.B0 * q1**0
-          )
+    return(params.B1 * q1**0)
 
 @af.broadcast
 def B2_left(B2, t, q1, q2, params):
-    return(0 * params.B0 * q1**0)
+    return(0 * q1**0)
 
 @af.broadcast
 def B3_left(B3, t, q1, q2, params):
-    return(0 * params.B0 * q1**0)
+    return(0 * q1**0)

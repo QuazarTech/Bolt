@@ -17,7 +17,6 @@ def initialize_f(q1, q2, v1, v2, v3, params):
         * af.exp(-v2**2 / (2 * k * T_left)) \
         * af.exp(-v3**2 / (2 * k * T_left))
     
-    #f = 1e-14 * q1**0 * p1**0
     af.eval(f)
     return (f)
 
@@ -32,10 +31,9 @@ def initialize_E(q1, q2, params):
 
 def initialize_B(q1, q2, params):
 
-    B1 =   np.sqrt(2 * params.n_left * params.T_left / params.plasma_beta) \
-         * params.B0 * q1**0
-    B2 = 0 * q1**0 * params.B0
-    B3 = 0 * q1**0 * params.B0
+    B1 = np.sqrt(2 * params.mu * params.n_left * params.T_left / params.plasma_beta) * q1**0
+    B2 = 0 * q1**0
+    B3 = 0 * q1**0
 
     af.eval(B1, B2, B3)
     return(B1, B2, B3)
