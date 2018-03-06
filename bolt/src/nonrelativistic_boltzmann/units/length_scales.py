@@ -36,7 +36,7 @@ def debye_length(n, T, e, k, eps):
 
     eps: permittivity
     """
-    l = eps * k * T / (n * e**2)
+    l = np.sqrt(eps * k * T / (n * e**2))
     return(l)
 
 def skin_depth(n, e, c, m, eps):

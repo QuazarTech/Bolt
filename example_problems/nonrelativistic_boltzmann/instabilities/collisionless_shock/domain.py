@@ -1,11 +1,11 @@
-from params import L, v0
+from params import l0, v0
 
 q1_start = 0
-q1_end   = L
+q1_end   = 100 * l0
 N_q1     = 512
 
 q2_start = 0
-q2_end   = L
+q2_end   = 100 * l0
 N_q2     = 3
 
 p1_start = -8 * v0

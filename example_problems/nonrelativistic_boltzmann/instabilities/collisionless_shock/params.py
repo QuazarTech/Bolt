@@ -45,10 +45,6 @@ eps = 1. # |eps0| units(eps0)
 mu  = 1. # |mu0| units(mu0)
 c   = 1. # |c| units(c)
 
-# Length of domain:
-L = 1. # |L| units(L)
-
-
 # Dimensionality considered in velocity space:
 p_dim = 3
 
@@ -56,8 +52,8 @@ p_dim = 3
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = 1/10 * m0
-m_i = 1    * m0
+m_e = 1 * m0
+m_i = 1 * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
@@ -77,7 +73,7 @@ plasma_beta = 10 # β = p / (B^2 / 2μ)
 B1 = np.sqrt(2 * mu * n_left * T_left / plasma_beta)
 
 # Velocity, length and time scales:
-t0 = time_scales.cyclotron_frequency(B1, e_i, m_i)
+t0 = 1 / time_scales.cyclotron_frequency(B1, e_i, m_i)
 v0 = velocity_scales.alfven_velocity(B1, n_left, m_i, mu)
 l0 = v0 * t0 
 
