@@ -28,9 +28,6 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
-print(af.max(nls.f))
-print(af.min(nls.f))
-
 # Time parameters:
 dt = params.N_cfl * params.t0 * min(nls.dq1, nls.dq2) \
                               / max(domain.p1_end, domain.p2_end, domain.p3_end)
