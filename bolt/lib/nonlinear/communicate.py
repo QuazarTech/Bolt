@@ -80,7 +80,6 @@ def communicate_fields(self, on_fdtd_grid = False):
 
     # Assigning the values of the af.Array 
     # fields quantities to the PETSc.Vec:
-
     if(on_fdtd_grid is True):
         flattened_global_EM_fields_array = \
             af.flat(self.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g])

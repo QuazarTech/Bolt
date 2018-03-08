@@ -32,23 +32,14 @@ def load_distribution_function(self, file_name):
                                        PETSc.Viewer.Mode.READ, 
                                        comm=self._comm
                                       )
-    self._glob_dump_f.load(viewer)
-
+    self._glob_f.load(viewer)
     N_g = self.N_ghost
 
-    # Distribution function non inclusive of the ghost zones in p, q:
-    f_no_ghost_zones = af.to_array(self._glob_f_array)
-    # Convert to (N_p1, N_p2, N_p3, N_s * N_q):
-    f_no_ghost_zones = af.moddims(f_no_ghost_zones, self.N_p1, self.N_p2, self.N_p3,
-                                  self.N_species * N_q1_local * N_q2_local
-                                 )
-
-    self.f[:, N_g:-N_g, N_g:-N_g] = af.moddims(f_no_ghost_zones_in_q,
-                                                 (self.N_p1 + 2 * self.N_ghost_p)
-                                               * (self.N_p2 + 2 * self.N_ghost_p) 
-                                               * (self.N_p3 + 2 * self.N_ghost_p),
-                                               N_q1_local, N_q2_local
-                                              )
+    # Reassigning back the distribution function:
+    self.f[:, :, N_g:-N_g, N_g:-N_g] = af.moddims(af.to_array(self._glob_f_array),
+                                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                                  self.N_species, N_q1_local, N_q2_local
+                                                 )
 
     return
 
@@ -80,13 +71,14 @@ def load_EM_fields(self, file_name):
 
     # Obtaining start coordinates for the local zone
     # Additionally, we also obtain the size of the local zone
-    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
+    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self.fields_solver._da_fields.getCorners()
 
     N_g = self.N_ghost
     
-    self.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g] = \
+    self.fields_solver.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g] = \
         af.moddims(af.to_array(self.fields_solver._glob_fields_array), 
                    6, 1, N_q1_local, N_q2_local
                   )
 
+    self.fields_solver.yee_grid_to_cell_centered_grid()
     return

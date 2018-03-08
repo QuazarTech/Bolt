@@ -7,7 +7,7 @@ import arrayfire as af
 
 def dump_moments(self, file_name):
     """
-    This function is used to dump variables to a file for later usage.
+    This function is used to dump moment variables to a file for later usage.
 
     Parameters
     ----------
@@ -39,28 +39,27 @@ def dump_moments(self, file_name):
     
     >> h5f    = h5py.File('boltzmann_moments_dump.h5', 'r')
     
-    >> rho    = h5f['moments'][:][:, :, 0]
+    >> n      = h5f['moments'][:][:, :, 0]
     
     >> energy = h5f['moments'][:][:, :, 1]
     
-    >> mom_p1 = h5f['moments'][:][:, :, 2]
+    >> mom_v1 = h5f['moments'][:][:, :, 2]
     
     >> h5f.close()
 
     However, in the case of multiple species, the following holds:
 
-    >> rho_species_1    = h5f['moments'][:][:, :, 0]
+    >> n_species_1      = h5f['moments'][:][:, :, 0]
  
-    >> rho_species_1    = h5f['moments'][:][:, :, 1]
+    >> n_species_2      = h5f['moments'][:][:, :, 1]
     
     >> energy_species_1 = h5f['moments'][:][:, :, 2]
 
     >> energy_species_2 = h5f['moments'][:][:, :, 3]
     
-    >> mom_p1_species_1 = h5f['moments'][:][:, :, 4]
+    >> mom_v1_species_1 = h5f['moments'][:][:, :, 4]
 
-    >> mom_p1_species_2 = h5f['moments'][:][:, :, 5]
-
+    >> mom_v1_species_2 = h5f['moments'][:][:, :, 5]
     """
     N_g = self.N_ghost
 
@@ -86,7 +85,7 @@ def dump_distribution_function(self, file_name):
     """
     This function is used to dump distribution function to a file for
     later usage.This dumps the complete 5D distribution function which
-    can be used for post-processing
+    can be used for restarting / post-processing
 
     Parameters
     ----------
@@ -132,9 +131,9 @@ def dump_distribution_function(self, file_name):
     array_to_dump = self.f
     
     array_to_dump = af.flat(array_to_dump[:, :, N_g:-N_g, N_g:-N_g])
-    array_to_dump.to_ndarray(self._glob_dump_f_array)
+    array_to_dump.to_ndarray(self._glob_f_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
-    viewer(self._glob_dump_f)
+    viewer(self._glob_f)
 
     return
 
@@ -195,7 +194,7 @@ def dump_EM_fields(self, file_name):
     N_g = self.N_ghost
     
     flattened_global_EM_fields_array = \
-        af.flat(self.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
+        af.flat(self.fields_solver.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
     flattened_global_EM_fields_array.to_ndarray(self.fields_solver._glob_fields_array)
     
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)

@@ -2,7 +2,7 @@ from params import l0, v0
 
 q1_start = 0
 q1_end   = 100 * l0
-N_q1     = 512
+N_q1     = 2048
 
 q2_start = 0
 q2_end   = 100 * l0

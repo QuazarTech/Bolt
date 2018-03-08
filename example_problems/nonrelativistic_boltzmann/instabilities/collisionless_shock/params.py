@@ -68,14 +68,14 @@ charge             = [e_e, e_i]
 n_left = 1 * n0
 T_left = 1 * T0
 
-plasma_beta = 10 # β = p / (B^2 / 2μ)
+plasma_beta = 100 # β = p / (B^2 / 2μ)
 # Setting magnetic field along x using plasma beta:
 B1 = np.sqrt(2 * mu * n_left * T_left / plasma_beta)
 
 # Velocity, length and time scales:
 t0 = 1 / time_scales.cyclotron_frequency(B1, e_i, m_i)
 v0 = velocity_scales.alfven_velocity(B1, n_left, m_i, mu)
-l0 = v0 * t0 
+l0 = v0 * t0 # ion skin depth
 
 # Setting bulk velocity of left boundary:
 # Also setup as initial conditions throughout domain:
@@ -89,6 +89,15 @@ t_final = 200 * t0
 fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
+
+# File-writing Parameters:
+# Set to zero for no file-writing
+dt_dump_f       = 1 * t0
+# ALWAYS set dump moments and dump fields at same frequency:
+dt_dump_moments = dt_dump_fields = 0.05 * t0
+
+# Restart(Set to zero for no-restart):
+t_restart = 0 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

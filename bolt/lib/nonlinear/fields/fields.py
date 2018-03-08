@@ -60,8 +60,8 @@ class fields_solver(object):
         except:
             raise SystemExit('divB contraint isn\'t preserved')
 
-        print("Maxwell's Constraints:")
-        print('MEAN(|divB|) =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
+        PETSc.Sys.Print("Initial Maxwell's Constraints:")
+        PETSc.Sys.Print('MEAN(|divB|) =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
 
         # Checking for ∇.E = ρ/ε
         # rho_by_eps   = rho / self.params.eps

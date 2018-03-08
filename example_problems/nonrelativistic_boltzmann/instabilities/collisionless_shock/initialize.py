@@ -31,7 +31,7 @@ def initialize_E(q1, q2, params):
 
 def initialize_B(q1, q2, params):
 
-    B1 = np.sqrt(2 * params.mu * params.n_left * params.T_left / params.plasma_beta) * q1**0
+    B1 = params.B1 * q1**0
     B2 = 0 * q1**0
     B3 = 0 * q1**0
 

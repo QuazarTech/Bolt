@@ -253,25 +253,6 @@ class nonlinear_solver(object):
                                          comm          = self._comm
                                         )
 
-        # This DA is used by the FileIO routine dump_distribution_function():
-        self._da_dump_f = PETSc.DMDA().create([self.N_q1, self.N_q2],
-                                              dof           = (  self.N_species 
-                                                               * self.N_p1 
-                                                               * self.N_p2 
-                                                               * self.N_p3
-                                                              ),
-                                              stencil_width = N_g,
-                                              boundary_type = (petsc_bc_in_q1,
-                                                               petsc_bc_in_q2
-                                                              ),
-                                              proc_sizes    = (nproc_in_q1, 
-                                                               nproc_in_q2
-                                                              ),
-                                              stencil_type  = 1,
-                                              comm          = self._comm
-                                             )
-
-
         # This DA is used by the FileIO routine dump_moments():
         # Finding the number of definitions for the moments:
         attributes = [a for a in dir(self.physical_system.moments) if not a.startswith('_')]
@@ -295,19 +276,16 @@ class nonlinear_solver(object):
         self._local_f = self._da_f.createLocalVec()
 
         # The following vector is used to dump the data to file:
-        self._glob_dump_f  = self._da_dump_f.createGlobalVec()
         self._glob_moments = self._da_dump_moments.createGlobalVec()
 
         # Getting the arrays for the above vectors:
-        self._glob_f_array  = self._glob_f.getArray()
-        self._local_f_array = self._local_f.getArray()
-
+        self._glob_f_array       = self._glob_f.getArray()
+        self._local_f_array      = self._local_f.getArray()
         self._glob_moments_array = self._glob_moments.getArray()
-        self._glob_dump_f_array  = self._glob_dump_f.getArray()
 
         # Setting names for the objects which will then be
         # used as the key identifiers for the HDF5 files:
-        PETSc.Object.setName(self._glob_dump_f, 'distribution_function')
+        PETSc.Object.setName(self._glob_f, 'distribution_function')
         PETSc.Object.setName(self._glob_moments, 'moments')
 
         # Obtaining start coordinates for the local zone
