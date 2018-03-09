@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib
 matplotlib.use('agg')
 import pylab as pl
@@ -173,53 +172,96 @@ v1_min, v1_max = determine_min_max('v1')
 p_min, p_max   = determine_min_max('pressure')
 B1_min, B1_max = determine_min_max('B1')
 
-for time_index, t0 in enumerate(time_array):
-    
-    h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
+def plot_1d():
 
-    h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-    fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-    h5f.close()
+    for time_index, t0 in enumerate(time_array):
+        
+        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
 
-    n  = return_array_to_be_plotted('density', moments, fields)
-    v1 = return_array_to_be_plotted('v1', moments, fields)
-    p  = return_array_to_be_plotted('pressure', moments, fields)
-    B1 = return_array_to_be_plotted('B1', moments, fields)
+        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+        h5f.close()
 
-    fig = pl.figure()
+        n  = return_array_to_be_plotted('density', moments, fields)
+        v1 = return_array_to_be_plotted('v1', moments, fields)
+        p  = return_array_to_be_plotted('pressure', moments, fields)
+        B1 = return_array_to_be_plotted('B1', moments, fields)
 
-    ax1 = fig.add_subplot(2, 2, 1)
-    ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
-    ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
-    ax1.legend()
-    ax1.set_xlabel(r'$x$')
-    ax1.set_ylabel(r'$n$')
-    ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
+        fig = pl.figure()
 
-    ax2 = fig.add_subplot(2, 2, 2)
-    ax2.plot(q1[:, 0], v1[:, 0, 0], color = 'C0')
-    ax2.plot(q1[:, 0], v1[:, 0, 1], '--', color = 'C3')
-    ax2.set_xlabel(r'$x$')
-    ax2.set_ylabel(r'$v_x$')
-    ax2.set_ylim([0.98 * v1_min, 1.02 * v1_max])
+        ax1 = fig.add_subplot(2, 2, 1)
+        ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
+        ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
+        ax1.legend()
+        ax1.set_xlabel(r'$x$')
+        ax1.set_ylabel(r'$n$')
+        ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
 
-    ax3 = fig.add_subplot(2, 2, 3)
-    ax3.plot(q1[:, 0], p[:, 0, 0], color = 'C0')
-    ax3.plot(q1[:, 0], p[:, 0, 1], '--', color = 'C3')
-    ax3.set_xlabel(r'$x$')
-    ax3.set_ylabel(r'$p$')
-    ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
+        ax2 = fig.add_subplot(2, 2, 2)
+        ax2.plot(q1[:, 0], v1[:, 0, 0], color = 'C0')
+        ax2.plot(q1[:, 0], v1[:, 0, 1], '--', color = 'C3')
+        ax2.set_xlabel(r'$x$')
+        ax2.set_ylabel(r'$v_x$')
+        ax2.set_ylim([0.98 * v1_min, 1.02 * v1_max])
 
-    ax4 = fig.add_subplot(2, 2, 4)
-    ax4.plot(q1[:, 0], B1[:, 0])
-    ax4.set_xlabel(r'$x$')
-    ax4.set_ylabel(r'$B_x$')
-    ax4.set_ylim([0.98 * B1_min, 1.02 * B1_max])
+        ax3 = fig.add_subplot(2, 2, 3)
+        ax3.plot(q1[:, 0], p[:, 0, 0], color = 'C0')
+        ax3.plot(q1[:, 0], p[:, 0, 1], '--', color = 'C3')
+        ax3.set_xlabel(r'$x$')
+        ax3.set_ylabel(r'$p$')
+        ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
 
-    # fig.tight_layout()
-    fig.suptitle('Time = %.2f'%t0)
-    pl.savefig('images/%04d'%time_index + '.png')
-    pl.close(fig)
-    pl.clf()
+        ax4 = fig.add_subplot(2, 2, 4)
+        ax4.plot(q1[:, 0], B1[:, 0])
+        ax4.set_xlabel(r'$x$')
+        ax4.set_ylabel(r'$B_x$')
+        ax4.set_ylim([0.98 * B1_min, 1.02 * B1_max])
+
+        # fig.tight_layout()
+        fig.suptitle('Time = %.2f'%t0)
+        pl.savefig('images/%04d'%time_index + '.png')
+        pl.close(fig)
+        pl.clf()
+
+def plot_2d():
+
+    for time_index, t0 in enumerate(time_array):
+        
+        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+        moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        h5f.close()
+
+        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+        h5f.close()
+
+        n  = return_array_to_be_plotted('density', moments, fields)
+        v1 = return_array_to_be_plotted('v1', moments, fields)
+        p  = return_array_to_be_plotted('pressure', moments, fields)
+        B1 = return_array_to_be_plotted('B1', moments, fields)
+
+        fig = pl.figure()
+
+        ax1 = fig.add_subplot(2, 2, 1)
+        ax1.set_title(r'$n$')
+        ax1.contourf(q1, q2, n[:, :, 0], np.linspace(0.99 * n_min, 1.01 * n_max, 100))
+
+        ax2 = fig.add_subplot(2, 2, 2)
+        ax2.set_title(r'$v_x$')
+        ax2.contourf(q1, q2, v1[:, :, 0], np.linspace(0.99 * v1_min, 1.01 * v1_max, 100))
+
+        ax3 = fig.add_subplot(2, 2, 3)
+        ax3.set_title(r'$p$')
+        ax3.contourf(q1, q2, p[:, :, 0], np.linspace(0.99 * p_min, 1.01 * p_max, 100))
+
+        ax4 = fig.add_subplot(2, 2, 4)
+        ax4.set_title(r'$B_x$')
+        ax4.contourf(q1, q2, B1, np.linspace(0.99 * B1_min, 1.01 * B1_max, 100))
+
+        # fig.tight_layout()
+        fig.suptitle('Time = %.2f'%t0)
+        pl.savefig('images/%04d'%time_index + '.png')
+        pl.close(fig)
+        pl.clf()
