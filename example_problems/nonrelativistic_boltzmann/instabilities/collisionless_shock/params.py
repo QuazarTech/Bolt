@@ -49,7 +49,7 @@ c   = 1. # |c| units(c)
 p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 4
+num_devices = 2
 
 # Mass of electron and ion:
 m_e = 1 * m0
@@ -82,7 +82,7 @@ l0 = v0 * t0 # ion skin depth
 v1_bulk_left = 1 * v0
 
 # Time parameters:
-N_cfl   = 0.2
+N_cfl   = 0.4
 t_final = 200 * t0
 
 # Switch for solver components:

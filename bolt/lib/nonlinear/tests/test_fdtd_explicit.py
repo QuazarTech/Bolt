@@ -27,6 +27,7 @@ from input_files import params
 from input_files import initialize_fdtd_mode1
 from input_files import initialize_fdtd_mode2
 from input_files import boundary_conditions
+from input_files import boundary_conditions_mirror
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
@@ -62,7 +63,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-class test(object):
+class test_periodic(object):
 
     def __init__(self, N, initialize, params):
 
@@ -85,7 +86,30 @@ class test(object):
 
         return
 
-def test_fdtd_mode1():
+class test_mirror(object):
+
+    def __init__(self, N, initialize, params):
+
+        domain.N_q1 = int(N)
+        domain.N_q2 = int(N)
+
+        system = physical_system(domain,
+                                 boundary_conditions_mirror,
+                                 params,
+                                 initialize,
+                                 advection_terms,
+                                 collision_operator.BGK,
+                                 moments
+                                )
+
+        self.fields_solver = fields_solver(system, 
+                                           af.randu(1, dtype = af.Dtype.f64), 
+                                           False
+                                          )
+
+        return
+
+def test_fdtd_mode1_periodic():
 
     N = 2**np.arange(5, 10)
 
@@ -100,7 +124,7 @@ def test_fdtd_mode1():
 
         params.dt = dt
 
-        obj = test(N[i], initialize_fdtd_mode1, params)
+        obj = test_periodic(N[i], initialize_fdtd_mode1, params)
         N_g = obj.fields_solver.N_g
 
         E3_initial = obj.fields_solver.yee_grid_EM_fields[2].copy()
@@ -148,7 +172,7 @@ def test_fdtd_mode1():
     assert (abs(poly_B2[0] + 2) < 0.2) 
     assert (abs(poly_E3[0] + 2) < 0.2)
 
-def test_fdtd_mode2():
+def test_fdtd_mode2_periodic():
 
     N = 2**np.arange(5, 10)
 
@@ -163,7 +187,7 @@ def test_fdtd_mode2():
 
         params.dt = dt
 
-        obj = test(N[i], initialize_fdtd_mode2, params)
+        obj = test_periodic(N[i], initialize_fdtd_mode2, params)
         N_g = obj.fields_solver.N_g
 
         B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
@@ -211,4 +235,128 @@ def test_fdtd_mode2():
     assert (abs(poly_E2[0] + 2) < 0.2)
     assert (abs(poly_B3[0] + 2) < 0.2)
 
-test_fdtd_mode1()
+def test_fdtd_mode1_mirror():
+
+    N = 2**np.arange(5, 10)
+
+    error_B1 = np.zeros(N.size)
+    error_B2 = np.zeros(N.size)
+    error_E3 = np.zeros(N.size)
+
+    for i in range(N.size):
+
+        dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
+        time = np.arange(dt, 4 * np.sqrt(9/5) + dt, dt)
+
+        params.dt = dt
+
+        obj = test_mirror(N[i], initialize_fdtd_mode1, params)
+        N_g = obj.fields_solver.N_g
+
+        E3_initial = obj.fields_solver.yee_grid_EM_fields[2].copy()
+        B1_initial = obj.fields_solver.yee_grid_EM_fields[3].copy()
+        B2_initial = obj.fields_solver.yee_grid_EM_fields[4].copy()
+
+        for time_index, t0 in enumerate(time):
+            J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
+            obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
+        
+        error_B1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[3, :, N_g:-N_g, N_g:-N_g] -
+                                    B1_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B1_initial.elements())
+
+        error_B2[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[4, :, N_g:-N_g, N_g:-N_g] -
+                                    B2_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B2_initial.elements())
+
+        error_E3[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[2, :, N_g:-N_g, N_g:-N_g] -
+                                    E3_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E3_initial.elements())
+
+    poly_B1 = np.polyfit(np.log10(N), np.log10(error_B1), 1)
+    poly_B2 = np.polyfit(np.log10(N), np.log10(error_B2), 1)
+    poly_E3 = np.polyfit(np.log10(N), np.log10(error_E3), 1)
+
+    print(error_B1)
+    print(error_B2)
+    print(error_E3)
+
+    pl.loglog(N, error_B1, '-o', label = r'$B_x$')
+    pl.loglog(N, error_B2, '-o', label = r'$B_y$')
+    pl.loglog(N, error_E3, '-o', label = r'$E_z$')
+    pl.loglog(N, error_B1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.xlabel(r'$N$')
+    pl.ylabel('Error')
+    pl.legend()
+    pl.savefig('convergenceplot.png')
+    pl.savefig('convergenceplot.svg')
+
+    assert (abs(poly_B1[0] + 2) < 0.2)
+    assert (abs(poly_B2[0] + 2) < 0.2) 
+    assert (abs(poly_E3[0] + 2) < 0.2)
+
+def test_fdtd_mode2_mirror():
+
+    N = 2**np.arange(5, 10)
+
+    error_E1 = np.zeros(N.size)
+    error_E2 = np.zeros(N.size)
+    error_B3 = np.zeros(N.size)
+
+    for i in range(N.size):
+
+        dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
+        time = np.arange(dt, 4 * np.sqrt(9/5) + dt, dt)
+
+        params.dt = dt
+
+        obj = test_mirror(N[i], initialize_fdtd_mode2, params)
+        N_g = obj.fields_solver.N_g
+
+        B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
+        E1_initial = obj.fields_solver.yee_grid_EM_fields[0].copy()
+        E2_initial = obj.fields_solver.yee_grid_EM_fields[1].copy()
+
+        for time_index, t0 in enumerate(time):
+            J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
+            obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
+
+        error_E1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[0, :, N_g:-N_g, N_g:-N_g] -
+                                    E1_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E1_initial.elements())
+
+        error_E2[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[1, :, N_g:-N_g, N_g:-N_g] -
+                                    E2_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (E2_initial.elements())
+
+        error_B3[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[5, :, N_g:-N_g, N_g:-N_g] -
+                                    B3_initial[:, :, N_g:-N_g, N_g:-N_g]
+                                   )
+                            ) / (B3_initial.elements())
+
+    print(error_E1)
+    print(error_E2)
+    print(error_B3)
+
+    poly_E1 = np.polyfit(np.log10(N), np.log10(error_E1), 1)
+    poly_E2 = np.polyfit(np.log10(N), np.log10(error_E2), 1)
+    poly_B3 = np.polyfit(np.log10(N), np.log10(error_B3), 1)
+
+    pl.loglog(N, error_E1, '-o', label = r'$E_x$')
+    pl.loglog(N, error_E2, '-o', label = r'$E_y$')
+    pl.loglog(N, error_B3, '-o', label = r'$B_z$')
+    pl.loglog(N, error_E1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.xlabel(r'$N$')
+    pl.ylabel('Error')
+    pl.legend()
+    pl.savefig('convergenceplot.png')
+    pl.savefig('convergenceplot.svg')
+
+    assert (abs(poly_E1[0] + 2) < 0.2)
+    assert (abs(poly_E2[0] + 2) < 0.2)
+    assert (abs(poly_B3[0] + 2) < 0.2)
