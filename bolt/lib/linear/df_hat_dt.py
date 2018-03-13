@@ -25,7 +25,7 @@ def df_hat_dt(f_hat, fields_hat, self):
     -------
     df_dt : The time-derivative of f_hat
     """
-    (A_q1, A_q2) = self._A_q(f_hat, self.time_elapsed, 
+    (A_q1, A_q2) = self._A_q(self.time_elapsed, 
                              self.q1_center, self.q2_center,
                              self.p1_center, self.p2_center, self.p3_center,
                              self.physical_system.params
@@ -75,7 +75,7 @@ def df_hat_dt(f_hat, fields_hat, self):
 
         # get_fields for linear solver returns the mode amplitudes of the fields
         # So, we obtain A_p1_hat, A_p2_hat, A_p3_hat
-        (A_p1_hat, A_p2_hat, A_p3_hat) = af.broadcast(self._A_p, f_hat, self.time_elapsed,
+        (A_p1_hat, A_p2_hat, A_p3_hat) = af.broadcast(self._A_p, self.time_elapsed,
                                                       self.q1_center, self.q2_center,
                                                       self.p1_center, self.p2_center, self.p3_center,
                                                       self.fields_solver, self.physical_system.params

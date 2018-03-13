@@ -25,15 +25,12 @@ A_v2 = C_v2 = e/m * (E_y + v_z * B_x - v_x * B_z) = e/m * (E2 + v3 * B1 - v1 * B
 A_v3 = C_v3 = e/m * (E_z + v_x * B_y - v_y * B_x) = e/m * (E3 + v1 * B2 - v2 * B1)
 """
 
-def A_q(f, t, q1, q2, v1, v2, v3, params):
+def A_q(t, q1, q2, v1, v2, v3, params):
     """
     Return the terms A_q1, A_q2.
 
     Parameters:
     -----------
-    f : Distribution function array
-        shape:(N_v, N_s, N_q1, N_q2)
-    
     t : Time elapsed
     
     q1 : The array that holds data for the q1 dimension in q-space
@@ -64,15 +61,12 @@ def A_q(f, t, q1, q2, v1, v2, v3, params):
 
 # Conservative Advection terms in q-space:
 # Used by the FVM solver:
-def C_q(f, t, q1, q2, v1, v2, v3, params):
+def C_q(t, q1, q2, v1, v2, v3, params):
     """
     Return the terms C_q1, C_q2.
 
     Parameters:
     -----------
-    f : Distribution function array
-        shape:(N_v, N_s, N_q1, N_q2)
-    
     t : Time elapsed
     
     q1 : The array that holds data for the q1 dimension in q-space
@@ -102,7 +96,7 @@ def C_q(f, t, q1, q2, v1, v2, v3, params):
 
     return (C_q1, C_q2)
 
-def A_p(f, t, q1, q2, v1, v2, v3,
+def A_p(t, q1, q2, v1, v2, v3,
         fields_solver,
         params
        ):
@@ -111,9 +105,6 @@ def A_p(f, t, q1, q2, v1, v2, v3,
 
     Parameters:
     -----------
-    f : Distribution function array
-        shape:(N_v, N_s, N_q1, N_q2)
-    
     t : Time elapsed
     
     q1 : The array that holds data for the q1 dimension in q-space
@@ -150,7 +141,7 @@ def A_p(f, t, q1, q2, v1, v2, v3,
 
 # Conservative Advection terms in p-space:
 # Used by the FVM solver:
-def C_p(f, t, q1, q2, v1, v2, v3,
+def C_p(t, q1, q2, v1, v2, v3,
         fields_solver,
         params
        ):
@@ -159,9 +150,6 @@ def C_p(f, t, q1, q2, v1, v2, v3,
 
     Parameters:
     -----------
-    f : Distribution function array
-        shape:(N_v, N_s, N_q1, N_q2)
-    
     t : Time elapsed
     
     q1 : The array that holds data for the q1 dimension in q-space

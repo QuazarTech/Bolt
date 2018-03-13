@@ -82,11 +82,11 @@ N_g = system.N_ghost
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-ls  = linear_solver(system)
+# ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.001
-t_final = 0.5
+dt      = 0.0005
+t_final = 1.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -96,84 +96,40 @@ rho_data_ls  = np.zeros(time_array.size)
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
 rho_data_nls[0] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
-n_ls           = ls.compute_moments('density')
-rho_data_ls[0] = af.max(n_ls)
+# n_ls           = ls.compute_moments('density')
+# rho_data_ls[0] = af.max(n_ls)
 
 f_initial = nls.f.copy()
 
 for time_index, t0 in enumerate(time_array[1:]):
-    rho   = -10 * nls.compute_moments('density')
-    rho_b = af.mean(rho)
 
-    print('divB =', af.mean(af.abs(nls.fields_solver.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
-    print('divE-rho =', af.mean(af.abs(nls.fields_solver.compute_divE() - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
-
-    #nls.dump_distribution_function('dump/%04d'%time_index)
     nls.strang_timestep(dt)
-    # nls.f = lowpass_filter(nls.f)
+    # ls.RK4_timestep(dt)
+
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
-    ls.RK4_timestep(dt)
-    # print(nls.fields_solver.compute_divB())
-    # print(nls.fields_solver.compute_divE())
-
-
-
-#    if(time_index % 25 == 0):
-#        nls.f = lowpass_filter(nls.f)
-
-        
-        # f_hat = af.fft2(nls.f)
-    #     # f_hat[16] = 0
-    #     # nls.f = af.abs(af.ifft2(f_hat, scale = 1) / 32)
-    #     nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.5, 0, 0, 0)))
-    #     # delta_f = nls.f - f_initial
-    #     # filtered_delta_f = af.to_array(gaussian_filter(np.array(delta_f), (1, 0, 0, 0)))
-    #     # nls.f = f_initial + filtered_delta_f
-
-    n_nls                         = nls.compute_moments('density')
-    rho_data_nls[time_index]  = af.mean(af.abs(nls.fields_solver.compute_divE() - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]) #af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
+    # if(time_index % 25 == 0):
+    #     nls.f = lowpass_filter(nls.f)
+  
+    n_nls                      = nls.compute_moments('density')
+    rho_data_nls[time_index+1] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
     
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-# h5f = h5py.File('sigma_point5.h5', 'w')
-# h5f.create_dataset('n', data = rho_data_nls)
-# h5f.create_dataset('time', data = time_array)
-# h5f.close()
-
-# h5f = h5py.File('unfiltered.h5', 'r')
-# n1 = h5f['n'][:]
-# h5f.close()
-
-# h5f = h5py.File('sigma_2.h5', 'r')
-# n2 = h5f['n'][:]
-# h5f.close()
-
-# h5f = h5py.File('sigma_1.h5', 'r')
-# n3 = h5f['n'][:]
-# h5f.close()
-
-# pl.plot(time_array, n1, label='Unfiltered')
-pl.plot(time_array[:-1], rho_data_nls[:-1], label = 'Nonlinear Solver')
-# pl.plot(time_array, n3, label=r'$\sigma=1$')
-# pl.plot(time_array, n2, label=r'$\sigma=2$')
+pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
 # pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MEAN($|\nabla \cdot \vec{E} - \rho|$)')
-# pl.ylabel(r'MAX($n$)')
+pl.ylabel(r'MAX($n$)')
 pl.xlabel('Time')
-# pl.legend()
+pl.legend()
 pl.savefig('n.png')
 pl.savefig('n.svg')
 pl.clf()
 
-pl.semilogy(time_array[:-1], rho_data_nls[:-1], label = 'Nonlinear Solver')
-# pl.plot(time_array, n3, label=r'$\sigma=1$')
-# pl.plot(time_array, n2, label=r'$\sigma=2$')
+pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
 # pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
-# pl.ylabel(r'MAX($n$)')
-pl.ylabel(r'MEAN($|\nabla \cdot \vec{E} - \rho|$)')
+pl.ylabel(r'MAX($n$)')
 pl.xlabel('Time')
-# pl.legend()
+pl.legend()
 pl.savefig('n_semilogy.png')
 pl.savefig('n_semilogy.svg')
 pl.clf()

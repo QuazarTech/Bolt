@@ -47,8 +47,16 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     af.eval(f)
     return (f)
 
+def initialize_A_phi(q1, q2, params):
+    A1  = 0 * q1**0
+    A2  = 0 * q1**0
+    A3  = 0 * q1**0
+    phi = -0.01 * af.cos(params.k_q1 * q1) / params.k_q1**2 
+
+    return(A1, A2, A3, phi)
+
 def initialize_A3_B3(q1, q2, params):
-    A3 = af.sin(2 * np.pi * q1 + 4 * np.pi * q2)
-    B3 = 1e-5 * q1**0
+    A3 = 0 * q1**0
+    B3 = 0 * q1**0
 
     return(A3, B3)

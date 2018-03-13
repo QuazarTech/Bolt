@@ -43,8 +43,14 @@ from bolt.lib.utils.bandwidth_test import bandwidth_test
 from bolt.lib.utils.print_with_indent import indent
 from bolt.lib.utils.performance_timings import print_table
 from bolt.lib.utils.broadcasted_primitive_operations import multiply
-from bolt.lib.utils.calculate_q import calculate_q_center
-from bolt.lib.utils.calculate_p import calculate_p_center
+
+from bolt.lib.utils.calculate_q import \
+    calculate_q_center, calculate_q_left_center, \
+    calculate_q_center_bot, calculate_q_left_bot
+
+from bolt.lib.utils.calculate_p import \
+    calculate_p_center, calculate_p_left, \
+    calculate_p_bottom, calculate_p_back
 
 from .compute_moments import compute_moments as compute_moments_imported
 from .fields.fields import fields_solver
@@ -302,12 +308,47 @@ class nonlinear_solver(object):
                                self.dq1, self.dq2
                               )
 
+        self.q1_left_center, self.q2_left_center = \
+            calculate_q_left_center(self.q1_start + i_q1_start * self.dq1, 
+                                    self.q2_start + i_q2_start * self.dq2,
+                                    N_q1_local, N_q2_local, self.N_ghost,
+                                    self.dq1, self.dq2
+                                   )
+
+        self.q1_center_bot, self.q2_center_bot = \
+            calculate_q_center_bot(self.q1_start + i_q1_start * self.dq1, 
+                                   self.q2_start + i_q2_start * self.dq2,
+                                   N_q1_local, N_q2_local, self.N_ghost,
+                                   self.dq1, self.dq2
+                                  )
+
         self.p1_center, self.p2_center, self.p3_center = \
             calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
                                self.N_p1, self.N_p2, self.N_p3,
                                self.dp1, self.dp2, self.dp3, 
                                self.N_species
                               )
+
+        self.p1_left, self.p2_left, self.p3_left = \
+            calculate_p_left(self.p1_start, self.p2_start, self.p3_start,
+                             self.N_p1, self.N_p2, self.N_p3,
+                             self.dp1, self.dp2, self.dp3, 
+                             self.N_species
+                            )
+
+        self.p1_bottom, self.p2_bottom, self.p3_bottom = \
+            calculate_p_bottom(self.p1_start, self.p2_start, self.p3_start,
+                               self.N_p1, self.N_p2, self.N_p3,
+                               self.dp1, self.dp2, self.dp3, 
+                               self.N_species
+                              )
+
+        self.p1_back, self.p2_back, self.p3_back = \
+            calculate_p_back(self.p1_start, self.p2_start, self.p3_start,
+                             self.N_p1, self.N_p2, self.N_p3,
+                             self.dp1, self.dp2, self.dp3, 
+                             self.N_species
+                            )
 
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)

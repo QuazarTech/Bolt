@@ -25,23 +25,6 @@ def timestep_fvm(self, dt):
     self._communicate_f()
     self._apply_bcs_f()
 
-    if(self.physical_system.params.fields_enabled == True):
-        
-        # Evolving electrodynamic fields:
-        if(self.physical_system.params.fields_solver == 'fdtd'):
-            
-            J1 = multiply(self.physical_system.params.charge, 
-                          self.compute_moments('mom_v1_bulk')
-                         )  # (i + 1/2, j + 1/2)
-            J2 = multiply(self.physical_system.params.charge, 
-                          self.compute_moments('mom_v2_bulk')
-                         )  # (i + 1/2, j + 1/2)
-            J3 = multiply(self.physical_system.params.charge, 
-                          self.compute_moments('mom_v3_bulk')
-                         )  # (i + 1/2, j + 1/2)
-
-            self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
-
     self.f = f_initial + df_dt_fvm(self.f, self) * dt
 
 def update_for_instantaneous_collisions(self, dt):

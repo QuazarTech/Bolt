@@ -2,7 +2,7 @@ import numpy as np
 import arrayfire as af
 
 fields_type       = 'electrodynamic'
-fields_initialize = 'fft'
+fields_initialize = 'user-defined'
 fields_solver     = 'fdtd'
 
 solver_method_in_q = 'FVM'
@@ -37,8 +37,8 @@ p1_bulk_background = 0
 p2_bulk_background = 0
 p3_bulk_background = 0
 
-pert_real = 1e-5
-pert_imag = 2e-5
+pert_real = 0.001
+pert_imag = 0
 
 k_q1 = 2 * np.pi
 k_q2 = 0 * np.pi

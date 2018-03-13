@@ -53,48 +53,33 @@ def df_dt_fvm(f, self):
     df_dt = 0
 
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
-    
+
+        f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 2, reconstruction_in_q)
+        f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 3, reconstruction_in_q)
+
+        # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
+        f_left_minus_eps = af.shift(f_right_minus_eps, 0, 0, 1)
+        # Extending the same to bot:
+        f_bot_minus_eps  = af.shift(f_top_minus_eps,   0, 0, 0, 1)
+
         # af.broadcast used to perform batched operations on arrays of different sizes:
-        self._C_q1, self._C_q2 = \
-            af.broadcast(self._C_q, f, self.time_elapsed, 
-                         self.q1_center, self.q2_center,
-                         self.p1_center, self.p2_center, self.p3_center,
-                         self.physical_system.params
-                        )
-            
-        # Variation of q1 is along axis 2
-        left_plus_eps_flux, right_minus_eps_flux = \
-            reconstruct(self, multiply(self._C_q1, f), 2, reconstruction_in_q)
-        
-        # Variation of q2 is along axis 3
-        bot_plus_eps_flux, top_minus_eps_flux = \
-            reconstruct(self, multiply(self._C_q2, f), 3, reconstruction_in_q)
+        self._C_q1 = af.broadcast(self._C_q, self.time_elapsed, 
+                                  self.q1_left_center, self.q2_left_center,
+                                  self.p1_center, self.p2_center, self.p3_center,
+                                  self.physical_system.params
+                                 )[0]
 
-        if(self.physical_system.params.riemann_solver_in_q == 'lax-friedrichs'):
-            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 2, reconstruction_in_q)
+        self._C_q2 = af.broadcast(self._C_q, self.time_elapsed, 
+                                  self.q1_center_bot, self.q2_center_bot,
+                                  self.p1_center, self.p2_center, self.p3_center,
+                                  self.physical_system.params
+                                 )[1]
 
-            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 3, reconstruction_in_q)
+        f_left = riemann_solver(self, f_left_minus_eps, f_left_plus_eps, self._C_q1)
+        f_bot  = riemann_solver(self, f_bot_minus_eps, f_bot_plus_eps, self._C_q2)
 
-            # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
-            f_left_minus_eps = af.shift(f_right_minus_eps, 0, 0, 1)
-            # Extending the same to bot:
-            f_bot_minus_eps  = af.shift(f_top_minus_eps,   0, 0, 0, 1)
-
-        else:
-            f_left_plus_eps, f_left_minus_eps = 0, 0
-            f_bot_plus_eps,  f_bot_minus_eps  = 0, 0 
-
-        # Applying the shifts to the fluxes:
-        left_minus_eps_flux = af.shift(right_minus_eps_flux, 0, 0, 1)
-        bot_minus_eps_flux  = af.shift(top_minus_eps_flux,   0, 0, 0, 1)
-
-        left_flux  = riemann_solver(self, left_minus_eps_flux, left_plus_eps_flux,
-                                    f_left_minus_eps, f_left_plus_eps, riemann_in_q, 'q1'
-                                   )
-
-        bot_flux   = riemann_solver(self, bot_minus_eps_flux, bot_plus_eps_flux,
-                                    f_bot_minus_eps, f_bot_plus_eps, riemann_in_q, 'q2'
-                                   )
+        left_flux = multiply(self._C_q1, f_left)
+        bot_flux  = multiply(self._C_q2, f_bot)
 
         right_flux = af.shift(left_flux, 0, 0, -1)
         top_flux   = af.shift(bot_flux,  0, 0,  0, -1)
@@ -115,42 +100,71 @@ def df_dt_fvm(f, self):
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
        and self.physical_system.params.fields_enabled == True
       ):
+        
+        if(    self.physical_system.params.fields_type == 'electrodynamic'
+           and self.fields_solver.at_n == False
+          ):
+
+            J1 = multiply(self.physical_system.params.charge,
+                          self.compute_moments('mom_v1_bulk', f = f_left)
+                         ) # (i, j + 1/2)
+
+            J2 = multiply(self.physical_system.params.charge,
+                          self.compute_moments('mom_v2_bulk', f = f_bot)
+                         ) # (i + 1/2, j)
+
+            J3 = multiply(self.physical_system.params.charge, 
+                          self.compute_moments('mom_v3_bulk', f = f)
+                         ) # (i + 1/2, j + 1/2)
+
+            self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, self.dt)
+
+
         if(self.physical_system.params.fields_type == 'electrostatic'):
             if(self.physical_system.params.fields_solver == 'fft'):
+
                 rho = multiply(self.physical_system.params.charge,
                                self.compute_moments('density', f=f)
                               )
+
                 self.fields_solver.compute_electrostatic_fields(rho)
         
-        (self._C_p1, self._C_p2, self._C_p3) = \
-            af.broadcast(self._C_p, f, self.time_elapsed,
-                         self.q1_center, self.q2_center,
-                         self.p1_center, self.p2_center, self.p3_center,
-                         self.fields_solver, self.physical_system.params
-                        )
+        self._C_p1 = af.broadcast(self._C_p, self.time_elapsed,
+                                  self.q1_center, self.q2_center,
+                                  self.p1_left, self.p2_left, self.p3_left,
+                                  self.fields_solver, self.physical_system.params
+                                 )[0]
+
+        self._C_p2 = af.broadcast(self._C_p, self.time_elapsed,
+                                  self.q1_center, self.q2_center,
+                                  self.p1_bottom, self.p2_bottom, self.p3_bottom,
+                                  self.fields_solver, self.physical_system.params
+                                 )[1]
+
+        self._C_p3 = af.broadcast(self._C_p, self.time_elapsed,
+                                  self.q1_center, self.q2_center,
+                                  self.p1_back, self.p2_back, self.p3_back,
+                                  self.fields_solver, self.physical_system.params
+                                 )[2]
 
         self._C_p1 = self._convert_to_p_expanded(self._C_p1)
         self._C_p2 = self._convert_to_p_expanded(self._C_p2)
         self._C_p3 = self._convert_to_p_expanded(self._C_p3)
         f          = self._convert_to_p_expanded(f)
         
-        if(self.physical_system.params.riemann_solver_in_p == 'lax-friedrichs'):
-            
-            f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
-            f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 1, reconstruction_in_p)
-            f_back_plus_eps, f_front_minus_eps = reconstruct(self, f, 2, reconstruction_in_p)
-    
-            # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
-            f_left_minus_eps = af.shift(f_right_minus_eps, 1)
-            # Extending the same to bot:
-            f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 1)
-            # Extending the same to back:
-            f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
+        # Variation of p1 is along axis 0:
+        f_left_plus_eps, f_right_minus_eps = reconstruct(self, f, 0, reconstruction_in_p)
+        # Variation of p2 is along axis 1:
+        f_bot_plus_eps, f_top_minus_eps    = reconstruct(self, f, 1, reconstruction_in_p)
+        # Variation of p3 is along axis 2:
+        f_back_plus_eps, f_front_minus_eps = reconstruct(self, f, 2, reconstruction_in_p)
 
-        else:
-            f_left_plus_eps, f_left_minus_eps = 0, 0
-            f_bot_plus_eps,  f_bot_minus_eps  = 0, 0 
-            f_back_plus_eps, f_back_minus_eps = 0, 0
+        # f_left_minus_eps of i-th cell is f_right_minus_eps of the (i-1)th cell
+        f_left_minus_eps = af.shift(f_right_minus_eps, 1)
+        # Extending the same to bot:
+        f_bot_minus_eps  = af.shift(f_top_minus_eps, 0, 1)
+        # Extending the same to back:
+        f_back_minus_eps = af.shift(f_front_minus_eps, 0, 0, 1)
 
         # flipping due to strange error seen when working with
         # multiple species on the CPU backend where f != flip(flip(f))
@@ -161,38 +175,14 @@ def df_dt_fvm(f, self):
         # flux_p1 = self._C_p1 * af.flip(af.flip(f))
         # flux_p2 = self._C_p2 * af.flip(af.flip(f))
         # flux_p3 = self._C_p3 * af.flip(af.flip(f))
-
-        flux_p1 = self._C_p1 * f
-        flux_p2 = self._C_p2 * f
-        flux_p3 = self._C_p3 * f
-
-        # Variation of p1 is along axis 0:
-        left_plus_eps_flux_p1, right_minus_eps_flux_p1 = \
-            reconstruct(self, flux_p1, 0, reconstruction_in_p)
         
-        # Variation of p2 is along axis 1:
-        bot_plus_eps_flux_p2, top_minus_eps_flux_p2 = \
-            reconstruct(self, flux_p2, 1, reconstruction_in_p)
-
-        # Variation of p3 is along axis 2:
-        back_plus_eps_flux_p3, front_minus_eps_flux_p3 = \
-            reconstruct(self, flux_p3, 2, reconstruction_in_p)
-
-        left_minus_eps_flux_p1 = af.shift(right_minus_eps_flux_p1, 1)
-        bot_minus_eps_flux_p2  = af.shift(top_minus_eps_flux_p2,   0, 1)
-        back_minus_eps_flux_p3 = af.shift(front_minus_eps_flux_p3, 0, 0, 1)
-
-        left_flux_p1 = riemann_solver(self, left_minus_eps_flux_p1, left_plus_eps_flux_p1,
-                                      f_left_minus_eps, f_left_plus_eps, riemann_in_p, 'p1'
-                                     )
-
-        bot_flux_p2  = riemann_solver(self, bot_minus_eps_flux_p2, bot_plus_eps_flux_p2,
-                                      f_bot_minus_eps, f_bot_plus_eps, riemann_in_p, 'p2'
-                                     )
-
-        back_flux_p3 = riemann_solver(self, back_minus_eps_flux_p3, back_plus_eps_flux_p3,
-                                      f_back_plus_eps, f_back_minus_eps, riemann_in_p, 'p3'
-                                     )
+        f_left_p1 = riemann_solver(self, f_left_minus_eps, f_left_plus_eps, self._C_p1)
+        f_bot_p2  = riemann_solver(self, f_bot_minus_eps, f_bot_plus_eps, self._C_p2)
+        f_back_p3 = riemann_solver(self, f_back_minus_eps, f_back_plus_eps, self._C_p3)
+        
+        left_flux_p1 = multiply(self._C_p1, f_left_p1)
+        bot_flux_p2  = multiply(self._C_p2, f_bot_p2)
+        back_flux_p3 = multiply(self._C_p3, f_back_p3)
 
         right_flux_p1 = af.shift(left_flux_p1, -1)
         top_flux_p2   = af.shift(bot_flux_p2,   0, -1)
@@ -207,9 +197,9 @@ def df_dt_fvm(f, self):
         back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
         front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
 
-        df_dt += - (right_flux_p1 - left_flux_p1)/self.dp1 \
-                 - (top_flux_p2   - bot_flux_p2 )/self.dp2 \
-                 - (front_flux_p3 - back_flux_p3)/self.dp3
+        df_dt += - (right_flux_p1 - left_flux_p1) / self.dp1 \
+                 - (top_flux_p2   - bot_flux_p2 ) / self.dp2 \
+                 - (front_flux_p3 - back_flux_p3) / self.dp3
 
         # By looping over each species:
         # left_flux_p1_all_species = af.constant(0, 512, 2, dtype = af.Dtype.f64)
