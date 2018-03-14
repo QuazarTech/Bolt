@@ -239,13 +239,13 @@ def test_fdtd_mode2_periodic():
     print(poly_E2)
     print(poly_B3)
 
-    assert (abs(poly_E1[0] + 2) < 0.2)
-    assert (abs(poly_E2[0] + 2) < 0.2)
-    assert (abs(poly_B3[0] + 2) < 0.2)
+    assert (abs(poly_E1[0] + 2) < 0.3)
+    assert (abs(poly_E2[0] + 2) < 0.3)
+    assert (abs(poly_B3[0] + 2) < 0.3)
 
 def test_fdtd_mode1_mirror():
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     error_B1 = np.zeros(N.size)
     error_B2 = np.zeros(N.size)
@@ -308,7 +308,7 @@ def test_fdtd_mode1_mirror():
 
 def test_fdtd_mode2_mirror():
 
-    N = 2**np.arange(5, 10)
+    N = 2**np.arange(5, 8)
 
     error_E1 = np.zeros(N.size)
     error_E2 = np.zeros(N.size)
@@ -369,4 +369,4 @@ def test_fdtd_mode2_mirror():
     assert (abs(poly_E2[0] + 2) < 0.2)
     assert (abs(poly_B3[0] + 2) < 0.2)
 
-test_fdtd_mode2_periodic()
+test_fdtd_mode1_mirror()

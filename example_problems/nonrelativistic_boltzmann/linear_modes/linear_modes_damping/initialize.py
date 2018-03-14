@@ -24,10 +24,9 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     k_q1 = params.k_q1
     k_q2 = params.k_q2
 
-    # Calculating the perturbed density:
-    rho = rho_b + (  pert_real * af.cos(k_q1 * q1 + k_q2 * q2)
-                   - pert_imag * af.sin(k_q1 * q1 + k_q2 * q2)
-                  )
+    # Calculating the perturbed density using E1:
+    E1  = 0.001 * af.sin(params.k_q1 * (q1-1/256)) / params.k_q1
+    rho = rho_b + (af.shift(E1, 0, 0, -1) - E1) * 128
 
     if(params.p_dim == 3):
         f = rho * (m / (2 * np.pi * k * T_b))**(3 / 2) \
@@ -47,13 +46,12 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     af.eval(f)
     return (f)
 
-def initialize_A_phi(q1, q2, params):
-    A1  = 0 * q1**0
-    A2  = 0 * q1**0
-    A3  = 0 * q1**0
-    phi = -0.01 * af.cos(params.k_q1 * q1) / params.k_q1**2 
+def initialize_E(q1, q2, params):
+    E1 = -0.01 * af.sin(params.k_q1 * q1) / params.k_q1
+    E2 = 0 * q1**0
+    E3 = 0 * q1**0
 
-    return(A1, A2, A3, phi)
+    return(E1, E2, E3)
 
 def initialize_A3_B3(q1, q2, params):
     A3 = 0 * q1**0

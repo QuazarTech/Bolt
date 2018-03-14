@@ -109,9 +109,15 @@ for time_index, t0 in enumerate(time_array[1:]):
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     # if(time_index % 25 == 0):
     #     nls.f = lowpass_filter(nls.f)
-  
+
     n_nls                      = nls.compute_moments('density')
     rho_data_nls[time_index+1] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
+
+    rho   = -10 * n_nls
+    rho_b = af.mean(rho) # background
+    divE  = nls.fields_solver.compute_divE()
+    print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+
     
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 
