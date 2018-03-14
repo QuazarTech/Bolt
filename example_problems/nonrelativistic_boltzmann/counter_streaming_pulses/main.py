@@ -86,8 +86,16 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     # divE      = nls.fields_solver.compute_divE()
     drho_dt = (rho_n_plus_one - rho_n) / dt
+    J1 = nls.fields_solver.J1
+    J2 = nls.fields_solver.J2
 
-    data[time_index + 1] = af.mean(af.abs(drho_dt + nls.fields_solver.J1)[:, :, N_g:-N_g, N_g:-N_g])
+    J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
+    J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
+
+    divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
+
+    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ)[:, :, N_g:-N_g, N_g:-N_g])
+    print(data[time_index + 1])
 
     if(time_index % 10 == 0):
         pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
@@ -107,14 +115,26 @@ for time_index, t0 in enumerate(time_array[1:]):
         pl.savefig('images/%04d'%(time_index / 10) + '.png')
         pl.clf()
 
-pl.plot(time_array, data)
-pl.ylabel('Error')
-pl.xlabel('Time')
+pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(nls.f[:, 0, 64, 1]).ravel())
+pl.ylabel(r'f')
+pl.xlabel(r'v')
 pl.savefig('plot.png')
 pl.clf()
 
-pl.semilogy(time_array, data)
-pl.ylabel('Error')
-pl.xlabel('Time')
-pl.savefig('semilogyplot.png')
+pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(af.sum(nls.f[:, 0, :, 1], 2)).ravel())
+pl.ylabel(r'f')
+pl.xlabel(r'v')
+pl.savefig('plot2.png')
 pl.clf()
+
+# pl.plot(time_array, data)
+# pl.ylabel('Error')
+# pl.xlabel('Time')
+# pl.savefig('plot.png')
+# pl.clf()
+
+# pl.semilogy(time_array, data)
+# pl.ylabel('Error')
+# pl.xlabel('Time')
+# pl.savefig('semilogyplot.png')
+# pl.clf()

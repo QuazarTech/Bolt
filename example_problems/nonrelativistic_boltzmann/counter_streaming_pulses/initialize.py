@@ -21,7 +21,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v1_bulk_electron = params.v1_bulk_electron
     v1_bulk_positron = params.v1_bulk_positron
 
-    n = n_b + 0.01 * af.exp(-10 * (q1 -5)**2)
+    n = n_b + 0.01 * af.exp(-10 * (q1 - 5)**2)
 
     f_e = n * (m_e / (2 * np.pi * k * T_b))**(1 / 2) \
             * af.exp(-m_e * (v1[:, 0] - v1_bulk_electron)**2 / (2 * k * T_b)) \
