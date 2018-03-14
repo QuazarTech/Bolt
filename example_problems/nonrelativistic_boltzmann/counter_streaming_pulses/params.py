@@ -61,14 +61,14 @@ boltzmann_constant = k0
 charge             = [-1 * e0, 1 * e0]
 
 # Initial Conditions used in initialize:
-density_background 	   = 1 * n0  
+density_background 	   = 0 * n0  
 temperature_background = 1 * T0
 v1_bulk_electron       = 1  * v0
 v1_bulk_positron       = -1 * v0
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 1.0 * t0
+t_final = 10.0 * t0
 
 # Switch for solver components:
 fields_enabled           = True

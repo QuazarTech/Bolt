@@ -74,29 +74,32 @@ data[0] = 0
 
 for time_index, t0 in enumerate(time_array[1:]):
 
+    rho_n       = -1 * nls.compute_moments('density')
+    rho_n[0, 1] = -1 * rho_n[0, 1]
+    rho_n       = af.sum(rho_n, 1)
+
     nls.strang_timestep(dt)
 
-    n_nls = nls.compute_moments('density')
+    rho_n_plus_one       = -1 * nls.compute_moments('density')
+    rho_n_plus_one[0, 1] = -1 * rho_n_plus_one[0, 1]
+    rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
 
-    rho       = -1 * n_nls
-    rho[0, 1] = -1 * rho[0, 1]
-    rho       = af.sum(rho, 1)
-    rho_b     = af.mean(rho) # background
-    divE      = nls.fields_solver.compute_divE()
-    data[time_index + 1] = af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g])
-    print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+    # divE      = nls.fields_solver.compute_divE()
+    drho_dt = (rho_n_plus_one - rho_n) / dt
+
+    data[time_index + 1] = af.mean(af.abs(drho_dt + nls.fields_solver.J1)[:, :, N_g:-N_g, N_g:-N_g])
 
     if(time_index % 10 == 0):
         pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
-                np.array(n_nls[:, 0, 3:-3, 0]).ravel(),
+                np.array(nls.compute_moments('density')[:, 0, 3:-3, 0]).ravel(),
                 label = 'Electrons'
                )
         pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
-                np.array(n_nls[:, 1, 3:-3, 0]).ravel(),
+                np.array(nls.compute_moments('density')[:, 1, 3:-3, 0]).ravel(),
                 '--', color = 'C3',
                 label = 'Positrons'
                )
-        pl.ylim([1, 1.01])
+        pl.ylim([0, 0.01])
         pl.ylabel(r'$n$')
         pl.xlabel(r'$x$')
         pl.legend()
