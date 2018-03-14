@@ -54,26 +54,17 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-m_e = 1 * m0
+m_e = m_p = 1 * m0
 
-mass               = [m_e]
+mass               = [m_e, m_p]
 boltzmann_constant = k0
-charge             = [-10 * e0]
+charge             = [-1 * e0, 1 * e0]
 
 # Initial Conditions used in initialize:
 density_background 	   = 1 * n0  
 temperature_background = 1 * T0
-v1_bulk_background     = 0 * v0
-v2_bulk_background     = 0 * v0
-v3_bulk_background     = 0 * v0
-
-# Wavenumber of perturbation
-k_q1 = 2 * np.pi 
-k_q2 = 0
-
-# Parameter controlling amplitude of perturbation introduced:
-pert_real = 0.01
-pert_imag = 0
+v1_bulk_electron       = 1  * v0
+v1_bulk_positron       = -1 * v0
 
 # Time parameters:
 N_cfl   = 0.32

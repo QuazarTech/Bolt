@@ -175,7 +175,7 @@ def df_dt_fvm(f, self):
         # flux_p1 = self._C_p1 * af.flip(af.flip(f))
         # flux_p2 = self._C_p2 * af.flip(af.flip(f))
         # flux_p3 = self._C_p3 * af.flip(af.flip(f))
-        
+                
         f_left_p1 = riemann_solver(self, f_left_minus_eps, f_left_plus_eps, self._C_p1)
         f_bot_p2  = riemann_solver(self, f_bot_minus_eps, f_bot_plus_eps, self._C_p2)
         f_back_p3 = riemann_solver(self, f_back_minus_eps, f_back_plus_eps, self._C_p3)

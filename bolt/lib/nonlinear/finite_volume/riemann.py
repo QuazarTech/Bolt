@@ -25,7 +25,9 @@ def riemann_solver(self, left_state, right_state, velocity):
         tic = af.time()
 
     # Tiling to get to appropriate shape:
-    if(velocity.shape[0] == self.N_p1 * self.N_p2 * self.N_p3):
+    try:
+        assert(velocity.shape[2] == left_state.shape[2])
+    except:
         velocity = af.tile(self._C_q1, 1, 1, 
                            left_state.shape[2], left_state.shape[3]
                           )

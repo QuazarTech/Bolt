@@ -6,17 +6,17 @@ the system.
 import arrayfire as af
 import numpy as np
 
-def initialize_f(q1, q2, p1, p2, p3, params):
+def initialize_f(q1, q2, v1, v2, v3, params):
 
     m = params.mass
     k = params.boltzmann_constant
 
-    rho_b = params.rho_background
-    T_b   = params.temperature_background
+    n_b = params.density_background
+    T_b = params.temperature_background
 
-    p1_bulk = params.p1_bulk_background
-    p2_bulk = params.p2_bulk_background
-    p3_bulk = params.p3_bulk_background
+    v1_bulk = params.v1_bulk_background
+    v2_bulk = params.v2_bulk_background
+    v3_bulk = params.v3_bulk_background
 
     pert_real = params.pert_real
     pert_imag = params.pert_imag
@@ -25,23 +25,23 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     k_q2 = params.k_q2
 
     # Calculating the perturbed density using E1:
-    E1  = 0.001 * af.sin(params.k_q1 * (q1-1/256)) / params.k_q1
-    rho = rho_b + (af.shift(E1, 0, 0, -1) - E1) * 128
+    E1 = 0.001 * af.sin(params.k_q1 * (q1-1/256)) / params.k_q1
+    n  = n_b + (af.shift(E1, 0, 0, -1) - E1) * 128
 
     if(params.p_dim == 3):
-        f = rho * (m / (2 * np.pi * k * T_b))**(3 / 2) \
-                * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
-                * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T_b)) \
-                * af.exp(-m * (p3 - p3_bulk)**2 / (2 * k * T_b))
+        f = n * (m / (2 * np.pi * k * T_b))**(3 / 2) \
+              * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T_b)) \
+              * af.exp(-m * (v2 - v2_bulk)**2 / (2 * k * T_b)) \
+              * af.exp(-m * (v3 - v3_bulk)**2 / (2 * k * T_b))
 
     elif(params.p_dim == 2):
-        f = rho * (m / (2 * np.pi * k * T_b)) \
-                * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
-                * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T_b)) \
+        f = n * (m / (2 * np.pi * k * T_b)) \
+              * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T_b)) \
+              * af.exp(-m * (v2 - v2_bulk)**2 / (2 * k * T_b)) \
 
     else:
-        f = rho * (m / (2 * np.pi * k * T_b))**(1 / 2) \
-                * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T_b)) \
+        f = n * (m / (2 * np.pi * k * T_b))**(1 / 2) \
+              * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T_b)) \
 
     af.eval(f)
     return (f)

@@ -55,12 +55,6 @@ def fft_poisson(self, rho):
         potential_hat       = rho_hat / (4 * np.pi**2 * (k_q1**2 + k_q2**2))
         potential_hat[0, 0] = 0
 
-        # Calculating potential as well:
-        potential_ifft     =   af.ifft2(potential_hat, scale=1) \
-                             / (potential_hat.shape[0] * potential_hat.shape[1])
-        potential_physical = af.reorder(af.real(potential_ifft), 2, 3, 0, 1)
-        self.electric_potential[0, 0, N_g:-N_g, N_g:-N_g] = potential_physical
-
         E1_hat = -1j * 2 * np.pi * k_q1 * potential_hat
         E2_hat = -1j * 2 * np.pi * k_q2 * potential_hat
 
