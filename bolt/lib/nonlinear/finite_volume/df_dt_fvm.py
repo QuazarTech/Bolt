@@ -124,7 +124,7 @@ def df_dt_fvm(f, self):
             if(self.physical_system.params.fields_solver == 'fft'):
 
                 rho = multiply(self.physical_system.params.charge,
-                               self.compute_moments('density', f=f)
+                               self.compute_moments('density', f = f)
                               )
 
                 self.fields_solver.compute_electrostatic_fields(rho)

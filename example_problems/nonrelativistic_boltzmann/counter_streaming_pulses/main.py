@@ -72,6 +72,8 @@ data       = np.zeros(time_array.size)
 
 data[0] = 0
 
+initial_sum = af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g])
+
 for time_index, t0 in enumerate(time_array[1:]):
 
     rho_n       = -1 * nls.compute_moments('density')
@@ -79,7 +81,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_n       = af.sum(rho_n, 1)
 
     nls.strang_timestep(dt)
-
+    print(af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g]) - initial_sum)
     rho_n_plus_one       = -1 * nls.compute_moments('density')
     rho_n_plus_one[0, 1] = -1 * rho_n_plus_one[0, 1]
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
@@ -95,7 +97,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
 
     data[time_index + 1] = af.mean(af.abs(drho_dt + divJ)[:, :, N_g:-N_g, N_g:-N_g])
-    print(data[time_index + 1])
+    # print(data[time_index + 1])
 
     if(time_index % 10 == 0):
         pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),

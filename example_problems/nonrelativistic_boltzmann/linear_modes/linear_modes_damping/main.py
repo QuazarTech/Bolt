@@ -103,7 +103,7 @@ f_initial = nls.f.copy()
 
 for time_index, t0 in enumerate(time_array[1:]):
 
-    nls.strang_timestep(dt)
+    # nls.strang_timestep(dt)
     # ls.RK4_timestep(dt)
 
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
@@ -114,11 +114,30 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_nls[time_index+1] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
 
     rho   = -10 * n_nls
-    rho_b = af.mean(rho) # background
+    rho_b = af.mean(rho[:, :, N_g:-N_g, N_g:-N_g]) # background
     divE  = nls.fields_solver.compute_divE()
     print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
 
-    
+    rho_n       = -10 * nls.compute_moments('density')
+    rho_n       = af.sum(rho_n, 1)
+
+    nls.strang_timestep(dt)
+
+    rho_n_plus_one       = -10 * nls.compute_moments('density')
+    rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
+
+    # divE      = nls.fields_solver.compute_divE()
+    drho_dt = (rho_n_plus_one - rho_n) / dt
+    J1 = nls.fields_solver.J1
+    J2 = nls.fields_solver.J2
+
+    J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
+    J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
+
+    divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
+
+    print(af.mean(af.abs(drho_dt + divJ)[:, :, N_g:-N_g, N_g:-N_g]))
+
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 
 
