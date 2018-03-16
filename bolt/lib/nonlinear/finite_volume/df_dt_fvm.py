@@ -78,6 +78,8 @@ def df_dt_fvm(f, self):
         f_left = riemann_solver(self, f_left_minus_eps, f_left_plus_eps, self._C_q1)
         f_bot  = riemann_solver(self, f_bot_minus_eps, f_bot_plus_eps, self._C_q2)
 
+        self.f_left = f_left
+
         left_flux = multiply(self._C_q1, f_left)
         bot_flux  = multiply(self._C_q2, f_bot)
 
@@ -180,6 +182,9 @@ def df_dt_fvm(f, self):
         f_bot_p2  = riemann_solver(self, f_bot_minus_eps, f_bot_plus_eps, self._C_p2)
         f_back_p3 = riemann_solver(self, f_back_minus_eps, f_back_plus_eps, self._C_p3)
         
+        self.f_left_p1 = self._convert_to_q_expanded(f_left_p1)
+        self.f_right_p1 = self._convert_to_q_expanded(af.shift(f_left_p1, -1))
+
         left_flux_p1 = multiply(self._C_p1, f_left_p1)
         bot_flux_p2  = multiply(self._C_p2, f_bot_p2)
         back_flux_p3 = multiply(self._C_p3, f_back_p3)

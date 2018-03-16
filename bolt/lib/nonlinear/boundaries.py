@@ -159,7 +159,7 @@ def apply_dirichlet_bcs_f(self, boundary):
     
     if(self.physical_system.params.solver_method_in_q == 'FVM'):
         velocity_q1, velocity_q2 = \
-            af.broadcast(self._C_q, self.f, self.time_elapsed, 
+            af.broadcast(self._C_q, self.time_elapsed, 
                          self.q1_center, self.q2_center,
                          self.p1_center, self.p2_center, self.p3_center,
                          self.physical_system.params
@@ -167,7 +167,7 @@ def apply_dirichlet_bcs_f(self, boundary):
 
     else:
         velocity_q1, velocity_q2 = \
-            af.broadcast(self._A_q, self.f, self.time_elapsed, 
+            af.broadcast(self._A_q, self.time_elapsed, 
                          self.q1_center, self.q2_center,
                          self.p1_center, self.p2_center, self.p3_center,
                          self.physical_system.params

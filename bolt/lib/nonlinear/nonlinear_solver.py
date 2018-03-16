@@ -494,7 +494,7 @@ class nonlinear_solver(object):
             self.fields_solver = fields_solver(self.physical_system, rho_initial, 
                                                self.performance_test_flag
                                               )
-        
+            
     # Injection of solver functions into class as methods:
     _communicate_f = communicate.\
                      communicate_f

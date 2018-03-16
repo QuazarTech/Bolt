@@ -81,7 +81,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_n       = af.sum(rho_n, 1)
 
     nls.strang_timestep(dt)
-    print(af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g]) - initial_sum)
+    # print(af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g]) - initial_sum)
     rho_n_plus_one       = -1 * nls.compute_moments('density')
     rho_n_plus_one[0, 1] = -1 * rho_n_plus_one[0, 1]
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
@@ -96,8 +96,10 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
 
-    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ)[:, :, N_g:-N_g, N_g:-N_g])
-    # print(data[time_index + 1])
+    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ)[:, :, 4:-4, 4:-4])
+    
+    print(data[time_index + 1])
+    print()
 
     if(time_index % 10 == 0):
         pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
@@ -117,26 +119,26 @@ for time_index, t0 in enumerate(time_array[1:]):
         pl.savefig('images/%04d'%(time_index / 10) + '.png')
         pl.clf()
 
-pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(nls.f[:, 0, 64, 1]).ravel())
-pl.ylabel(r'f')
-pl.xlabel(r'v')
-pl.savefig('plot.png')
-pl.clf()
-
-pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(af.sum(nls.f[:, 0, :, 1], 2)).ravel())
-pl.ylabel(r'f')
-pl.xlabel(r'v')
-pl.savefig('plot2.png')
-pl.clf()
-
-# pl.plot(time_array, data)
-# pl.ylabel('Error')
-# pl.xlabel('Time')
+# pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(nls.f[:, 0, 64, 1]).ravel())
+# pl.ylabel(r'f')
+# pl.xlabel(r'v')
 # pl.savefig('plot.png')
 # pl.clf()
 
-# pl.semilogy(time_array, data)
-# pl.ylabel('Error')
-# pl.xlabel('Time')
-# pl.savefig('semilogyplot.png')
+# pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(af.sum(nls.f[:, 0, :, 1], 2)).ravel())
+# pl.ylabel(r'f')
+# pl.xlabel(r'v')
+# pl.savefig('plot2.png')
 # pl.clf()
+
+pl.plot(time_array, data)
+pl.ylabel('Error')
+pl.xlabel('Time')
+pl.savefig('plot.png')
+pl.clf()
+
+pl.semilogy(time_array, data)
+pl.ylabel('Error')
+pl.xlabel('Time')
+pl.savefig('semilogyplot.png')
+pl.clf()

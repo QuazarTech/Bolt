@@ -49,7 +49,7 @@ c   = 1. # |c| units(c)
 p_dim = 3
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 2
+num_devices = 4
 
 # Mass of electron and ion:
 m_e = 1 * m0

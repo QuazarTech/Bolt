@@ -101,6 +101,9 @@ rho_data_nls[0] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
 
 f_initial = nls.f.copy()
 
+nls.data = np.zeros(time_array.size)
+nls.count = 0
+
 for time_index, t0 in enumerate(time_array[1:]):
 
     # nls.strang_timestep(dt)
@@ -113,13 +116,10 @@ for time_index, t0 in enumerate(time_array[1:]):
     n_nls                      = nls.compute_moments('density')
     rho_data_nls[time_index+1] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
 
-    rho   = -10 * n_nls
-    rho_b = af.mean(rho[:, :, N_g:-N_g, N_g:-N_g]) # background
-    divE  = nls.fields_solver.compute_divE()
-    print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+    rho_n = -10 * nls.compute_moments('density')
+    rho_n = af.sum(rho_n, 1)
 
-    rho_n       = -10 * nls.compute_moments('density')
-    rho_n       = af.sum(rho_n, 1)
+    # nls.fields_solver.check_maxwells_contraint_equations(rho_n)
 
     nls.strang_timestep(dt)
 
@@ -136,25 +136,25 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
 
-    print(af.mean(af.abs(drho_dt + divJ)[:, :, N_g:-N_g, N_g:-N_g]))
+    print(af.mean(af.abs(drho_dt + divJ)[:, :, 4:-4, 4:-4]))
 
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
+pl.plot(time_array, nls.data, label = 'Nonlinear Solver')
 # pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($n$)')
+pl.ylabel('Error')
 pl.xlabel('Time')
-pl.legend()
+# pl.legend()
 pl.savefig('n.png')
 pl.savefig('n.svg')
 pl.clf()
 
-pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
+pl.semilogy(time_array, nls.data, label = 'Nonlinear Solver')
 # pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
-pl.ylabel(r'MAX($n$)')
+pl.ylabel('Error')
 pl.xlabel('Time')
-pl.legend()
+# pl.legend()
 pl.savefig('n_semilogy.png')
 pl.savefig('n_semilogy.svg')
 pl.clf()
