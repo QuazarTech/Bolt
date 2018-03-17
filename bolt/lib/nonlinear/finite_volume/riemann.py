@@ -28,7 +28,7 @@ def riemann_solver(self, left_state, right_state, velocity):
     try:
         assert(velocity.shape[2] == left_state.shape[2])
     except:
-        velocity = af.tile(self._C_q1, 1, 1, 
+        velocity = af.tile(velocity, 1, 1, 
                            left_state.shape[2], left_state.shape[3]
                           )
 
