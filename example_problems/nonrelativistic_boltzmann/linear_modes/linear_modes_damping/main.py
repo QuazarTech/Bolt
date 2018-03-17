@@ -134,9 +134,9 @@ for time_index, t0 in enumerate(time_array[1:]):
     J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
     J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
 
-    divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
+    divJ = (J1_plus_q1 - J1) / nls.dq1 + 0*(J2_plus_q2 - J2) / nls.dq2
 
-    print(af.mean(af.abs(drho_dt + divJ)[:, :, 4:-4, 4:-4]))
+    print(af.mean(af.abs(drho_dt + divJ)[:, :, 3:-3, 3:-3]))
 
     # n_ls                        = ls.compute_moments('density')
     # rho_data_ls[time_index + 1] = af.max(n_ls) 

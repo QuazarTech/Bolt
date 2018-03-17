@@ -76,6 +76,8 @@ initial_sum = af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g])
 
 for time_index, t0 in enumerate(time_array[1:]):
 
+    nls._communicate_f()
+
     rho_n       = -1 * nls.compute_moments('density')
     rho_n[0, 1] = -1 * rho_n[0, 1]
     rho_n       = af.sum(rho_n, 1)
@@ -94,10 +96,10 @@ for time_index, t0 in enumerate(time_array[1:]):
     J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
     J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
 
-    divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
+    divJ = (J1_plus_q1 - J1) / nls.dq1 + 0*(J2_plus_q2 - J2) / nls.dq2
 
-    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ)[:, :, 4:-4, 4:-4])
-    
+    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ))
+    print(nls,fields_solver.check_maxwells_constraint_equations(-10 * nls.compute_moments('density')))
     print(data[time_index + 1])
     print()
 

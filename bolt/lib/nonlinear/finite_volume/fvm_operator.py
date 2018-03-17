@@ -18,7 +18,7 @@ def timestep_fvm(self, dt):
     dt : double
          Time-step size to evolve the system
     """
-    # self.fields_solver.check_maxwells_contraint_equations(-10 * self.compute_moments('density'))
+    # self.fields_solver.check_maxwells_contraint_equations(af.sum(-10 * self.compute_moments('density'), 1))
 
     # rho_n       = -1 * self.compute_moments('density')
     # rho_n[0, 1] = -1 * rho_n[0, 1]
