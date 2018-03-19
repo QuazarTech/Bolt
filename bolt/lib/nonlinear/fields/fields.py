@@ -32,7 +32,7 @@ class fields_solver(object):
 
     # Computing divB at cell centers
     def compute_divE(self):
-        
+      
         E1 = self.yee_grid_EM_fields[0]
         E2 = self.yee_grid_EM_fields[1]
 
@@ -47,13 +47,12 @@ class fields_solver(object):
         N_g = self.N_g
 
         PETSc.Sys.Print("Initial Maxwell's Constraints:")
-        PETSc.Sys.Print('MEAN(|divB|) =', af.mean(af.abs(self.compute_divB()[:, :, (N_g + 1):-(N_g + 1), (N_g + 1):-(N_g + 1)])))
-        divE  = self.compute_divE()
+        PETSc.Sys.Print('MEAN(|divB|) =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
 
         rho_by_eps = rho / self.params.eps
         rho_b      = af.mean(rho_by_eps) # background
         divE       = self.compute_divE()
-        PETSc.Sys.Print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, (N_g + 1):-(N_g + 1), (N_g + 1):-(N_g + 1)]))
+        PETSc.Sys.Print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
 
         # Appropriately raising exceptions:
         # Checking for ∇.B = 0

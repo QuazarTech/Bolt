@@ -369,4 +369,4 @@ def test_fdtd_mode2_mirror():
     assert (abs(poly_E2[0] + 2) < 0.2)
     assert (abs(poly_B3[0] + 2) < 0.2)
 
-test_fdtd_mode1_mirror()
+test_fdtd_mode1_periodic()
