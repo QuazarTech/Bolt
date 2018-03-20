@@ -68,14 +68,24 @@ dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
 time_array = np.arange(0, params.t_final + dt, dt)
-data       = np.zeros(time_array.size)
+# Array used to hold the value of MEAN(|divE - rho|)
+gauss_law  = np.zeros(time_array.size)
+# Array used to hold the value of MEAN(|d(rho)/dt + divJ|)
+continuity = np.zeros(time_array.size)
 
-data[0] = 0
+continuity[0] = 0
 
-initial_sum = af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g])
+# Gauss' Law:
+rho       = -1 * nls.compute_moments('density')
+rho[0, 1] = -1 * rho[0, 1]
+rho       = af.sum(rho, 1)
+
+divE = nls.fields_solver.compute_divE()
+gauss_law[0] = af.mean(af.abs(divE - rho))
 
 for time_index, t0 in enumerate(time_array[1:]):
 
+    # Applying periodic boundary conditions:
     nls._communicate_f()
 
     rho_n       = -1 * nls.compute_moments('density')
@@ -83,64 +93,37 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_n       = af.sum(rho_n, 1)
 
     nls.strang_timestep(dt)
-    # print(af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g]) - initial_sum)
+
     rho_n_plus_one       = -1 * nls.compute_moments('density')
     rho_n_plus_one[0, 1] = -1 * rho_n_plus_one[0, 1]
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
 
-    # divE      = nls.fields_solver.compute_divE()
+    divE = nls.fields_solver.compute_divE()
+    gauss_law[time_index + 1] = af.mean(af.abs(divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])
+
     drho_dt = (rho_n_plus_one - rho_n) / dt
+
     J1 = nls.fields_solver.J1
     J2 = nls.fields_solver.J2
 
     J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
     J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
 
-    divJ = (J1_plus_q1 - J1) / nls.dq1 + 0*(J2_plus_q2 - J2) / nls.dq2
+    divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
 
-    data[time_index + 1] = af.mean(af.abs(drho_dt + divJ))
-    print(nls,fields_solver.check_maxwells_constraint_equations(-10 * nls.compute_moments('density')))
-    print(data[time_index + 1])
+    continuity[time_index + 1] = af.mean(af.abs(drho_dt + divJ))
+    print(continuity[time_index + 1])
+    print(gauss_law[time_index + 1])
     print()
 
-    if(time_index % 10 == 0):
-        pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
-                np.array(nls.compute_moments('density')[:, 0, 3:-3, 0]).ravel(),
-                label = 'Electrons'
-               )
-        pl.plot(np.array(nls.q1_center[:, :, 3:-3, 0]).ravel(),
-                np.array(nls.compute_moments('density')[:, 1, 3:-3, 0]).ravel(),
-                '--', color = 'C3',
-                label = 'Positrons'
-               )
-        pl.ylim([0, 0.01])
-        pl.ylabel(r'$n$')
-        pl.xlabel(r'$x$')
-        pl.legend()
-        pl.title('Time = %.2f'%t0)
-        pl.savefig('images/%04d'%(time_index / 10) + '.png')
-        pl.clf()
-
-# pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(nls.f[:, 0, 64, 1]).ravel())
-# pl.ylabel(r'f')
-# pl.xlabel(r'v')
-# pl.savefig('plot.png')
-# pl.clf()
-
-# pl.plot(np.array(nls.p1_center[:, 0]).ravel(), np.array(af.sum(nls.f[:, 0, :, 1], 2)).ravel())
-# pl.ylabel(r'f')
-# pl.xlabel(r'v')
-# pl.savefig('plot2.png')
-# pl.clf()
-
-pl.plot(time_array, data)
-pl.ylabel('Error')
+pl.semilogy(time_array, continuity)
+pl.ylabel(r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')
 pl.xlabel('Time')
-pl.savefig('plot.png')
+pl.savefig('continuity.png')
 pl.clf()
 
-pl.semilogy(time_array, data)
-pl.ylabel('Error')
+pl.semilogy(time_array, gauss_law)
+pl.ylabel(r'$|\nabla \cdot \vec{E} - \rho|$')
 pl.xlabel('Time')
-pl.savefig('semilogyplot.png')
+pl.savefig('gauss_law.png')
 pl.clf()

@@ -30,7 +30,7 @@ class fields_solver(object):
         divB = (B1_plus_q1 - B1) / self.dq1 + (B2_plus_q2 - B2) / self.dq2
         return(divB)
 
-    # Computing divB at cell centers
+    # Computing divE at cell centers
     def compute_divE(self):
       
         E1 = self.yee_grid_EM_fields[0]
