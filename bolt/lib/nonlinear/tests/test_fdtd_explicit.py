@@ -82,8 +82,7 @@ class test_periodic(object):
         self.fields_solver = fields_solver(system, 
                                            af.constant(0, 1, 1, int(N)+6, int(N)+6, 
                                                        dtype = af.Dtype.f64
-                                                      ), 
-                                           False
+                                                      )
                                           )
 
         return
@@ -107,8 +106,7 @@ class test_mirror(object):
         self.fields_solver = fields_solver(system, 
                                            af.constant(0, 1, 1, int(N)+6, int(N)+6, 
                                                        dtype = af.Dtype.f64
-                                                      ), 
-                                           False
+                                                      ) 
                                           )
 
         return
@@ -122,13 +120,13 @@ def test_fdtd_mode1_periodic():
     error_E3 = np.zeros(N.size)
 
     for i in range(N.size):
-
+        af.device_gc()
         dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
         time = np.arange(dt, np.sqrt(9/5) + dt, dt)
 
         params.dt = dt
 
-        obj = test_periodic(N[i], initialize_fdtd_mode1, params)
+        obj = test_periodic(int(N[i]), initialize_fdtd_mode1, params)
         N_g = obj.fields_solver.N_g
 
         E3_initial = obj.fields_solver.yee_grid_EM_fields[2].copy()
@@ -370,3 +368,4 @@ def test_fdtd_mode2_mirror():
     assert (abs(poly_B3[0] + 2) < 0.2)
 
 test_fdtd_mode1_periodic()
+test_fdtd_mode2_periodic()

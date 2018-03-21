@@ -52,7 +52,7 @@ class fields_solver(object):
         rho_by_eps = rho / self.params.eps
         rho_b      = af.mean(rho_by_eps) # background
         divE       = self.compute_divE()
-        PETSc.Sys.Print('MEAN(|divE-rho|) =', af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+        PETSc.Sys.Print('MEAN(|divE-rho|) =', af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g])))
 
         # Appropriately raising exceptions:
         # Checking for ∇.B = 0
@@ -63,10 +63,10 @@ class fields_solver(object):
 
         # Checking for ∇.E = ρ/ε:
         # TODO: Need to look into this further:
-        # try:
-        #     assert(af.mean(af.abs(divE - rho + rho_b)[:, :, N_g:-N_g, N_g:-N_g])<1e-7)
-        # except:
-        #     raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
+        try:
+            assert(af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))<1e-7)
+        except:
+            raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
 
     def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """
@@ -111,6 +111,7 @@ class fields_solver(object):
         self.initialize          = physical_system.initial_conditions
 
         self.performance_test_flag   = performance_test_flag
+        
         self.time_fieldsolver        = 0
         self.time_apply_bcs_fields   = 0
         self.time_communicate_fields = 0
