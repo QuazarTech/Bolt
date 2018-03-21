@@ -46,7 +46,7 @@ mu  = 1. # |mu0| units(mu0)
 c   = 1. # |c| units(c)
 
 # Dimensionality considered in velocity space:
-p_dim = 3
+p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
@@ -61,13 +61,13 @@ l0 = 1 # Box Length
 t0 = l0 / v0
 
 # Time parameters:
-N_cfl   = 0.1
+N_cfl   = 0.3
 t_final = 10 * t0
 
 # Switch for solver components:
 fields_enabled           = False
-source_enabled           = False
-instantaneous_collisions = True
+source_enabled           = True 
+instantaneous_collisions = False 
 
 # File-writing Parameters:
 # Set to zero for no file-writing
@@ -75,9 +75,9 @@ dt_dump_f       = 1    * t0
 dt_dump_moments = 0.01 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 0 * t0
+t_restart = 1 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0 * t0 * p1**0 * q1**0)
+    return (0.0001 * t0 * p1**0 * q1**0)

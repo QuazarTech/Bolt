@@ -138,7 +138,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.054 + params.dt_dump_moments, 
+time_array = np.arange(0, 1.02 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 

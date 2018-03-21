@@ -27,7 +27,10 @@ system = physical_system(domain,
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-print(af.min(nls.f))
+
+print(af.max(nls.compute_moments('density')))
+print(af.min(nls.compute_moments('density')))
+
 N_g = nls.N_ghost
 
 # Time parameters:
