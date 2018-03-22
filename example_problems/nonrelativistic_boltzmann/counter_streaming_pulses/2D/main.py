@@ -20,7 +20,7 @@ import bolt.src.nonrelativistic_boltzmann.moments as moments
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
 pl.rcParams['figure.dpi']      = 100
-pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['image.cmap']      = 'bwr_r'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
@@ -80,8 +80,8 @@ rho       = -1 * nls.compute_moments('density')
 rho[0, 1] = -1 * rho[0, 1]
 rho       = af.sum(rho, 1)
 
-divE = nls.fields_solver.compute_divE()
-gauss_law[0] = af.mean(af.abs(divE - rho))
+# divE = nls.fields_solver.compute_divE()
+# gauss_law[0] = af.mean(af.abs(divE - rho))
 
 for time_index, t0 in enumerate(time_array[1:]):
 
@@ -90,6 +90,25 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     rho_n       = -1 * nls.compute_moments('density')
     rho_n[0, 1] = -1 * rho_n[0, 1]
+
+    pl.contourf(np.array(nls.q1_center[:, :, 3:-3, 3:-3]).reshape(256, 256), 
+                np.array(nls.q2_center[:, :, 3:-3, 3:-3]).reshape(256, 256), 
+                np.array(rho_n[0, 0, 3:-3, 3:-3] + rho_n[0, 1, 3:-3, 3:-3]).reshape(256, 256),
+                np.linspace(-0.01, 0.01, 100)
+               )
+
+    # pl.contourf(np.array(nls.q1_center[:, :, 3:-3, 3:-3]).reshape(256, 256), 
+    #             np.array(nls.q2_center[:, :, 3:-3, 3:-3]).reshape(256, 256), 
+    #             np.array(rho_n[0, 1, 3:-3, 3:-3]).reshape(256, 256), 100,
+    #             alpha = 0.5
+    #            )
+
+    pl.colorbar()
+    pl.gca().set_aspect('equal')
+    pl.title('Time = %.2f'%(t0-dt))
+    pl.savefig('images/%04d'%time_index + '.png')
+    pl.clf()
+
     rho_n       = af.sum(rho_n, 1)
 
     nls.strang_timestep(dt)
@@ -100,7 +119,7 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     divE = nls.fields_solver.compute_divE()
 
-    divE_minus_rho = np.array(af.abs((divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])).reshape(32, 32)
+    divE_minus_rho = np.array(af.abs((divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])).reshape(256, 256)
 
     drho_dt = (rho_n_plus_one - rho_n) / dt
 
@@ -119,19 +138,19 @@ for time_index, t0 in enumerate(time_array[1:]):
     print(gauss_law[time_index + 1])
     print()
 
-    # pl.contourf(divE_minus_rho, 100)
-    # pl.colorbar()
-    # pl.savefig('images/%04d'%time_index + '.png')
-    # pl.clf()
+    pl.contourf(divE_minus_rho, 100)
+    pl.colorbar()
+    pl.savefig('images/%04d'%time_index + '.png')
+    pl.clf()
 
-pl.semilogy(time_array, continuity)
-pl.ylabel(r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')
-pl.xlabel('Time')
-pl.savefig('continuity.png')
-pl.clf()
+# pl.semilogy(time_array, continuity)
+# pl.ylabel(r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')
+# pl.xlabel('Time')
+# pl.savefig('continuity.png')
+# pl.clf()
 
-pl.semilogy(time_array, gauss_law)
-pl.ylabel(r'$|\nabla \cdot \vec{E} - \rho|$')
-pl.xlabel('Time')
-pl.savefig('gauss_law.png')
-pl.clf()
+# pl.semilogy(time_array, gauss_law)
+# pl.ylabel(r'$|\nabla \cdot \vec{E} - \rho|$')
+# pl.xlabel('Time')
+# pl.savefig('gauss_law.png')
+# pl.clf()
