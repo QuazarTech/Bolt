@@ -42,13 +42,13 @@ e0  = 1 # |e| units(e)
 k0  = 1 # |k| units(k)
 mu  = 1 # |mu0| units(mu0)
 
-l0 = length_scales.debye_length(n0, T0, e0, k0, eps)
-t0 = 1 / time_scales.plasma_frequency(n0, e0, m0, eps)
-v0 = l0 / t0
+v0 = velocity_scales.thermal_speed(T0, m0, k0)
 
 # Setting permeability:
 c   = 9 * v0 # |c| units(c)
 eps = 1 / (c**2 * mu)
+l0  = length_scales.debye_length(n0, T0, e0, k0, eps)
+t0  = 1 / time_scales.plasma_frequency(n0, e0, m0, eps)
 
 # Dimensionality considered in velocity space:
 p_dim = 1
