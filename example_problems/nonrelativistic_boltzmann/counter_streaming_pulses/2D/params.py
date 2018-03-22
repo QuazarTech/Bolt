@@ -48,7 +48,7 @@ v0 = velocity_scales.thermal_speed(T0, m0, k0)
 c   = 9 * v0 # |c| units(c)
 eps = 1 / (c**2 * mu)
 l0  = length_scales.debye_length(n0, T0, e0, k0, eps)
-t0  = 1 / time_scales.plasma_frequency(n0, e0, m0, eps)
+t0  = l0 / v0
 
 # Dimensionality considered in velocity space:
 p_dim = 1

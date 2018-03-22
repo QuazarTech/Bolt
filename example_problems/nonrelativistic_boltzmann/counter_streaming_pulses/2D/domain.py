@@ -1,7 +1,7 @@
 from params import p_dim, l0, v0
 
-q1_start = 0 * l0
-q1_end   = 1 * l0
+q1_start = 0  * l0
+q1_end   = 10 * l0
 N_q1     = 256
 
 q2_start = 0 * l0
