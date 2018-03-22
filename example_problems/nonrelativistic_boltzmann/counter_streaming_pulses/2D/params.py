@@ -40,12 +40,15 @@ T0  = 1 # |T| units(T)
 m0  = 1 # |m_p| units(m)
 e0  = 1 # |e| units(e)
 k0  = 1 # |k| units(k)
-eps = 1 # |eps0| units(eps0)
 mu  = 1 # |mu0| units(mu0)
 
 l0 = length_scales.debye_length(n0, T0, e0, k0, eps)
 t0 = 1 / time_scales.plasma_frequency(n0, e0, m0, eps)
 v0 = l0 / t0
+
+# Setting permeability:
+c   = 9 * v0 # |c| units(c)
+eps = 1 / (c**2 * mu)
 
 # Dimensionality considered in velocity space:
 p_dim = 1

@@ -10,11 +10,11 @@ N_q2     = 256
 
 p1_start = -9 * v0
 p1_end   = 9  * v0
-N_p1     = 20
+N_p1     = 18
 
 p2_start = -9 * v0
 p2_end   = 9  * v0
-N_p2     = 20
+N_p2     = 18
 
 p3_start = -0.5
 p3_end   = 0.5

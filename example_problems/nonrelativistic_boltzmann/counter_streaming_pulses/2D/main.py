@@ -103,7 +103,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     #             alpha = 0.5
     #            )
 
-    pl.colorbar()
+    # pl.colorbar()
     pl.gca().set_aspect('equal')
     pl.title('Time = %.2f'%(t0-dt))
     pl.savefig('images/%04d'%time_index + '.png')
@@ -138,10 +138,10 @@ for time_index, t0 in enumerate(time_array[1:]):
     print(gauss_law[time_index + 1])
     print()
 
-    pl.contourf(divE_minus_rho, 100)
-    pl.colorbar()
-    pl.savefig('images/%04d'%time_index + '.png')
-    pl.clf()
+    # pl.contourf(divE_minus_rho, 100)
+    # pl.colorbar()
+    # pl.savefig('images/%04d'%time_index + '.png')
+    # pl.clf()
 
 # pl.semilogy(time_array, continuity)
 # pl.ylabel(r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')
