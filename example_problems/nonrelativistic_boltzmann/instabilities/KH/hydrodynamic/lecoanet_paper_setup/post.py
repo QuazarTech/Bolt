@@ -138,7 +138,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 1.02 + params.dt_dump_moments, 
+time_array = np.arange(0, params.t_final + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -179,6 +179,7 @@ def plot_2d():
         fig = pl.figure()
 
         ax1 = fig.add_subplot(1, 1, 1)
+        ax1.set_aspect('equal')
         c1 = ax1.contourf(q1, q2, n[:, :, 0], np.linspace(0.99 * n_min, 1.01 * n_max, 100))
         # fig.tight_layout()
         fig.colorbar(c1)

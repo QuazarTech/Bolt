@@ -41,9 +41,7 @@ m0  = 1. # |m_p| units(m)
 e0  = 1. # |e| units(e)
 k0  = 1. # |k| units(k)
 E0  = 1. # |E| units(E)
-eps = 1. # |eps0| units(eps0)
 mu  = 1. # |mu0| units(mu0)
-c   = 1. # |c| units(c)
 
 # Dimensionality considered in velocity space:
 p_dim = 3
@@ -76,6 +74,10 @@ B1 = np.sqrt(2 * mu * n_left * T_left / plasma_beta)
 t0 = 1 / time_scales.cyclotron_frequency(B1, e_i, m_i)
 v0 = velocity_scales.alfven_velocity(B1, n_left, m_i, mu)
 l0 = v0 * t0 # ion skin depth
+
+# Setting permeability:
+c   = 30 * v0 # |c| units(c)
+eps = 1 / (c**2 * mu)
 
 # Setting bulk velocity of left boundary:
 # Also setup as initial conditions throughout domain:

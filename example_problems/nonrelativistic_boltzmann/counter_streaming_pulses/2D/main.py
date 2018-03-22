@@ -99,7 +99,8 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
 
     divE = nls.fields_solver.compute_divE()
-    gauss_law[time_index + 1] = af.mean(af.abs(divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])
+
+    divE_minus_rho = np.array(af.abs((divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])).reshape(32, 32)
 
     drho_dt = (rho_n_plus_one - rho_n) / dt
 
@@ -112,9 +113,16 @@ for time_index, t0 in enumerate(time_array[1:]):
     divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
 
     continuity[time_index + 1] = af.mean(af.abs(drho_dt + divJ))
+    gauss_law[time_index + 1]  = np.mean(divE_minus_rho)
+    
     print(continuity[time_index + 1])
     print(gauss_law[time_index + 1])
     print()
+
+    # pl.contourf(divE_minus_rho, 100)
+    # pl.colorbar()
+    # pl.savefig('images/%04d'%time_index + '.png')
+    # pl.clf()
 
 pl.semilogy(time_array, continuity)
 pl.ylabel(r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')

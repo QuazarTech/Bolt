@@ -33,6 +33,8 @@ class fields_solver(object):
     # Computing divE at cell centers
     def compute_divE(self):
       
+        communicate.communicate_fields(self, True)
+        
         E1 = self.yee_grid_EM_fields[0]
         E2 = self.yee_grid_EM_fields[1]
 
@@ -47,24 +49,26 @@ class fields_solver(object):
         N_g = self.N_g
 
         PETSc.Sys.Print("Initial Maxwell's Constraints:")
-        PETSc.Sys.Print('MEAN(|divB|) =', af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g])))
+        mean_divB = af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))
+        PETSc.Sys.Print('MEAN(|divB|) =', mean_divB)
 
-        rho_by_eps = rho / self.params.eps
-        rho_b      = af.mean(rho_by_eps) # background
-        divE       = self.compute_divE()
-        PETSc.Sys.Print('MEAN(|divE-rho|) =', af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g])))
+        rho_by_eps     = rho / self.params.eps
+        rho_b          = af.mean(rho_by_eps) # background
+        divE           = self.compute_divE()
+        mean_gauss_law = af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
+        PETSc.Sys.Print('MEAN(|divE-rho|) =', mean_gauss_law)
 
         # Appropriately raising exceptions:
         # Checking for ∇.B = 0
         try:
-            assert(af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))<1e-10)
+            assert(mean_divB < 1e-10)
         except:
             raise SystemExit('divB contraint isn\'t preserved')
 
         # Checking for ∇.E = ρ/ε:
         # TODO: Need to look into this further:
         try:
-            assert(af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))<1e-7)
+            assert(mean_gauss_law < 1e-7)
         except:
             raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
 
