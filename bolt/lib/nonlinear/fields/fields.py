@@ -67,10 +67,10 @@ class fields_solver(object):
 
         # Checking for ∇.E = ρ/ε:
         # TODO: Need to look into this further:
-        try:
-            assert(mean_gauss_law < 1e-7)
-        except:
-            raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
+        # try:
+        #     assert(mean_gauss_law < 1e-7)
+        # except:
+        #     raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
 
     def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """

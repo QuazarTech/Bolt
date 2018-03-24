@@ -24,7 +24,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v2_bulk_electron = params.v2_bulk_electron
     v2_bulk_positron = params.v2_bulk_positron
 
-    n = n_b + 0.01 * af.exp(-1000 * (q1 - 0.55)**2 -1000 * (q2 - 0.55)**2)
+    n = n_b + 0.1 * af.exp(-10 * (q1 - 5)**2 -10 * (q2 - 5)**2)
 
     f_e = n * (m_e / (2 * np.pi * k * T_b)) \
             * af.exp(-m_e * (v1[:, 0] - v1_bulk_electron)**2 / (2 * k * T_b)) \
@@ -40,14 +40,18 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     return (f)
 
 def initialize_E(q1, q2, params):
+
     E1 = 0 * q1**0
     E2 = 0 * q1**0
     E3 = 0 * q1**0
 
     return(E1, E2, E3)
 
-def initialize_A3_B3(q1, q2, params):
-    A3 = 0 * q1**0
+def initialize_B(q1, q2, params):
+
+    B1 = params.B1 * q1**0
+    B2 = 0 * q1**0
     B3 = 0 * q1**0
 
-    return(A3, B3)
+    af.eval(B1, B2, B3)
+    return(B1, B2, B3)

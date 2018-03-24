@@ -35,13 +35,13 @@ def cyclotron_frequency(B, e, m):
     omega = e * B / m
     return(omega)
 
-def alfven_time(l, B, n, m, mu):
+def alfven_crossing_time(l, B, n, m, mu):
     """
     Returns the Alfven time 
 
     Parameters:
     -----------
-    l:  characteristic length scale of the system.
+    l:  Box scale.
     
     B:  magnitude of magnetic field
     
@@ -54,3 +54,21 @@ def alfven_time(l, B, n, m, mu):
     v_a   = B / np.sqrt(n * m * mu)
     tau_a = l / v_a
     return(tau_a)
+
+def sound_crossing_time(l, T, k, gamma):
+    """
+    Returns the sound crossing time 
+
+    Parameters:
+    -----------
+    l:  Box scale.
+    
+    T: mean temperature of the plasma
+
+    k: Boltzmann constant
+
+    gamma: adiabatic constant
+    """
+    c_s = np.sqrt(gamma * k * T)
+    tau = l / c_s
+    return(tau)
