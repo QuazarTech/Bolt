@@ -8,9 +8,9 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 6, 7.5
 pl.rcParams['figure.dpi']      = 100
-pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['image.cmap']      = 'bwr'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
@@ -138,7 +138,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, params.t_final + params.dt_dump_moments, 
+time_array = np.arange(0, 5 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -180,10 +180,12 @@ def plot_2d():
 
         ax1 = fig.add_subplot(1, 1, 1)
         ax1.set_aspect('equal')
-        c1 = ax1.contourf(q1, q2, n[:, :, 0], np.linspace(0.99 * n_min, 1.01 * n_max, 100))
+        c1 = ax1.contourf(q1, q2, n[:, :, 0], np.linspace(0.99 * n_min, 1.01 * n_max, 250))
         # fig.tight_layout()
+        ax1.set_xlabel(r'$\frac{x}{L_0}$')
+        ax1.set_ylabel(r'$\frac{y}{L_0}$')
         fig.colorbar(c1)
-        fig.suptitle('Time = %.2f'%t0)
+        fig.suptitle('Time = %.2f'%(t0/params.t0) + r'$\frac{L_0}{c_s}$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()
