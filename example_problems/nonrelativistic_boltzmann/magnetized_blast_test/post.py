@@ -138,7 +138,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 4.22 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -171,7 +171,7 @@ def determine_min_max(quantity):
 n_min, n_max   = determine_min_max('density')
 v1_min, v1_max = determine_min_max('v1')
 p_min, p_max   = determine_min_max('pressure')
-B2_min, B2_max = determine_min_max('B2')
+B1_min, B1_max = determine_min_max('B1')
 
 def plot_1d():
 
@@ -185,43 +185,43 @@ def plot_1d():
         fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
         h5f.close()
 
-        # n  = return_array_to_be_plotted('density', moments, fields)
-        # v1 = return_array_to_be_plotted('v1', moments, fields)
-        # p  = return_array_to_be_plotted('pressure', moments, fields)
-        B2 = return_array_to_be_plotted('B2', moments, fields)
+        n  = return_array_to_be_plotted('density', moments, fields)
+        v1 = return_array_to_be_plotted('v1', moments, fields)
+        p  = return_array_to_be_plotted('pressure', moments, fields)
+        B1 = return_array_to_be_plotted('B1', moments, fields)
 
         fig = pl.figure()
 
-        # ax1 = fig.add_subplot(2, 2, 1)
-        # ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
-        # ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
-        # ax1.legend()
-        # ax1.set_xlabel(r'$x$')
-        # ax1.set_ylabel(r'$n$')
-        # ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
+        ax1 = fig.add_subplot(2, 2, 1)
+        ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
+        ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
+        ax1.legend()
+        ax1.set_xlabel(r'$x$')
+        ax1.set_ylabel(r'$n$')
+        ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
 
-        # ax2 = fig.add_subplot(2, 2, 2)
-        # ax2.plot(q1[:, 0], v1[:, 0, 0], color = 'C0')
-        # ax2.plot(q1[:, 0], v1[:, 0, 1], '--', color = 'C3')
-        # ax2.set_xlabel(r'$x$')
-        # ax2.set_ylabel(r'$v_x$')
-        # ax2.set_ylim([0.98 * v1_min, 1.02 * v1_max])
+        ax2 = fig.add_subplot(2, 2, 2)
+        ax2.plot(q1[:, 0], v1[:, 0, 0], color = 'C0')
+        ax2.plot(q1[:, 0], v1[:, 0, 1], '--', color = 'C3')
+        ax2.set_xlabel(r'$x$')
+        ax2.set_ylabel(r'$v_x$')
+        ax2.set_ylim([0.98 * v1_min, 1.02 * v1_max])
 
-        # ax3 = fig.add_subplot(2, 2, 3)
-        # ax3.plot(q1[:, 0], p[:, 0, 0], color = 'C0')
-        # ax3.plot(q1[:, 0], p[:, 0, 1], '--', color = 'C3')
-        # ax3.set_xlabel(r'$x$')
-        # ax3.set_ylabel(r'$p$')
-        # ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
+        ax3 = fig.add_subplot(2, 2, 3)
+        ax3.plot(q1[:, 0], p[:, 0, 0], color = 'C0')
+        ax3.plot(q1[:, 0], p[:, 0, 1], '--', color = 'C3')
+        ax3.set_xlabel(r'$x$')
+        ax3.set_ylabel(r'$p$')
+        ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
 
-        ax4 = fig.add_subplot(1, 1, 1)
-        ax4.plot(q1[:, 0], B2[:, 0])
-        ax4.set_xlabel(r'$\frac{x}{l_s}$')
-        ax4.set_ylabel(r'$B_y$')
-        ax4.set_ylim([1.02 * B2_min, 1.02 * B2_max])
+        ax4 = fig.add_subplot(2, 2, 4)
+        ax4.plot(q1[:, 0], B1[:, 0])
+        ax4.set_xlabel(r'$x$')
+        ax4.set_ylabel(r'$B_x$')
+        ax4.set_ylim([0.98 * B1_min, 1.02 * B1_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.2f'%(t0 / params.t0) + r' $\omega_g^{-1}$')
+        fig.suptitle('Time = %.2f'%t0)
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()
@@ -253,4 +253,4 @@ def plot_2d():
         pl.savefig('images/%04d'%time_index + '.png')
         pl.clf()
 
-plot_1d()
+plot_2d()

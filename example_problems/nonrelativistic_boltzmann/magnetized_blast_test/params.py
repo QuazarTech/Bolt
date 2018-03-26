@@ -56,9 +56,9 @@ PETSc.Sys.Print("Magnetic Permeability:", mu, "|mu0| units(mu0)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
-p_dim = 3
+p_dim = 2
 # p_dim sets the adiabatic constant gamma:
-gamma = 5 / 3
+gamma = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
@@ -79,20 +79,18 @@ charge             = [e_e, e_p]
 density_background     = 1   * n0
 temperature_background = 0.1 * T0
 
-plasma_beta = 0.2 # β = p / (B^2 / 2μ)
-# Setting magnetic field along x using plasma beta:
-B1 = np.sqrt(2 * mu * density_background * temperature_background / plasma_beta)
+B1 = 1
 
 # Velocity, length and time scales:
 t0 = 1 / time_scales.cyclotron_frequency(B1, e0, m0)
 v0 = velocity_scales.alfven_velocity(B1, density_background, m0, mu)
 l0 = v0 * t0 # positron skin depth
 
-# Setting the length of the box:
-L_x = L_y = 10 * l0
+L_x = 1   * l0
+L_y = 1.5 * l0
 
 # Setting Maximum Velocity of Phase Space Grid:
-v_max = 10 * v0
+v_max = 15 * v0
 
 # Calculating Permittivity:
 c   = v_max
@@ -115,8 +113,8 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B1, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Time parameters:
-N_cfl   = 0.2
-t_final = 20 * t0
+N_cfl   = 0.45
+t_final = 5 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -143,11 +141,11 @@ PETSc.Sys.Print("==================================================\n")
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Velocity Scales of the System           ")
 PETSc.Sys.Print("==================================================")
-PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
-PETSc.Sys.Print("Sound Speed          :", sound_speed)
-PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
-PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
+PETSc.Sys.Print("Thermal Speed   :", thermal_speed)
+PETSc.Sys.Print("Sound Speed     :", sound_speed)
+PETSc.Sys.Print("Alfven Velocity :", alfven_velocity)
+PETSc.Sys.Print("Velocity        :", v0)
+PETSc.Sys.Print("Maximum Velocity:", v_max / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")
@@ -157,10 +155,16 @@ PETSc.Sys.Print("Light Speed :", c / v0, "|v0| units(v0)")
 PETSc.Sys.Print("Permittivity:", eps)
 PETSc.Sys.Print("==================================================\n")
 
+v1_bulk_electron =  1 * v0
+v1_bulk_positron = -1 * v0
+
+v2_bulk_electron =  1 * v0
+v2_bulk_positron = -1 * v0
+
 # Switch for solver components:
 fields_enabled           = True
 source_enabled           = False
-instantaneous_collisions = False
+instantaneous_collisions = True
 
 # File-writing Parameters:
 # Set to zero for no file-writing
@@ -169,9 +173,9 @@ dt_dump_f       = 1 * t0
 dt_dump_moments = dt_dump_fields = 0.01 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 1 * t0
+t_restart = 0 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1e-3 * t0 * p1**0 * q1**0)
+    return (np.inf * t0 * p1**0 * q1**0)
