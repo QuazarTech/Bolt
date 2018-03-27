@@ -73,7 +73,9 @@ __pycache__/
 *.h5
 *.png
 *.svg
-*ffmpeg
+*.log*
+*ffmpeg*
+
 
 # Including Pictures under Documentation #
 ##########################################
