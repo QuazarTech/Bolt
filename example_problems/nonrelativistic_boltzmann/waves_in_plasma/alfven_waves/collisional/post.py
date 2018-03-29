@@ -70,7 +70,7 @@ def B3_analytic(q1, t):
     omega = 1j * B0 * params.k_q1 / np.sqrt(n_b)
 
     B3_analytic = params.amplitude * np.sqrt(n_b) * \
-                  np.exp(  1j * params.k_q1 * q1 
+                  np.exp(  1j * params.k_q1 * q1 / params.L_x
                          + omega * t
                         ).real
 
@@ -151,7 +151,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.16 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -245,14 +245,14 @@ def plot_1d():
 
         ax6 = fig.add_subplot(1, 1, 1)
         ax6.plot(q1[:, 0], B3[:, 0])
-        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0]-(1/64), t0) , '--', color = 'black')
+        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0]-(100/64), t0) , '--', color = 'black')
         # ax6.set_aspect('equal')
         ax6.set_xlabel(r'$\frac{x}{l_s}$')
         ax6.set_ylabel(r'$B_z$')
         ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.2f'%(t0 / params.t0) + r' $\omega_g^{-1}$')
+        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

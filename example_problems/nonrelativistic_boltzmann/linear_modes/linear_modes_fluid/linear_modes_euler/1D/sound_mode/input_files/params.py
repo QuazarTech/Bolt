@@ -10,8 +10,8 @@ fields_solver     = 'fdtd'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
@@ -23,9 +23,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = [1]
+mass               = [1, 1]
 boltzmann_constant = 1
-charge             = [0]
+charge             = [0, 0]
 
 # Initial Conditions used in initialize
 # NOTE: Density here is number density
@@ -41,7 +41,7 @@ N_cfl   = 0.32
 t_final = 0.5
 
 # Switch for solver components:
-fields_enabled        = False
+fields_enabled           = False
 source_enabled           = False
 instantaneous_collisions = True
 

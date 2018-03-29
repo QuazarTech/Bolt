@@ -29,10 +29,6 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
-print(af.max(nls.compute_moments('density')))
-print(af.max(nls.compute_moments('mom_v3_bulk')))
-print(af.min(nls.compute_moments('mom_v3_bulk')))
-
 # Time parameters:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
                   / max(domain.p1_end, domain.p2_end, domain.p3_end)
@@ -72,5 +68,14 @@ while(time_elapsed < params.t_final):
 
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
         nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
+
+    # print()
+    # print(af.sum(af.abs(nls.fields_solver.J1)))
+    # print(af.sum(af.abs(nls.fields_solver.J2)))
+    # print(af.sum(af.abs(nls.fields_solver.J3)))
+    # print()
+    # print(af.sum(af.abs(nls.compute_moments('mom_v1_bulk'))))
+    # print(af.sum(af.abs(nls.compute_moments('mom_v2_bulk'))))
+    # print(af.sum(af.abs(nls.compute_moments('mom_v3_bulk'))))
 
     PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")

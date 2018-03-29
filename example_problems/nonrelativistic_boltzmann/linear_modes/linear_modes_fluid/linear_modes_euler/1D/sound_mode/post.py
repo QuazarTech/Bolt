@@ -40,7 +40,10 @@ pl.rcParams['ytick.direction']  = 'in'
 
 
 eigval, eigvecs = solve_linear_modes(params)
-omega           = eigval[0]
+omega           = eigval[2]
+
+print(omega)
+
 # Defining the functions for the analytical solution:
 def n_analytic(q1, t):
     
@@ -71,15 +74,15 @@ q1 = domain.q1_start + (0.5 + np.arange(domain.N_q1)) * dq1
 for time_index, t0 in enumerate(time_array):
     
     h5f   = h5py.File('dump/%04d'%time_index + '.h5')
-    n_nls = h5f['moments'][:][0, :, 0].ravel()
+    n_nls = h5f['moments'][:][0, :, 1].ravel()
     h5f.close()
 
-    n_analytic = n_analytic(q1, t0)
+    n_ana = n_analytic(q1, t0)
 
     pl.plot(q1, n_nls, 
             label = 'Nonlinear Solver'
            )
-    pl.plot(q1, n_analytic, '--', color = 'black', 
+    pl.plot(q1, n_ana, '--', color = 'black', 
             label = 'Analytical'
            )
 

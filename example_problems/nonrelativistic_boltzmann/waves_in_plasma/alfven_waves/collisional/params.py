@@ -68,8 +68,8 @@ m_e = 1 * m0
 m_p = 1 * m0
 
 # Charge of electron and positron:
-e_e = -100 * e0
-e_p =  100 * e0
+e_e = -10 * e0
+e_p =  10 * e0
 
 mass               = [m_e, m_p]
 boltzmann_constant = k0
@@ -82,12 +82,12 @@ temperature_background = 1 * T0
 B0 = 1. # |B0| units(B0)
 
 # Velocity, length and time scales:
-t0 = 1 / time_scales.cyclotron_frequency(B0, e0, m0)
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = v0 * t0 # positron skin depth
+l0 = 100 # Box Length
+t0 = l0 / v0
 
 # Setting the length of the box:
-L_x = L_y = 1 * l0
+L_x = L_y = l0
 
 # Setting Maximum Velocity of Phase Space Grid:
 v_max = 8 * v0
@@ -117,7 +117,7 @@ amplitude = 0.001
 k_q1      = 2 * np.pi
 
 # Time parameters:
-N_cfl   = 0.2
+N_cfl   = 0.02
 t_final = 20 * t0
 
 PETSc.Sys.Print("==================================================")
@@ -168,7 +168,7 @@ instantaneous_collisions = True
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.01 * t0
+dt_dump_moments = dt_dump_fields = 0.0001 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0
