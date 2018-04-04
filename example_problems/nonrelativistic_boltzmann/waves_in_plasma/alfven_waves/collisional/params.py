@@ -68,8 +68,8 @@ m_e = 1 * m0
 m_p = 1 * m0
 
 # Charge of electron and positron:
-e_e = -10 * e0
-e_p =  10 * e0
+e_e = -1 * e0
+e_p =  1 * e0
 
 mass               = [m_e, m_p]
 boltzmann_constant = k0
@@ -83,7 +83,7 @@ B0 = 1. # |B0| units(B0)
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = 100 # Box Length
+l0 = 200 * np.pi # Box Length
 t0 = l0 / v0
 
 # Setting the length of the box:
@@ -114,7 +114,7 @@ sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperatur
 
 # Setting amplitude and wave number for perturbation:
 amplitude = 0.001
-k_q1      = 2 * np.pi
+k_q1      = 2 * np.pi / l0
 
 # Time parameters:
 N_cfl   = 0.02
@@ -162,7 +162,7 @@ PETSc.Sys.Print("==================================================\n")
 # Switch for solver components:
 fields_enabled           = True
 source_enabled           = False
-instantaneous_collisions = True
+instantaneous_collisions = False
 
 # File-writing Parameters:
 # Set to zero for no file-writing

@@ -19,17 +19,17 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v1_bulk   = 0
 
     # Assigning separate bulk velocities
-    v2_bulk_p =   params.amplitude * 1.9229717500626917e-05 * af.cos(params.k_q1 * q1 / params.L_x) \
-    			- params.amplitude * 0.00655786394798061 * af.sin(params.k_q1 * q1 / params.L_x)
+    v2_bulk_p =   params.amplitude * 0.29043147224897364 * af.cos(params.k_q1 * q1) \
+    			- params.amplitude * 0.005286752034648054 * af.sin(params.k_q1 * q1)
 
-    v2_bulk_e =   params.amplitude * 1.9229717500755067e-05 * af.cos(params.k_q1 * q1 / params.L_x) \
-                - params.amplitude * 0.012880830658175434 * af.sin(params.k_q1 * q1 / params.L_x)
+    v2_bulk_e =   params.amplitude * 0.29043147224897375 * af.cos(params.k_q1 * q1) \
+                - params.amplitude * 0.010063251560685632 * af.sin(params.k_q1 * q1)
     
-    v3_bulk_p =   params.amplitude * -0.447043712296218 * af.cos(params.k_q1 * q1 / params.L_x) \
-    			+ params.amplitude * 1.359813681541238e-07* af.sin(params.k_q1 * q1 / params.L_x)
+    v3_bulk_p =   params.amplitude * 0.3390205750548746 * af.cos(params.k_q1 * q1) \
+    			- params.amplitude * 0.002045634873296759* af.sin(params.k_q1 * q1)
 
-    v3_bulk_e =   params.amplitude * -0.4471811611874473 * af.cos(params.k_q1 * q1 / params.L_x) \
-                + params.amplitude * 1.3596110752436136e-07 * af.sin(params.k_q1 * q1 / params.L_x)
+    v3_bulk_e =   params.amplitude * 0.3391286917903521 * af.cos(params.k_q1 * q1) \
+                - params.amplitude * -0.0020456348732508928 * af.sin(params.k_q1 * q1)
 
     n = n_b + 0 * q1**0
 
@@ -49,20 +49,21 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     return (f)
 
 def initialize_E(q1, q2, params):
+
     E1 = 0 * q1**0
-    E2 =   params.amplitude * 0.44709008792832566 * af.cos(params.k_q1 * q1 / params.L_x) \
-         - params.amplitude * 1.5156847586912658e-10 * af.sin(params.k_q1 * q1 / params.L_x)
-    E3 =   params.amplitude * 1.9228157352076084e-05 * af.cos(params.k_q1 * q1 / params.L_x) \
-         - params.amplitude * 0.00971886132961468 * af.sin(params.k_q1 * q1 / params.L_x)
+    E2 =   params.amplitude * -0.33905781194330314 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * -2.223221606811876e-14 * af.sin(params.k_q1 * q1)
+    E3 =   params.amplitude * 0.2904170639549876 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * 0.00767462104112758 * af.sin(params.k_q1 * q1)
 
     return(E1, E2, E3)
 
 def initialize_B(q1, q2, params):
 
     B1 = params.B0 * q1**0
-    B2 =   params.amplitude * -2.7194247564653833e-05 * af.cos(params.k_q1 * q1 / params.L_x) \
-         + params.amplitude * 0.013744889122931292 * af.sin(params.k_q1 * q1 / params.L_x)
-    B3 =   params.amplitude * 0.6322966710194697 * af.cos(params.k_q1 * q1 / params.L_x)
+    B2 =   params.amplitude * 0.4123231205757007 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * 0.010896135556966308 * af.sin(params.k_q1 * q1)
+    B3 =   params.amplitude * 0.48138140773195076 * af.cos(params.k_q1 * q1)
 
     af.eval(B1, B2, B3)
     return(B1, B2, B3)

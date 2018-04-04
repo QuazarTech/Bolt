@@ -65,10 +65,10 @@ N_s             = int(input('Enter number of species: '))
 
 def B3_analytic(q1, t):
     
-    omega = -0.007070891087152405 * 1j
+    omega = -4.72928987638177e-16 + 0.0070434338862564215 * 1j
 
-    B3_analytic = params.amplitude * 0.6322966710194697 * \
-                  np.exp(  1j * params.k_q1 * q1 / params.L_x
+    B3_analytic = params.amplitude * 0.48138140773195076 * \
+                  np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
 
@@ -149,8 +149,8 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.002 * params.t0 + params.dt_dump_moments, 
-                       params.dt_dump_moments
+time_array = np.arange(0, 1 * params.t0 + 100 * params.dt_dump_moments, 
+                       100 * params.dt_dump_moments
                       )
 
 # Traversal to determine the maximum and minimum:
@@ -179,31 +179,31 @@ def determine_min_max(quantity):
 
     return(q_min, q_max)
 
-n_min, n_max   = determine_min_max('density')
-v1_min, v1_max = determine_min_max('v1')
-p_min, p_max   = determine_min_max('pressure')
-B1_min, B1_max = determine_min_max('B1')
-B2_min, B2_max = determine_min_max('B2')
-B3_min, B3_max = determine_min_max('B3')
+# n_min, n_max   = determine_min_max('density')
+# v1_min, v1_max = determine_min_max('v1')
+# p_min, p_max   = determine_min_max('pressure')
+# B1_min, B1_max = determine_min_max('B1')
+# B2_min, B2_max = determine_min_max('B2')
+# B3_min, B3_max = determine_min_max('B3')
 
 def plot_1d():
 
     for time_index, t0 in enumerate(time_array):
         
-        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
+        # h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+        # moments = np.swapaxes(h5f['moments'][:], 0, 1)
+        # h5f.close()
 
-        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-        h5f.close()
+        # h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+        # fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+        # h5f.close()
 
         # n  = return_array_to_be_plotted('density', moments, fields)
         # v1 = return_array_to_be_plotted('v1', moments, fields)
         # p  = return_array_to_be_plotted('pressure', moments, fields)
-        B1 = return_array_to_be_plotted('B1', moments, fields)
-        B2 = return_array_to_be_plotted('B2', moments, fields)
-        B3 = return_array_to_be_plotted('B3', moments, fields)
+        # B1 = return_array_to_be_plotted('B1', moments, fields)
+        # B2 = return_array_to_be_plotted('B2', moments, fields)
+        # B3 = return_array_to_be_plotted('B3', moments, fields)
 
         fig = pl.figure()
 
@@ -242,12 +242,12 @@ def plot_1d():
         # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
         ax6 = fig.add_subplot(1, 1, 1)
-        ax6.plot(q1[:, 0], B3[:, 0])
-        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0]-(100/64), t0) , '--', color = 'black')
+        # ax6.plot(q1[:, 0], B3[:, 0])
+        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0]-(1/64), t0) , '--', color = 'black')
         # ax6.set_aspect('equal')
         ax6.set_xlabel(r'$\frac{x}{l_s}$')
         ax6.set_ylabel(r'$B_z$')
-        ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
+        # ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
         fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
