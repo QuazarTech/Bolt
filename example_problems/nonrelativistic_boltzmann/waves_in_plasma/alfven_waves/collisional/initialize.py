@@ -6,6 +6,28 @@ the system.
 import arrayfire as af
 import numpy as np
 
+# Problem Parameters:
+# n0_num  = 1
+# B10_num = 1
+# c_num   = 8
+# mu_num  = 1
+# e_num   = 1
+# mi_num  = 1
+# me_num  = 1
+# L1_num  = 200 * pi
+# k1_num  = 2 * pi / L1_num
+
+
+# ('Eigenvalue   = ', 0.0070434338862567746*I)
+# (delta_u2_e, ' = ', -0.00037857709767342984 - 0.26425918103670587*I)
+# (delta_u3_e, ' = ', 0.35618325354090447 + 2.6664827582206785e-06*I)
+# (delta_u2_i, ' = ', -0.000378577097673409 - 0.26930315743887456*I)
+# (delta_u3_i, ' = ', 0.35994136459615356 - 2.6664827583525175e-06*I)
+# (delta_B2, ' = ', -0.0005374627242785701 - 0.37874698413075675*I)
+# (delta_B3, ' = ', 0.5083380512877292)
+# (delta_E2, ' = ', -0.3580445456113726 + 2.8449465006019636e-16*I)
+# (delta_E3, ' = ', -0.00037855831647829255 - 0.266767934234413*I)
+
 def initialize_f(q1, q2, v1, v2, v3, params):
     
     m = params.mass
@@ -19,17 +41,17 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v1_bulk   = 0
 
     # Assigning separate bulk velocities
-    v2_bulk_p =   params.amplitude * 0.29043147224897364 * af.cos(params.k_q1 * q1) \
-    			- params.amplitude * 0.005286752034648054 * af.sin(params.k_q1 * q1)
+    v2_bulk_p =   params.amplitude * -0.000378577097673409 * af.cos(params.k_q1 * q1) \
+    			- params.amplitude * -0.26930315743887456 * af.sin(params.k_q1 * q1)
 
-    v2_bulk_e =   params.amplitude * 0.29043147224897375 * af.cos(params.k_q1 * q1) \
-                - params.amplitude * 0.010063251560685632 * af.sin(params.k_q1 * q1)
+    v2_bulk_e =   params.amplitude * -0.00037857709767342984 * af.cos(params.k_q1 * q1) \
+                - params.amplitude * -0.26425918103670587 * af.sin(params.k_q1 * q1)
     
-    v3_bulk_p =   params.amplitude * 0.3390205750548746 * af.cos(params.k_q1 * q1) \
-    			- params.amplitude * 0.002045634873296759* af.sin(params.k_q1 * q1)
+    v3_bulk_p =   params.amplitude * 0.35994136459615356 * af.cos(params.k_q1 * q1) \
+    			- params.amplitude * -2.6664827583525175e-06* af.sin(params.k_q1 * q1)
 
-    v3_bulk_e =   params.amplitude * 0.3391286917903521 * af.cos(params.k_q1 * q1) \
-                - params.amplitude * -0.0020456348732508928 * af.sin(params.k_q1 * q1)
+    v3_bulk_e =   params.amplitude * 0.35618325354090447 * af.cos(params.k_q1 * q1) \
+                - params.amplitude * 2.6664827582206785e-06 * af.sin(params.k_q1 * q1)
 
     n = n_b + 0 * q1**0
 
@@ -51,19 +73,19 @@ def initialize_f(q1, q2, v1, v2, v3, params):
 def initialize_E(q1, q2, params):
 
     E1 = 0 * q1**0
-    E2 =   params.amplitude * -0.33905781194330314 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * -2.223221606811876e-14 * af.sin(params.k_q1 * q1)
-    E3 =   params.amplitude * 0.2904170639549876 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * 0.00767462104112758 * af.sin(params.k_q1 * q1)
+    E2 =   params.amplitude * -0.3580445456113726 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * 2.8449465006019636e-16 * af.sin(params.k_q1 * q1)
+    E3 =   params.amplitude * -0.00037855831647829255 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * -0.266767934234413 * af.sin(params.k_q1 * q1)
 
     return(E1, E2, E3)
 
 def initialize_B(q1, q2, params):
 
     B1 = params.B0 * q1**0
-    B2 =   params.amplitude * 0.4123231205757007 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * 0.010896135556966308 * af.sin(params.k_q1 * q1)
-    B3 =   params.amplitude * 0.48138140773195076 * af.cos(params.k_q1 * q1)
+    B2 =   params.amplitude * -0.0005374627242785701 * af.cos(params.k_q1 * q1) \
+         - params.amplitude * - 0.37874698413075675 * af.sin(params.k_q1 * q1)
+    B3 =   params.amplitude * 0.5083380512877292 * af.cos(params.k_q1 * q1)
 
     af.eval(B1, B2, B3)
     return(B1, B2, B3)

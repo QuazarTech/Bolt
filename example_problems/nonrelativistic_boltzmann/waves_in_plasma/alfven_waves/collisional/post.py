@@ -65,9 +65,9 @@ N_s             = int(input('Enter number of species: '))
 
 def B3_analytic(q1, t):
     
-    omega = -4.72928987638177e-16 + 0.0070434338862564215 * 1j
+    omega = 0.0070434338862567746 * 1j
 
-    B3_analytic = params.amplitude * 0.48138140773195076 * \
+    B3_analytic = params.amplitude * 0.5083380512877292 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real

@@ -117,8 +117,8 @@ amplitude = 0.001
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.02
-t_final = 20 * t0
+N_cfl   = 0.01
+t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
