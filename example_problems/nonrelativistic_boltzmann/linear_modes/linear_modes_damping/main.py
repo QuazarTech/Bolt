@@ -82,7 +82,7 @@ N_g = system.N_ghost
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
-# ls  = linear_solver(system)
+ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.0005
@@ -107,7 +107,7 @@ nls.count = 0
 for time_index, t0 in enumerate(time_array[1:]):
 
     # nls.strang_timestep(dt)
-    # ls.RK4_timestep(dt)
+    ls.RK4_timestep(dt)
 
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     # if(time_index % 25 == 0):

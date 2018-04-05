@@ -85,6 +85,55 @@ def df_hat_dt(f_hat, fields_hat, self):
                       + multiply(A_p2_hat, self.dfdp2_background) \
                       + multiply(A_p3_hat, self.dfdp3_background)
 
+        # Including the mean magnetic field term:
+        B1_mean = af.sum(self.fields_solver.fields_hat[3, 0, 0, 0]) * self.q1_center**0 / 2
+        B2_mean = af.sum(self.fields_solver.fields_hat[4, 0, 0, 0]) * self.q1_center**0 / 2
+        B3_mean = af.sum(self.fields_solver.fields_hat[5, 0, 0, 0]) * self.q1_center**0 / 2
+
+        e = self.physical_system.params.charge
+        m = self.physical_system.params.mass
+
+        # Converting delta_f array to velocity_expanded form:
+        f_hat_p_expanded = af.moddims(f_hat,
+                                      self.N_p1, self.N_p2, self.N_p3,
+                                      self.N_species * self.N_q1 * self.N_q2
+                                     )
+
+        # Computing ddelta_f_dp using a 4th order finite different stencil:
+        ddelta_f_dp1 = (-af.shift(f_hat_p_expanded, -2) + 8 * af.shift(f_hat_p_expanded, -1)
+                        +af.shift(f_hat_p_expanded,  2) - 8 * af.shift(f_hat_p_expanded,  1)
+                       ) / (12 * self.dp1)
+
+        ddelta_f_dp2 = (-af.shift(f_hat_p_expanded, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, -1)
+                        +af.shift(f_hat_p_expanded, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0,  1)
+                       ) / (12 * self.dp2)
+
+        ddelta_f_dp3 = (-af.shift(f_hat_p_expanded, 0, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, 0, -1)
+                        +af.shift(f_hat_p_expanded, 0, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0, 0,  1)
+                       ) / (12 * self.dp3)
+
+        # Converting back to positions expanded:
+        ddelta_f_dp1 = af.moddims(ddelta_f_dp1,
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  self.N_species, self.N_q1, self.N_q2
+                                 )
+
+        ddelta_f_dp2 = af.moddims(ddelta_f_dp2,
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  self.N_species, self.N_q1, self.N_q2
+                                 )
+
+        ddelta_f_dp3 = af.moddims(ddelta_f_dp3,
+                                  self.N_p1 * self.N_p2 * self.N_p3,
+                                  self.N_species, self.N_q1, self.N_q2
+                                 )
+
+        fields_term_magnetic_fields = multiply(e/m, (  (multiply(self.p2_center, B3_mean) - multiply(self.p3_center, B2_mean)) * ddelta_f_dp1
+                                                     + (multiply(self.p3_center, B1_mean) - multiply(self.p1_center, B3_mean)) * ddelta_f_dp2
+                                                     + (multiply(self.p1_center, B2_mean) - multiply(self.p2_center, B1_mean)) * ddelta_f_dp3
+                                                    )
+                                              )
+
         df_hat_dt -= fields_term
 
     af.eval(df_hat_dt)
