@@ -118,7 +118,7 @@ k_q1      = 2 * np.pi / l0
 
 # Time parameters:
 N_cfl   = 0.01
-t_final = 1 * t0
+t_final = 0.001 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
