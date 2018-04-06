@@ -36,23 +36,32 @@ riemann_solver_in_p = 'upwind-flux'
 # Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
 # Now choosing units: 
-n0  = 1. # |n| units(n)
-T0  = 1. # |T| units(T)
-m0  = 1. # |m_p| units(m)
-e0  = 1. # |e| units(e)
-k0  = 1. # |k| units(k)
-mu  = 1. # |mu0| units(mu0)
+n0 = 1. # |n| units(n)
+m0 = 1. # |m_p| units(m)
+e0 = 1. # |e| units(e)
+k0 = 1. # |k| units(k)
+mu = 1. # |mu0| units(mu0)
+B0 = 1. # |B0| units(B0)
+
+# Setting plasma β:
+beta = 1e-2
+T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("             Independent Units Chosen             ")
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("Density              :", n0, "|n| units(n)")
-PETSc.Sys.Print("Temperature          :", T0, "|T| units(n)")
 PETSc.Sys.Print("Mass                 :", m0, "|m_e| units(m)")
 PETSc.Sys.Print("Charge               :", e0, "|e| units(e)")
 PETSc.Sys.Print("Boltzmann Constant   :", k0, "|k| units(k)")
 PETSc.Sys.Print("Magnetic Permeability:", mu, "|mu0| units(mu0)")
+PETSc.Sys.Print("Magnetic Field       :", B0, "|B| units(B)")
+PETSc.Sys.Print("==================================================")
+PETSc.Sys.Print("  Setting the temperature scale using plasma beta ")
+PETSc.Sys.Print("==================================================")
+PETSc.Sys.Print("Plasma beta          :", beta)
+PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
@@ -79,8 +88,6 @@ charge             = [e_e, e_p]
 density_background     = 1 * n0
 temperature_background = 1 * T0
 
-B0 = 1. # |B0| units(B0)
-
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
 l0 = 200 * np.pi # Box Length
@@ -90,10 +97,10 @@ t0 = l0 / v0
 L_x = L_y = l0
 
 # Setting Maximum Velocity of Phase Space Grid:
-v_max = 8 * v0
+v_max = 0.36 * v0
 
 # Calculating Permittivity:
-c   = v_max
+c   = 8 * v0
 eps = 1 / (c**2 * mu)
 
 # Velocity Scales:
@@ -113,7 +120,7 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 0.001
+amplitude = 0.01
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:

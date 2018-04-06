@@ -86,9 +86,11 @@ def df_hat_dt(f_hat, fields_hat, self):
                       + multiply(A_p3_hat, self.dfdp3_background)
 
         # Including the mean magnetic field term:
-        B1_mean = af.sum(self.fields_solver.fields_hat[3, 0, 0, 0]) * self.q1_center**0 / 2
-        B2_mean = af.sum(self.fields_solver.fields_hat[4, 0, 0, 0]) * self.q1_center**0 / 2
-        B3_mean = af.sum(self.fields_solver.fields_hat[5, 0, 0, 0]) * self.q1_center**0 / 2
+        # Multiplying by q_center**0 to get the values in the array of required dimension
+        # Dividing by 2 to normalize appropriately(look at the initialization sector):
+        B1_mean = af.mean(self.fields_solver.fields_hat[3, 0, 0, 0]) * self.q1_center**0 / 2
+        B2_mean = af.mean(self.fields_solver.fields_hat[4, 0, 0, 0]) * self.q1_center**0 / 2
+        B3_mean = af.mean(self.fields_solver.fields_hat[5, 0, 0, 0]) * self.q1_center**0 / 2
 
         e = self.physical_system.params.charge
         m = self.physical_system.params.mass
@@ -128,13 +130,14 @@ def df_hat_dt(f_hat, fields_hat, self):
                                   self.N_species, self.N_q1, self.N_q2
                                  )
 
-        fields_term_magnetic_fields = multiply(e/m, (  (multiply(self.p2_center, B3_mean) - multiply(self.p3_center, B2_mean)) * ddelta_f_dp1
-                                                     + (multiply(self.p3_center, B1_mean) - multiply(self.p1_center, B3_mean)) * ddelta_f_dp2
-                                                     + (multiply(self.p1_center, B2_mean) - multiply(self.p2_center, B1_mean)) * ddelta_f_dp3
-                                                    )
-                                              )
+        fields_term_mean_magnetic_fields = \
+            multiply(e/m, (  (multiply(self.p2_center, B3_mean) - multiply(self.p3_center, B2_mean)) * ddelta_f_dp1
+                           + (multiply(self.p3_center, B1_mean) - multiply(self.p1_center, B3_mean)) * ddelta_f_dp2
+                           + (multiply(self.p1_center, B2_mean) - multiply(self.p2_center, B1_mean)) * ddelta_f_dp3
+                          )
+                    )
 
-        df_hat_dt -= fields_term
+        df_hat_dt -= fields_term + fields_term_mean_magnetic_fields
 
     af.eval(df_hat_dt)
     return(df_hat_dt)
