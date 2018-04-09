@@ -326,29 +326,30 @@ class nonlinear_solver(object):
             calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
                                self.N_p1, self.N_p2, self.N_p3,
                                self.dp1, self.dp2, self.dp3, 
-                               self.N_species
                               )
 
         self.p1_left, self.p2_left, self.p3_left = \
             calculate_p_left(self.p1_start, self.p2_start, self.p3_start,
                              self.N_p1, self.N_p2, self.N_p3,
                              self.dp1, self.dp2, self.dp3, 
-                             self.N_species
                             )
 
         self.p1_bottom, self.p2_bottom, self.p3_bottom = \
             calculate_p_bottom(self.p1_start, self.p2_start, self.p3_start,
                                self.N_p1, self.N_p2, self.N_p3,
                                self.dp1, self.dp2, self.dp3, 
-                               self.N_species
                               )
 
         self.p1_back, self.p2_back, self.p3_back = \
             calculate_p_back(self.p1_start, self.p2_start, self.p3_start,
                              self.N_p1, self.N_p2, self.N_p3,
                              self.dp1, self.dp2, self.dp3, 
-                             self.N_species
                             )
+
+        # Converting dp1, dp2, dp3 to af.Array:
+        self.dp1 = af.moddims(af.to_array(self.dp1), 1, self.N_species)
+        self.dp2 = af.moddims(af.to_array(self.dp2), 1, self.N_species)
+        self.dp3 = af.moddims(af.to_array(self.dp3), 1, self.N_species)
 
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)

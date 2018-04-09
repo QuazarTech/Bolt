@@ -165,8 +165,12 @@ class linear_solver(object):
             calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
                                self.N_p1, self.N_p2, self.N_p3,
                                self.dp1, self.dp2, self.dp3, 
-                               self.N_species
                               )
+        
+        # Converting dp1, dp2, dp3 to af.Array:
+        self.dp1 = af.moddims(af.to_array(self.dp1), 1, self.N_species)
+        self.dp2 = af.moddims(af.to_array(self.dp2), 1, self.N_species)
+        self.dp3 = af.moddims(af.to_array(self.dp3), 1, self.N_species)
 
         self.k_q1, self.k_q2 = calculate_k(self.N_q1, self.N_q2,
                                            self.physical_system.dq1, 

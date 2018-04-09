@@ -102,17 +102,20 @@ def df_hat_dt(f_hat, fields_hat, self):
                                      )
 
         # Computing ddelta_f_dp using a 4th order finite different stencil:
-        ddelta_f_dp1 = (-af.shift(f_hat_p_expanded, -2) + 8 * af.shift(f_hat_p_expanded, -1)
-                        +af.shift(f_hat_p_expanded,  2) - 8 * af.shift(f_hat_p_expanded,  1)
-                       ) / (12 * self.dp1)
+        ddelta_f_dp1 = multiply((-af.shift(f_hat_p_expanded, -2) + 8 * af.shift(f_hat_p_expanded, -1)
+                                 +af.shift(f_hat_p_expanded,  2) - 8 * af.shift(f_hat_p_expanded,  1)
+                                ), 1 / (12 * self.dp1)
+                               )
 
-        ddelta_f_dp2 = (-af.shift(f_hat_p_expanded, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, -1)
-                        +af.shift(f_hat_p_expanded, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0,  1)
-                       ) / (12 * self.dp2)
+        ddelta_f_dp2 = multiply((-af.shift(f_hat_p_expanded, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, -1)
+                                 +af.shift(f_hat_p_expanded, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0,  1)
+                                ), 1 / (12 * self.dp2)
+                               )
 
-        ddelta_f_dp3 = (-af.shift(f_hat_p_expanded, 0, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, 0, -1)
-                        +af.shift(f_hat_p_expanded, 0, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0, 0,  1)
-                       ) / (12 * self.dp3)
+        ddelta_f_dp3 = multiply((-af.shift(f_hat_p_expanded, 0, 0, -2) + 8 * af.shift(f_hat_p_expanded, 0, 0, -1)
+                                 +af.shift(f_hat_p_expanded, 0, 0,  2) - 8 * af.shift(f_hat_p_expanded, 0, 0,  1)
+                                ), 1 / (12 * self.dp3)
+                               )
 
         # Converting back to positions expanded:
         ddelta_f_dp1 = af.moddims(ddelta_f_dp1,

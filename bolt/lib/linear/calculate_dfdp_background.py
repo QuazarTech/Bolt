@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import arrayfire as af
+from bolt.lib.utils.broadcasted_primitive_operations import multiply
 
 def calculate_dfdp_background(self):
     """
@@ -24,17 +25,21 @@ def calculate_dfdp_background(self):
 #    dfdp1_background = dfdp1_background/self.dp1
 
     # Using a 4th order central difference stencil:
-    dfdp1_background = (-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
-                        +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
-                       ) / (12 * self.dp1)
+    # Using moddims since in p-expanded dp needs to be (1, 1, 1, Ns)
+    dfdp1_background = multiply((-af.shift(f_b, -2) + 8 * af.shift(f_b, -1)
+                                 +af.shift(f_b,  2) - 8 * af.shift(f_b,  1)
+                                ), 1 / af.moddims(12 * self.dp1, 1, 1, 1, len(self.dp1))
+                               )
 
-    dfdp2_background = (-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
-                        +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
-                       ) / (12 * self.dp2)
+    dfdp2_background = multiply((-af.shift(f_b, 0, -2) + 8 * af.shift(f_b, 0, -1)
+                                 +af.shift(f_b, 0,  2) - 8 * af.shift(f_b, 0,  1)
+                                ), 1 / af.moddims(12 * self.dp2, 1, 1, 1, len(self.dp2))
+                               )
 
-    dfdp3_background = (-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
-                        +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
-                       ) / (12 * self.dp3)
+    dfdp3_background = multiply((-af.shift(f_b, 0, 0, -2) + 8 * af.shift(f_b, 0, 0, -1)
+                                 +af.shift(f_b, 0, 0,  2) - 8 * af.shift(f_b, 0, 0,  1)
+                                ), 1 / af.moddims(12 * self.dp3, 1, 1, 1, len(self.dp3))
+                               )
 
     # Reshaping such that the variations in velocity are along axis 0:
     self.dfdp1_background = af.moddims(dfdp1_background, 

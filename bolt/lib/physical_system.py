@@ -66,17 +66,6 @@ class physical_system(object):
         """
         # Checking that domain resolution and size are 
         # of the correct data-type(only of int or float):
-        attributes = [a for a in dir(domain) if not a.startswith('__')]
-        
-        for i in range(len(attributes)):
-            if((isinstance(getattr(domain, attributes[i]), int) or
-                isinstance(getattr(domain, attributes[i]), float)
-               ) == 0
-              ):
-                raise TypeError('Expected attributes of domain \
-                                 to be of type int or float'
-                               )
-
         attributes = [a for a in dir(boundary_conditions) if not a.startswith('__')]
         
         for i in range(len(attributes)):
@@ -120,6 +109,33 @@ class physical_system(object):
                                  to be of type function or module'
                                )
 
+        # Finding the number of species:
+        N_species = len(params.charge)
+
+        try:
+            assert(len(params.mass) == len(params.charge))
+        except:
+            raise Exception('Inconsistenty in number of species. Mismatch between\
+                             the number of species mentioned in charge and mass inputs'
+                           )
+
+        try:
+            assert(type(domain.p1_start) == list)
+            assert(type(domain.p2_start) == list)
+            assert(type(domain.p3_start) == list)
+            assert(type(domain.p1_end) == list)
+            assert(type(domain.p2_end) == list)
+            assert(type(domain.p3_end) == list)
+        except:
+            raise Exception('p-domain start and end points need to be specified in a list')
+
+        try:
+            assert(   len(domain.p1_start) == len(domain.p2_start) == len(domain.p3_start)
+                   == len(domain.p1_end)   == len(domain.p2_end)   == len(domain.p3_end) == N_species
+                  )
+        except:
+            raise Exception('Inconsistency in definition of p-space resolution with number of species')
+
         # Getting resolution and size of configuration and velocity space:
         self.N_q1, self.q1_start, self.q1_end = domain.N_q1,\
                                                 domain.q1_start, domain.q1_end
@@ -152,9 +168,16 @@ class physical_system(object):
         # Evaluating step size:
         self.dq1 = (self.q1_end - self.q1_start) / self.N_q1
         self.dq2 = (self.q2_end - self.q2_start) / self.N_q2
-        self.dp1 = (self.p1_end - self.p1_start) / self.N_p1
-        self.dp2 = (self.p2_end - self.p2_start) / self.N_p2
-        self.dp3 = (self.p3_end - self.p3_start) / self.N_p3
+
+        # Evaluating velocity space resolution for each species:
+        self.dp1 = []
+        self.dp2 = []
+        self.dp3 = []
+
+        for i in range(N_species):
+            self.dp1.append((self.p1_end[i] - self.p1_start[i]) / self.N_p1)
+            self.dp2.append((self.p2_end[i] - self.p2_start[i]) / self.N_p2)
+            self.dp3.append((self.p3_end[i] - self.p3_start[i]) / self.N_p3)
 
         # Getting number of ghost zones, and the 
         # boundary conditions that are utilized
@@ -184,16 +207,6 @@ class physical_system(object):
 
         # Declaring the MPI communicator:
         self.mpi_communicator = PETSc.COMM_WORLD.tompi4py()
-
-        # Finding the number of species:
-        N_species = len(params.charge)
-
-        try:
-            assert(len(params.mass) == len(params.charge))
-        except:
-            raise Exception('Inconsistenty in number of species. Mismatch between\
-                             the number of species mentioned in charge and mass inputs'
-                           )
 
         if(params.fields_type == 'electrodynamic'):
             try:

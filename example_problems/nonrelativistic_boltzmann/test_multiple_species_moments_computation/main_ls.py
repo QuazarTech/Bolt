@@ -32,7 +32,7 @@ E    = ls.compute_moments('energy')
 
 T = (2 * E - n * v1_b**2) / n
 
-assert(af.mean(af.abs(n[0, 0] - (1 + 0.01 * af.cos(2 * np.pi * ls.q1_center))))<1e-13)
-assert(af.mean(af.abs(n[0, 1] - (1 + 0.02 * af.cos(4 * np.pi * ls.q1_center))))<1e-13)
-assert(af.mean(af.abs(T[0, 0] - (1 + 0.02 * af.sin(2 * np.pi * ls.q1_center))))<1e-13)
-assert(af.mean(af.abs(T[0, 1] - (1 + 0.01 * af.sin(4 * np.pi * ls.q1_center))))<1e-13)
+assert(af.mean(af.abs(n[0, 0] - (1   + 0.01 * af.cos(2 * np.pi * ls.q1_center))))<1e-13)
+assert(af.mean(af.abs(n[0, 1] - (1   + 0.02 * af.cos(4 * np.pi * ls.q1_center))))<1e-13)
+assert(af.mean(af.abs(T[0, 0] - (1   + 0.02 * af.sin(2 * np.pi * ls.q1_center))))<1e-13)
+assert(af.mean(af.abs(T[0, 1] - (100 + 0.01 * af.sin(4 * np.pi * ls.q1_center))))<1e-13)

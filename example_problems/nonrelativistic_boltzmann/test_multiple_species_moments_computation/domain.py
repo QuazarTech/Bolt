@@ -10,16 +10,16 @@ q2_end   = 1 * l0
 N_q2     = 3
 
 # Velocity
-p1_start = -10 * v0
-p1_end   = 10  * v0
+p1_start = [-10 * v0, -100 * v0]
+p1_end   = [10  * v0, 100 * v0]
 N_p1     = 128
 
-p2_start = -0.5 * v0
-p2_end   = 0.5  * v0
+p2_start = [-0.5 * v0, -0.5 * v0]
+p2_end   = [0.5  * v0, 0.5  * v0]
 N_p2     = 1
 
-p3_start = -0.5 * v0
-p3_end   = 0.5  * v0
+p3_start = [-0.5 * v0, -0.5 * v0]
+p3_end   = [0.5  * v0, 0.5  * v0]
 N_p3     = 1
 
 N_ghost = 3
