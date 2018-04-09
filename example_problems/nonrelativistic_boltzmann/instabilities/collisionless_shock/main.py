@@ -31,7 +31,7 @@ N_g = nls.N_ghost
 
 # Time parameters:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                  / max(domain.p1_end + domain.p2_end + domain.p3_end) # Combining the lists
 
 if(params.t_restart == 0):
     time_elapsed = 0

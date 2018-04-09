@@ -13,9 +13,9 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     T_left       = params.T_left
 
     f =   q1**0 * n_left * (params.mass / (2 * np.pi * k * T_left))**(3 / 2) \
-        * af.exp(-(v1 - v1_bulk_left)**2 / (2 * k * T_left)) \
-        * af.exp(-v2**2 / (2 * k * T_left)) \
-        * af.exp(-v3**2 / (2 * k * T_left))
+        * af.exp(-params.mass * (v1 - v1_bulk_left)**2 / (2 * k * T_left)) \
+        * af.exp(-params.mass * v2**2 / (2 * k * T_left)) \
+        * af.exp(-params.mass * v3**2 / (2 * k * T_left))
     
     af.eval(f)
     return (f)

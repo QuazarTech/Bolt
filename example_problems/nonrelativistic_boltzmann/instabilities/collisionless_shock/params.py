@@ -50,8 +50,8 @@ p_dim = 3
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = 1 * m0
-m_i = 1 * m0
+m_e = (1 / 100) * m0
+m_i = 1         * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
@@ -76,7 +76,7 @@ v0 = velocity_scales.alfven_velocity(B1, n_left, m_i, mu)
 l0 = v0 * t0 # ion skin depth
 
 # Setting permeability:
-c   = 30 * v0 # |c| units(c)
+c   = 300 * v0 # |c| units(c)
 eps = 1 / (c**2 * mu)
 
 # Setting bulk velocity of left boundary:
@@ -84,7 +84,7 @@ eps = 1 / (c**2 * mu)
 v1_bulk_left = 1 * v0
 
 # Time parameters:
-N_cfl   = 0.4
+N_cfl   = 0.1
 t_final = 200 * t0
 
 # Switch for solver components:
@@ -96,7 +96,7 @@ instantaneous_collisions = False
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.05 * t0
+dt_dump_moments = dt_dump_fields = 0.001 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0

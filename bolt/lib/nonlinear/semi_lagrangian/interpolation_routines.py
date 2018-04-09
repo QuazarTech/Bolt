@@ -24,7 +24,7 @@ def f_interp_2d(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
 
-    A_q1, A_q2 = af.broadcast(self._A_q, self.f, self.time_elapsed, 
+    A_q1, A_q2 = af.broadcast(self._A_q, self.time_elapsed, 
                               self.q1_center, self.q2_center,
                               self.p1_center, self.p2_center, self.p3_center,
                               self.physical_system.params
@@ -50,7 +50,6 @@ def f_interp_2d(self, dt):
     self.f = af.reorder(self.f, 3, 2, 0, 1)
 
     af.eval(self.f)
-
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()

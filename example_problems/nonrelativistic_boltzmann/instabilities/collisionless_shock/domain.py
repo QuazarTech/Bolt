@@ -8,16 +8,16 @@ q2_start = 0
 q2_end   = 5 * l0
 N_q2     = 48
 
-p1_start = -30 * v0
-p1_end   =  30 * v0
-N_p1     = 18
+p1_start = [-300 * v0, -30 * v0]
+p1_end   = [ 300 * v0,  30 * v0]
+N_p1     = 20
 
-p2_start = -30 * v0
-p2_end   =  30 * v0
-N_p2     = 18
+p2_start = [-300 * v0, -30 * v0]
+p2_end   = [ 300 * v0,  30 * v0]
+N_p2     = 20
 
-p3_start = -30 * v0
-p3_end   =  30 * v0
-N_p3     = 18
+p3_start = [-300 * v0, -30 * v0]
+p3_end   = [ 300 * v0,  30 * v0]
+N_p3     = 20
 
 N_ghost = 3

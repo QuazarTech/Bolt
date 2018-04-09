@@ -85,8 +85,8 @@ nls = nonlinear_solver(system)
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.0005
-t_final = 1.0
+dt      = 0.001
+t_final = 0.5
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -96,8 +96,11 @@ rho_data_ls  = np.zeros(time_array.size)
 # Storing data at time t = 0:
 n_nls           = nls.compute_moments('density')
 rho_data_nls[0] = af.max(n_nls[:, :, N_g:-N_g, N_g:-N_g])
-# n_ls           = ls.compute_moments('density')
-# rho_data_ls[0] = af.max(n_ls)
+n_ls           = ls.compute_moments('density')
+rho_data_ls[0] = af.max(n_ls)
+
+print(rho_data_nls[0])
+print(rho_data_ls[0])
 
 f_initial = nls.f.copy()
 
@@ -106,9 +109,9 @@ nls.count = 0
 
 for time_index, t0 in enumerate(time_array[1:]):
 
-    # nls.strang_timestep(dt)
+    nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
-
+    print(t0)
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     # if(time_index % 25 == 0):
     #     nls.f = lowpass_filter(nls.f)
@@ -121,40 +124,41 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     # nls.fields_solver.check_maxwells_contraint_equations(rho_n)
 
-    nls.strang_timestep(dt)
+    # nls.strang_timestep(dt)
 
     rho_n_plus_one       = -10 * nls.compute_moments('density')
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
 
     # divE      = nls.fields_solver.compute_divE()
     drho_dt = (rho_n_plus_one - rho_n) / dt
-    J1 = nls.fields_solver.J1
-    J2 = nls.fields_solver.J2
+    #J1 = nls.fields_solver.J1
+    #J2 = nls.fields_solver.J2
 
-    J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
-    J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
+    #J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
+    #J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
 
-    divJ = (J1_plus_q1 - J1) / nls.dq1 + 0*(J2_plus_q2 - J2) / nls.dq2
+    #divJ = (J1_plus_q1 - J1) / nls.dq1 + 0*(J2_plus_q2 - J2) / nls.dq2
 
-    print(af.mean(af.abs(drho_dt + divJ)[:, :, 3:-3, 3:-3]))
+    # print(af.mean(af.abs(drho_dt + divJ)[:, :, 3:-3, 3:-3]))
 
-    # n_ls                        = ls.compute_moments('density')
-    # rho_data_ls[time_index + 1] = af.max(n_ls) 
+    n_ls                        = ls.compute_moments('density')
+    rho_data_ls[time_index + 1] = af.max(n_ls) 
 
-pl.plot(time_array, nls.data, label = 'Nonlinear Solver')
-# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
+pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
-# pl.legend()
+pl.legend()
 pl.savefig('n.png')
 pl.savefig('n.svg')
 pl.clf()
 
-pl.semilogy(time_array, nls.data, label = 'Nonlinear Solver')
-# pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
+pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
+pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
-# pl.legend()
+pl.legend()
 pl.savefig('n_semilogy.png')
 pl.savefig('n_semilogy.svg')
 pl.clf()
+

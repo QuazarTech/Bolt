@@ -7,7 +7,7 @@ import bolt.src.nonrelativistic_boltzmann.units.velocity_scales as velocity_scal
 
 # Can be defined as 'electrostatic', 'electrodynamic', 'None'
 fields_type       = 'electrodynamic'
-fields_initialize = 'user-defined'
+fields_initialize = 'fft'
 fields_solver     = 'fdtd'
 
 # Method in q-space
@@ -61,7 +61,7 @@ boltzmann_constant = k0
 charge             = [-10 * e0]
 
 # Initial Conditions used in initialize:
-density_background 	   = 1 * n0  
+density_background     = 1 * n0  
 temperature_background = 1 * T0
 v1_bulk_background     = 0 * v0
 v2_bulk_background     = 0 * v0

@@ -25,8 +25,8 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     k_q2 = params.k_q2
 
     # Calculating the perturbed density using E1:
-    E1 = 0.001 * af.sin(params.k_q1 * (q1-1/256)) / params.k_q1
-    n  = n_b + (af.shift(E1, 0, 0, -1) - E1) * 128
+    E1 = 0.001 * af.sin(params.k_q1 * (q1-1/32)) / params.k_q1
+    n  = n_b + 0.001 * af.cos(params.k_q1 * q1) #(af.shift(E1, 0, 0, -1) - E1) * 128
 
     if(params.p_dim == 3):
         f = n * (m / (2 * np.pi * k * T_b))**(3 / 2) \
