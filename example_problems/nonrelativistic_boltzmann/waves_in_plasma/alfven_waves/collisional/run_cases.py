@@ -34,14 +34,18 @@ for i in range(N.size):
     nls = nonlinear_solver(system)
 
     # Timestep as set by the CFL condition:
-    dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                      / max(domain.p1_end, domain.p2_end, domain.p3_end)
+    dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
+                          / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
 
+    dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
+                           / params.c # lightspeed
+
+    dt = min(dt_fvm, dt_fdtd)
 
     time_elapsed = 0
     
-    while(time_elapsed < params.t_final):
-    
+    while(abs(time_elapsed - params.t_final) > 1e-12):
+        
         nls.strang_timestep(dt)
         time_elapsed += dt
 

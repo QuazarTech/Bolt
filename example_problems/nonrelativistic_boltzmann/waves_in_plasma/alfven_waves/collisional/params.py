@@ -44,7 +44,7 @@ mu = 1. # |mu0| units(mu0)
 B0 = 1. # |B0| units(B0)
 
 # Setting plasma β:
-beta = 1e-2
+beta = 1e-5
 T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
@@ -52,7 +52,7 @@ PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("             Independent Units Chosen             ")
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("Density              :", n0, "|n| units(n)")
-PETSc.Sys.Print("Mass                 :", m0, "|m_e| units(m)")
+PETSc.Sys.Print("Mass                 :", m0, "|m_i| units(m)")
 PETSc.Sys.Print("Charge               :", e0, "|e| units(e)")
 PETSc.Sys.Print("Boltzmann Constant   :", k0, "|k| units(k)")
 PETSc.Sys.Print("Magnetic Permeability:", mu, "|mu0| units(mu0)")
@@ -72,17 +72,17 @@ gamma = 5 / 3
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
 
-# Mass of electron and positron:
-m_e = 1 * m0
-m_p = 1 * m0
+# Mass of electron and ion:
+m_e = (1 / 100) * m0
+m_i = 1         * m0
 
-# Charge of electron and positron:
+# Charge of electron and ion:
 e_e = -1 * e0
-e_p =  1 * e0
+e_i =  1 * e0
 
-mass               = [m_e, m_p]
+mass               = [m_e, m_i]
 boltzmann_constant = k0
-charge             = [e_e, e_p]
+charge             = [e_e, e_i]
 
 # Background Quantities:
 density_background     = 1 * n0
@@ -96,8 +96,9 @@ t0 = l0 / v0
 # Setting the length of the box:
 L_x = L_y = l0
 
-# Setting Maximum Velocity of Phase Space Grid:
-v_max = 0.36 * v0
+# Setting Maximum Velocities of Phase Space Grid:
+v_max_e = 0.13  * v0
+v_max_i = 0.014 * v0
 
 # Calculating Permittivity:
 c   = 8 * v0
@@ -120,12 +121,12 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 0.01
+amplitude = 1e-5
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
 N_cfl   = 0.01
-t_final = 0.001 * t0
+t_final = 0.1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -156,7 +157,8 @@ PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
 PETSc.Sys.Print("Sound Speed          :", sound_speed)
 PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
 PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
+PETSc.Sys.Print("Maximum Velocity(e)  :", v_max_e / v0, "|v0| units(v0)")
+PETSc.Sys.Print("Maximum Velocity(i)  :", v_max_i / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")
@@ -175,7 +177,7 @@ instantaneous_collisions = False
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.0001 * t0
+dt_dump_moments = dt_dump_fields = 0.001 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0

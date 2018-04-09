@@ -48,7 +48,7 @@ def B3_analytic(q1, t):
 
     return(B3_analytic)
 
-N = np.array([32, 48, 64, 96. 128])
+N = np.array([32, 48, 64, 96, 128])
 
 error_B3 = np.zeros(N.size)
 
@@ -61,7 +61,7 @@ for i in range(N.size):
     B3  = h5f['EM_fields'][:][0, :, 5]
     h5f.close()
 
-    B3_ana = B3_analytic(q1[:, 0], params.t_final)
+    B3_ana = B3_analytic(q1, params.t_final)
 
     error_B3[i] = np.mean(abs(B3 - B3_ana))
 

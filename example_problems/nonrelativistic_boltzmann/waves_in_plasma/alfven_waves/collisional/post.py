@@ -44,8 +44,8 @@ N_g  = domain.N_ghost
 dq1 = (domain.q1_end - domain.q1_start) / N_q1
 dq2 = (domain.q2_end - domain.q2_start) / N_q2
 
-q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
-q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
+q1 = domain.q1_start + (np.arange(N_q1)) * dq1
+q2 = domain.q2_start + (np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
 
@@ -149,14 +149,14 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, params.t0 + 10 * params.dt_dump_moments, 
-                       10 * params.dt_dump_moments
+time_array = np.arange(0, params.t0 + params.dt_dump_moments, 
+                       params.dt_dump_moments
                       )
 
 # Traversal to determine the maximum and minimum:
 def determine_min_max(quantity):
     # Declaring an initial value for the max and minimum for the quantity plotted:
-    q_max = 0    
+    q_max = -1e10 
     q_min = 1e10
 
     for time_index, t0 in enumerate(time_array):
@@ -243,7 +243,7 @@ def plot_1d():
 
         ax6 = fig.add_subplot(1, 1, 1)
         ax6.plot(q1[:, 0], B3[:, 0])
-        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0]-(200 * np.pi/64), t0) , '--', color = 'black')
+        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
         # ax6.set_aspect('equal')
         ax6.set_xlabel(r'$\frac{x}{l_s}$')
         ax6.set_ylabel(r'$B_z$')
