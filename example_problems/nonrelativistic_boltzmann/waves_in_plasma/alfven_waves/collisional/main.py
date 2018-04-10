@@ -36,8 +36,9 @@ dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
 dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
                        / params.c # lightspeed
 
+print(dt_fvm, dt_fdtd)
 dt = min(dt_fvm, dt_fdtd)
-
+print(dt)
 if(params.t_restart == 0):
     time_elapsed = 0
     nls.dump_distribution_function('dump_f/t=0.000')

@@ -73,7 +73,7 @@ gamma = 5 / 3
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = (1 / 100) * m0
+m_e = 1 #(1 / 100) * m0
 m_i = 1         * m0
 
 # Charge of electron and ion:
@@ -97,7 +97,7 @@ t0 = l0 / v0
 L_x = L_y = l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max_e = 0.13  * v0
+v_max_e = 0.014  * v0
 v_max_i = 0.014 * v0
 
 # Calculating Permittivity:
@@ -121,12 +121,12 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-5
+amplitude = 1e-2
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.01
-t_final = 0.1 * t0
+N_cfl   = 0.05
+t_final = 10 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
