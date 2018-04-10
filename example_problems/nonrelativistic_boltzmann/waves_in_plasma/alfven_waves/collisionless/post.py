@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 10, 14
+pl.rcParams['figure.figsize']  = 12.5, 7 #10, 14
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -44,8 +44,8 @@ N_g  = domain.N_ghost
 dq1 = (domain.q1_end - domain.q1_start) / N_q1
 dq2 = (domain.q2_end - domain.q2_start) / N_q2
 
-q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
-q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
+q1 = domain.q1_start + (np.arange(N_q1)) * dq1
+q2 = domain.q2_start + (np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
 
@@ -62,6 +62,17 @@ N_s             = int(input('Enter number of species: '))
 # N_quantities  = len(quantities)
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
+
+def B3_analytic(q1, t):
+    
+    omega = 0.009804431676090668 * 1j
+
+    B3_analytic = (params.amplitude * (3.281333538218689e-13 - 0.3596554979185527 * 1j) * \
+                   np.exp(  1j * params.k_q1 * q1
+                          + omega * t
+                         )).real
+
+    return(B3_analytic)
 
 def return_array_to_be_plotted(name, moments, fields):
     
@@ -138,14 +149,14 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 8 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
 # Traversal to determine the maximum and minimum:
 def determine_min_max(quantity):
     # Declaring an initial value for the max and minimum for the quantity plotted:
-    q_max = 0    
+    q_max = -1e10 
     q_min = 1e10
 
     for time_index, t0 in enumerate(time_array):
@@ -168,11 +179,11 @@ def determine_min_max(quantity):
 
     return(q_min, q_max)
 
-n_min, n_max   = determine_min_max('density')
-v1_min, v1_max = determine_min_max('v1')
-p_min, p_max   = determine_min_max('pressure')
-B1_min, B1_max = determine_min_max('B1')
-B2_min, B2_max = determine_min_max('B2')
+# n_min, n_max   = determine_min_max('density')
+# v1_min, v1_max = determine_min_max('v1')
+# p_min, p_max   = determine_min_max('pressure')
+# B1_min, B1_max = determine_min_max('B1')
+# B2_min, B2_max = determine_min_max('B2')
 B3_min, B3_max = determine_min_max('B3')
 
 def plot_1d():
@@ -190,8 +201,8 @@ def plot_1d():
         # n  = return_array_to_be_plotted('density', moments, fields)
         # v1 = return_array_to_be_plotted('v1', moments, fields)
         # p  = return_array_to_be_plotted('pressure', moments, fields)
-        B1 = return_array_to_be_plotted('B1', moments, fields)
-        B2 = return_array_to_be_plotted('B2', moments, fields)
+        # B1 = return_array_to_be_plotted('B1', moments, fields)
+        # B2 = return_array_to_be_plotted('B2', moments, fields)
         B3 = return_array_to_be_plotted('B3', moments, fields)
 
         fig = pl.figure()
@@ -218,26 +229,28 @@ def plot_1d():
         # ax3.set_ylabel(r'$p$')
         # ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
 
-        ax4 = fig.add_subplot(3, 1, 1)
-        ax4.plot(q1[:, 0], np.sqrt(0*B1[:, 0]**2 + B2[:, 0]**2 + B3[:, 0]**2))
-        ax4.set_xlabel(r'$\frac{x}{l_s}$')
-        ax4.set_ylabel(r'$|B|$')
-        ax4.set_ylim([0, 1.02 * np.sqrt(0*B1_max**2 + B2_max**2 + B3_max**2)])
+        # ax4 = fig.add_subplot(3, 1, 1)
+        # ax4.plot(q1[:, 0], np.sqrt(0*B1[:, 0]**2 + B2[:, 0]**2 + B3[:, 0]**2))
+        # ax4.set_xlabel(r'$\frac{x}{l_s}$')
+        # ax4.set_ylabel(r'$|B|$')
+        # ax4.set_ylim([0, 1.02 * np.sqrt(0*B1_max**2 + B2_max**2 + B3_max**2)])
 
-        ax5 = fig.add_subplot(3, 1, 2)
-        ax5.plot(q1[:, 0], B2[:, 0])
-        ax5.set_xlabel(r'$\frac{x}{l_s}$')
-        ax5.set_ylabel(r'$B_y$')
-        ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
+        # ax5 = fig.add_subplot(3, 1, 2)
+        # ax5.plot(q1[:, 0], B2[:, 0])
+        # ax5.set_xlabel(r'$\frac{x}{l_s}$')
+        # ax5.set_ylabel(r'$B_y$')
+        # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
-        ax6 = fig.add_subplot(3, 1, 3)
+        ax6 = fig.add_subplot(1, 1, 1)
         ax6.plot(q1[:, 0], B3[:, 0])
+        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        # ax6.set_aspect('equal')
         ax6.set_xlabel(r'$\frac{x}{l_s}$')
         ax6.set_ylabel(r'$B_z$')
         ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.2f'%(t0 / params.t0) + r' $\omega_g^{-1}$')
+        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

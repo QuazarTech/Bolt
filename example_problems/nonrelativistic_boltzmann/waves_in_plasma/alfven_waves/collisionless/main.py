@@ -30,8 +30,13 @@ nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
 # Time parameters:
-dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
+                      / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
+
+dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
+                       / params.c # lightspeed
+
+dt = min(dt_fvm, dt_fdtd)
 
 if(params.t_restart == 0):
     time_elapsed = 0
@@ -49,7 +54,7 @@ assert(params.dt_dump_f > dt)
 assert(params.dt_dump_moments > dt)
 assert(params.dt_dump_fields > dt)
 
-while(time_elapsed < params.t_final):
+while(abs(time_elapsed - params.t_final) > 1e-12):
     
     nls.strang_timestep(dt)
     time_elapsed += dt
