@@ -75,22 +75,34 @@ def B3_analytic(q1, t):
     return(B3_analytic)
 
 def return_array_to_be_plotted(name, moments, fields):
-    
+    m       = np.array(params.mass).reshape(1, 1, len(params.mass))
     n       = moments[:, :, 0:N_s]
     
-    v1_bulk = moments[:, :, 2*N_s:3*N_s] / n
-    v2_bulk = moments[:, :, 3*N_s:4*N_s] / n
-    v3_bulk = moments[:, :, 4*N_s:5*N_s] / n
+    v1_bulk = moments[:, :, 5*N_s:6*N_s] / n
+    v2_bulk = moments[:, :, 6*N_s:7*N_s] / n
+    v3_bulk = moments[:, :, 7*N_s:8*N_s] / n
     
-    T       = (  moments[:, :, 1*N_s:2*N_s]
-               - n * v1_bulk**2
-               - n * v2_bulk**2
-               - n * v3_bulk**2
-              ) / (params.p_dim * n)
+    p1 = m * (  2 * moments[:, :, 2*N_s:3*N_s]
+              - n * v1_bulk**2
+             )
 
-    heat_flux_1 = moments[:, :, 5*N_s:6*N_s] / n
-    heat_flux_2 = moments[:, :, 6*N_s:7*N_s] / n
-    heat_flux_3 = moments[:, :, 7*N_s:8*N_s] / n
+    p2 = m * (  2 * moments[:, :, 3*N_s:4*N_s]
+              - n * v2_bulk**2
+             )
+
+    p3 = m * (  2 * moments[:, :, 4*N_s:5*N_s]
+              - n * v3_bulk**2
+             )
+
+    T       = m * (  2 * moments[:, :, 1*N_s:2*N_s]
+                   - n * v1_bulk**2
+                   - n * v2_bulk**2
+                   - n * v3_bulk**2
+                  ) / (params.p_dim * n)
+
+    heat_flux_1 = moments[:, :, 8*N_s:9*N_s] / n
+    heat_flux_2 = moments[:, :, 9*N_s:10*N_s] / n
+    heat_flux_3 = moments[:, :, 10*N_s:11*N_s] / n
 
     E1 = fields[:, :, 0]
     E2 = fields[:, :, 1]
@@ -114,16 +126,25 @@ def return_array_to_be_plotted(name, moments, fields):
     elif(name == 'temperature'):
         return T
 
+    elif(name == 'p1'):
+        return(p1)
+
+    elif(name == 'p2'):
+        return(p2)
+
+    elif(name == 'p3'):
+        return(p3)
+
     elif(name == 'pressure'):
         return(n * T)
 
     elif(name == 'q1'):
         return heat_flux_1
 
-    elif(name == 'v2'):
+    elif(name == 'q2'):
         return heat_flux_2
 
-    elif(name == 'v3'):
+    elif(name == 'q3'):
         return heat_flux_3
 
     elif(name == 'E1'):
@@ -181,7 +202,9 @@ def determine_min_max(quantity):
 
 # n_min, n_max   = determine_min_max('density')
 # v1_min, v1_max = determine_min_max('v1')
-# p_min, p_max   = determine_min_max('pressure')
+p1_min, p1_max = determine_min_max('p1')
+p2_min, p2_max = determine_min_max('p2')
+p3_min, p3_max = determine_min_max('p3')
 # B1_min, B1_max = determine_min_max('B1')
 # B2_min, B2_max = determine_min_max('B2')
 B3_min, B3_max = determine_min_max('B3')
@@ -201,18 +224,28 @@ def plot_1d():
         # n  = return_array_to_be_plotted('density', moments, fields)
         # v1 = return_array_to_be_plotted('v1', moments, fields)
         # p  = return_array_to_be_plotted('pressure', moments, fields)
+        
+        p1 = return_array_to_be_plotted('p1', moments, fields)
+        p2 = return_array_to_be_plotted('p2', moments, fields)
+        p3 = return_array_to_be_plotted('p3', moments, fields)
+
+        p_parallel = p1
+        p_perp     = 0.5 * (p2 + p3)
+
+        delta_p = (p_perp - p_parallel)
+        
         # B1 = return_array_to_be_plotted('B1', moments, fields)
         # B2 = return_array_to_be_plotted('B2', moments, fields)
-        B3 = return_array_to_be_plotted('B3', moments, fields)
+        # B3 = return_array_to_be_plotted('B3', moments, fields)
 
         fig = pl.figure()
 
-        # ax1 = fig.add_subplot(2, 2, 1)
-        # ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
-        # ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
-        # ax1.legend()
-        # ax1.set_xlabel(r'$x$')
-        # ax1.set_ylabel(r'$n$')
+        ax1 = fig.add_subplot(2, 2, 1)
+        ax1.plot(q1[:, 0], delta_p[:, 0, 0], color = 'C0', label = 'Electrons')
+        ax1.plot(q1[:, 0], delta_p[:, 0, 1], '--', color = 'C3', label = 'Positrons')
+        ax1.legend()
+        ax1.set_xlabel(r'$x$')
+        ax1.set_ylabel(r'$\Delta p$')
         # ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
 
         # ax2 = fig.add_subplot(2, 2, 2)
@@ -241,13 +274,13 @@ def plot_1d():
         # ax5.set_ylabel(r'$B_y$')
         # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
-        ax6 = fig.add_subplot(1, 1, 1)
-        ax6.plot(q1[:, 0], B3[:, 0])
-        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
-        # ax6.set_aspect('equal')
-        ax6.set_xlabel(r'$\frac{x}{l_s}$')
-        ax6.set_ylabel(r'$B_z$')
-        ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
+        # ax6 = fig.add_subplot(1, 1, 1)
+        # ax6.plot(q1[:, 0], B3[:, 0])
+        # ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        # # ax6.set_aspect('equal')
+        # ax6.set_xlabel(r'$\frac{x}{l_s}$')
+        # ax6.set_ylabel(r'$B_z$')
+        # ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
         fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')

@@ -21,6 +21,24 @@ def energy(f, v1, v2, v3, integral_measure):
                           )
           )
 
+def energy_q1(f, v1, v2, v3, integral_measure):
+    return(integral_over_v(0.5 * f * v1**2,
+                           integral_measure
+                          )
+          )
+
+def energy_q2(f, v1, v2, v3, integral_measure):
+    return(integral_over_v(0.5 * f * v2**2,
+                           integral_measure
+                          )
+          )
+
+def energy_q3(f, v1, v2, v3, integral_measure):
+    return(integral_over_v(0.5 * f * v3**2,
+                           integral_measure
+                          )
+          )
+
 def q_q1(f, v1, v2, v3, integral_measure):
     return(integral_over_v(f * v1 * (v1**2 + v2**2 + v3**2),
                            integral_measure
