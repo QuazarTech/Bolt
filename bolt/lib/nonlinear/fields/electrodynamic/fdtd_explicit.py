@@ -7,6 +7,15 @@ from bolt.lib.nonlinear.communicate import communicate_fields
 from ..boundaries import apply_bcs_fields
 
 def fdtd_evolve_E(self, dt):
+    """
+    Evolves electric fields from E^n --> E^{n + 1}
+    
+    Parameters
+    ----------
+
+    dt : double
+         Time-step size to evolve the system
+    """
     
     if(self.performance_test_flag == True):
         tic = af.time()
@@ -48,7 +57,15 @@ def fdtd_evolve_E(self, dt):
     return
 
 def fdtd_evolve_B(self, dt):
+    """
+    Evolves magnetic fields from B^{n + 1/2} --> B^{n + 3/2}
     
+    Parameters
+    ----------
+
+    dt : double
+         Time-step size to evolve the system
+    """
     if(self.performance_test_flag == True):
         tic = af.time()
 
@@ -92,17 +109,17 @@ def fdtd(self, dt):
     B's are defined at (n + 1/2), and E's are defined at n
 
     Positions of grid point where field quantities are defined:
-    B1 --> (i, j + 1/2)
-    B2 --> (i + 1/2, j)
-    B3 --> (i + 1/2, j + 1/2)
+    B1 --> (i + 1/2, j)
+    B2 --> (i, j + 1/2)
+    B3 --> (i, j)
 
-    E1 --> (i + 1/2, j)
-    E2 --> (i, j + 1/2)
-    E3 --> (i, j)
+    E1 --> (i, j + 1/2)
+    E2 --> (i + 1/2, j)
+    E3 --> (i + 1/2, j + 1/2)
 
-    J1 --> (i + 1/2, j)
-    J2 --> (i, j + 1/2)
-    J3 --> (i, j)
+    J1 --> (i, j + 1/2)
+    J2 --> (i + 1/2, j)
+    J3 --> (i + 1/2, j + 1/2)
     
     Parameters
     ----------

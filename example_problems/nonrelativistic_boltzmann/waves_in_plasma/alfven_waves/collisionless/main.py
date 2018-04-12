@@ -29,6 +29,31 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
+# print(af.min(nls.f[:, 0]))
+# print(af.min(nls.f[:, 1]))
+
+# print(af.mean(nls.compute_moments('density')[:, 0]))
+# print(af.mean(nls.compute_moments('density')[:, 1]))
+
+# import pylab as pl
+# pl.style.use('prettyplot')
+
+# pl.semilogy(af.flat(af.moddims(nls.p1_center[:, 0], 32, 32, 32)[:, 16, 16]), 
+#             af.flat(af.moddims(af.flat(nls.f[:, 0, 16, 0]), 32, 32, 32)[:, 16, 16]), 
+#             label = r'Electrons'
+#            )
+
+# pl.semilogy(af.flat(af.moddims(nls.p1_center[:, 1], 32, 32, 32)[:, 16, 16]), 
+#             af.flat(af.moddims(af.flat(nls.f[:, 1, 16, 0]), 32, 32, 32)[:, 16, 16]),
+#             label = r'Ions'
+#            )
+
+# pl.xlabel('$v_1$')
+# pl.ylabel('$f$')
+# pl.legend()
+# pl.savefig('initial_dist.png')
+# pl.clf()
+
 # Time parameters:
 dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
