@@ -14,7 +14,7 @@ pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -100,9 +100,9 @@ def return_array_to_be_plotted(name, moments, fields):
                    - n * v3_bulk**2
                   ) / (params.p_dim * n)
 
-    heat_flux_1 = moments[:, :, 8*N_s:9*N_s] / n
-    heat_flux_2 = moments[:, :, 9*N_s:10*N_s] / n
-    heat_flux_3 = moments[:, :, 10*N_s:11*N_s] / n
+#    heat_flux_1 = moments[:, :, 8*N_s:9*N_s] / n
+#    heat_flux_2 = moments[:, :, 9*N_s:10*N_s] / n
+#    heat_flux_3 = moments[:, :, 10*N_s:11*N_s] / n
 
     E1 = fields[:, :, 0]
     E2 = fields[:, :, 1]
@@ -170,7 +170,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 1.36 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 0.199 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -236,16 +236,16 @@ def plot_1d():
         
         # B1 = return_array_to_be_plotted('B1', moments, fields)
         # B2 = return_array_to_be_plotted('B2', moments, fields)
-        # B3 = return_array_to_be_plotted('B3', moments, fields)
+        B3 = return_array_to_be_plotted('B3', moments, fields)
 
         fig = pl.figure()
 
-        ax1 = fig.add_subplot(2, 2, 1)
-        ax1.plot(q1[:, 0], delta_p[:, 0, 0], color = 'C0', label = 'Electrons')
-        ax1.plot(q1[:, 0], delta_p[:, 0, 1], '--', color = 'C3', label = 'Positrons')
-        ax1.legend()
-        ax1.set_xlabel(r'$x$')
-        ax1.set_ylabel(r'$\Delta p$')
+        #ax1 = fig.add_subplot(2, 2, 1)
+        #ax1.plot(q1[:, 0], delta_p[:, 0, 0], color = 'C0', label = 'Electrons')
+        #ax1.plot(q1[:, 0], delta_p[:, 0, 1], '--', color = 'C3', label = 'Positrons')
+        #ax1.legend()
+        #ax1.set_xlabel(r'$x$')
+        #ax1.set_ylabel(r'$\Delta p$')
         # ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
 
         # ax2 = fig.add_subplot(2, 2, 2)
@@ -274,13 +274,13 @@ def plot_1d():
         # ax5.set_ylabel(r'$B_y$')
         # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
-        # ax6 = fig.add_subplot(1, 1, 1)
-        # ax6.plot(q1[:, 0], B3[:, 0])
-        # ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax6 = fig.add_subplot(1, 1, 1)
+        ax6.plot(q1[:, 0], B3[:, 0])
+        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
         # # ax6.set_aspect('equal')
-        # ax6.set_xlabel(r'$\frac{x}{l_s}$')
-        # ax6.set_ylabel(r'$B_z$')
-        # ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
+        ax6.set_xlabel(r'$\frac{x}{l_s}$')
+        ax6.set_ylabel(r'$B_z$')
+        ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
         fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')

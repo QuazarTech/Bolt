@@ -2,7 +2,7 @@ from params import L_x, L_y, v_max_e, v_max_i
 
 q1_start = 0
 q1_end   = L_x
-N_q1     = 128
+N_q1     = 32
 
 q2_start = 0
 q2_end   = L_y
