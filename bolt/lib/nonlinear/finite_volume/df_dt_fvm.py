@@ -130,7 +130,7 @@ def df_dt_fvm(f, self):
                 J2 = curlB_2 / mu # (i + 1/2, j)
                 J3 = curlB_3 / mu # (i + 1/2, j + 1/2)
                 
-                # Applying Ideal Ohm's Law:
+                # Applying Generalized Ohm's Law:
                 n = self.compute_moments('density', f = f_left)
 
                 # (v X B)_x = B3 * v2 - B2 * v3
@@ -148,16 +148,22 @@ def df_dt_fvm(f, self):
 
                 # (J X B)_x = B3 * J2 - B2 * J3
                 # (J X B)_x --> (i, j + 1/2)
-                J_cross_B_1 =   0.5 * (B3_plus_q2 + B3) * J2 \
-                              - B2                      * J3
+                J_cross_B_1 =   0.5 * (B3_plus_q2 + B3) * (  J2 + af.shift(J2, 0, 0, 0, 1)
+                                                           + af.shift(J2, 0, 0, -1) + af.shift(J2, 0, 0, -1, 1)
+                                                          ) * 0.25 \
+                              - B2                      * (af.shift(J3, 0, 0, 1) + J3) * 0.5
+
                 # (J X B)_y = B1 * J3 - B3 * J1
                 # (J X B)_y --> (i + 1/2, j)
-                J_cross_B_2 =   B1                      * J3 \
-                              - 0.5 * (B3_plus_q1 + B3) * J1
+                J_cross_B_2 =   B1                      * (af.shift(J3, 0, 0, 0, 1) + J3) * 0.5 \
+                              - 0.5 * (B3_plus_q1 + B3) * (  J1 + af.shift(J1, 0, 0, 1, 0)
+                                                           + af.shift(J1, 0, 0, 0, -1) + af.shift(J1, 0, 0, 1, -1)
+                                                          ) * 0.25
+
                 # (J X B)_z = B2 * J1 - B1 * J2
                 # (J X B)_z --> (i + 1/2, j + 1/2)
-                J_cross_B_3 =   0.5 * (B2_plus_q1 + B2) * J1 \
-                              - 0.5 * (B1_plus_q2 + B1) * J2
+                J_cross_B_3 =   0.5 * (B2_plus_q1 + B2) * (af.shift(J1, 0, 0, -1) + J1) * 0.5 \
+                              - 0.5 * (B1_plus_q2 + B1) * (af.shift(J2, 0, 0, 0, -1) + J2) * 0.5
 
                 # E = -(v X B) + (J X B) / (en)
                 E1 = -v_cross_B_1 + J_cross_B_1 / (n * self.physical_system.params.charge) # (i, j + 1/2)
