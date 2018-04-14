@@ -29,31 +29,6 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
-# print(af.min(nls.f[:, 0]))
-# print(af.min(nls.f[:, 1]))
-
-# print(af.mean(nls.compute_moments('density')[:, 0]))
-# print(af.mean(nls.compute_moments('density')[:, 1]))
-
-# import pylab as pl
-# pl.style.use('prettyplot')
-
-# pl.plot(af.flat(af.moddims(nls.p1_center[:, 0], 32, 32, 32)[:, 16, 16]), 
-#             af.flat(af.moddims(af.flat(nls.f[:, 0, 16, 0]), 32, 32, 32)[:, 16, 16]), 
-#             label = r'Electrons'
-#            )
-
-# pl.plot(af.flat(af.moddims(nls.p1_center[:, 1], 32, 32, 32)[:, 16, 16]), 
-#             af.flat(af.moddims(af.flat(nls.f[:, 1, 16, 0]), 32, 32, 32)[:, 16, 16]),
-#             label = r'Ions'
-#            )
-
-# pl.xlabel('$v_1$')
-# pl.ylabel('$f$')
-# pl.legend()
-# pl.savefig('initial_dist.png')
-# pl.clf()
-
 # Time parameters:
 dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
@@ -61,7 +36,7 @@ dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
 dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
                        / params.c # lightspeed
 
-dt = min(dt_fvm, dt_fdtd)
+dt = dt_fvm # min(dt_fvm, dt_fdtd)
 
 if(params.t_restart == 0):
     time_elapsed = 0
@@ -89,7 +64,6 @@ while(abs(time_elapsed - params.t_final) > 1e-12):
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
                    * params.dt_dump_moments
-
         if(delta_dt<dt):
             nls.strang_timestep(delta_dt)
             time_elapsed += delta_dt

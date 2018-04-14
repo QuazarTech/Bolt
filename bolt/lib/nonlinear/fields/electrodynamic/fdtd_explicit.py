@@ -26,9 +26,9 @@ def fdtd_evolve_E(self, dt):
     dq1 = self.dq1
     dq2 = self.dq2
 
-    B1 = self.yee_grid_EM_fields[3]
-    B2 = self.yee_grid_EM_fields[4]
-    B3 = self.yee_grid_EM_fields[5]
+    B1 = self.yee_grid_EM_fields[3] # (i + 1/2, j)
+    B2 = self.yee_grid_EM_fields[4] # (i, j + 1/2)
+    B3 = self.yee_grid_EM_fields[5] # (i, j)
 
     B1_plus_q2 = af.shift(B1, 0, 0, 0, -1)
 
@@ -37,15 +37,26 @@ def fdtd_evolve_E(self, dt):
     B3_plus_q1 = af.shift(B3, 0, 0, -1, 0)
     B3_plus_q2 = af.shift(B3, 0, 0, 0, -1)
 
-    # dE1/dt = + dB3/dq2
-    # dE2/dt = - dB3/dq1
-    # dE3/dt = dB2/dq1 - dB1/dq2
+    # dE/dt = (∇ x B) / με - J / ε
+    
+    # dE1/dt = + (1 / με) * dB3/dq2 - J1 / ε
+    # dE2/dt = - (1 / με) * dB3/dq1 - J2 / ε
+    # dE3/dt = (1 / με) * (dB2/dq1 - dB1/dq2) - J3 / ε
 
-    self.yee_grid_EM_fields[0] +=   (dt / (dq2 * mu * eps)) * (B3_plus_q2 - B3) - self.J1 * dt / eps
-    self.yee_grid_EM_fields[1] +=  -(dt / (dq1 * mu * eps)) * (B3_plus_q1 - B3) - self.J2 * dt / eps
-    self.yee_grid_EM_fields[2] +=   (dt / (dq1 * mu * eps)) * (B2_plus_q1 - B2) \
-                                  - (dt / (dq2 * mu * eps)) * (B1_plus_q2 - B1) \
-                                  - self.J3 * dt / eps
+    # curlB_x =  dB3/dq2
+    curlB_1 =  (B3_plus_q2 - B3) / dq2 # (i, j + 1/2)
+    # curlB_y = -dB3/dq1
+    curlB_2 = -(B3_plus_q1 - B3) / dq1 # (i + 1/2, j)
+    # curlB_z = (dB2/dq1 - dB1/dq2)
+    curlB_3 =  (B2_plus_q1 - B2) / dq1 - (B1_plus_q2 - B1) / dq2 # (i + 1/2, j + 1/2)
+
+    if(self.params.hybrid_model_enabled == False):
+        # E1 --> (i, j + 1/2)
+        self.yee_grid_EM_fields[0] += (dt / (mu * eps)) * curlB_1 - self.J1 * dt / eps
+        # E2 --> (i + 1/2, j)
+        self.yee_grid_EM_fields[1] += (dt / (mu * eps)) * curlB_2 - self.J2 * dt / eps
+        # E3 --> (i + 1/2, j + 1/2)
+        self.yee_grid_EM_fields[2] += (dt / (mu * eps)) * curlB_3 - self.J3 * dt / eps
 
     af.eval(self.yee_grid_EM_fields)
 
@@ -72,9 +83,9 @@ def fdtd_evolve_B(self, dt):
     dq1 = self.dq1
     dq2 = self.dq2
 
-    E1 = self.yee_grid_EM_fields[0]
-    E2 = self.yee_grid_EM_fields[1]
-    E3 = self.yee_grid_EM_fields[2]
+    E1 = self.yee_grid_EM_fields[0] # (i, j + 1/2)
+    E2 = self.yee_grid_EM_fields[1] # (i + 1/2, j)
+    E3 = self.yee_grid_EM_fields[2] # (i + 1/2, j + 1/2)
 
     E1_minus_q2 = af.shift(E1, 0, 0, 0, 1)
 
@@ -83,14 +94,25 @@ def fdtd_evolve_B(self, dt):
     E3_minus_q1 = af.shift(E3, 0, 0, 1, 0)
     E3_minus_q2 = af.shift(E3, 0, 0, 0, 1)
 
+    # dB/dt = -(∇ x E)
+
     # dB1/dt = - dE3/dq2
     # dB2/dt = + dE3/dq1
     # dB3/dt = - (dE2/dq1 - dE1/dq2)
 
-    self.yee_grid_EM_fields[3] += -(dt / dq2) * (E3 - E3_minus_q2)
-    self.yee_grid_EM_fields[4] +=  (dt / dq1) * (E3 - E3_minus_q1)
-    self.yee_grid_EM_fields[5] += - (dt / dq1) * (E2 - E2_minus_q1) \
-                                  + (dt / dq2) * (E1 - E1_minus_q2)
+    # curlE_x =  dE3/dq2
+    curlE_1 =  (E3 - E3_minus_q2) / dq2 # (i + 1/2, j)
+    # curlE_y = -dE3/dq1
+    curlE_2 = -(E3 - E3_minus_q1) / dq1 # (i, j + 1/2)
+    # curlE_z = (dE2/dq1 - dE1/dq2)
+    curlE_3 =  (E2 - E2_minus_q1) / dq1 - (E1 - E1_minus_q2) / dq2 # (i, j)
+
+    # B1 --> (i + 1/2, j)
+    self.yee_grid_EM_fields[3] += -dt * curlE_1
+    # B2 --> (i, j + 1/2)
+    self.yee_grid_EM_fields[4] += -dt * curlE_2
+    # B3 --> (i, j)
+    self.yee_grid_EM_fields[5] += -dt * curlE_3
 
     af.eval(self.yee_grid_EM_fields)
 

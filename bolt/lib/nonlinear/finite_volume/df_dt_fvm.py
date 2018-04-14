@@ -104,6 +104,69 @@ def df_dt_fvm(f, self):
         if(    self.physical_system.params.fields_type == 'electrodynamic'
            and self.fields_solver.at_n == False
           ):
+            if(self.physical_system.params.hybrid_model_enabled == False):
+
+                B1 = self.fields_solver.yee_grid_EM_fields[3] # (i + 1/2, j)
+                B2 = self.fields_solver.yee_grid_EM_fields[4] # (i, j + 1/2)
+                B3 = self.fields_solver.yee_grid_EM_fields[5] # (i, j)
+
+                B1_plus_q2 = af.shift(B1, 0, 0, 0, -1)
+
+                B2_plus_q1 = af.shift(B2, 0, 0, -1, 0)
+
+                B3_plus_q1 = af.shift(B3, 0, 0, -1, 0)
+                B3_plus_q2 = af.shift(B3, 0, 0, 0, -1)
+
+                # curlB_x =  dB3/dq2
+                curlB_1 =  (B3_plus_q2 - B3) / dq2 # (i, j + 1/2)
+                # curlB_y = -dB3/dq1
+                curlB_2 = -(B3_plus_q1 - B3) / dq1 # (i + 1/2, j)
+                # curlB_z = (dB2/dq1 - dB1/dq2)
+                curlB_3 =  (B2_plus_q1 - B2) / dq1 - (B1_plus_q2 - B1) / dq2 # (i + 1/2, j + 1/2)
+
+                # c --> inf limit: J = (∇ x B) / μ
+                mu = self.physical_system.params.mu
+                J1 = curlB_1 / mu # (i, j + 1/2)
+                J2 = curlB_2 / mu # (i + 1/2, j)
+                J3 = curlB_3 / mu # (i + 1/2, j + 1/2)
+                
+                # Applying Ideal Ohm's Law:
+                n = self.compute_moments('density', f = f_left)
+
+                # (v X B)_x = B3 * v2 - B2 * v3
+                # (v X B)_x --> (i, j + 1/2)
+                v_cross_B_1 =   0.5 * (B3_plus_q2 + B3) * self.compute_moments('mom_v2_bulk', f = f_left) / n \
+                              - B2                      * self.compute_moments('mom_v3_bulk', f = f_left) / n
+                # (v X B)_y = B1 * v3 - B3 * v1
+                # (v X B)_y --> (i + 1/2, j)
+                v_cross_B_2 =   B1                      * self.compute_moments('mom_v3_bulk', f = f_bot) / n \
+                              - 0.5 * (B3_plus_q1 + B3) * self.compute_moments('mom_v1_bulk', f = f_bot) / n
+                # (v X B)_z = B2 * v1 - B1 * v2
+                # (v X B)_z --> (i + 1/2, j + 1/2)
+                v_cross_B_3 =   0.5 * (B2_plus_q1 + B2) * self.compute_moments('mom_v1_bulk', f = f) / n \
+                              - 0.5 * (B1_plus_q2 + B1) * self.compute_moments('mom_v2_bulk', f = f) / n
+
+                # (J X B)_x = B3 * J2 - B2 * J3
+                # (J X B)_x --> (i, j + 1/2)
+                J_cross_B_1 =   0.5 * (B3_plus_q2 + B3) * J2 \
+                              - B2                      * J3
+                # (J X B)_y = B1 * J3 - B3 * J1
+                # (J X B)_y --> (i + 1/2, j)
+                J_cross_B_2 =   B1                      * J3 \
+                              - 0.5 * (B3_plus_q1 + B3) * J1
+                # (J X B)_z = B2 * J1 - B1 * J2
+                # (J X B)_z --> (i + 1/2, j + 1/2)
+                J_cross_B_3 =   0.5 * (B2_plus_q1 + B2) * J1 \
+                              - 0.5 * (B1_plus_q2 + B1) * J2
+
+                # E = -(v X B) + (J X B) / (en)
+                E1 = -v_cross_B_1 + J_cross_B_1 / (n * self.physical_system.params.charge) # (i, j + 1/2)
+                E2 = -v_cross_B_2 + J_cross_B_2 / (n * self.physical_system.params.charge) # (i + 1/2, j)
+                E3 = -v_cross_B_3 + J_cross_B_3 / (n * self.physical_system.params.charge) # (i + 1/2, j + 1/2)
+            
+                self.fields_solver.yee_grid_EM_fields[0] = E1
+                self.fields_solver.yee_grid_EM_fields[1] = E2
+                self.fields_solver.yee_grid_EM_fields[2] = E3
 
             J1 = multiply(self.physical_system.params.charge,
                           self.compute_moments('mom_v1_bulk', f = f_left)
