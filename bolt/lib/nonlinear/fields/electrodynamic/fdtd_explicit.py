@@ -50,7 +50,13 @@ def fdtd_evolve_E(self, dt):
     # curlB_z = (dB2/dq1 - dB1/dq2)
     curlB_3 =  (B2_plus_q1 - B2) / dq1 - (B1_plus_q2 - B1) / dq2 # (i + 1/2, j + 1/2)
 
-    if(self.params.hybrid_model_enabled == False):
+    if(self.params.hybrid_model_enabled == True):
+        
+        assert(af.sum(self.J1 - curlB_1 / mu) == 0)
+        assert(af.sum(self.J2 - curlB_2 / mu) == 0)
+        assert(af.sum(self.J3 - curlB_3 / mu) == 0)
+
+    else:
         # E1 --> (i, j + 1/2)
         self.yee_grid_EM_fields[0] += (dt / (mu * eps)) * curlB_1 - self.J1 * dt / eps
         # E2 --> (i + 1/2, j)

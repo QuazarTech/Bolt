@@ -174,17 +174,19 @@ def df_dt_fvm(f, self):
                 self.fields_solver.yee_grid_EM_fields[1] = E2
                 self.fields_solver.yee_grid_EM_fields[2] = E3
 
-            J1 = multiply(self.physical_system.params.charge,
-                          self.compute_moments('mom_v1_bulk', f = f_left)
-                         ) # (i, j + 1/2)
+            else:
+                
+                J1 = multiply(self.physical_system.params.charge,
+                              self.compute_moments('mom_v1_bulk', f = f_left)
+                             ) # (i, j + 1/2)
 
-            J2 = multiply(self.physical_system.params.charge,
-                          self.compute_moments('mom_v2_bulk', f = f_bot)
-                         ) # (i + 1/2, j)
+                J2 = multiply(self.physical_system.params.charge,
+                              self.compute_moments('mom_v2_bulk', f = f_bot)
+                             ) # (i + 1/2, j)
 
-            J3 = multiply(self.physical_system.params.charge, 
-                          self.compute_moments('mom_v3_bulk', f = f)
-                         ) # (i + 1/2, j + 1/2)
+                J3 = multiply(self.physical_system.params.charge, 
+                              self.compute_moments('mom_v3_bulk', f = f)
+                             ) # (i + 1/2, j + 1/2)
 
             self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, self.dt)
 
