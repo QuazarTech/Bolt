@@ -559,7 +559,6 @@ class fields_solver(object):
 
         # Update time elapsed:
         self.time_elapsed += dt
-
         return
 
     def get_fields(self):

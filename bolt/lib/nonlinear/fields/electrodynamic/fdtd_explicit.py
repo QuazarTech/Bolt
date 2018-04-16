@@ -53,9 +53,9 @@ def fdtd_evolve_E(self, dt):
     if(self.params.hybrid_model_enabled == True):
         # This is already assigned under df_dt_fvm
         # Here we are just checking that J = (∇ x B) / μ
-        assert(af.sum(self.J1 - curlB_1 / mu) == 0)
-        assert(af.sum(self.J2 - curlB_2 / mu) == 0)
-        assert(af.sum(self.J3 - curlB_3 / mu) == 0)
+        assert(af.mean(af.abs(self.J1 - curlB_1 / mu)) < 1e-14)
+        assert(af.mean(af.abs(self.J2 - curlB_2 / mu)) < 1e-14)
+        assert(af.mean(af.abs(self.J3 - curlB_3 / mu)) < 1e-14)
 
     else:
         # E1 --> (i, j + 1/2)
