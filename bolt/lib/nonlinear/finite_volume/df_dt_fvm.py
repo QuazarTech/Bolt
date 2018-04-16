@@ -104,7 +104,8 @@ def df_dt_fvm(f, self):
         if(    self.physical_system.params.fields_type == 'electrodynamic'
            and self.fields_solver.at_n == False
           ):
-            if(self.physical_system.params.hybrid_model_enabled == False):
+            
+            if(self.physical_system.params.hybrid_model_enabled == True):
 
                 B1 = self.fields_solver.yee_grid_EM_fields[3] # (i + 1/2, j)
                 B2 = self.fields_solver.yee_grid_EM_fields[4] # (i, j + 1/2)
@@ -118,11 +119,11 @@ def df_dt_fvm(f, self):
                 B3_plus_q2 = af.shift(B3, 0, 0, 0, -1)
 
                 # curlB_x =  dB3/dq2
-                curlB_1 =  (B3_plus_q2 - B3) / dq2 # (i, j + 1/2)
+                curlB_1 =  (B3_plus_q2 - B3) / self.dq2 # (i, j + 1/2)
                 # curlB_y = -dB3/dq1
-                curlB_2 = -(B3_plus_q1 - B3) / dq1 # (i + 1/2, j)
+                curlB_2 = -(B3_plus_q1 - B3) / self.dq1 # (i + 1/2, j)
                 # curlB_z = (dB2/dq1 - dB1/dq2)
-                curlB_3 =  (B2_plus_q1 - B2) / dq1 - (B1_plus_q2 - B1) / dq2 # (i + 1/2, j + 1/2)
+                curlB_3 =  (B2_plus_q1 - B2) / self.dq1 - (B1_plus_q2 - B1) / self.dq2 # (i + 1/2, j + 1/2)
 
                 # c --> inf limit: J = (∇ x B) / μ
                 mu = self.physical_system.params.mu
@@ -166,9 +167,9 @@ def df_dt_fvm(f, self):
                               - 0.5 * (B1_plus_q2 + B1) * (af.shift(J2, 0, 0, 0, -1) + J2) * 0.5
 
                 # E = -(v X B) + (J X B) / (en)
-                E1 = -v_cross_B_1 + J_cross_B_1 / (n * self.physical_system.params.charge) # (i, j + 1/2)
-                E2 = -v_cross_B_2 + J_cross_B_2 / (n * self.physical_system.params.charge) # (i + 1/2, j)
-                E3 = -v_cross_B_3 + J_cross_B_3 / (n * self.physical_system.params.charge) # (i + 1/2, j + 1/2)
+                E1 = -v_cross_B_1 + J_cross_B_1 / (multiply(n, self.physical_system.params.charge)) # (i, j + 1/2)
+                E2 = -v_cross_B_2 + J_cross_B_2 / (multiply(n, self.physical_system.params.charge)) # (i + 1/2, j)
+                E3 = -v_cross_B_3 + J_cross_B_3 / (multiply(n, self.physical_system.params.charge)) # (i + 1/2, j + 1/2)
             
                 self.fields_solver.yee_grid_EM_fields[0] = E1
                 self.fields_solver.yee_grid_EM_fields[1] = E2
