@@ -175,22 +175,23 @@ def df_dt_fvm(f, self):
                 n_i = self.compute_moments('density')
                 T_e = self.physical_system.params.fluid_electron_temperature
 
+                dn_q1 = (af.shift(n_i, 0, 0, -1) - af.shift(n_i, 0, 0, 1)) / (2 * self.dq1)
+                dn_q2 = (af.shift(n_i, 0, 0, 0, -1) - af.shift(n_i, 0, 0, 0, 1)) / (2 * self.dq2)
+
                 # E = -(v X B) + (J X B) / (en) - T ∇n / (en)
                 E1 = -v_cross_B_1 + J_cross_B_1 \
                                   / (multiply(self.compute_moments('density', f = f_left),
                                               self.physical_system.params.charge
                                              )
                                     ) \
-                                  - T_e / multiply(self.physical_system.params.charge, n_i) \
-                                  * (af.shift(n_i, 0, 0, -1) - n_i) / self.dq1 # (i, j + 1/2)
+                                  - 0.5 * T_e * (dn_q1 + af.shift(dn_q1, 0, 0, 1)) / multiply(self.physical_system.params.charge, n_i) # (i, j + 1/2)
 
                 E2 = -v_cross_B_2 + J_cross_B_2 \
                                   / (multiply(self.compute_moments('density', f = f_bot),
                                               self.physical_system.params.charge
                                              )
                                     ) \
-                                  - T_e / multiply(self.physical_system.params.charge, n_i) \
-                                  * (af.shift(n_i, 0, 0, 0, -1) - n_i) / self.dq2 # (i + 1/2, j)
+                                  - 0.5 * T_e * (dn_q2 + af.shift(dn_q2, 0, 0, 0, 1)) / multiply(self.physical_system.params.charge, n_i) # (i + 1/2, j)
 
                 E3 = -v_cross_B_3 + J_cross_B_3 \
                                   / (multiply(self.compute_moments('density', f = f),

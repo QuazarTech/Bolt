@@ -58,7 +58,7 @@ m_e = 1 * m0
 
 mass               = [m_e]
 boltzmann_constant = k0
-charge             = [10 * e0]
+charge             = [1 * e0]
 
 # Initial Conditions used in initialize:
 density_background     = 1 * n0  

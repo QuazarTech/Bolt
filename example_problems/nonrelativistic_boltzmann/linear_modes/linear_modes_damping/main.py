@@ -112,6 +112,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
     print(t0)
+
     # nls.f = af.to_array(gaussian_filter(np.array(nls.f), (0.2, 0, 0, 0)))
     # if(time_index % 25 == 0):
     #     nls.f = lowpass_filter(nls.f)
@@ -145,7 +146,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_ls[time_index + 1] = af.max(n_ls) 
 
 pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
-pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
 pl.legend()
@@ -154,7 +155,7 @@ pl.savefig('n.svg')
 pl.clf()
 
 pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
-pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
+# pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
 pl.legend()
