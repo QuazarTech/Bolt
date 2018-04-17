@@ -8,9 +8,9 @@ q2_start = 0
 q2_end   = L_y
 N_q2     = 3
 
-p1_start = [-0.5]
-p1_end   = [ 0.5]
-N_p1     = 1
+p1_start = [-v_max]
+p1_end   = [ v_max]
+N_p1     = 32
 
 p2_start = [-v_max]
 p2_end   = [ v_max]

@@ -43,7 +43,8 @@ def initialize_f(q1, q2, v1, v2, v3, params):
 
     n = n_b + 0 * q1**0
 
-    f = n * (m / (2 * np.pi * k * T_b)) \
+    f = n * (m / (2 * np.pi * k * T_b))**(3 / 2) \
+          * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T_b)) \
           * af.exp(-m * (v2 - v2_bulk)**2 / (2 * k * T_b)) \
           * af.exp(-m * (v3 - v3_bulk)**2 / (2 * k * T_b))
 

@@ -58,7 +58,7 @@ m_e = 1 * m0
 
 mass               = [m_e]
 boltzmann_constant = k0
-charge             = [-10 * e0]
+charge             = [10 * e0]
 
 # Initial Conditions used in initialize:
 density_background     = 1 * n0  
@@ -66,6 +66,9 @@ temperature_background = 1 * T0
 v1_bulk_background     = 0 * v0
 v2_bulk_background     = 0 * v0
 v3_bulk_background     = 0 * v0
+
+# Used in hybrid model:
+fluid_electron_temperature = 1 * T0
 
 # Wavenumber of perturbation
 k_q1 = 2 * np.pi 
@@ -83,7 +86,7 @@ t_final = 1.0 * t0
 fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
-hybrid_model_enabled     = False
+hybrid_model_enabled     = True
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

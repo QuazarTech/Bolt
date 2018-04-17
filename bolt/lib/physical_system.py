@@ -120,6 +120,12 @@ class physical_system(object):
                            )
 
         try:
+            if(params.hybrid_model_enabled == True):
+                assert(N_species == 1)
+        except:
+            raise Exception('Only ions are to be initialized when using the hybrid model')
+
+        try:
             assert(type(domain.p1_start) == list)
             assert(type(domain.p2_start) == list)
             assert(type(domain.p3_start) == list)

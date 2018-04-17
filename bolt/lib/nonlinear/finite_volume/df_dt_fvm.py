@@ -101,7 +101,6 @@ def df_dt_fvm(f, self):
     if(    self.physical_system.params.solver_method_in_p == 'FVM' 
        and self.physical_system.params.fields_enabled == True
       ):
-        
         if(    self.physical_system.params.fields_type == 'electrodynamic'
            and self.fields_solver.at_n == False
           ):
@@ -173,28 +172,37 @@ def df_dt_fvm(f, self):
                 J_cross_B_3 =   0.5 * (B2_plus_q1 + B2) * (af.shift(J1, 0, 0, -1) + J1) * 0.5 \
                               - 0.5 * (B1_plus_q2 + B1) * (af.shift(J2, 0, 0, 0, -1) + J2) * 0.5
 
-                # E = -(v X B) + (J X B) / (en)
+                n_i = self.compute_moments('density')
+                T_e = self.physical_system.params.fluid_electron_temperature
+
+                # E = -(v X B) + (J X B) / (en) - T ∇n / (en)
                 E1 = -v_cross_B_1 + J_cross_B_1 \
                                   / (multiply(self.compute_moments('density', f = f_left),
                                               self.physical_system.params.charge
                                              )
-                                    ) # (i, j + 1/2)
+                                    ) \
+                                  - T_e / multiply(self.physical_system.params.charge, n_i) \
+                                  * (af.shift(n_i, 0, 0, -1) - n_i) / self.dq1 # (i, j + 1/2)
 
                 E2 = -v_cross_B_2 + J_cross_B_2 \
                                   / (multiply(self.compute_moments('density', f = f_bot),
                                               self.physical_system.params.charge
                                              )
-                                    ) # (i + 1/2, j)
+                                    ) \
+                                  - T_e / multiply(self.physical_system.params.charge, n_i) \
+                                  * (af.shift(n_i, 0, 0, 0, -1) - n_i) / self.dq2 # (i + 1/2, j)
 
                 E3 = -v_cross_B_3 + J_cross_B_3 \
                                   / (multiply(self.compute_moments('density', f = f),
                                               self.physical_system.params.charge
                                              )
                                     ) # (i + 1/2, j + 1/2)
-            
+                
                 self.fields_solver.yee_grid_EM_fields[0] = E1
                 self.fields_solver.yee_grid_EM_fields[1] = E2
                 self.fields_solver.yee_grid_EM_fields[2] = E3
+
+                af.eval(self.fields_solver.yee_grid_EM_fields)
 
             else:
                 

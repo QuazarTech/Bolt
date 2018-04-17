@@ -65,9 +65,9 @@ PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
-p_dim = 2
+p_dim = 3
 # p_dim sets the adiabatic constant gamma:
-gamma = 2
+gamma = 5 / 3
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
@@ -83,6 +83,9 @@ charge             = [e_i]
 # Background Quantities:
 density_background     = 1 * n0
 temperature_background = 1 * T0
+
+# Used in Hybrid Model:
+fluid_electron_temperature = 0 * T0
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
@@ -171,7 +174,7 @@ hybrid_model_enabled     = True
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.001 * t0
+dt_dump_moments = dt_dump_fields = 0.1 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0
