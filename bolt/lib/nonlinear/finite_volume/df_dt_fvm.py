@@ -175,8 +175,14 @@ def df_dt_fvm(f, self):
                 n_i = self.compute_moments('density')
                 T_e = self.physical_system.params.fluid_electron_temperature
 
-                dn_q1 = (af.shift(n_i, 0, 0, -1) - af.shift(n_i, 0, 0, 1)) / (2 * self.dq1)
-                dn_q2 = (af.shift(n_i, 0, 0, 0, -1) - af.shift(n_i, 0, 0, 0, 1)) / (2 * self.dq2)
+                # Using a 4th order stencil:
+                dn_q1 = (-     af.shift(n_i, 0, 0, -2) + 8 * af.shift(n_i, 0, 0, -1) 
+                         - 8 * af.shift(n_i, 0, 0,  1) +     af.shift(n_i, 0, 0,  2)
+                        ) / (12 * self.dq1)
+
+                dn_q2 = (-     af.shift(n_i, 0, 0, 0, -2) + 8 * af.shift(n_i, 0, 0, 0, -1) 
+                         - 8 * af.shift(n_i, 0, 0, 0,  1) +     af.shift(n_i, 0, 0, 0,  2)
+                        ) / (12 * self.dq2)
 
                 # E = -(v X B) + (J X B) / (en) - T ∇n / (en)
                 E1 = -v_cross_B_1 + J_cross_B_1 \

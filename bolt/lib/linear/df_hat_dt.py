@@ -86,6 +86,7 @@ def df_hat_dt(f_hat, fields_hat, self):
                       + multiply(A_p3_hat, self.dfdp3_background)
 
         # Including the mean magnetic field term:
+        # TODO: Maybe wrong to add mean magnetic fields since e^{ikx} term won't cancel out. Check again
         # Multiplying by q_center**0 to get the values in the array of required dimension
         # Dividing by 2 to normalize appropriately(look at the initialization sector):
         B1_mean = af.mean(self.fields_solver.fields_hat[3, 0, 0, 0]) * self.q1_center**0 / 2

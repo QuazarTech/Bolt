@@ -86,7 +86,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.5
+t_final = 1.0
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -146,7 +146,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_data_ls[time_index + 1] = af.max(n_ls) 
 
 pl.plot(time_array, rho_data_nls, label = 'Nonlinear Solver')
-# pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
+pl.plot(time_array, rho_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
 pl.legend()
@@ -155,7 +155,7 @@ pl.savefig('n.svg')
 pl.clf()
 
 pl.semilogy(time_array, rho_data_nls-1, label = 'Nonlinear Solver')
-# pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
+pl.semilogy(time_array, rho_data_ls-1, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel('Error')
 pl.xlabel('Time')
 pl.legend()
