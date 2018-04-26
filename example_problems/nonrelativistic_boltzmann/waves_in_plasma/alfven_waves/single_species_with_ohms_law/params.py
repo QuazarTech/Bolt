@@ -44,7 +44,7 @@ mu = 1. # |mu0| units(mu0)
 B0 = 1. # |B0| units(B0)
 
 # Setting plasma β:
-beta = 1e-5
+beta = 2
 T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
@@ -65,9 +65,9 @@ PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
-p_dim = 3
+p_dim = 2
 # p_dim sets the adiabatic constant gamma:
-gamma = 5 / 3
+gamma = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
@@ -96,10 +96,10 @@ t0 = l0 / v0
 L_x = L_y = l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max = 0.014  * v0
+v_max = 10  * v0
 
 # Calculating Permittivity:
-c   = 8 * v0
+c   = 10 * v0
 eps = 1 / (c**2 * mu)
 
 # Velocity Scales:
@@ -119,12 +119,12 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-5
+amplitude = 5e-3
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
 N_cfl   = 0.01
-t_final = 10 * t0
+t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -170,11 +170,12 @@ fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
 hybrid_model_enabled     = True
+
 # File-writing Parameters:
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.1 * t0
+dt_dump_moments = dt_dump_fields = 0.001 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0
@@ -182,4 +183,4 @@ t_restart = 0 * t0
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1e-3 * t0 * p1**0 * q1**0)
+    return (np.inf * t0 * p1**0 * q1**0)

@@ -21,6 +21,9 @@ N = np.array([32, 48, 64, 96, 128])
 for i in range(N.size):
 
     domain.N_q1 = int(N[i])
+    domain.N_q2 = int(N[i])
+    domain.N_q3 = int(N[i])
+    
     # Defining the physical system to be solved:
     system = physical_system(domain,
                              boundary_conditions,

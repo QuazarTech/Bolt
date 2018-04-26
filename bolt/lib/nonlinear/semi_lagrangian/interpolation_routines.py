@@ -4,7 +4,7 @@
 import arrayfire as af
 import numpy as np
 
-from bolt.lib.utils.broadcasted_primitive_operations import add
+from bolt.lib.utils.broadcasted_primitive_operations import add, multiply
 
 def f_interp_2d(self, dt):
     """
@@ -81,7 +81,7 @@ def f_interp_p_3d(self, dt):
     if(self.performance_test_flag == True):
         tic = af.time()
     
-    (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.f, self.time_elapsed,
+    (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.time_elapsed,
                                       self.q1_center, self.q2_center,
                                       self.p1_center, self.p2_center, self.p3_center,
                                       self.fields_solver, self.physical_system.params
@@ -98,20 +98,20 @@ def f_interp_p_3d(self, dt):
     p2_new = self._convert_to_p_expanded(p2_new)
 
     # Transforming interpolant to go from [0, N_p - 1]:
-    p1_lower_boundary = self.p1_start + 0.5 * self.dp1
-    p2_lower_boundary = self.p2_start + 0.5 * self.dp2
+    p1_lower_boundary = add(self.p1_start, 0.5 * self.dp1)
+    p2_lower_boundary = add(self.p2_start, 0.5 * self.dp2)
 
-    p1_interpolant = (p1_new - p1_lower_boundary) / self.dp1
-    p2_interpolant = (p2_new - p2_lower_boundary) / self.dp2
+    p1_interpolant = multiply(add(p1_new, -p1_lower_boundary), 1 / self.dp1)
+    p2_interpolant = multiply(add(p2_new, -p2_lower_boundary), 1 / self.dp2)
 
     if(self.physical_system.params.p_dim == 3):        
         
         p3_new = add(self.p3_center, - 0.5 * dt * A_p3)
         p3_new = self._convert_to_p_expanded(p3_new)
-        p3_lower_boundary = self.p3_start + 0.5 * self.dp3
+        p3_lower_boundary = add(self.p3_start, 0.5 * self.dp3)
     
         # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
-        p3_interpolant = af.reorder((p3_new - p3_lower_boundary) / self.dp3, 2, 0, 1, 3)
+        p3_interpolant = af.reorder(mulitiply(add(p3_new, -p3_lower_boundary), 1 / self.dp3), 2, 0, 1, 3)
 
     # We perform the 3d interpolation by performing individual 1d + 2d interpolations: 
     self.f = self._convert_to_p_expanded(self.f)
@@ -141,7 +141,7 @@ def f_interp_p_3d(self, dt):
                             af.INTERP.CUBIC_SPLINE
                            )
 
-        # Reordering back from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
+        # Reordering back from (N_p3, N_p1, N_p2, N_s * N_q) --> (N_p1, N_p2, N_p3, N_s * N_q)
         self.f = af.reorder(self.f, 1, 2, 0, 3)
 
     self.f = self._convert_to_q_expanded(self.f)

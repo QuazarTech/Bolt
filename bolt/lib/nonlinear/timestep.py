@@ -119,7 +119,7 @@ def strang_step(self, dt):
         if(    self.physical_system.params.solver_method_in_p == 'ASL'
            and self.physical_system.params.fields_enabled == True
           ):
-            split.strang(self, op_fvm, op_fields, dt)
+            op_fields(self, dt) #split.strang(self, op_fvm, op_fields, dt)
 
         else:
             op_fvm(self, dt)

@@ -351,6 +351,15 @@ class nonlinear_solver(object):
         self.dp2 = af.moddims(af.to_array(self.dp2), 1, self.N_species)
         self.dp3 = af.moddims(af.to_array(self.dp3), 1, self.N_species)
 
+        # Converting p_start and p_end to af.Array:
+        self.p1_start = af.moddims(af.to_array(self.p1_start), 1, self.N_species)
+        self.p2_start = af.moddims(af.to_array(self.p2_start), 1, self.N_species)
+        self.p3_start = af.moddims(af.to_array(self.p3_start), 1, self.N_species)
+
+        self.p1_end = af.moddims(af.to_array(self.p1_end), 1, self.N_species)
+        self.p2_end = af.moddims(af.to_array(self.p2_end), 1, self.N_species)
+        self.p3_end = af.moddims(af.to_array(self.p3_end), 1, self.N_species)
+
         # Initialize according to initial condition provided by user:
         self._initialize(physical_system.params)
     
