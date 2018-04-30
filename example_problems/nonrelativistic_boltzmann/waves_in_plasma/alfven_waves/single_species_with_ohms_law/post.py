@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12.5, 7 #10, 14
+pl.rcParams['figure.figsize']  = 25, 16 #10, 14
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -63,6 +63,23 @@ N_s             = int(input('Enter number of species: '))
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
 
+# (delta_u2_i, ' = ', 5.079270337660091e-15 + 0.501248425808263*I)
+# (delta_u3_i, ' = ', 0.5012484258083252)
+# (delta_B2, ' = ', -5.051514762044462e-15 - 0.4987484492453844*I)
+# (delta_B3, ' = ', -0.498748449245447 - 1.942890293094024e-16*I)
+
+def B2_analytic(q1, t):
+    
+    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+
+    B2_analytic = params.amplitude * (-5.051514762044462e-15 - 0.4987484492453844 * 1j) * \
+                  np.exp(  1j * params.k_q1 * q1
+                         + omega * t
+                        ).real
+
+    return(B2_analytic)
+
+
 def B3_analytic(q1, t):
     
     omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
@@ -74,7 +91,30 @@ def B3_analytic(q1, t):
 
     return(B3_analytic)
 
+def v2_analytic(q1, t):
+    
+    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+
+    v2_analytic = params.amplitude * (5.079270337660091e-15 + 0.501248425808263 * 1j) * \
+                  np.exp(  1j * params.k_q1 * q1
+                         + omega * t
+                        ).real
+
+    return(v2_analytic)
+
+def v3_analytic(q1, t):
+    
+    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+
+    v3_analytic = params.amplitude * 0.5012484258083252 * \
+                  np.exp(  1j * params.k_q1 * q1
+                         + omega * t
+                        ).real
+
+    return(v3_analytic)
+
 def return_array_to_be_plotted(name, moments, fields):
+
     m       = np.array(params.mass).reshape(1, 1, len(params.mass))
     n       = moments[:, :, 0:N_s]
     
@@ -170,7 +210,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.01 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -200,14 +240,11 @@ def determine_min_max(quantity):
 
     return(q_min, q_max)
 
-# n_min, n_max   = determine_min_max('density')
-# v1_min, v1_max = determine_min_max('v1')
-p1_min, p1_max = determine_min_max('p1')
-p2_min, p2_max = determine_min_max('p2')
-p3_min, p3_max = determine_min_max('p3')
-# B1_min, B1_max = determine_min_max('B1')
-# B2_min, B2_max = determine_min_max('B2')
+B2_min, B2_max = determine_min_max('B2')
 B3_min, B3_max = determine_min_max('B3')
+
+v2_min, v2_max = determine_min_max('v2')
+v3_min, v3_max = determine_min_max('v3')
 
 def plot_1d():
 
@@ -221,21 +258,10 @@ def plot_1d():
         fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
         h5f.close()
 
-        # n  = return_array_to_be_plotted('density', moments, fields)
-        # v1 = return_array_to_be_plotted('v1', moments, fields)
-        # p  = return_array_to_be_plotted('pressure', moments, fields)
-        
-        p1 = return_array_to_be_plotted('p1', moments, fields)
-        p2 = return_array_to_be_plotted('p2', moments, fields)
-        p3 = return_array_to_be_plotted('p3', moments, fields)
+        v2 = return_array_to_be_plotted('v2', moments, fields)
+        v3 = return_array_to_be_plotted('v3', moments, fields)
 
-        p_parallel = p1
-        p_perp     = 0.5 * (p2 + p3)
-
-        delta_p = (p_perp - p_parallel)
-        
-        # B1 = return_array_to_be_plotted('B1', moments, fields)
-        # B2 = return_array_to_be_plotted('B2', moments, fields)
+        B2 = return_array_to_be_plotted('B2', moments, fields)
         B3 = return_array_to_be_plotted('B3', moments, fields)
 
         fig = pl.figure()
@@ -274,16 +300,36 @@ def plot_1d():
         # ax5.set_ylabel(r'$B_y$')
         # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
-        ax6 = fig.add_subplot(1, 1, 1)
-        ax6.plot(q1[:, 0], B3[:, 0])
-        ax6.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
-        # # ax6.set_aspect('equal')
-        ax6.set_xlabel(r'$\frac{x}{l_s}$')
-        ax6.set_ylabel(r'$B_z$')
-        ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
+        ax1 = fig.add_subplot(2, 2, 1)
+        ax1.plot(q1[:, 0], B2[:, 0])
+        ax1.plot(q1[:, 0], B2_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax1.set_xlabel(r'$\frac{x}{l_s}$')
+        ax1.set_ylabel(r'$B_y$')
+        ax1.set_ylim([1.02 * B2_min, 1.02 * B2_max])
+
+        ax2 = fig.add_subplot(2, 2, 2)
+        ax2.plot(q1[:, 0], B3[:, 0])
+        ax2.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax2.set_xlabel(r'$\frac{x}{l_s}$')
+        ax2.set_ylabel(r'$B_z$')
+        ax2.set_ylim([1.02 * B3_min, 1.02 * B3_max])
+
+        ax3 = fig.add_subplot(2, 2, 3)
+        ax3.plot(q1[:, 0], v2[:, 0])
+        ax3.plot(q1[:, 0], v2_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax3.set_xlabel(r'$\frac{x}{l_s}$')
+        ax3.set_ylabel(r'$v_y$')
+        ax3.set_ylim([1.02 * v2_min, 1.02 * v2_max])
+
+        ax4 = fig.add_subplot(2, 2, 4)
+        ax4.plot(q1[:, 0], v3[:, 0])
+        ax4.plot(q1[:, 0], v3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax4.set_xlabel(r'$\frac{x}{l_s}$')
+        ax4.set_ylabel(r'$v_z$')
+        ax4.set_ylim([1.02 * v3_min, 1.02 * v3_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
+        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

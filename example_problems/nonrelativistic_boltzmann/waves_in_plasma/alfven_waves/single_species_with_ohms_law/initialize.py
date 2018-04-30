@@ -52,19 +52,9 @@ def initialize_f(q1, q2, v1, v2, v3, params):
 
 def initialize_E(q1, q2, params):
 
-    v2_bulk =   params.amplitude * 5.079270337660091e-15 * af.cos(params.k_q1 * q1) \
-              - params.amplitude * 0.501248425808263     * af.sin(params.k_q1 * q1)
-
-    v3_bulk =   params.amplitude * 0.5012484258083252 * af.cos(params.k_q1 * q1) \
-              - params.amplitude * 0                  * af.sin(params.k_q1 * q1)
-
-    B1 = initialize_B(q1, q2, params)[0]
-    B2 = initialize_B(q1, q2, params)[1]
-    B3 = initialize_B(q1, q2, params)[2]
-
-    E1 = -(B3 * v2_bulk - B2 * v3_bulk)
-    E2 = -(B1 * v3_bulk - B3 * 0)
-    E3 = -(B2 * 0 - B1 * v2_bulk)
+    E1 = 0 * q1**0
+    E2 = 0 * q1**0
+    E3 = 0 * q1**0
 
     af.eval(E1, E2, E3)
     return(E1, E2, E3)

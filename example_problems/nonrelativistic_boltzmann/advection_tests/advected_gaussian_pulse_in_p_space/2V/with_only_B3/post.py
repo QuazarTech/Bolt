@@ -5,7 +5,7 @@ import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -34,15 +34,16 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 0.4
+t_final = 1.25
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
-p1  = h5f['p1'][:]
-f   = h5f['distribution_function'][:]
+p1  = h5f['p1'][:].reshape(32, 32)
+p2  = h5f['p2'][:].reshape(32, 32)
+f   = h5f['distribution_function'][:].reshape(32, 32)
 h5f.close()
 
-pl.plot(p1, f)
+pl.contourf(p1, p2, f, 100)
 pl.title('Time = 0')
 pl.xlabel(r'$v$')
 pl.ylabel(r'$f$')
@@ -52,13 +53,13 @@ pl.clf()
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    p1  = h5f['p1'][:]
-    f   = h5f['distribution_function'][:]
+    p1  = h5f['p1'][:].reshape(32, 32)
+    f   = h5f['distribution_function'][:].reshape(32, 32)
     h5f.close()
 
     if((time_index+1)%4==0):
 
-        pl.plot(p1, f)
+        pl.contourf(p1, p2, f, 100)
         pl.title('Time =' + str(t0))
         pl.xlabel(r'$v$')
         pl.ylabel(r'$f$')

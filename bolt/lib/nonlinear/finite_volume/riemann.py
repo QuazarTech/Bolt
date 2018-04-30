@@ -24,12 +24,23 @@ def riemann_solver(self, left_state, right_state, velocity):
     if(self.performance_test_flag == True):    
         tic = af.time()
 
+    # Checking if array isn't 4D:
+    try:
+        size_axis_2 = left_state.shape[2]
+    except:
+        size_axis_2 = 1
+
+    try:
+        size_axis_3 = left_state.shape[3]
+    except:
+        size_axis_3 = 1
+
     # Tiling to get to appropriate shape:
     try:
         assert(velocity.shape[2] == left_state.shape[2])
     except:
         velocity = af.tile(velocity, 1, 1, 
-                           left_state.shape[2], left_state.shape[3]
+                           size_axis_2, size_axis_3
                           )
 
     upwind_state = af.select(velocity > 0, 
@@ -38,6 +49,7 @@ def riemann_solver(self, left_state, right_state, velocity):
                             )
 
     af.eval(upwind_state)
+
     if(self.performance_test_flag == True):
         af.sync()
         toc = af.time()

@@ -3,7 +3,7 @@ import numpy as np
 import h5py
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -12,7 +12,7 @@ import initialize
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -21,17 +21,15 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.BGK,
-                         moment_defs
+                         moments
                         )
-
-N_g_q = system.N_ghost_q
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 
 # Time parameters:
 dt      = 0.001
-t_final = 0.4
+t_final = 1.25
 
 time_array  = np.arange(0, t_final + dt, dt)
 
@@ -39,6 +37,7 @@ time_array  = np.arange(0, t_final + dt, dt)
 h5f = h5py.File('dump/0000.h5', 'w')
 h5f.create_dataset('distribution_function', data = nls.f)
 h5f.create_dataset('p1', data = nls.p1_center)
+h5f.create_dataset('p2', data = nls.p2_center)
 h5f.close()
 
 for time_index, t0 in enumerate(time_array[1:]):
@@ -48,4 +47,5 @@ for time_index, t0 in enumerate(time_array[1:]):
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
     h5f.create_dataset('distribution_function', data = nls.f)
     h5f.create_dataset('p1', data = nls.p1_center)
+    h5f.create_dataset('p2', data = nls.p2_center)
     h5f.close()
