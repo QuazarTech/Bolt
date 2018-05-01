@@ -235,7 +235,7 @@ def df_dt_fvm(f, self):
                               )
 
                 self.fields_solver.compute_electrostatic_fields(rho)
-        
+
         self._C_p1 = af.broadcast(self._C_p, self.time_elapsed,
                                   self.q1_center, self.q2_center,
                                   self.p1_left, self.p2_left, self.p3_left,

@@ -73,8 +73,8 @@ gamma = 2
 num_devices = 4
 
 # Mass and charge:
-m_i = 1 * m0
-e_i = 1 * e0
+m_i = 1     * m0
+e_i = 0.001 * e0
 
 mass               = [m_i]
 boltzmann_constant = k0
@@ -119,11 +119,11 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 5e-3
+amplitude = 1e-3
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.01
+N_cfl   = 0.005
 t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")

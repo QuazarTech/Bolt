@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 25, 16 #10, 14
+pl.rcParams['figure.figsize']  = 30, 15 #10, 14
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -47,7 +47,12 @@ dq2 = (domain.q2_end - domain.q2_start) / N_q2
 q1 = domain.q1_start + (np.arange(N_q1)) * dq1
 q2 = domain.q2_start + (np.arange(N_q2)) * dq2
 
-q2, q1 = np.meshgrid(q2, q1)
+q2_l, q1_l = np.meshgrid(q2, q1)
+
+q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
+q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
+
+q2_c, q1_c = np.meshgrid(q2, q1)
 
 # Taking user input:
 # ndim_plotting   = input('1D or 2D plotting?:')
@@ -63,28 +68,29 @@ N_s             = int(input('Enter number of species: '))
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
 
-# (delta_u2_i, ' = ', 5.079270337660091e-15 + 0.501248425808263*I)
-# (delta_u3_i, ' = ', 0.5012484258083252)
-# (delta_B2, ' = ', -5.051514762044462e-15 - 0.4987484492453844*I)
-# (delta_B3, ' = ', -0.498748449245447 - 1.942890293094024e-16*I)
+# ('Eigenvalue   = ', 2.7020694814354273e-20 - 0.000990195135927847*I)
+# (delta_u2_i, ' = ', -1.6653345369377348e-16 + 0.70366552347172*I)
+# (delta_u3_i, ' = ', 0.7036655234717203)
+# (delta_B2, ' = ', -4.163336342344337e-17 - 0.06967661786618187*I)
+# (delta_B3, ' = ', -0.06967661786618201 - 3.469446951953614e-17*I)
 
 def B2_analytic(q1, t):
     
-    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
 
-    B2_analytic = params.amplitude * (-5.051514762044462e-15 - 0.4987484492453844 * 1j) * \
-                  np.exp(  1j * params.k_q1 * q1
+    B2_analytic = (params.amplitude * (-4.163336342344337e-17 - 0.06967661786618187 * 1j) * \
+                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
-                        ).real
+                        )).real
 
     return(B2_analytic)
 
 
 def B3_analytic(q1, t):
     
-    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
 
-    B3_analytic = params.amplitude * -0.4987484492454472 * \
+    B3_analytic = params.amplitude * -0.06967661786618201 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -93,20 +99,20 @@ def B3_analytic(q1, t):
 
 def v2_analytic(q1, t):
     
-    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
 
-    v2_analytic = params.amplitude * (5.079270337660091e-15 + 0.501248425808263 * 1j) * \
-                  np.exp(  1j * params.k_q1 * q1
-                         + omega * t
-                        ).real
+    v2_analytic = (params.amplitude * (-1.6653345369377348e-16 + 0.70366552347172 * 1j) * \
+                   np.exp(  1j * params.k_q1 * q1
+                          + omega * t
+                         )).real
 
     return(v2_analytic)
 
 def v3_analytic(q1, t):
     
-    omega = -4.32617735111918e-19 - 0.009950124999218764 * 1j
+    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
 
-    v3_analytic = params.amplitude * 0.5012484258083252 * \
+    v3_analytic = params.amplitude * 0.7036655234717203 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -210,7 +216,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 0.1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -301,35 +307,35 @@ def plot_1d():
         # ax5.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
         ax1 = fig.add_subplot(2, 2, 1)
-        ax1.plot(q1[:, 0], B2[:, 0])
-        ax1.plot(q1[:, 0], B2_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax1.plot(q1_l[:, 0], B2[:, 0])
+        ax1.plot(q1_l[:, 0], B2_analytic(q1_l[:, 0], t0) , '--', color = 'black')
         ax1.set_xlabel(r'$\frac{x}{l_s}$')
         ax1.set_ylabel(r'$B_y$')
         ax1.set_ylim([1.02 * B2_min, 1.02 * B2_max])
 
         ax2 = fig.add_subplot(2, 2, 2)
-        ax2.plot(q1[:, 0], B3[:, 0])
-        ax2.plot(q1[:, 0], B3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax2.plot(q1_l[:, 0], B3[:, 0])
+        ax2.plot(q1_l[:, 0], B3_analytic(q1_l[:, 0], t0) , '--', color = 'black')
         ax2.set_xlabel(r'$\frac{x}{l_s}$')
         ax2.set_ylabel(r'$B_z$')
         ax2.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         ax3 = fig.add_subplot(2, 2, 3)
-        ax3.plot(q1[:, 0], v2[:, 0])
-        ax3.plot(q1[:, 0], v2_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax3.plot(q1_c[:, 0], v2[:, 0])
+        ax3.plot(q1_c[:, 0], v2_analytic(q1_c[:, 0], t0) , '--', color = 'black')
         ax3.set_xlabel(r'$\frac{x}{l_s}$')
         ax3.set_ylabel(r'$v_y$')
         ax3.set_ylim([1.02 * v2_min, 1.02 * v2_max])
 
         ax4 = fig.add_subplot(2, 2, 4)
-        ax4.plot(q1[:, 0], v3[:, 0])
-        ax4.plot(q1[:, 0], v3_analytic(q1[:, 0], t0) , '--', color = 'black')
+        ax4.plot(q1_c[:, 0], v3[:, 0])
+        ax4.plot(q1_c[:, 0], v3_analytic(q1_c[:, 0], t0) , '--', color = 'black')
         ax4.set_xlabel(r'$\frac{x}{l_s}$')
         ax4.set_ylabel(r'$v_z$')
         ax4.set_ylim([1.02 * v3_min, 1.02 * v3_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A$')
+        fig.suptitle('Time = %.3f'%(t0 / params.t0) + r' $\tau_A$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

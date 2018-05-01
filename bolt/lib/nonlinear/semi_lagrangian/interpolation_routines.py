@@ -80,12 +80,24 @@ def f_interp_p_3d(self, dt):
     # Following Strang Splitting:
     if(self.performance_test_flag == True):
         tic = af.time()
-    
-    (A_p1, A_p2, A_p3) = af.broadcast(self._A_p, self.time_elapsed,
-                                      self.q1_center, self.q2_center,
-                                      self.p1_center, self.p2_center, self.p3_center,
-                                      self.fields_solver, self.physical_system.params
-                                     )
+
+    A_p1 = af.broadcast(self._A_p, self.time_elapsed,
+                        self.q1_center, self.q2_center,
+                        self.p1_left, self.p2_left, self.p3_left,
+                        self.fields_solver, self.physical_system.params
+                       )[0]
+
+    A_p2 = af.broadcast(self._A_p, self.time_elapsed,
+                        self.q1_center, self.q2_center,
+                        self.p1_bottom, self.p2_bottom, self.p3_bottom,
+                        self.fields_solver, self.physical_system.params
+                       )[1]
+
+    A_p3 = af.broadcast(self._A_p, self.time_elapsed,
+                        self.q1_center, self.q2_center,
+                        self.p1_back, self.p2_back, self.p3_back,
+                        self.fields_solver, self.physical_system.params
+                       )[2]
     
     # Using the add method wrapped with af.broadcast
     p1_new = add(self.p1_center, - dt * A_p1)
