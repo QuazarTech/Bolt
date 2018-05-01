@@ -68,17 +68,17 @@ N_s             = int(input('Enter number of species: '))
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
 
-# ('Eigenvalue   = ', 2.7020694814354273e-20 - 0.000990195135927847*I)
-# (delta_u2_i, ' = ', -1.6653345369377348e-16 + 0.70366552347172*I)
-# (delta_u3_i, ' = ', 0.7036655234717203)
-# (delta_B2, ' = ', -4.163336342344337e-17 - 0.06967661786618187*I)
-# (delta_B3, ' = ', -0.06967661786618201 - 3.469446951953614e-17*I)
+# ('Eigenvalue   = ', -9.68977236633914e-18 - 0.009442719099991581*I)
+# (delta_u2_i, ' = ', 5.551115123125783e-16 + 0.6881909602355867*I)
+# (delta_u3_i, ' = ', 0.6881909602355871)
+# (delta_B2, ' = ', -3.469446951953614e-17 - 0.1624598481164533*I)
+# (delta_B3, ' = ', -0.16245984811645306 + 1.3877787807814457e-16*I)
 
 def B2_analytic(q1, t):
     
-    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
+    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
 
-    B2_analytic = (params.amplitude * (-4.163336342344337e-17 - 0.06967661786618187 * 1j) * \
+    B2_analytic = (params.amplitude * (-3.469446951953614e-17 - 0.1624598481164533 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         )).real
@@ -88,9 +88,9 @@ def B2_analytic(q1, t):
 
 def B3_analytic(q1, t):
     
-    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
+    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
 
-    B3_analytic = params.amplitude * -0.06967661786618201 * \
+    B3_analytic = params.amplitude * -0.16245984811645306 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -99,9 +99,9 @@ def B3_analytic(q1, t):
 
 def v2_analytic(q1, t):
     
-    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
+    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
 
-    v2_analytic = (params.amplitude * (-1.6653345369377348e-16 + 0.70366552347172 * 1j) * \
+    v2_analytic = (params.amplitude * (5.551115123125783e-16 + 0.6881909602355867 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -110,9 +110,9 @@ def v2_analytic(q1, t):
 
 def v3_analytic(q1, t):
     
-    omega = 2.7020694814354273e-20 - 0.000990195135927847*1j
+    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
 
-    v3_analytic = params.amplitude * 0.7036655234717203 * \
+    v3_analytic = params.amplitude * 0.6881909602355871 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -216,25 +216,29 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.1 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
+indices = []
 
-# Traversal to determine the maximum and minimum:
 def determine_min_max(quantity):
     # Declaring an initial value for the max and minimum for the quantity plotted:
     q_max = -1e10 
     q_min = 1e10
 
     for time_index, t0 in enumerate(time_array):
-        
-        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
+    
+        try:
+            h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+            moments = np.swapaxes(h5f['moments'][:], 0, 1)
+            h5f.close()
 
-        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-        h5f.close()
+            h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+            fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+            h5f.close()
+
+        except:
+            indices.append(time_index)
 
         array = return_array_to_be_plotted(quantity, moments, fields)
 
@@ -246,14 +250,19 @@ def determine_min_max(quantity):
 
     return(q_min, q_max)
 
+# Traversal to determine the maximum and minimum:
+time_array_post = time_array
+
 B2_min, B2_max = determine_min_max('B2')
 B3_min, B3_max = determine_min_max('B3')
 
 v2_min, v2_max = determine_min_max('v2')
 v3_min, v3_max = determine_min_max('v3')
 
-def plot_1d():
+time_array = np.delete(time_array, list(set(indices)))
 
+def plot_1d():
+    
     for time_index, t0 in enumerate(time_array):
         
         h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
@@ -336,7 +345,7 @@ def plot_1d():
 
         # fig.tight_layout()
         fig.suptitle('Time = %.3f'%(t0 / params.t0) + r' $\tau_A$')
-        pl.savefig('images/%04d'%time_index + '.png')
+        pl.savefig('images/%04d'%(time_index) + '.png')
         pl.close(fig)
         pl.clf()
 

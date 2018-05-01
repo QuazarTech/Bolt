@@ -73,8 +73,8 @@ gamma = 2
 num_devices = 4
 
 # Mass and charge:
-m_i = 1     * m0
-e_i = 0.001 * e0
+m_i = 1    * m0
+e_i = 0.01 * e0
 
 mass               = [m_i]
 boltzmann_constant = k0
@@ -89,7 +89,7 @@ fluid_electron_temperature = 0 * T0
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = 200 * np.pi # Box Length
+l0 = 50 * np.pi # Box Length
 t0 = l0 / v0
 
 # Setting the length of the box:
@@ -123,7 +123,7 @@ amplitude = 1e-3
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.005
+N_cfl   = 0.001
 t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
