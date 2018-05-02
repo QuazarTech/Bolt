@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12.5, 7 #10, 14
+pl.rcParams['figure.figsize']  = 16, 10 #10, 14
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -65,12 +65,12 @@ N_s             = int(input('Enter number of species: '))
 
 def B3_analytic(q1, t):
     
-    omega = 0.0070434338862567746 * 1j
+    omega = -1.7252101918544516e-16 - 0.09073973512797716 * 1j
 
-    B3_analytic = params.amplitude * 0.5083380512877292 * \
-                  np.exp(  1j * params.k_q1 * q1
-                         + omega * t
-                        ).real
+    B3_analytic = (params.amplitude * (-1.8197249262996706e-14 - 0.37124195684091743 * 1j) * \
+                   np.exp(  1j * params.k_q1 * q1
+                          + omega * t
+                         )).real
 
     return(B3_analytic)
 
@@ -170,7 +170,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.199 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 0.002 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 

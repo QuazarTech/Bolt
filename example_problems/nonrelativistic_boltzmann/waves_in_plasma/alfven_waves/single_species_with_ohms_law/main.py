@@ -38,6 +38,8 @@ dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 dt = dt_fvm # min(dt_fvm, dt_fdtd)
 
+print(dt / params.t0)
+
 if(params.t_restart == 0):
     time_elapsed = 0
     nls.dump_distribution_function('dump_f/t=0.000')

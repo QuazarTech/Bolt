@@ -44,7 +44,7 @@ mu = 1. # |mu0| units(mu0)
 B0 = 1. # |B0| units(B0)
 
 # Setting plasma β:
-beta = 1e-5
+beta = 2
 T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
@@ -65,16 +65,16 @@ PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
-p_dim = 3
+p_dim = 2
 # p_dim sets the adiabatic constant gamma:
-gamma = 5 / 3
+gamma = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = 1 #(1 / 100) * m0
-m_i = 1         * m0
+m_e = (1 / 10) * m0
+m_i = 1        * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
@@ -90,19 +90,19 @@ temperature_background = 1 * T0
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = 200 * np.pi # Box Length
+l0 = 20 * np.pi # Box Length
 t0 = l0 / v0
 
 # Setting the length of the box:
 L_x = L_y = l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max_e = 0.014  * v0
-v_max_i = 0.014 * v0
+v_max_e = 32 * v0
+v_max_i = 10 * v0
 
 # Calculating Permittivity:
-c   = 8 * v0
-eps = 1 / (c**2 * mu)
+c   = 32 * v0
+eps = 1  / (c**2 * mu)
 
 # Velocity Scales:
 thermal_speed   = velocity_scales.thermal_speed(temperature_background, m0, k0)
@@ -125,8 +125,8 @@ amplitude = 1e-5
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.05
-t_final = 10 * t0
+N_cfl   = 0.01
+t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -172,6 +172,7 @@ PETSc.Sys.Print("==================================================\n")
 fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # File-writing Parameters:
 # Set to zero for no file-writing

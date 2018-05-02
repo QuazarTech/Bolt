@@ -54,7 +54,7 @@ assert(params.dt_dump_f > dt)
 assert(params.dt_dump_moments > dt)
 assert(params.dt_dump_fields > dt)
 
-while(abs(time_elapsed - params.t_final) > 1e-12):
+while(abs(time_elapsed - params.t_final) > 1e-5):
     
     nls.strang_timestep(dt)
     time_elapsed += dt
@@ -71,7 +71,7 @@ while(abs(time_elapsed - params.t_final) > 1e-12):
             nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
             nls.dump_EM_fields('dump_fields/t=' + '%.3f'%time_elapsed)
 
-    if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
+    if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-5):
         nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
     PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")
