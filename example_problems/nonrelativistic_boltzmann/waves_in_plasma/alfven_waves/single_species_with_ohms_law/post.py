@@ -68,17 +68,17 @@ N_s             = int(input('Enter number of species: '))
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
 
-# ('Eigenvalue   = ', -9.68977236633914e-18 - 0.009442719099991581*I)
-# (delta_u2_i, ' = ', 5.551115123125783e-16 + 0.6881909602355867*I)
-# (delta_u3_i, ' = ', 0.6881909602355871)
-# (delta_B2, ' = ', -3.469446951953614e-17 - 0.1624598481164533*I)
-# (delta_B3, ' = ', -0.16245984811645306 + 1.3877787807814457e-16*I)
+# ('Eigenvalue   = ', 4.446922974995089e-21 - 0.09512492197250393*I)
+# (delta_u2_i, ' = ', -1.7450858652952794e-15 + 0.5123323181646575*I)
+# (delta_u3_i, ' = ', 0.5123323181646597)
+# (delta_B2, ' = ', 1.95382527668484e-15 - 0.48735571789405113*I)
+# (delta_B3, ' = ', -0.487355717894053 + 1.896576649120527e-16*I)
 
 def B2_analytic(q1, t):
     
-    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
+    omega = 4.446922974995089e-21 - 0.09512492197250393*1j
 
-    B2_analytic = (params.amplitude * (-3.469446951953614e-17 - 0.1624598481164533 * 1j) * \
+    B2_analytic = (params.amplitude * (1.95382527668484e-15 - 0.48735571789405113 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         )).real
@@ -88,9 +88,9 @@ def B2_analytic(q1, t):
 
 def B3_analytic(q1, t):
     
-    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
+    omega = 4.446922974995089e-21 - 0.09512492197250393*1j
 
-    B3_analytic = params.amplitude * -0.16245984811645306 * \
+    B3_analytic = params.amplitude * -0.487355717894053 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -99,9 +99,9 @@ def B3_analytic(q1, t):
 
 def v2_analytic(q1, t):
     
-    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
+    omega = 4.446922974995089e-21 - 0.09512492197250393*1j
 
-    v2_analytic = (params.amplitude * (5.551115123125783e-16 + 0.6881909602355867 * 1j) * \
+    v2_analytic = (params.amplitude * (-1.7450858652952794e-15 + 0.5123323181646575 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -110,9 +110,9 @@ def v2_analytic(q1, t):
 
 def v3_analytic(q1, t):
     
-    omega = -9.68977236633914e-18 - 0.009442719099991581*1j
+    omega = 4.446922974995089e-21 - 0.09512492197250393*1j
 
-    v3_analytic = params.amplitude * 0.6881909602355871 * \
+    v3_analytic = params.amplitude * 0.5123323181646597 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
