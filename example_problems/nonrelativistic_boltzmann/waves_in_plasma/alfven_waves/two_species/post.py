@@ -65,9 +65,9 @@ N_s             = int(input('Enter number of species: '))
 
 def B3_analytic(q1, t):
     
-    omega = -1.7252101918544516e-16 - 0.09073973512797716 * 1j
+    omega = 1.0593552760005806e-16 + 0.009130300248103908 * 1j
 
-    B3_analytic = (params.amplitude * (-1.8197249262996706e-14 - 0.37124195684091743 * 1j) * \
+    B3_analytic = (params.amplitude * (1.21554560850428e-13 + 0.4198492401267336 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -170,7 +170,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.002 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 

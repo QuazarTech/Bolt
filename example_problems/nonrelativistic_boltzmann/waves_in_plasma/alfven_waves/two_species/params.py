@@ -41,7 +41,7 @@ m0 = 1. # |m_p| units(m)
 e0 = 1. # |e| units(e)
 k0 = 1. # |k| units(k)
 mu = 1. # |mu0| units(mu0)
-B0 = 1. # |B0| units(B0)
+B0 = 0.1 # |B0| units(B0)
 
 # Setting plasma β:
 beta = 2
@@ -121,7 +121,7 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-5
+amplitude = 5e-3
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
