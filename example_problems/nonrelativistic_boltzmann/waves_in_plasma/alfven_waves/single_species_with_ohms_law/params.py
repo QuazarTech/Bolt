@@ -13,7 +13,7 @@ fields_solver     = 'fdtd'
 
 # Method in q-space
 solver_method_in_q = 'FVM'
-solver_method_in_p = 'FVM'
+solver_method_in_p = 'ASL'
 
 reconstruction_method_in_q = 'minmod'
 reconstruction_method_in_p = 'minmod'
@@ -119,11 +119,11 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-3
+amplitude = 1e-2
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.0001
+N_cfl   = 0.01
 t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")

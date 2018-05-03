@@ -99,62 +99,90 @@ def f_interp_p_3d(self, dt):
                         self.fields_solver, self.physical_system.params
                        )[2]
     
+    # # Using the add method wrapped with af.broadcast
+    # p1_new = add(self.p1_center, - dt * A_p1)
+    # p2_new = add(self.p2_center, - dt * A_p2)
+
+    # # Since the interpolation function are being performed in velocity space,
+    # # the arrays used in the computation need to be in p_expanded form.
+    # # Hence we will need to convert the same:
+    # p1_new = self._convert_to_p_expanded(p1_new)
+    # p2_new = self._convert_to_p_expanded(p2_new)
+
+    # # Transforming interpolant to go from [0, N_p - 1]:
+    # p1_lower_boundary = add(self.p1_start, 0.5 * self.dp1)
+    # p2_lower_boundary = add(self.p2_start, 0.5 * self.dp2)
+
+    # p1_interpolant = multiply(add(p1_new, -p1_lower_boundary), 1 / self.dp1)
+    # p2_interpolant = multiply(add(p2_new, -p2_lower_boundary), 1 / self.dp2)
+
+    # if(self.physical_system.params.p_dim == 3):        
+        
+    #     p3_new = add(self.p3_center, - 0.5 * dt * A_p3)
+    #     p3_new = self._convert_to_p_expanded(p3_new)
+    #     p3_lower_boundary = add(self.p3_start, 0.5 * self.dp3)
+    
+    #     # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
+    #     p3_interpolant = af.reorder(mulitiply(add(p3_new, -p3_lower_boundary), 1 / self.dp3), 2, 0, 1, 3)
+
+    # # We perform the 3d interpolation by performing individual 1d + 2d interpolations: 
+    # self.f = self._convert_to_p_expanded(self.f)
+    
+    # if(self.physical_system.params.p_dim == 3):
+        
+    #     # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
+    #     self.f = af.approx1(af.reorder(self.f, 2, 0, 1, 3),
+    #                         p3_interpolant, 
+    #                         af.INTERP.CUBIC_SPLINE
+    #                        )
+
+    #     # Reordering back from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
+    #     self.f = af.reorder(self.f, 1, 2, 0, 3)
+
+    # self.f = af.approx2(self.f,
+    #                     p1_interpolant,
+    #                     p2_interpolant,
+    #                     af.INTERP.BICUBIC_SPLINE
+    #                    )
+
+    # if(self.physical_system.params.p_dim == 3):
+        
+    #     # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
+    #     self.f = af.approx1(af.reorder(self.f, 2, 0, 1, 3),
+    #                         p3_interpolant, 
+    #                         af.INTERP.CUBIC_SPLINE
+    #                        )
+
+    #     # Reordering back from (N_p3, N_p1, N_p2, N_s * N_q) --> (N_p1, N_p2, N_p3, N_s * N_q)
+    #     self.f = af.reorder(self.f, 1, 2, 0, 3)
+
     # Using the add method wrapped with af.broadcast
-    p1_new = add(self.p1_center, - dt * A_p1)
     p2_new = add(self.p2_center, - dt * A_p2)
+    p3_new = add(self.p3_center, - dt * A_p3)
 
     # Since the interpolation function are being performed in velocity space,
     # the arrays used in the computation need to be in p_expanded form.
     # Hence we will need to convert the same:
-    p1_new = self._convert_to_p_expanded(p1_new)
     p2_new = self._convert_to_p_expanded(p2_new)
+    p3_new = self._convert_to_p_expanded(p3_new)
 
     # Transforming interpolant to go from [0, N_p - 1]:
-    p1_lower_boundary = add(self.p1_start, 0.5 * self.dp1)
     p2_lower_boundary = add(self.p2_start, 0.5 * self.dp2)
+    p3_lower_boundary = add(self.p3_start, 0.5 * self.dp3)
 
-    p1_interpolant = multiply(add(p1_new, -p1_lower_boundary), 1 / self.dp1)
     p2_interpolant = multiply(add(p2_new, -p2_lower_boundary), 1 / self.dp2)
+    p3_interpolant = multiply(add(p3_new, -p3_lower_boundary), 1 / self.dp3)
 
-    if(self.physical_system.params.p_dim == 3):        
-        
-        p3_new = add(self.p3_center, - 0.5 * dt * A_p3)
-        p3_new = self._convert_to_p_expanded(p3_new)
-        p3_lower_boundary = add(self.p3_start, 0.5 * self.dp3)
-    
-        # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
-        p3_interpolant = af.reorder(mulitiply(add(p3_new, -p3_lower_boundary), 1 / self.dp3), 2, 0, 1, 3)
-
-    # We perform the 3d interpolation by performing individual 1d + 2d interpolations: 
     self.f = self._convert_to_p_expanded(self.f)
-    
-    if(self.physical_system.params.p_dim == 3):
-        
-        # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
-        self.f = af.approx1(af.reorder(self.f, 2, 0, 1, 3),
-                            p3_interpolant, 
-                            af.INTERP.CUBIC_SPLINE
-                           )
 
-        # Reordering back from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
-        self.f = af.reorder(self.f, 1, 2, 0, 3)
-
-    self.f = af.approx2(self.f,
-                        p1_interpolant,
-                        p2_interpolant,
+    self.f = af.approx2(af.reorder(self.f, 1, 2, 0, 3),
+                        af.reorder(p2_interpolant, 1, 2, 0, 3),
+                        af.reorder(p3_interpolant, 1, 2, 0, 3),
                         af.INTERP.BICUBIC_SPLINE
                        )
 
-    if(self.physical_system.params.p_dim == 3):
-        
-        # Reordering from (N_p1, N_p2, N_p3, N_s * N_q) --> (N_p3, N_p1, N_p2, N_s * N_q)
-        self.f = af.approx1(af.reorder(self.f, 2, 0, 1, 3),
-                            p3_interpolant, 
-                            af.INTERP.CUBIC_SPLINE
-                           )
-
-        # Reordering back from (N_p3, N_p1, N_p2, N_s * N_q) --> (N_p1, N_p2, N_p3, N_s * N_q)
-        self.f = af.reorder(self.f, 1, 2, 0, 3)
+    # Reordering back from (N_p2, N_p3, N_p1, N_s * N_q) --> (N_p1, N_p2, N_p3, N_s * N_q)
+    self.f = af.reorder(self.f, 2, 0, 1, 3)
 
     self.f = self._convert_to_q_expanded(self.f)
     af.eval(self.f)
