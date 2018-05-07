@@ -38,6 +38,32 @@ dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 dt = min(dt_fvm, dt_fdtd)
 
+print('Minimum Value of f_e:', af.min(nls.f[:, 0]))
+print('Minimum Value of f_i:', af.min(nls.f[:, 1]))
+
+print('Error in density_e:', af.mean(af.abs(nls.compute_moments('density')[:, 0] - 1)))
+print('Error in density_i:', af.mean(af.abs(nls.compute_moments('density')[:, 1] - 1)))
+
+v2_bulk = nls.compute_moments('mom_v2_bulk') / nls.compute_moments('density')
+v3_bulk = nls.compute_moments('mom_v3_bulk') / nls.compute_moments('density')
+
+v2_bulk_i =   params.amplitude * -4.801714581503802e-15 * af.cos(params.k_q1 * nls.q1_center) \
+            - params.amplitude * -0.3692429960259134 * af.sin(params.k_q1 * nls.q1_center)
+
+v2_bulk_e =   params.amplitude * -4.85722573273506e-15 * af.cos(params.k_q1 * nls.q1_center) \
+            - params.amplitude * - 0.333061857862197* af.sin(params.k_q1 * nls.q1_center)
+
+v3_bulk_i =   params.amplitude * -0.3692429960259359 * af.cos(params.k_q1 * nls.q1_center) \
+            - params.amplitude * 1.8041124150158794e-16  * af.sin(params.k_q1 * nls.q1_center)
+
+v3_bulk_e =   params.amplitude * -0.333061857862222 * af.cos(params.k_q1 * nls.q1_center) \
+            - params.amplitude * -3.885780586188048e-16 * af.sin(params.k_q1 * nls.q1_center)
+
+print('Error in v2_bulk_e:', af.mean(af.abs((v2_bulk[:, 0] - v2_bulk_e) / v2_bulk_e)))
+print('Error in v2_bulk_i:', af.mean(af.abs((v2_bulk[:, 1] - v2_bulk_i) / v2_bulk_i)))
+print('Error in v3_bulk_e:', af.mean(af.abs((v3_bulk[:, 0] - v3_bulk_e) / v3_bulk_e)))
+print('Error in v3_bulk_i:', af.mean(af.abs((v3_bulk[:, 1] - v3_bulk_i) / v3_bulk_i)))
+
 if(params.t_restart == 0):
     time_elapsed = 0
     nls.dump_distribution_function('dump_f/t=0.000')

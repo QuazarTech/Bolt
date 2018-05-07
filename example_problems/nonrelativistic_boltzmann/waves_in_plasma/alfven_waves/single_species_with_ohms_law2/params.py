@@ -119,7 +119,7 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 5e-6
+amplitude = 5e-8
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:

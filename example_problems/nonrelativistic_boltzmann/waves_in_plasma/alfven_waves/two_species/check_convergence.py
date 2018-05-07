@@ -39,9 +39,9 @@ pl.rcParams['ytick.direction']  = 'in'
 
 def B3_analytic(q1, t):
     
-    omega = 1.0593552760005806e-16 + 0.009130300248103908 * 1j
+    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
-    B3_analytic = (params.amplitude * (1.21554560850428e-13 + 0.4198492401267336 * 1j) * \
+    B3_analytic = (params.amplitude * 0.37389325198336115 * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
