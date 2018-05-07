@@ -26,13 +26,12 @@ def A_p(q1, q2, p1, p2, p3,
     """Return the terms A_p1, A_p2 and A_p3."""
     e = params.charge_electron
     c = params.speed_of_light
+    B3_mean = params.B3_mean
 
-#    dp1_dt = e*(E1 + (p2*B3 - p3*B2) / c) # p1 = hcross * k1
-#    dp2_dt = e*(E2 + (p3*B1 - p1*B3) / c) # p2 = hcross * k2
-#    dp3_dt = e*(E3 + (p1*B2 - p2*B1) / c) # p3 = hcross * k3
+    v1, v2 = params.vel_band
 
-    dp1_dt = -e*E1 + 0.*p1
-    dp2_dt = -e*E2 + 0.*p1
-    dp3_dt = 0. + 0.*p1
+    dp1_dt = -e*(E1 + v2*B3_mean/c) # p1 = hcross * k1
+    dp2_dt = -e*(E2 - v1*B3_mean/c) # p2 = hcross * k2
+    dp3_dt = 0.*p1
 
     return (dp1_dt, dp2_dt, dp3_dt)
