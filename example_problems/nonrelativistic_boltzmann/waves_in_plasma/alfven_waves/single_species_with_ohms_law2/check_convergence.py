@@ -39,9 +39,9 @@ pl.rcParams['ytick.direction']  = 'in'
 
 def B3_analytic(q1, t):
     
-    omega = -4.32617735111918e-19 - 0.009950124999218764*1j
+    omega = 4.446922974995089e-21 - 0.09512492197250393*1j
 
-    B3_analytic = params.amplitude * -0.498748449245447 * \
+    B3_analytic = params.amplitude * -0.487355717894053 * \
                   np.exp(  1j * params.k_q1 * q1
                          + omega * t
                         ).real
@@ -71,11 +71,9 @@ print('L1 norm of error for B3:', error_B3)
 print('\nConvergence Rates:')
 print('Order of convergence for B3:', np.polyfit(np.log10(N), np.log10(error_B3), 1)[0])
 
-# pl.loglog(N, error_n, '-o', label = 'Density')
-# pl.loglog(N, error_v1, '-o', label = 'Velocity')
-# pl.loglog(N, error_T, '-o', label = 'Temperature')
-# pl.loglog(N, error_n[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
-# pl.xlabel(r'$N$')
-# pl.ylabel('Error')
-# pl.legend()
-# pl.savefig('convergenceplot.png')
+pl.loglog(N, error_B3, '-o', label = 'Numerical')
+pl.loglog(N, error_B3[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.xlabel(r'$N$')
+pl.ylabel('Error')
+pl.legend()
+pl.savefig('convergenceplot.png')

@@ -38,7 +38,20 @@ dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
 
 dt = dt_fvm # min(dt_fvm, dt_fdtd)
 
-print(af.mean(nls.compute_moments('density')))
+print('Minimum Value of f:', af.min(nls.f))
+print('Error in density:', af.mean(af.abs(nls.compute_moments('density') - 1)))
+
+v2_bulk = nls.compute_moments('mom_v2_bulk') / nls.compute_moments('density')
+v3_bulk = nls.compute_moments('mom_v3_bulk') / nls.compute_moments('density')
+
+v2_bulk_ana =   params.amplitude * -1.7450858652952794e-15 * af.cos(params.k_q1 * nls.q1_center) \
+              - params.amplitude * 0.5123323181646575      * af.sin(params.k_q1 * nls.q1_center)
+
+v3_bulk_ana =   params.amplitude * 0.5123323181646597 * af.cos(params.k_q1 * nls.q1_center) \
+              - params.amplitude * 0                  * af.sin(params.k_q1 * nls.q1_center)
+
+print('Error in v2_bulk:', af.mean(af.abs((v2_bulk - v2_bulk_ana) / v2_bulk_ana)))
+print('Error in v3_bulk:', af.mean(af.abs((v3_bulk - v3_bulk_ana) / v3_bulk_ana)))
 
 if(params.t_restart == 0):
     time_elapsed = 0

@@ -44,7 +44,7 @@ mu = 1. # |mu0| units(mu0)
 B0 = 1. # |B0| units(B0)
 
 # Setting plasma β:
-beta = 1e-8
+beta = 1e-10
 T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
@@ -89,14 +89,14 @@ fluid_electron_temperature = 0 * T0
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = 200 * np.pi # Box Length
+l0 = 20 * np.pi # Box Length
 t0 = l0 / v0
 
 # Setting the length of the box:
 L_x = L_y = l0
 
-# Setting Maximum Velocities of Phase Space Grid:
-v_max = 0.000725  * v0
+# Setting delta_v of the Phase Space Grid:
+delta_v = 1e-6
 
 # Calculating Permittivity:
 c   = 10 * v0
@@ -119,11 +119,11 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-4
+amplitude = 5e-6
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.005
+N_cfl   = 0.001
 t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
@@ -155,7 +155,7 @@ PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
 PETSc.Sys.Print("Sound Speed          :", sound_speed)
 PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
 PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-PETSc.Sys.Print("Maximum Velocity(e)  :", v_max / v0, "|v0| units(v0)")
+# PETSc.Sys.Print("Maximum Velocity(e)  :", v_max / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")
