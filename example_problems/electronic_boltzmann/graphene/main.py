@@ -70,6 +70,8 @@ dt      = params.dt
 t_final = params.t_final
 params.current_time = t0        = 0.0
 params.time_step    = time_step = 0
+dump_counter = 0
+dump_time_array = []
 
 N_g        = domain.N_ghost
 
@@ -123,7 +125,7 @@ else:
         print("rank = ", params.rank, "\n",
               "     <mu>    = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
               "     max(mu) = ", af.max(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
-              "     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
+              #"     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
               "     <n>     = ", af.mean(density[0, N_g:-N_g, N_g:-N_g]), "\n",
               "     max(n)  = ", af.max(density[0, N_g:-N_g, N_g:-N_g]), "\n",
               "     |E1|    = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
@@ -156,13 +158,14 @@ else:
         sys.exit("Terminating execution")
     else:
 
-        compute_electrostatic_fields(nls)
+        #compute_electrostatic_fields(nls)
+        pass
 
 density = nls.compute_moments('density')
 print("rank = ", params.rank, "\n",
       "     <mu>    = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
       "     max(mu) = ", af.max(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
-      "     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
+      #"     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
       "     <n>     = ", af.mean(density[0, N_g:-N_g, N_g:-N_g]), "\n",
       "     max(n)  = ", af.max(density[0, N_g:-N_g, N_g:-N_g]), "\n",
       "     |E1|    = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
@@ -180,15 +183,22 @@ while t0 < t_final:
         params.collision_nonlinear_iters = params.collision_operator_nonlinear_iters
 
     dump_steps = params.dump_steps
+    # Uncomment if need to dump more frequently during a desired time interval
+    #if (params.current_time > 149. and params.current_time < 154):
+    #    dump_steps = 1
+    #else:
+    #    dump_steps = params.dump_steps
     if (time_step%dump_steps==0):
-        file_number = '%06d'%(time_step/dump_steps)
+        file_number = '%06d'%dump_counter
+        dump_counter= dump_counter + 1
+        dump_time_array.append(params.current_time)
         PETSc.Sys.Print("=====================================================")
         PETSc.Sys.Print("Dumping data at time step =", time_step,
                          ", file number =", file_number
                        )
         PETSc.Sys.Print("=====================================================")
         nls.dump_moments('dumps/moments_' + file_number)
-        nls.dump_distribution_function('dumps/f_' + file_number)
+        #nls.dump_distribution_function('dumps/f_' + file_number)
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
@@ -320,7 +330,7 @@ while t0 < t_final:
     print("rank = ", params.rank, "\n",
           "     <mu>    = ", af.mean(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
           "     max(mu) = ", af.max(params.mu[0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
+          #"     <phi>   = ", af.mean(params.phi[N_g:-N_g, N_g:-N_g]), "\n",
           "     <n>     = ", af.mean(density[0, N_g:-N_g, N_g:-N_g]), "\n",
           "     max(n)  = ", af.max(density[0, N_g:-N_g, N_g:-N_g]), "\n",
           "     |E1|    = ", af.mean(af.abs(nls.cell_centered_EM_fields[0, N_g:-N_g, N_g:-N_g])),
@@ -328,6 +338,9 @@ while t0 < t_final:
           "     |E2|    = ", af.mean(af.abs(nls.cell_centered_EM_fields[1, N_g:-N_g, N_g:-N_g]))
          )
     PETSc.Sys.Print("--------------------\n")
+
+if (params.rank==0):
+    np.savetxt("dump_time_array.txt", dump_time_array)
 
 #phi_array = nls.poisson.glob_phi.getArray()
 #phi_array = phi_array.reshape([nls.poisson.N_q3_3D_local, \

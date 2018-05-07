@@ -35,14 +35,14 @@ solve_for_equilibrium = 0
 dump_steps = 10
 
 # Time parameters:
-dt      = 0.05
-t_final = 1000
+dt      = 0.025/2 # ps
+t_final = 200     # ps
 
 # Dimensionality considered in velocity space:
 p_dim = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 4
+num_devices = 6
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -58,12 +58,17 @@ backgate_potential    = -10 # V
 global_chem_potential = 0.03
 contact_start         = 4.5 # um
 contact_end           = 5.5 # um
+contact_geometry      = "straight" # Contacts on either side of the device
+                                   # For contacts on the same side, use 
+                                   # contact_geometry = "turn_around"
 
 initial_temperature = 12e-4
 initial_mu          = 0.015
-vel_drift_x_in      = 1e-7*fermi_velocity
-vel_drift_x_out     = 1e-7*fermi_velocity
+vel_drift_x_in      = 1e-4*fermi_velocity
+vel_drift_x_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
+
+B3_mean = 1. # T
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
 mu          = None # chemical potential used in the e-ph operator
@@ -83,11 +88,11 @@ collision_operator_nonlinear_iters  = 2
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(1 * q1**0 * p1**0)
+    return(1. * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
-    return(np.inf * q1**0 * p1**0)
+    return(0.2 * q1**0 * p1**0)
 
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))
