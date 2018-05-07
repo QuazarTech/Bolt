@@ -30,8 +30,12 @@ def apply_dirichlet_bcs_f(self, boundary):
                         self.physical_system.params
                        )
 
+        # NOTE: This is not necessary since the Riemann solver ensures that the
+        # information outflow characteristics in the ghost zones do not affect
+        # the numerical solution inside in the physical domain.
+        #
         # Only changing inflowing characteristics:
-        f_left = af.select(A_q1>0, f_left, self.f)
+        #f_left = af.select(A_q1>0, f_left, self.f)
 
         self.f[:, :N_g] = f_left[:, :N_g]
 
@@ -43,7 +47,7 @@ def apply_dirichlet_bcs_f(self, boundary):
                          )
 
         # Only changing inflowing characteristics:
-        f_right = af.select(A_q1<0, f_right, self.f)
+        #f_right = af.select(A_q1<0, f_right, self.f)
 
         self.f[:, -N_g:] = f_right[:, -N_g:]
 
@@ -55,7 +59,7 @@ def apply_dirichlet_bcs_f(self, boundary):
                            )
 
         # Only changing inflowing characteristics:
-        f_bottom = af.select(A_q2>0, f_bottom, self.f)
+        #f_bottom = af.select(A_q2>0, f_bottom, self.f)
 
         self.f[:, :, :N_g] = f_bottom[:, :, :N_g]
 
@@ -67,7 +71,7 @@ def apply_dirichlet_bcs_f(self, boundary):
                      )
 
         # Only changing inflowing characteristics:
-        f_top = af.select(A_q2<0, f_top, self.f)
+        #f_top = af.select(A_q2<0, f_top, self.f)
 
         self.f[:, :, -N_g:] = f_top[:, :, -N_g:]
 
