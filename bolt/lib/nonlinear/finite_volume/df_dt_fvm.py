@@ -30,7 +30,7 @@ d(f_{i+1/2, j+1/2})/dt  = ((- (C_q1 * f)_{i + 1, j + 1/2} + (C_q1 * f)_{i, j + 1
 The same concept is extended to p-space as well.                          
 """
 
-def df_dt_fvm(f, self):
+def df_dt_fvm(f, self, term_to_return = 'all'):
     """
     Returns the expression for df/dt which is then 
     evolved by a timestepper.
@@ -304,9 +304,24 @@ def df_dt_fvm(f, self):
         back_flux_p3  = self._convert_to_q_expanded(back_flux_p3)
         front_flux_p3 = self._convert_to_q_expanded(front_flux_p3)
 
-        df_dt += - multiply((right_flux_p1 - left_flux_p1), 1 / self.dp1) \
-                 - multiply((top_flux_p2   - bot_flux_p2 ), 1 / self.dp2) \
-                 - multiply((front_flux_p3 - back_flux_p3), 1 / self.dp3)
+        d_flux_p1_dp1 = multiply((right_flux_p1 - left_flux_p1), 1 / self.dp1)
+        d_flux_p2_dp2 = multiply((top_flux_p2   - bot_flux_p2 ), 1 / self.dp2)
+        d_flux_p3_dp3 = multiply((front_flux_p3 - back_flux_p3), 1 / self.dp3)
 
-    af.eval(df_dt)
-    return(df_dt)
+        df_dt += -(d_flux_p1_dp1 + d_flux_p2_dp2 + d_flux_p3_dp3)
+
+    if(term_to_return == 'd_flux_p1_dp1'):
+        af.eval(d_flux_p1_dp1)
+        return(d_flux_p1_dp1)
+
+    elif(term_to_return == 'd_flux_p2_dp2'):
+        af.eval(d_flux_p2_dp2)
+        return(d_flux_p2_dp2)
+
+    if(term_to_return == 'd_flux_p3_dp3'):
+        af.eval(d_flux_p3_dp3)
+        return(d_flux_p3_dp3)
+
+    else:
+        af.eval(df_dt)
+        return(df_dt)

@@ -1,4 +1,4 @@
-from params import L_x, L_y, delta_v_e, delta_v_i 
+from params import L_x, L_y, v_max_e, v_max_i 
 
 q1_start = 0
 q1_end   = L_x
@@ -12,12 +12,12 @@ p1_start = [-0.5, -0.5]
 p1_end   = [ 0.5,  0.5]
 N_p1     = 1
 
+p2_start = [-v_max_e, -v_max_i]
+p2_end   = [ v_max_e,  v_max_i]
 N_p2     = 128
-p2_start = [-N_p2 * delta_v_e / 2, -N_p2 * delta_v_i / 2]
-p2_end   = [ N_p2 * delta_v_e / 2,  N_p2 * delta_v_i / 2]
 
+p3_start = [-v_max_e, -v_max_i]
+p3_end   = [ v_max_e,  v_max_i]
 N_p3     = 128
-p3_start = [-N_p3 * delta_v_e / 2, -N_p3 * delta_v_i / 2]
-p3_end   = [ N_p3 * delta_v_e / 2,  N_p3 * delta_v_i / 2]
     
 N_ghost = 3

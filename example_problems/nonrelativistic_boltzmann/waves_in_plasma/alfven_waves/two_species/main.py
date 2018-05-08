@@ -1,10 +1,12 @@
 import arrayfire as af
 import numpy as np
+import pylab as pl
 import math
 from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
+from bolt.lib.nonlinear.finite_volume.df_dt_fvm import df_dt_fvm
 
 import domain
 import boundary_conditions
@@ -14,6 +16,36 @@ import params
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
+
+# Optimized plot parameters to make beautiful plots:
+pl.rcParams['figure.figsize']  = 16, 10 #10, 14
+pl.rcParams['figure.dpi']      = 80
+pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['lines.linewidth'] = 1.5
+pl.rcParams['font.family']     = 'serif'
+pl.rcParams['font.weight']     = 'bold'
+pl.rcParams['font.size']       = 30
+pl.rcParams['font.sans-serif'] = 'serif'
+pl.rcParams['text.usetex']     = True
+pl.rcParams['axes.linewidth']  = 1.5
+pl.rcParams['axes.titlesize']  = 'medium'
+pl.rcParams['axes.labelsize']  = 'medium'
+
+pl.rcParams['xtick.major.size'] = 8
+pl.rcParams['xtick.minor.size'] = 4
+pl.rcParams['xtick.major.pad']  = 8
+pl.rcParams['xtick.minor.pad']  = 8
+pl.rcParams['xtick.color']      = 'k'
+pl.rcParams['xtick.labelsize']  = 'medium'
+pl.rcParams['xtick.direction']  = 'in'
+
+pl.rcParams['ytick.major.size'] = 8
+pl.rcParams['ytick.minor.size'] = 4
+pl.rcParams['ytick.major.pad']  = 8
+pl.rcParams['ytick.minor.pad']  = 8
+pl.rcParams['ytick.color']      = 'k'
+pl.rcParams['ytick.labelsize']  = 'medium'
+pl.rcParams['ytick.direction']  = 'in'
 
 # Defining the physical system to be solved:
 system = physical_system(domain,

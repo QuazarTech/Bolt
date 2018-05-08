@@ -97,8 +97,8 @@ t0 = l0 / v0
 L_x = L_y = l0
 
 # Setting delta_v of the Phase Space Grid:
-delta_v_e = 1e-5
-delta_v_i = 3e-6
+v_max_e = 6.4e-4
+v_max_i = 1.92e-4
 
 # Calculating Permittivity:
 c   = 5 * v0
@@ -121,7 +121,7 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 5e-6
+amplitude = 1e-6
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
