@@ -100,25 +100,28 @@ for i in range(N.size):
     d_flux_p2_dp2 = df_dt_fvm(nls.f, nls, 'd_flux_p2_dp2')
     d_flux_p3_dp3 = df_dt_fvm(nls.f, nls, 'd_flux_p3_dp3')
     
+    e = np.array(af.flat(params.charge))
+    m = np.array(af.flat(params.mass))
+
     numerical_first_moment_p2_term  = nls.compute_moments('mom_v2_bulk', f = d_flux_p2_dp2)
     analytic_first_moment_p2_term_e = \
-        10 * (nls.fields_solver.yee_grid_EM_fields[1] + v3_bulk_e * nls.fields_solver.yee_grid_EM_fields[3])
+        -e[0] / m[0] * (nls.fields_solver.yee_grid_EM_fields[1] + v3_bulk_e * nls.fields_solver.yee_grid_EM_fields[3])
     analytic_first_moment_p2_term_i  = \
-        -1 * (nls.fields_solver.yee_grid_EM_fields[1] + v3_bulk_i * nls.fields_solver.yee_grid_EM_fields[3])
+        -e[1] / m[1] * (nls.fields_solver.yee_grid_EM_fields[1] + v3_bulk_i * nls.fields_solver.yee_grid_EM_fields[3])
     
-    # pl.plot(np.array(numerical_first_moment_p2_term[:, 0, :, 0]).ravel(), label = 'N = ' + str(N[i]))
-    # pl.plot(np.array(analytic_first_moment_p2_term_e[:, 0, :, 0]).ravel(), '--', color = 'black')
-    # pl.show()
+    pl.plot(np.array(numerical_first_moment_p2_term[:, 0, :, 0]).ravel(), label = 'N = ' + str(N[i]))
+    pl.plot(np.array(analytic_first_moment_p2_term_e[:, 0, :, 0]).ravel(), '--', color = 'black')
+    pl.show()
 
-    # pl.plot(np.array(numerical_first_moment_p2_term[:, 1, :, 0]).ravel(), label = 'N = ' + str(N[i]))
-    # pl.plot(np.array(analytic_first_moment_p2_term_i[:, 0, :, 0]).ravel(), '--', color = 'black')
-    # pl.show()
+    pl.plot(np.array(numerical_first_moment_p2_term[:, 1, :, 0]).ravel(), label = 'N = ' + str(N[i]))
+    pl.plot(np.array(analytic_first_moment_p2_term_i[:, 0, :, 0]).ravel(), '--', color = 'black')
+    pl.show()
 
     numerical_first_moment_p3_term  = nls.compute_moments('mom_v3_bulk', f = d_flux_p3_dp3)
     analytic_first_moment_p3_term_e = \
-        10 * (nls.fields_solver.yee_grid_EM_fields[2] - v2_bulk_e * nls.fields_solver.yee_grid_EM_fields[3])
+        -e[0] / m[0] * (nls.fields_solver.yee_grid_EM_fields[2] - v2_bulk_e * nls.fields_solver.yee_grid_EM_fields[3])
     analytic_first_moment_p3_term_i  = \
-        -1 * (nls.fields_solver.yee_grid_EM_fields[2] - v2_bulk_i * nls.fields_solver.yee_grid_EM_fields[3])
+        -e[1] / m[1] * (nls.fields_solver.yee_grid_EM_fields[2] - v2_bulk_i * nls.fields_solver.yee_grid_EM_fields[3])
 
     # pl.plot(np.array(numerical_first_moment_p3_term[:, 0, :, 0]).ravel(), label = 'N = ' + str(N[i]))
     # pl.plot(np.array(analytic_first_moment_p3_term_e[:, 0, :, 0]).ravel(), '--', color = 'black')

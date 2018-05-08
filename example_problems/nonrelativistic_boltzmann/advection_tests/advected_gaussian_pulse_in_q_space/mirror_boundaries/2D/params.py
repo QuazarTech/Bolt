@@ -30,6 +30,7 @@ charge             = [0]
 fields_enabled           = False
 source_enabled           = False
 instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

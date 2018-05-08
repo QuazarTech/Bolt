@@ -7,13 +7,13 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -52,13 +52,13 @@ q2  = h5f['q2'][:].reshape(N_q1, N_q2)
 n0  = h5f['n'][:].reshape(N_q1, N_q2)
 h5f.close()
 
-pl.contourf(q1, q2, n0, 100)
-pl.title('Time = 0')
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.axes().set_aspect('equal')
-pl.savefig('images/0000.png')
-pl.clf()
+# pl.contourf(q1, q2, n0, 100)
+# pl.title('Time = 0')
+# pl.xlabel(r'$x$')
+# pl.ylabel(r'$y$')
+# pl.axes().set_aspect('equal')
+# pl.savefig('images/0000.png')
+# pl.clf()
 
 traj = odeint(vel, np.array([0.5, 0.5]), time)
 
@@ -93,8 +93,8 @@ pl.contourf(q1, q2, nf, 100)
 # pl.contourf(q1, q2, n, 50, alpha = 0.5)
 pl.plot(x, y, linewidth = 5, color = 'white', alpha = 0.3)
 # pl.title('Time =' + str(t0))
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
+pl.xlabel(r'$\frac{x}{L_x}$')
+pl.ylabel(r'$\frac{y}{L_y}$')
 pl.xlim([0, 1])
 pl.ylim([0, 1])
 pl.axes().set_aspect('equal')
