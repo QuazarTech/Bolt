@@ -3,9 +3,7 @@ import numpy as np
 import h5py
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -13,10 +11,8 @@ import params
 import initialize
 
 import bolt.src.coordinate_transformation.advection_terms as advection_terms
-import bolt.src.coordinate_transformation.collision_operator \
-    as collision_operator
-
-import bolt.src.coordinate_transformation.moment_defs as moment_defs
+import bolt.src.coordinate_transformation.source_term as source_term
+import bolt.src.coordinate_transformation.moments as moments
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -24,41 +20,37 @@ system = physical_system(domain,
                          params,
                          initialize,
                          advection_terms,
-                         collision_operator.BGK,
-                         moment_defs
+                         source_term.source_term,
+                         moments
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
+N_g = nls.N_ghost
 
 # Time parameters:
 dt      = 0.001
-t_final = 2.0
+t_final = 1.0
 
 time_array = np.arange(dt, t_final + dt, dt)
 
 n_nls = nls.compute_moments('density')
 
+f_initial = nls.f
+
 h5f = h5py.File('dump/0000.h5', 'w')
-h5f.create_dataset('q1', data = nls.q1_center)
-h5f.create_dataset('q2', data = nls.q2_center)
-h5f.create_dataset('n', data = n_nls)
+h5f.create_dataset('q1', data = nls.q1_center[:, :, N_g:-N_g, N_g:-N_g])
+h5f.create_dataset('q2', data = nls.q2_center[:, :, N_g:-N_g, N_g:-N_g])
+h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
 h5f.close()
 
-def time_evolution():
+for time_index, t0 in enumerate(time_array):
 
-    for time_index, t0 in enumerate(time_array):
-        print('For Time =', t0)
-        print('MIN(f) =', af.min(nls.f[3:-3, 3:-3]))
-        print('MAX(f) =', af.max(nls.f[3:-3, 3:-3]))
-        print('SUM(f) =', af.sum(nls.f[3:-3, 3:-3]))
-        print()
-
-        nls.strang_timestep(dt)
-        n_nls = nls.compute_moments('density')
-        
-        h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-        h5f.create_dataset('n', data = n_nls)
-        h5f.close()
-
-time_evolution()
+    print('Time = %.3f'%t0)
+    
+    nls.strang_timestep(dt)
+    n_nls = nls.compute_moments('density')
+    
+    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
+    h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
+    h5f.close()

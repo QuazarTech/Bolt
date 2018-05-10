@@ -18,13 +18,13 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -53,7 +53,7 @@ def f_MB(n, v_bulk, T, q1, v1):
                  * af.exp(-(v1 - v_bulk)**2 / (2 * T))
           )
 
-def set_advection_to_zero(f, t, q1, q2, v1, v2, v3, params):
+def set_advection_to_zero(t, q1, q2, v1, v2, v3, params):
     return(0 * v1**0, 0 * v2**0)
 
 advection_terms.A_q = set_advection_to_zero
@@ -97,12 +97,13 @@ for time_index, t0 in enumerate(time_array):
     error[time_index] = af.mean(af.abs(nls.f - f_expected))
 
 pl.plot(np.array(nls.p1_center).ravel(), np.array(f_initial).ravel())
-pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel())
+pl.plot(np.array(nls.p1_center).ravel(), np.array(nls.f).ravel(), color = 'C3')
 pl.plot(np.array(nls.p1_center).ravel(), np.array(f_expected).ravel(), '--', color = 'black')
-pl.xlabel(r'$v_1$')
+pl.xlabel(r'$v / v_{\mathrm{thermal}}$')
 pl.ylabel(r'$f$')
+pl.ylim(0, 2)
 # pl.title('Distribution at Time Index = ' + str(time_index))
-pl.legend(['Initial Distribution', 'Numerical Solution', 'Final Expected Maxwellian'])
+pl.legend(['Initial Distribution', 'Numerical Solution', 'Final Expected Maxwellian'], loc = 'upper left')
 pl.savefig('plot.png')
 pl.savefig('plot.svg')
 pl.clf()

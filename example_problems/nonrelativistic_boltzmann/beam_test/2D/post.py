@@ -6,13 +6,13 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 4
+pl.rcParams['figure.figsize']  = 12, 6
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -36,7 +36,7 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 2.5
+t_final = 0.02
 time    = np.arange(dt, t_final + dt, dt)
 
 h5f = h5py.File('dump/0000.h5', 'r')
@@ -63,6 +63,10 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
     h5f.close()
 
+h5f = h5py.File('dump/1750.h5', 'r')
+n   = h5f['n'][:].reshape(domain.N_q1 + 6, domain.N_q2 + 6)
+h5f.close()
+
 pl.contourf(q1[3:-3, 3:-3],
             q2[3:-3, 3:-3],
             n[3:-3, 3:-3],
@@ -70,8 +74,9 @@ pl.contourf(q1[3:-3, 3:-3],
             cmap = 'gist_heat'
            )
 # pl.title('Time =' + str(t0))
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
+pl.xlim([0, 3])
+pl.xlabel(r'$x / L$')
+pl.ylabel(r'$y / L$')
 pl.axes().set_aspect('equal')
 pl.savefig('plot.png')
 # pl.savefig('images/%04d'%(time_index+1) + '.png')

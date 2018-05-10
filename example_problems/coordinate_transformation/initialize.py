@@ -5,24 +5,25 @@ the system.
 
 import arrayfire as af
 import numpy as np
+import domain
 
-def initialize_f(q1, q2, p1, p2, p3, params):
+N_p1 = domain.N_p1
+N_p2 = domain.N_p2
+N_p3 = domain.N_p3
 
-    x = q1 * af.cos(q2)
-    y = q1 * af.sin(q2)
+def initialize_f(r, theta, rdot, thetadot, phidot, params):
 
-    # Calculating the perturbed density:
-    rho = af.exp(-(x**2 + (y - 1.5)**2)/0.25**2)
-    f   = p1 * rho
+    rho = af.exp(-500 * (r * af.cos(theta) - 1)**2 - 500 * (r * af.sin(theta))**2)
+    f   = rdot * rho
 
     f[:] = 0
 
-    f   = af.moddims(f, 32, 32, 70*70)
-    rho = af.moddims(rho, 1, 1, 70*70)
+    f   = af.moddims(f, N_p1, N_p2, N_p3, r.shape[2] * r.shape[3])
+    rho = af.moddims(rho, 1, 1, 1, r.shape[2] * r.shape[3])
 
-    f[20, 20] = rho
+    f[24, 24, 0] = rho
     
-    f = af.moddims(f, 32*32, 70, 70)
+    f = af.moddims(f, N_p1 * N_p2 * N_p3, 1, r.shape[2], r.shape[3])
 
     af.eval(f)
     return (f)

@@ -19,13 +19,13 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -70,7 +70,7 @@ def BGK(f, t, v1, params):
     C_f = -(f - f_MB) / tau
     return(C_f)
 
-def set_advection_to_zero(f, t, q1, q2, v1, v2, v3, params):
+def set_advection_to_zero(t, q1, q2, v1, v2, v3, params):
     return(0 * v1**0, 0 * v2**0)
 
 advection_terms.A_q = set_advection_to_zero

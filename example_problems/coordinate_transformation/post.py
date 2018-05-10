@@ -1,15 +1,19 @@
 import numpy as np
+from scipy.integrate import odeint
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import h5py
+import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
-pl.rcParams['image.cmap']      = 'jet'
+pl.rcParams['figure.figsize']  = 15, 10
+pl.rcParams['figure.dpi']      = 80
+pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -33,43 +37,43 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 dt      = 0.001
-t_final = 2.0
+t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
-h5f = h5py.File('dump/0000.h5', 'r')
-q1  = h5f['q1'][:].reshape(70, 70)
-q2  = h5f['q2'][:].reshape(70, 70)
-n   = h5f['n'][:].reshape(70, 70)
+N_q1 = domain.N_q1
+N_q2 = domain.N_q2
+
+h5f   = h5py.File('dump/0000.h5', 'r')
+r     = h5f['q1'][:].reshape(N_q1, N_q2)
+theta = h5f['q2'][:].reshape(N_q1, N_q2)
+n0    = h5f['n'][:].reshape(N_q1, N_q2)
 h5f.close()
 
-pl.contourf(q1[3:-3, 3:-3] * np.cos(q2[3:-3, 3:-3]),
-            q1[3:-3, 3:-3] * np.sin(q2[3:-3, 3:-3]),
-            n[3:-3, 3:-3],
-            100
-           )
+x = r * np.cos(theta)
+y = r * np.sin(theta)
 
+pl.contourf(x, y, n0, 100)
 pl.title('Time = 0')
 pl.xlabel(r'$x$')
 pl.ylabel(r'$y$')
 pl.axes().set_aspect('equal')
+pl.xlim([0, 1])
+pl.ylim([0, 1])
 pl.savefig('images/0000.png')
 pl.clf()
 
 for time_index, t0 in enumerate(time):
-
+    
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(70, 70)
+    n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    pl.contourf(q1[3:-3, 3:-3] * np.cos(q2[3:-3, 3:-3]),
-                q1[3:-3, 3:-3] * np.sin(q2[3:-3, 3:-3]),
-                n[3:-3, 3:-3],
-                100
-               )
-
-    pl.title('Time =' + str(t0))
+    pl.contourf(x, y, n, 100)
+    pl.title('Time = %.3f'%t0)
     pl.xlabel(r'$x$')
     pl.ylabel(r'$y$')
+    pl.xlim([0, 2])
+    pl.ylim([-2, 2])
     pl.axes().set_aspect('equal')
-    pl.savefig('images/%04d'%(time_index+1) + '.png')
+    pl.savefig('images/%04d'%(time_index) + '.png')
     pl.clf()

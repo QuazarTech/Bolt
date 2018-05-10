@@ -39,7 +39,7 @@ pl.rcParams['ytick.direction']  = 'in'
 def vel(x, t):
     return(np.array([2, 1]))
 
-dt      = 0.0005
+dt      = 0.00025
 t_final = 0.9
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -65,36 +65,33 @@ traj = odeint(vel, np.array([0.5, 0.5]), time)
 x = traj[:, 0]
 y = traj[:, 1]
 
-for time_index, t0 in enumerate(time):
-    
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(N_q1, N_q2)
-    h5f.close()
+h5f = h5py.File('dump/%04d'%(time.size) + '.h5', 'r')
+n   = h5f['n'][:].reshape(N_q1, N_q2)
+h5f.close()
 
-x = np.where(x>1, -x+1, x)
-# x = np.where(x>1, x-1, x)
-y = np.where(y>1, -y+1, y)
+x = np.where(x>1, 1-abs(x-1), x)
+y = np.where(y>1, 1-abs(y-1), y)
 
 x = np.where(x<0, -x, x)
-y = np.where(y<0, -y, y)
+# y = np.where(y<0, -y, y)
 
-pos = np.where(np.abs(np.diff(y)) >= 0.5)[0]
+# pos = np.where(np.abs(np.diff(y)) >= 0.5)[0]
 
-x[pos] = np.nan
-y[pos] = np.nan
+# x[pos] = np.nan
+# y[pos] = np.nan
 
-pos = np.where(np.abs(np.diff(x)) >= 0.5)[0]
+# pos = np.where(np.abs(np.diff(x)) >= 0.5)[0]
 
-x[pos] = np.nan
-y[pos] = np.nan
+# x[pos] = np.nan
+# y[pos] = np.nan
 
 nf = n0 + n
 pl.contourf(q1, q2, nf, 100)
 # pl.contourf(q1, q2, n, 50, alpha = 0.5)
 pl.plot(x, y, linewidth = 5, color = 'white', alpha = 0.3)
 # pl.title('Time =' + str(t0))
-pl.xlabel(r'$\frac{x}{L_x}$')
-pl.ylabel(r'$\frac{y}{L_y}$')
+pl.xlabel(r'$x / L$')
+pl.ylabel(r'$y / L$')
 pl.xlim([0, 1])
 pl.ylim([0, 1])
 pl.axes().set_aspect('equal')

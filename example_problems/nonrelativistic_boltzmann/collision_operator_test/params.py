@@ -8,8 +8,8 @@ fields_solver     = 'fdtd'
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
@@ -27,9 +27,10 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [0]
 
-fields_enabled        = False
+fields_enabled           = False
 source_enabled           = True
 instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

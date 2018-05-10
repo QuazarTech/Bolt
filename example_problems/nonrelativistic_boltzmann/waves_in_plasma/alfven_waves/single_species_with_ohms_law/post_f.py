@@ -54,4 +54,4 @@ for time_index, t0 in enumerate(time_array):
 
     pl.contourf(f_to_plot, 100)
     pl.title('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
-    pl.savefig('images/%04d'%time_index + '.png', bbox_inches = 'tight')
+    pl.savefig('images/%04d'%time_index + '.png')
