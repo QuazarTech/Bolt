@@ -34,13 +34,10 @@ import bolt.src.electronic_boltzmann.collision_operator \
 import bolt.src.electronic_boltzmann.moment_defs as moment_defs
 
 # Optimized plot parameters to make beautiful plots:
-#pl.rcParams['figure.figsize']  = 8, 7.5
 pl.rcParams['figure.figsize']  = 8, 8
-#pl.rcParams['figure.figsize']  = 17, 9.5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
-#pl.rcParams['lines.linewidth'] = 3
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
 pl.rcParams['font.size']       = 25
