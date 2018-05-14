@@ -30,7 +30,7 @@ N_g = nls.N_ghost
 
 # Time parameters:
 dt      = 0.001
-t_final = 1.0
+t_final = 5.0
 
 time_array = np.arange(dt, t_final + dt, dt)
 
