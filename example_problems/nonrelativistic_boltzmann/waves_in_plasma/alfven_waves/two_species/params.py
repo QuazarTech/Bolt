@@ -44,7 +44,7 @@ mu = 1. # |mu0| units(mu0)
 B0 = 1. # |B0| units(B0)
 
 # Setting plasma β:
-beta = 1e-9
+beta = 1e-4
 T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
@@ -97,8 +97,8 @@ t0 = l0 / v0
 L_x = L_y = l0
 
 # Setting delta_v of the Phase Space Grid:
-v_max_e = 6.4e-4
-v_max_i = 1.92e-4
+v_max_e = 0.22 * v0
+v_max_i = 0.07 * v0
 
 # Calculating Permittivity:
 c   = 5 * v0
@@ -121,11 +121,11 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, densi
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Setting amplitude and wave number for perturbation:
-amplitude = 1e-6
+amplitude = 1e-4
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.001
+N_cfl   = 0.01
 t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")

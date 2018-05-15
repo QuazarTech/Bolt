@@ -18,7 +18,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 16, 10 #10, 14
+pl.rcParams['figure.figsize']  = 15, 10 #10, 14
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -123,13 +123,13 @@ for i in range(N.size):
     analytic_first_moment_p3_term_i  = \
         -e[1] / m[1] * (nls.fields_solver.yee_grid_EM_fields[2] - v2_bulk_i * nls.fields_solver.yee_grid_EM_fields[3])
 
-    # pl.plot(np.array(numerical_first_moment_p3_term[:, 0, :, 0]).ravel(), label = 'N = ' + str(N[i]))
-    # pl.plot(np.array(analytic_first_moment_p3_term_e[:, 0, :, 0]).ravel(), '--', color = 'black')
-    # pl.show()
+    pl.plot(np.array(numerical_first_moment_p3_term[:, 0, :, 0]).ravel(), label = 'N = ' + str(N[i]))
+    pl.plot(np.array(analytic_first_moment_p3_term_e[:, 0, :, 0]).ravel(), '--', color = 'black')
+    pl.show()
 
-    # pl.plot(np.array(numerical_first_moment_p3_term[:, 1, :, 0]).ravel(), label = 'N = ' + str(N[i]))
-    # pl.plot(np.array(analytic_first_moment_p3_term_i[:, 0, :, 0]).ravel(), '--', color = 'black')
-    # pl.show()
+    pl.plot(np.array(numerical_first_moment_p3_term[:, 1, :, 0]).ravel(), label = 'N = ' + str(N[i]))
+    pl.plot(np.array(analytic_first_moment_p3_term_i[:, 0, :, 0]).ravel(), '--', color = 'black')
+    pl.show()
 
     error_p2_e[i] = af.mean(af.abs(numerical_first_moment_p2_term[:, 0] - analytic_first_moment_p2_term_e))
     error_p2_i[i] = af.mean(af.abs(numerical_first_moment_p2_term[:, 1] - analytic_first_moment_p2_term_i))
