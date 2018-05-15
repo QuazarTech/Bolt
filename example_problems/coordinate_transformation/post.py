@@ -93,6 +93,7 @@ fig = pl.figure()
 
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.contourf(x, y, n0, 100)
+ax1.set_aspect('equal')
 ax1.plot(x_analytic[0], y_analytic[0], 'or', alpha = 0.3)
 ax1.set_xlim(0, 4)
 ax1.set_ylim(-4, 4)
@@ -121,6 +122,7 @@ for time_index, t0 in enumerate(time):
     
     ax1 = fig.add_subplot(1, 1, 1)
     ax1.contourf(x, y, n, 100)
+    ax1.set_aspect('equal')
     ax1.plot(x_analytic[time_index+1], y_analytic[time_index+1], 'or', alpha = 0.3)
     ax1.set_xlim(0, 4)
     ax1.set_ylim(-4, 4)
