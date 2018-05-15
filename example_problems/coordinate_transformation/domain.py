@@ -1,6 +1,6 @@
 from numpy import pi
 
-q1_start = 0
+q1_start = 0.5
 q1_end   = 4
 N_q1     = 64 
 
@@ -13,8 +13,8 @@ p1_end   = [2]
 N_p1     = 64
 
 p2_start = [0]
-p2_end   = [2]
-N_p2     = 32
+p2_end   = [1 / q1_start]
+N_p2     = 64
 
 p3_start = [-0.5]
 p3_end   = [0.5]

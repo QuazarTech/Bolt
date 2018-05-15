@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import odeint
 import matplotlib as mpl
-mpl.use('agg')
+# mpl.use('agg')
 import pylab as pl
 import h5py
 import domain
@@ -51,8 +51,8 @@ def dX_dt(X, t):
 
     return(np.concatenate([dr_dt, dtheta_dt, drdot_dt, dthetadot_dt]))
 
-dt      = 0.001
-t_final = 2.0
+dt      = 0.0005
+t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
 # Analytic solution:
@@ -61,8 +61,8 @@ dr = 0.5
 
 r_init        = r0 + dr * (2 * np.random.rand(N_particles) - 1)
 theta_init    = np.zeros(N_particles)
-rdot_init     = 0.5 * r_init
-thetadot_init = 1.03125 * np.ones(N_particles)
+rdot_init     = 1.015625 * np.ones(N_particles)
+thetadot_init = 1 / r_init
 
 # Storing the above data into a single vector:
 X0 = np.concatenate([r_init, theta_init, rdot_init, thetadot_init])
@@ -89,54 +89,30 @@ h5f.close()
 x = r * np.cos(theta)
 y = r * np.sin(theta)
 
-fig = pl.figure()
-
-ax1 = fig.add_subplot(1, 1, 1)
-ax1.contourf(x, y, n0, 100)
-ax1.set_aspect('equal')
-ax1.plot(x_analytic[0], y_analytic[0], 'or', alpha = 0.3)
-ax1.set_xlim(0, 4)
-ax1.set_ylim(-4, 4)
-ax1.set_xlabel(r'$x$')
-ax1.set_ylabel(r'$y$')
-
-# ax2 = fig.add_subplot(1, 2, 2)
-# ax2.plot(x_analytic[0], y_analytic[0], 'or')
-# ax2.set_xlim(0, 4)
-# ax2.set_ylim(-4, 4)
-# ax2.set_xlabel(r'$x$')
-# ax2.set_ylabel(r'$y$')
-
-fig.suptitle('Time = 0')
-pl.savefig('images/0000.png')
-pl.close(fig)
-pl.clf()
-
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    fig = pl.figure()
-    
-    ax1 = fig.add_subplot(1, 1, 1)
-    ax1.contourf(x, y, n, 100)
-    ax1.set_aspect('equal')
-    ax1.plot(x_analytic[time_index+1], y_analytic[time_index+1], 'or', alpha = 0.3)
-    ax1.set_xlim(0, 4)
-    ax1.set_ylim(-4, 4)
-    ax1.set_xlabel(r'$x$')
-    ax1.set_ylabel(r'$y$')
+    pl.plot(x_analytic[time_index], y_analytic[time_index], 'o', color = 'white', alpha = 0.006)
 
-    # ax2 = fig.add_subplot(1, 2, 2)
-    # ax2.plot(x_analytic[time_index+1], y_analytic[time_index+1], 'or')
-    # ax2.set_xlim(0, 4)
-    # ax2.set_ylim(-4, 4)
-    # ax2.set_xlabel(r'$x$')
-    # ax2.set_ylabel(r'$y$')
+import arrayfire as af
+n = np.array(af.select(af.to_array(n)<0, 0, af.to_array(n)))
 
-    fig.suptitle('Time = %.3f'%t0)
-    pl.savefig('images/%04d'%(time_index + 1) + '.png')
-    pl.close(fig)
-    pl.clf()
+pl.contourf(x, y, 12 * n + n0 / 2, 200)
+pl.contourf(x, y, 12 * n + n0 / 2, 200)
+pl.gca().set_aspect('equal')
+pl.xlim(0, 4)
+pl.ylim(-4, 4)
+pl.xlabel(r'$x$')
+pl.ylabel(r'$y$')
+pl.savefig('plot.png', bbox_inches = 'tight')
+pl.clf()
+
+# ax2 = fig.add_subplot(1, 2, 2)
+# ax2.plot(x_analytic[time_index+1], y_analytic[time_index+1], 'or')
+# ax2.set_xlim(0, 4)
+# ax2.set_ylim(-4, 4)
+# ax2.set_xlabel(r'$x$')
+# ax2.set_ylabel(r'$y$')
