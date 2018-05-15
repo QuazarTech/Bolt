@@ -53,7 +53,7 @@ def dX_dt(X, t):
 
 dt      = 0.0005
 t_final = 1.0
-time    = np.arange(dt, t_final + dt, dt)
+time    = np.arange(0, t_final + dt, dt)
 
 # Analytic solution:
 r0 = 1.5
@@ -91,24 +91,24 @@ y = r * np.sin(theta)
 
 for time_index, t0 in enumerate(time):
     
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'r')
+    h5f = h5py.File('dump/%04d'%(time_index) + '.h5', 'r')
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    pl.plot(x_analytic[time_index], y_analytic[time_index], 'o', color = 'white', alpha = 0.006)
+    pl.plot(x_analytic[time_index], y_analytic[time_index], 'o', color = 'white', alpha = 0.05)
 
-import arrayfire as af
-n = np.array(af.select(af.to_array(n)<0, 0, af.to_array(n)))
+    import arrayfire as af
+    n = np.array(af.select(af.to_array(n)<0, 0, af.to_array(n)))
 
-pl.contourf(x, y, 12 * n + n0 / 2, 200)
-pl.contourf(x, y, 12 * n + n0 / 2, 200)
-pl.gca().set_aspect('equal')
-pl.xlim(0, 4)
-pl.ylim(-4, 4)
-pl.xlabel(r'$x$')
-pl.ylabel(r'$y$')
-pl.savefig('plot.png', bbox_inches = 'tight')
-pl.clf()
+    pl.contourf(x, y, n, 200)
+    pl.gca().set_aspect('equal')
+    pl.xlim(0, 4)
+    pl.ylim(-4, 4)
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$y$')
+    pl.title('Time = %.3f'%t0)
+    pl.savefig('images/%04d'%time_index + '.png')
+    pl.clf()
 
 # ax2 = fig.add_subplot(1, 2, 2)
 # ax2.plot(x_analytic[time_index+1], y_analytic[time_index+1], 'or')
