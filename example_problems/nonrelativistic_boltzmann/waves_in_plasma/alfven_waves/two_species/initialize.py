@@ -85,7 +85,7 @@ def initialize_B(q1, q2, params):
     B1 = params.B0 * q1**0
     
     B2 =   params.amplitude * 5.6066262743570405e-15 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * 5.6066262743570405e-15 * af.sin(params.k_q1 * q1)
+         - params.amplitude * 0.37389325198333345 * af.sin(params.k_q1 * q1)
 
     B3 =   params.amplitude * 0.37389325198336115 * af.cos(params.k_q1 * q1) \
          - params.amplitude * 0 * af.sin(params.k_q1 * q1)

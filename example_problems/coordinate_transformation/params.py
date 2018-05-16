@@ -16,7 +16,7 @@ riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 1
+num_devices = 4
 
 # Constants:
 mass   = [1]

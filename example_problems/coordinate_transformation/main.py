@@ -29,7 +29,7 @@ nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
 # Time parameters:
-dt      = 0.0005
+dt      = 0.00025
 t_final = 1.0
 
 time_array = np.arange(dt, t_final + dt, dt)
@@ -37,20 +37,11 @@ time_array = np.arange(dt, t_final + dt, dt)
 n_nls = nls.compute_moments('density')
 
 f_initial = nls.f
-
-h5f = h5py.File('dump/0000.h5', 'w')
-h5f.create_dataset('q1', data = nls.q1_center[:, :, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('q2', data = nls.q2_center[:, :, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
-h5f.close()
+nls.dump_moments('dump/0000')
 
 for time_index, t0 in enumerate(time_array):
 
     print('Time = %.3f'%t0)
     
     nls.strang_timestep(dt)
-    n_nls = nls.compute_moments('density')
-    
-    h5f = h5py.File('dump/%04d'%(time_index+1) + '.h5', 'w')
-    h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
-    h5f.close()
+    nls.dump_moments('dump/%04d'%(time_index+1))
