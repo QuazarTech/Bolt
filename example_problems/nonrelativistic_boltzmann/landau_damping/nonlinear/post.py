@@ -8,13 +8,13 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'bwr'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -55,10 +55,10 @@ pl.savefig('n.svg')
 pl.clf()
 
 pl.plot(time_array, E_nls, label = r'{\tt bolt}')
-pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
-pl.ylabel(r'$E$)')
+#pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
+pl.ylabel(r'MAX($E$)')
 pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-pl.legend()
+#pl.legend()
 pl.savefig('E.png')
 pl.savefig('E.svg')
 pl.clf()
@@ -73,10 +73,10 @@ pl.savefig('n_semilogy.svg')
 pl.clf()
 
 pl.semilogy(time_array, E_nls, label = r'{\tt bolt}')
-pl.semilogy(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
-pl.ylabel(r'$E$)')
+# pl.semilogy(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
+pl.ylabel(r'MAX($E$)')
 pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-pl.legend()
+# pl.legend()
 pl.savefig('E_semilogy.png')
 pl.savefig('E_semilogy.svg')
 pl.clf()

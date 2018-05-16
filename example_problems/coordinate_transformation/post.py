@@ -51,7 +51,7 @@ def dX_dt(X, t):
 
     return(np.concatenate([dr_dt, dtheta_dt, drdot_dt, dthetadot_dt]))
 
-dt      = 0.0005
+dt      = 0.00025
 t_final = 1.0
 time    = np.arange(0, t_final + dt, dt)
 
@@ -61,7 +61,7 @@ dr = 0.5
 
 r_init        = r0 + dr * (2 * np.random.rand(N_particles) - 1)
 theta_init    = np.zeros(N_particles)
-rdot_init     = 1.015625 * np.ones(N_particles)
+rdot_init     = 1.0078125 * np.ones(N_particles)
 thetadot_init = 1 / r_init
 
 # Storing the above data into a single vector:
@@ -80,11 +80,14 @@ y_analytic = r * np.sin(theta)
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
 
-h5f   = h5py.File('dump/0000.h5', 'r')
-r     = h5f['q1'][:].reshape(N_q1, N_q2)
-theta = h5f['q2'][:].reshape(N_q1, N_q2)
-n0    = h5f['n'][:].reshape(N_q1, N_q2)
+h5f = h5py.File('dump/0000.h5', 'r')
+n0  = np.swapaxes(h5f['moments'][:], 0, 1)[:, :, 0]
 h5f.close()
+
+r     = 0.5 + (0.5 + np.arange(128)) * 3.5 / 128
+theta = -np.pi / 2 + (0.5 + np.arange(129)) * np.pi / 129
+
+theta, r = np.meshgrid(theta, r)
 
 x = r * np.cos(theta)
 y = r * np.sin(theta)
@@ -92,7 +95,7 @@ y = r * np.sin(theta)
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index) + '.h5', 'r')
-    n   = h5f['n'][:].reshape(N_q1, N_q2)
+    n   = np.swapaxes(h5f['moments'][:], 0, 1)[:, :, 0]
     h5f.close()
 
     pl.plot(x_analytic[time_index], y_analytic[time_index], 'o', color = 'white', alpha = 0.05)
