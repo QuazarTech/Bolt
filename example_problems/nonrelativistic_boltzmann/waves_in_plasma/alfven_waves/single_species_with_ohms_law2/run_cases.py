@@ -21,8 +21,8 @@ N = np.array([32, 48, 64, 96, 128])
 for i in range(N.size):
 
     domain.N_q1 = int(N[i])
-    domain.N_q2 = int(N[i])
-    domain.N_q3 = int(N[i])
+    domain.N_p2 = int(N[i])
+    domain.N_p3 = int(N[i])
     
     # Defining the physical system to be solved:
     system = physical_system(domain,
@@ -62,4 +62,5 @@ for i in range(N.size):
 
         PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")
 
-    nls.dump_EM_fields('dump/N_%04d'%(int(N[i])))
+    nls.dump_moments('dump_1/N_%04d'%(int(N[i])))
+    nls.dump_EM_fields('dump_2/N_%04d'%(int(N[i])))
