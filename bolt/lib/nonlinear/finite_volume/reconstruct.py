@@ -1,3 +1,5 @@
+import arrayfire as af
+
 from .reconstruction.minmod import reconstruct_minmod
 from .reconstruction.ppm import reconstruct_ppm
 from .reconstruction.weno5 import reconstruct_weno5
