@@ -47,7 +47,7 @@ pl.rcParams['ytick.direction']  = 'in'
 # (delta_E2, ' = ', 0.336055419305355 + 4.996003610813204e-16*I)
 # (delta_E3, ' = ', -4.7878367936959876e-15 - 0.33605541930533006*I)
 
-def u2e_analytic(q1, t):
+def v2e_analytic(q1, t):
     
     omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
@@ -58,7 +58,7 @@ def u2e_analytic(q1, t):
 
     return(u2e_analytic)
 
-def u3e_analytic(q1, t):
+def v3e_analytic(q1, t):
     
     omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
@@ -69,7 +69,7 @@ def u3e_analytic(q1, t):
 
     return(u3e_analytic)
 
-def u2i_analytic(q1, t):
+def v2i_analytic(q1, t):
     
     omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
@@ -80,7 +80,7 @@ def u2i_analytic(q1, t):
 
     return(u2i_analytic)
 
-def u3i_analytic(q1, t):
+def v3i_analytic(q1, t):
     
     omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
@@ -152,6 +152,15 @@ for i in range(N.size):
     dq1 = (domain.q1_end - domain.q1_start) / int(N[i])
     q1  = domain.q1_start + (np.arange(int(N[i]))) * dq1
 
+    # Timestep as set by the CFL condition:
+    dt_fvm = params.N_cfl * dq1 \
+                          / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
+
+    dt_fdtd = params.N_cfl * dq1 \
+                           / params.c # lightspeed
+
+    dt        = min(dt_fvm, dt_fdtd)
+
     h5f = h5py.File('dump_1/N_%04d'%(int(N[i])) + '.h5')
     n_e = h5f['moments'][:][0, :, 0]
     n_i = h5f['moments'][:][0, :, 1]
@@ -168,15 +177,15 @@ for i in range(N.size):
     B3  = h5f['EM_fields'][:][0, :, 5]
     h5f.close()
 
-    v2e_ana = v2e_analytic(q1, params.t_final)
-    v2i_ana = v2i_analytic(q1, params.t_final)
-    v3e_ana = v3e_analytic(q1, params.t_final)
-    v3i_ana = v3i_analytic(q1, params.t_final)
+    v2e_ana = v2e_analytic(q1 + dq1 / 2, params.t_final)
+    v2i_ana = v2i_analytic(q1 + dq1 / 2, params.t_final)
+    v3e_ana = v3e_analytic(q1 + dq1 / 2, params.t_final)
+    v3i_ana = v3i_analytic(q1 + dq1 / 2, params.t_final)
 
-    E2_ana = E2_analytic(q1, params.t_final)
-    E3_ana = E3_analytic(q1, params.t_final)
-    B2_ana = B2_analytic(q1, params.t_final)
-    B3_ana = B3_analytic(q1, params.t_final)
+    E2_ana = E2_analytic(q1 + dq1 / 2, params.t_final)
+    E3_ana = E3_analytic(q1 + dq1 / 2, params.t_final)
+    B2_ana = B2_analytic(q1, params.t_final + dt / 2)
+    B3_ana = B3_analytic(q1, params.t_final + dt / 2)
 
     error_v2e[i] = np.mean(abs(v_2e - v2e_ana))
     error_v2i[i] = np.mean(abs(v_2i - v2i_ana))

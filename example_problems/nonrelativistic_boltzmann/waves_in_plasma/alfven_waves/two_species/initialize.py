@@ -82,13 +82,23 @@ def initialize_E(q1, q2, params):
 
 def initialize_B(q1, q2, params):
 
+    dt = params.dt
     B1 = params.B0 * q1**0
-    
-    B2 =   params.amplitude * 5.6066262743570405e-15 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * 0.37389325198333345 * af.sin(params.k_q1 * q1)
 
-    B3 =   params.amplitude * 0.37389325198336115 * af.cos(params.k_q1 * q1) \
-         - params.amplitude * 0 * af.sin(params.k_q1 * q1)
+    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+
+    B2 = (params.amplitude * (5.6066262743570405e-15 + 0.37389325198333345*1j) * \
+          np.exp(  1j * params.k_q1 * np.array(q1)
+                 + omega * dt / 2
+                )).real
+
+    B3 = (params.amplitude * 0.37389325198336115 * \
+          np.exp(  1j * params.k_q1 * np.array(q1)
+                 + omega * dt / 2
+                )).real
+
+    B2 = af.moddims(af.to_array(B2), 1, 1, q1.shape[2], q1.shape[3])
+    B3 = af.moddims(af.to_array(B3), 1, 1, q1.shape[2], q1.shape[3])
 
     af.eval(B1, B2, B3)
     return(B1, B2, B3)

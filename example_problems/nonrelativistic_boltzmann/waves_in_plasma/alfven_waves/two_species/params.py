@@ -125,8 +125,8 @@ amplitude = 1e-4
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.01
-t_final = 1 * t0
+N_cfl   = 0.004
+t_final = 0.1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -186,4 +186,4 @@ t_restart = 0 * t0
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (1e-3 * t0 * p1**0 * q1**0)
+    return (np.inf * t0 * p1**0 * q1**0)

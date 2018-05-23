@@ -293,7 +293,7 @@ def plot_1d():
         ax6.set_ylim([1.02 * B3_min, 1.02 * B3_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A^{-1}$')
+        fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

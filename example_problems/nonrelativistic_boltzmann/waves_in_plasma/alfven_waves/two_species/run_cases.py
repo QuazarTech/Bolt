@@ -24,6 +24,19 @@ for i in range(N.size):
     domain.N_p2 = int(N[i])
     domain.N_p3 = int(N[i])
 
+    dq1 = params.L_x / domain.N_q1
+    dq2 = params.L_y / domain.N_q2
+
+    # Timestep as set by the CFL condition:
+    dt_fvm = params.N_cfl * min(dq1, dq2) \
+                          / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
+
+    dt_fdtd = params.N_cfl * min(dq1, dq2) \
+                           / params.c # lightspeed
+
+    dt        = min(dt_fvm, dt_fdtd)
+    params.dt = dt
+
     # Defining the physical system to be solved:
     system = physical_system(domain,
                              boundary_conditions,
@@ -35,15 +48,6 @@ for i in range(N.size):
                             )
 
     nls = nonlinear_solver(system)
-
-    # Timestep as set by the CFL condition:
-    dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
-                          / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
-
-    dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
-                           / params.c # lightspeed
-
-    dt = min(dt_fvm, dt_fdtd)
 
     time_elapsed = 0
     
