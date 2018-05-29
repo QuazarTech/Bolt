@@ -36,97 +36,97 @@ riemann_solver_in_p = 'upwind-flux'
 # Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
 # Now choosing units: 
-n0  = 1. # |n| units(n)
-T0  = 1. # |T| units(T)
-m0  = 1. # |m_e| units(m)
-e0  = 1. # |e| units(e)
-k0  = 1. # |k| units(k)
-mu  = 1. # |mu0| units(mu0)
+n0 = 1. # |n| units(n)
+m0 = 1. # |m_p| units(m)
+e0 = 1. # |e| units(e)
+k0 = 1. # |k| units(k)
+mu = 1. # |mu0| units(mu0)
+B0 = 1. # |B0| units(B0)
 
-# Boundary conditions for the density and temperature of left zone, 
-# Setup as initial conditions throughout domain:
-n_background = 1 * n0
-T_background = 1 * T0
-
-plasma_beta = 100 # β = p / (B^2 / 2μ)
-# Setting magnetic field along y using plasma beta:
-B0 = np.sqrt(2 * mu * n_background * T_background / plasma_beta)
+# Setting plasma β:
+beta = 1e-4
+T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("             Independent Units Chosen             ")
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("Density              :", n0, "|n| units(n)")
-PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
-PETSc.Sys.Print("Mass                 :", m0, "|m_e| units(m)")
+PETSc.Sys.Print("Mass                 :", m0, "|m_i| units(m)")
 PETSc.Sys.Print("Charge               :", e0, "|e| units(e)")
 PETSc.Sys.Print("Boltzmann Constant   :", k0, "|k| units(k)")
 PETSc.Sys.Print("Magnetic Permeability:", mu, "|mu0| units(mu0)")
-PETSc.Sys.Print("==================================================")
-PETSc.Sys.Print("Setting the magnetic field scale using plasma beta ")
-PETSc.Sys.Print("==================================================")
-PETSc.Sys.Print("Plasma beta          :", plasma_beta)
 PETSc.Sys.Print("Magnetic Field       :", B0, "|B| units(B)")
+PETSc.Sys.Print("==================================================")
+PETSc.Sys.Print("  Setting the temperature scale using plasma beta ")
+PETSc.Sys.Print("==================================================")
+PETSc.Sys.Print("Plasma beta          :", beta)
+PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("==================================================\n")
 
 # Dimensionality considered in velocity space:
-p_dim = 3
-gamma = 5 / 3 # adiabatic factor
+p_dim = 2
+# p_dim sets the adiabatic constant gamma:
+gamma = 2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = 1 * m0
-# m_i = 2000 * m0
+m_e = (1 / 10) * m0
+m_i = 1        * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
-# e_i =  1 * e0
+e_i =  1 * e0
 
-mass               = [m_e]
+mass               = [m_e, m_i]
 boltzmann_constant = k0
-charge             = [e_e]
+charge             = [e_e, e_i]
+
+# Background Quantities:
+density_background     = 1 * n0
+temperature_background = 1 * T0
 
 # Velocity, length and time scales:
-t0 = 1 / time_scales.cyclotron_frequency(B0, e0, m0)
-v0 = velocity_scales.alfven_velocity(B0, n_background, m0, mu)
-l0 = v0 * t0 # ion skin depth
+v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
+l0 = (2 * np.pi / 2.1) # Box Length
+t0 = l0 / v0
 
-# Setting lengths of the domain:
-L_x = 5   * l0
-L_y = 100 * l0
+# Setting the length of the box:
+L_x = L_y = l0
 
-# Setting Maximum Velocities of Phase Space Grid:
-v_max = 70 * v0
-# v_max_i = 0.014 * v0
+# Setting delta_v of the Phase Space Grid:
+v_max_e = 0.22 * v0
+v_max_i = 0.07 * v0
 
-# Setting permeability:
-c   = 70 * v0 # |c| units(c)
-eps = 1 / (c**2 * mu)
-
-# Setting bulk velocity:
-v1_bulk = 10 * v0
+# Calculating Permittivity:
+c   = 5 * v0
+eps = 1  / (c**2 * mu)
 
 # Velocity Scales:
-thermal_speed   = velocity_scales.thermal_speed(T_background, m0, k0)
-sound_speed     = velocity_scales.sound_speed(T_background, k0, gamma)
-alfven_velocity = velocity_scales.alfven_velocity(B0, n_background, m0, mu) 
+thermal_speed   = velocity_scales.thermal_speed(temperature_background, m0, k0)
+sound_speed     = velocity_scales.sound_speed(temperature_background, k0, gamma)
+alfven_velocity = velocity_scales.alfven_velocity(B0, density_background, m0, mu) 
 
 # Length scales:
-debye_length = length_scales.debye_length(n_background, T_background, e0, k0, eps)
-skin_depth   = length_scales.skin_depth(n_background, e0, c, m0, eps)
-gyroradius   = length_scales.gyroradius(velocity_scales.thermal_speed(T_background, m0, k0), B0, e0, m0)
+debye_length = length_scales.debye_length(density_background, temperature_background, e0, k0, eps)
+skin_depth   = length_scales.skin_depth(density_background, e0, c, m0, eps)
+gyroradius   = length_scales.gyroradius(velocity_scales.thermal_speed(temperature_background, m0, k0), B0, e0, m0)
 
 # Time scales:
-plasma_frequency     = time_scales.plasma_frequency(n_background, e0, m0, eps)
+plasma_frequency     = time_scales.plasma_frequency(density_background, e0, m0, eps)
 cyclotron_frequency  = time_scales.cyclotron_frequency(B0, e0, m0)
-alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, n_background, m0, mu)
-sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), T_background, k0, gamma)
+alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, density_background, m0, mu)
+sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
+
+# Setting amplitude and wave number for perturbation:
+amplitude = 1e-4
+k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.1
-t_final = 200 * t0
+N_cfl   = 0.006
+t_final = 0.01 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -157,7 +157,8 @@ PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
 PETSc.Sys.Print("Sound Speed          :", sound_speed)
 PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
 PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
+# PETSc.Sys.Print("Maximum Velocity(e)  :", v_max_e / v0, "|v0| units(v0)")
+# PETSc.Sys.Print("Maximum Velocity(i)  :", v_max_i / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")
@@ -177,7 +178,7 @@ hybrid_model_enabled     = False
 # Set to zero for no file-writing
 dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.01 * t0
+dt_dump_moments = dt_dump_fields = 0.001 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0

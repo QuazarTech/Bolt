@@ -35,8 +35,8 @@ def initialize_E(q1, q2, params):
 
 def initialize_B(q1, q2, params):
 
-    B1 = 0 * q1**0
-    B2 = params.B0 * q1**0
+    B1 = params.B0 * q1**0
+    B2 = 0 * q1**0
     B3 = 0 * q1**0
 
     af.eval(B1, B2, B3)

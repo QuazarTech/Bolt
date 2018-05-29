@@ -47,6 +47,18 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
+dq1 = (domain.q1_end - domain.q1_start) / domain.N_q1
+
+# Time parameters:
+dt_fvm = params.N_cfl * dq1 \
+                      / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
+
+dt_fdtd = params.N_cfl * dq1 \
+                       / params.c # lightspeed
+
+dt        = min(dt_fvm, dt_fdtd)
+params.dt = dt
+
 # Defining the physical system to be solved:
 system = physical_system(domain,
                          boundary_conditions,
@@ -60,15 +72,6 @@ system = physical_system(domain,
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
-
-# Time parameters:
-dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
-                      / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
-
-dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
-                       / params.c # lightspeed
-
-dt = min(dt_fvm, dt_fdtd)
 
 print('Minimum Value of f_e:', af.min(nls.f[:, 0]))
 print('Minimum Value of f_i:', af.min(nls.f[:, 1]))

@@ -2,11 +2,11 @@ from params import L_x, L_y, v_max
 
 q1_start = 0
 q1_end   = L_x
-N_q1     = 1024
+N_q1     = 2
 
 q2_start = 0
 q2_end   = L_y
-N_q2     = 3
+N_q2     = 1024
 
 p1_start = [-v_max]
 p1_end   = [ v_max]
@@ -20,4 +20,4 @@ p3_start = [-v_max]
 p3_end   = [ v_max]
 N_p3     = 32
 
-N_ghost = 3
+N_ghost = 2

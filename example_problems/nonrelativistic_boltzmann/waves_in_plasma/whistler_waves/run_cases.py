@@ -20,6 +20,17 @@ N = np.array([80, 96, 112, 128, 144])
 
 for i in range(N.size):
 
+    if(params.t_restart == 0):
+        time_elapsed = 0
+        nls.dump_distribution_function('dump_f/t=0.000')
+        nls.dump_moments('dump_moments/t=0.000')
+        nls.dump_EM_fields('dump_fields/t=0.000')
+
+    else:
+        time_elapsed = params.t_restart
+        nls.load_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
+        nls.load_EM_fields('dump_fields/t=' + '%.3f'%time_elapsed)
+
     domain.N_q1 = int(N[i])
     domain.N_p2 = int(N[i])
     domain.N_p3 = int(N[i])
@@ -63,6 +74,11 @@ for i in range(N.size):
         if(delta_dt<dt):
             nls.strang_timestep(delta_dt)
             time_elapsed += delta_dt
+    
+        if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-5):
+            nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
+            nls.dump_EM_fields('dump_fields/t=' + '%.3f'%time_elapsed)
+            nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
         PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")
 
