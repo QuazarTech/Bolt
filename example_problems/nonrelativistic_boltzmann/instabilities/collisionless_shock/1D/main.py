@@ -29,6 +29,9 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
+print(af.min(nls.f))
+print(af.mean(nls.compute_moments('density')))
+
 # Time parameters:
 dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list

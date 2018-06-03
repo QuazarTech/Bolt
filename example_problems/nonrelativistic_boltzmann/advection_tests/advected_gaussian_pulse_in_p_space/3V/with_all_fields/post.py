@@ -6,13 +6,13 @@ import domain
 from scipy.integrate import odeint
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -69,9 +69,11 @@ ax = pl.axes(projection='3d')
 # ax.view_init(*init_view)
 
 ax.plot3D(sol[:, 0], sol[:, 1], sol[:, 2])
+ax.plot([sol[0, 0]], [sol[0, 1]], [sol[0, 2]], markerfacecolor='r', markeredgecolor='r', marker='o', markersize=5)
+ax.plot([sol[-1, 0]], [sol[-1, 1]], [sol[-1, 2]], markerfacecolor='r', markeredgecolor='r', marker='o', markersize=5)
 ax.set_xlabel(r'$v_x$', linespacing=10, labelpad=30)
 ax.set_ylabel(r'$v_y$', linespacing=10, labelpad=30)
-ax.set_zlabel(r'$v_z$', linespacing=10, labelpad=30)
+ax.set_zlabel(r'$v_z$', linespacing=15, labelpad=30)
 
 # ax.yaxis.set_major_formatter(pl.NullFormatter())
 # ax.xaxis.set_major_formatter(pl.NullFormatter())

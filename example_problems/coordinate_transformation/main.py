@@ -37,11 +37,13 @@ time_array = np.arange(dt, t_final + dt, dt)
 n_nls = nls.compute_moments('density')
 
 f_initial = nls.f
-nls.dump_moments('dump/0000')
+nls.dump_f('dump/0000')
 
 for time_index, t0 in enumerate(time_array):
 
     print('Time = %.3f'%t0)
     
     nls.strang_timestep(dt)
-    nls.dump_moments('dump/%04d'%(time_index+1))
+    
+    if((time_index+1)%20 == 0):
+        nls.dump_f('dump/%04d'%((time_index+1)/20))

@@ -45,12 +45,20 @@ mu  = 1. # |mu0| units(mu0)
 
 # Boundary conditions for the density and temperature of left zone, 
 # Setup as initial conditions throughout domain:
-n_background = 1 * n0
-T_background = 1 * T0
+n_background = 1    * n0
+T_background = 1e-7 * T0
 
-plasma_beta = 100 # β = p / (B^2 / 2μ)
-# Setting magnetic field along y using plasma beta:
-B0 = np.sqrt(2 * mu * n_background * T_background / plasma_beta)
+# Getting scale B0 by setting omega_c = omega_p * u_b / c
+# => B0 = sqrt(n * m / eps) * u_b / c
+# => B0 = sqrt(n * m * c**2 * mu) * u_b / c
+# => B0 = sqrt(n * m * mu) * u_b
+
+# Bulk velocity is set to be 5e-4. It is later determined this value in term of v0
+# Setting bulk velocity:
+v1_bulk = 5e-4
+
+B0 = np.sqrt(n_background * m0) * v1_bulk
+B1 = 1e-10 * B0
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
@@ -63,9 +71,8 @@ PETSc.Sys.Print("Charge               :", e0, "|e| units(e)")
 PETSc.Sys.Print("Boltzmann Constant   :", k0, "|k| units(k)")
 PETSc.Sys.Print("Magnetic Permeability:", mu, "|mu0| units(mu0)")
 PETSc.Sys.Print("==================================================")
-PETSc.Sys.Print("Setting the magnetic field scale using plasma beta ")
+PETSc.Sys.Print("Setting the magnetic field scale                  ")
 PETSc.Sys.Print("==================================================")
-PETSc.Sys.Print("Plasma beta          :", plasma_beta)
 PETSc.Sys.Print("Magnetic Field       :", B0, "|B| units(B)")
 PETSc.Sys.Print("==================================================\n")
 
@@ -98,15 +105,11 @@ L_x = 5   * l0
 L_y = 100 * l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max = 70 * v0
-# v_max_i = 0.014 * v0
+v_max = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
 
 # Setting permeability:
-c   = 70 * v0 # |c| units(c)
+c   = v_max # |c| units(c)
 eps = 1 / (c**2 * mu)
-
-# Setting bulk velocity:
-v1_bulk = 10 * v0
 
 # Velocity Scales:
 thermal_speed   = velocity_scales.thermal_speed(T_background, m0, k0)
@@ -175,9 +178,9 @@ hybrid_model_enabled     = False
 
 # File-writing Parameters:
 # Set to zero for no file-writing
-dt_dump_f       = 1 * t0
+dt_dump_f       = 10 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 0.01 * t0
+dt_dump_moments = dt_dump_fields = 0.1 * t0
 
 # Restart(Set to zero for no-restart):
 t_restart = 0 * t0

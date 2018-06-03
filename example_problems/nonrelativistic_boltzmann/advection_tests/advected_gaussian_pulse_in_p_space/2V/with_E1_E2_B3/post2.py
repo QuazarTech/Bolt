@@ -5,13 +5,13 @@ import domain
 from scipy.integrate import odeint
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -70,10 +70,10 @@ for time_index, t0 in enumerate(time):
 
 pl.xlim(-7, 7)
 pl.ylim(-7, 7)
-pl.xlabel(r'$v_x$')
-pl.ylabel(r'$v_y$')
+pl.xlabel(r'$v_x(E_0 / B_0)$')
+pl.ylabel(r'$v_y(E_0 / B_0)$')
 pl.axes().set_aspect('equal')
 pl.plot(sol[:, 0], sol[:, 1], color = 'white', linewidth = 5, alpha = 0.3)
-pl.contourf(p1, p2, f + fi, np.linspace(minf, maxf, 120))
+pl.contourf(p1, p2, fi, np.linspace(minf, maxf, 150))
 pl.savefig('plot.png')
 pl.clf()
