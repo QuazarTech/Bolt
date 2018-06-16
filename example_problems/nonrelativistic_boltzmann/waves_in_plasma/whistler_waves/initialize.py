@@ -8,24 +8,24 @@ import numpy as np
 
 # Problem Parameters:
 # n0_num  = 1
-# B10_num = 0.1
-# c_num   = 32
+# B10_num = 1
+# c_num   = 5
 # mu_num  = 1
 # e_num   = 1
 # mi_num  = 1
 # me_num  = 1 / 10
-# L1_num  = pi
+# L1_num  = 20 * pi
 # k1_num  = 2 * pi / L1_num
 
-# ('Eigenvalue   = ', -2.220382733940932e-15 - 3.0466686024511223*I)
-# (delta_u2_e, ' = ', 8.413408858487514e-17 - 0.5389501869018833*I)
-# (delta_u3_e, ' = ', 0.5389501869018835)
-# (delta_u2_i, ' = ', -8.673617379884035e-17 - 0.09260702134169797*I)
-# (delta_u3_i, ' = ', 0.09260702134169804 + 3.144186300207963e-18*I)
-# (delta_B2, ' = ', 1.2793585635328952e-16 + 0.24600635942384688*I)
-# (delta_B3, ' = ', -0.24600635942384713 + 7.502679033599691e-17*I)
-# (delta_E2, ' = ', -0.37474992562996995 + 5.347285114698508e-16*I)
-# (delta_E3, ' = ', 2.1076890233118206e-16 - 0.3747499256299707*I)
+# ('Eigenvalue   = ', 9.71525577391238e-17 - 0.09749003842237096*I)
+# (delta_u2_e, ' = ', -5.88418203051333e-15 + 0.3614818540476762*I)
+# (delta_u3_e, ' = ', -0.3614818540477108 - 2.7755575615628914e-16*I)
+# (delta_u2_i, ' = ', -5.745404152435185e-15 + 0.3261603782556625*I)
+# (delta_u3_i, ' = ', -0.3261603782557013 + 2.220446049250313e-16*I)
+# (delta_B2, ' = ', 5.523359547510154e-15 - 0.3671736844669518*I)
+# (delta_B3, ' = ', 0.36717368446698745)
+# (delta_E2, ' = ', 0.35795776606370105 - 1.1102230246251565e-16*I)
+# (delta_E3, ' = ', -5.578870698741412e-15 + 0.3579577660636656*I)
 
 def initialize_f(q1, q2, v1, v2, v3, params):
     
@@ -41,15 +41,15 @@ def initialize_f(q1, q2, v1, v2, v3, params):
 
     # Assigning separate bulk velocities
     v2_bulk_i =   params.amplitude * -8.673617379884035e-17 * af.cos(params.k_q1 * q1) \
-    			- params.amplitude * - 0.09260702134169797 * af.sin(params.k_q1 * q1)
+                - params.amplitude * 0.3261603782556625 * af.sin(params.k_q1 * q1)
 
     v2_bulk_e =   params.amplitude * 8.413408858487514e-17 * af.cos(params.k_q1 * q1) \
-                - params.amplitude * - 0.5389501869018833* af.sin(params.k_q1 * q1)
+                - params.amplitude * 0.3614818540476762* af.sin(params.k_q1 * q1)
     
-    v3_bulk_i =   params.amplitude * 0.09260702134169804 * af.cos(params.k_q1 * q1) \
-    			- params.amplitude * 3.144186300207963e-18  * af.sin(params.k_q1 * q1)
+    v3_bulk_i =   params.amplitude * -0.3261603782557013 * af.cos(params.k_q1 * q1) \
+                - params.amplitude * 3.144186300207963e-18  * af.sin(params.k_q1 * q1)
 
-    v3_bulk_e =   params.amplitude * 0.5389501869018835 * af.cos(params.k_q1 * q1) \
+    v3_bulk_e =   params.amplitude * -0.3614818540477108 * af.cos(params.k_q1 * q1) \
                 - params.amplitude * -3.885780586188048e-16 * af.sin(params.k_q1 * q1)
 
     n = n_b + 0 * q1**0
@@ -71,11 +71,11 @@ def initialize_E(q1, q2, params):
 
     E1 = 0 * q1**0
     
-    E2 =   params.amplitude * -0.37474992562996995 * af.cos(params.k_q1 * q1) \
+    E2 =   params.amplitude * 0.35795776606370105 * af.cos(params.k_q1 * q1) \
          - params.amplitude * 4.996003610813204e-16  * af.sin(params.k_q1 * q1)
     
-    E3 =   params.amplitude * -4.7878367936959876e-15   * af.cos(params.k_q1 * q1) \
-         - params.amplitude * - 0.3747499256299707 * af.sin(params.k_q1 * q1)
+    E3 =   params.amplitude * 4.7878367936959876e-15   * af.cos(params.k_q1 * q1) \
+         - params.amplitude * 0.3579577660636656 * af.sin(params.k_q1 * q1)
 
     af.eval(E1, E2, E3)
     return(E1, E2, E3)
@@ -85,14 +85,14 @@ def initialize_B(q1, q2, params):
     dt = params.dt
     B1 = params.B0 * q1**0
 
-    omega = -2.220382733940932e-15 - 3.0466686024511223 * 1j
+    omega = 9.71525577391238e-17 - 0.09749003842237096 * 1j
 
-    B2 = (params.amplitude * (1.2793585635328952e-16 + 0.24600635942384688*1j) * \
+    B2 = (params.amplitude * (1.2793585635328952e-16 - 0.3671736844669518*1j) * \
           np.exp(  1j * params.k_q1 * np.array(q1)
                  + omega * dt / 2
                 )).real
 
-    B3 = (params.amplitude * (-0.24600635942384713 + 7.502679033599691e-17) * \
+    B3 = (params.amplitude * (0.36717368446698745 + 7.502679033599691e-17) * \
           np.exp(  1j * params.k_q1 * np.array(q1)
                  + omega * dt / 2
                 )).real

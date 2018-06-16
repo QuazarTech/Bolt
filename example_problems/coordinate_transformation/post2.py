@@ -65,16 +65,16 @@ thetadot = thetadot.reshape(1, 1, N_p1, N_p2)
 xdot = rdot * np.cos(theta) - r * np.sin(theta) * thetadot
 ydot = rdot * np.sin(theta) + r * np.cos(theta) * thetadot
 
-xdot = np.sum(np.sum(xdot, 0), 1).reshape(domain.N_p1, domain.N_p2)
-ydot = np.sum(np.sum(ydot, 0), 1).reshape(domain.N_p1, domain.N_p2)
+xdot = np.mean(np.mean(xdot, 1), 0).reshape(domain.N_p1, domain.N_p2)
+ydot = np.mean(np.mean(ydot, 1), 0).reshape(domain.N_p1, domain.N_p2)
 
 for time_index, t0 in enumerate(time):
     
     h5f = h5py.File('dump/%04d'%(time_index) + '.h5', 'r')
-    f   = np.sum(np.sum(np.swapaxes(h5f['distribution_function'][:], 0, 1), 0), 1).reshape(domain.N_p1, domain.N_p2)
+    f   = np.mean(np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1), 1), 0).reshape(domain.N_p1, domain.N_p2)
     h5f.close()
 
-    pl.contourf(xdot, ydot, n, 200)
+    pl.contourf(xdot, ydot, f, 200)
     pl.gca().set_aspect('equal')
     pl.xlabel(r'$\dot{x}$')
     pl.ylabel(r'$\dot{y}$')

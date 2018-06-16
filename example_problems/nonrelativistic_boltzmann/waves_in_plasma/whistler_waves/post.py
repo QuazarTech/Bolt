@@ -51,7 +51,7 @@ q2, q1 = np.meshgrid(q2, q1)
 
 # Taking user input:
 # ndim_plotting   = input('1D or 2D plotting?:')
-N_s             = int(input('Enter number of species: '))
+N_s             = 1 #int(input('Enter number of species: '))
 
 # quantities      = ['density', 'v1', 'v2', 'v3', 'temperature', 'pressure', 'q1', 'q2', 'q3',
 #                    'E1', 'E2', 'E3', 'B1', 'B2', 'B3'
@@ -63,24 +63,24 @@ N_s             = int(input('Enter number of species: '))
 # N_rows        = input('Enter number of rows:')
 # N_columns     = input('Enter number of columns:')
 
-# ('Eigenvalue   = ', 5.3944386867730924e-17 - 0.0898800439758432*I)
-# (delta_u2_e, ' = ', -4.85722573273506e-15 - 0.333061857862197*I)
-# (delta_u3_e, ' = ', -0.333061857862222 - 3.885780586188048e-16*I)
-# (delta_u2_i, ' = ', -4.801714581503802e-15 - 0.3692429960259134*I)
-# (delta_u3_i, ' = ', -0.3692429960259359 + 1.8041124150158794e-16*I)
-# (delta_B2, ' = ', 5.6066262743570405e-15 + 0.37389325198333345*I)
-# (delta_B3, ' = ', 0.37389325198336115)
-# (delta_E2, ' = ', 0.336055419305355 + 4.996003610813204e-16*I)
-# (delta_E3, ' = ', -4.7878367936959876e-15 - 0.33605541930533006*I)
+# ('Eigenvalue   = ', 9.71525577391238e-17 - 0.09749003842237096*I)
+# (delta_u2_e, ' = ', -5.88418203051333e-15 + 0.3614818540476762*I)
+# (delta_u3_e, ' = ', -0.3614818540477108 - 2.7755575615628914e-16*I)
+# (delta_u2_i, ' = ', -5.745404152435185e-15 + 0.3261603782556625*I)
+# (delta_u3_i, ' = ', -0.3261603782557013 + 2.220446049250313e-16*I)
+# (delta_B2, ' = ', 5.523359547510154e-15 - 0.3671736844669518*I)
+# (delta_B3, ' = ', 0.36717368446698745)
+# (delta_E2, ' = ', 0.35795776606370105 - 1.1102230246251565e-16*I)
+# (delta_E3, ' = ', -5.578870698741412e-15 + 0.3579577660636656*I)
 
 def B3_analytic(q1, t):
     
-    omega = -2.220382733940932e-15 - 3.0466686024511223 * 1j
+    omega = 9.71525577391238e-17 - 0.09749003842237096 * 1j
 
-    B3_analytic = (params.amplitude * (-0.24600635942384713 + 7.502679033599691e-17) * \
-                   np.exp(  1j * params.k_q1 * q1
-                          + omega * t
-                         )).real
+    B3_analytic = (params.amplitude * (0.36717368446698745 + 7.502679033599691e-17) * \
+                  np.exp(  1j * params.k_q1 * np.array(q1)
+                         + omega * (t + dt / 2)
+                        )).real
 
     return(B3_analytic)
 
@@ -180,7 +180,7 @@ def return_array_to_be_plotted(name, moments, fields):
 
 
 # Declaration of the time array:
-time_array = np.arange(0, 0.1 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 1 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 

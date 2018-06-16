@@ -8,7 +8,7 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 16, 10
 pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -51,7 +51,7 @@ q2, q1 = np.meshgrid(q2, q1)
 
 # Taking user input:
 # ndim_plotting   = input('1D or 2D plotting?:')
-N_s             = int(input('Enter number of species: '))
+N_s             = 1 #int(input('Enter number of species: '))
 
 # quantities      = ['density', 'v1', 'v2', 'v3', 'temperature', 'pressure', 'q1', 'q2', 'q3',
 #                    'E1', 'E2', 'E3', 'B1', 'B2', 'B3'
@@ -213,35 +213,35 @@ def plot_1d():
         fig = pl.figure()
 
         ax1 = fig.add_subplot(2, 2, 1)
-        ax1.plot(q1[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
-        ax1.plot(q1[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
+        ax1.plot(q2[:, 0], n[:, 0, 0], color = 'C0', label = 'Electrons')
+        ax1.plot(q2[:, 0], n[:, 0, 1], '--', color = 'C3', label = 'Positrons')
         ax1.legend()
         ax1.set_xlabel(r'$x$')
         ax1.set_ylabel(r'$n$')
         ax1.set_ylim([0.98 * n_min, 1.02 * n_max])
 
         ax2 = fig.add_subplot(2, 2, 2)
-        ax2.plot(q1[:, 0], v1[:, 0, 0], color = 'C0')
-        ax2.plot(q1[:, 0], v1[:, 0, 1], '--', color = 'C3')
+        ax2.plot(q2[:, 0], v1[:, 0, 0], color = 'C0')
+        ax2.plot(q2[:, 0], v1[:, 0, 1], '--', color = 'C3')
         ax2.set_xlabel(r'$x$')
         ax2.set_ylabel(r'$v_x$')
         ax2.set_ylim([0.98 * v1_min, 1.02 * v1_max])
 
         ax3 = fig.add_subplot(2, 2, 3)
-        ax3.plot(q1[:, 0], p[:, 0, 0], color = 'C0')
-        ax3.plot(q1[:, 0], p[:, 0, 1], '--', color = 'C3')
+        ax3.plot(q2[:, 0], p[:, 0, 0], color = 'C0')
+        ax3.plot(q2[:, 0], p[:, 0, 1], '--', color = 'C3')
         ax3.set_xlabel(r'$x$')
         ax3.set_ylabel(r'$p$')
         ax3.set_ylim([0.98 * p_min, 1.02 * p_max])
 
         ax4 = fig.add_subplot(2, 2, 4)
-        ax4.plot(q1[:, 0], B1[:, 0])
+        ax4.plot(q2[:, 0], B1[:, 0])
         ax4.set_xlabel(r'$x$')
         ax4.set_ylabel(r'$B_x$')
         ax4.set_ylim([0.98 * B1_min, 1.02 * B1_max])
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.2f'%t0)
+        fig.suptitle('Time = %.2f'%(t0 / params.t0)+r'$\omega_c^{-1}$=%.2f'%(t0 * params.plasma_frequency)+r'$\omega_p^{-1}$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()

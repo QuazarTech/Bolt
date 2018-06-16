@@ -90,7 +90,7 @@ temperature_background = 1 * T0
 
 # Velocity, length and time scales:
 v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
-l0 = np.pi # Box Length
+l0 = 20 * np.pi # Box Length
 t0 = l0 / v0
 
 # Setting the length of the box:
@@ -125,8 +125,8 @@ amplitude = 1e-4
 k_q1      = 2 * np.pi / l0
 
 # Time parameters:
-N_cfl   = 0.004
-t_final = 0.1 * t0
+N_cfl   = 0.006
+t_final = 1 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")

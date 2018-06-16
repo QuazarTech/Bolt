@@ -58,7 +58,7 @@ T_background = 1e-7 * T0
 v1_bulk = 5e-4
 
 B0 = np.sqrt(n_background * m0) * v1_bulk
-B1 = 1e-10 * B0
+B1 = 1e-5 * B0
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
@@ -178,7 +178,7 @@ hybrid_model_enabled     = False
 
 # File-writing Parameters:
 # Set to zero for no file-writing
-dt_dump_f       = 10 * t0
+dt_dump_f       = 1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 0.1 * t0
 
