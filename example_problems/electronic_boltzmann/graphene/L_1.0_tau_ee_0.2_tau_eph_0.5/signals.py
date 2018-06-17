@@ -108,47 +108,64 @@ lagrange_multiplier_files = \
 dt = params.dt
 dump_interval = params.dump_steps
 
-time_array = np.loadtxt("dump_time_array.txt")
-
-for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
-
-    print("file number = ", file_number, "of ", moment_files.size)
+sensor_1_signal_array = []
+print("Reading sensor signal...")
+for file_number, dump_file in enumerate(moment_files):
 
     h5f  = h5py.File(dump_file, 'r')
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-
     density = moments[:, :, 0]
-    j_x     = moments[:, :, 1]
-    j_y     = moments[:, :, 2]
-    pl.contourf(q1_meshgrid, q2_meshgrid, density, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-
-
-    h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
-    lagrange_multipliers = h5f['lagrange_multipliers'][:]
-    h5f.close()
-
-    mu    = lagrange_multipliers[:, :, 0]
-    mu_ee = lagrange_multipliers[:, :, 1]
-    T_ee  = lagrange_multipliers[:, :, 2]
-    vel_drift_x = lagrange_multipliers[:, :, 3]
-    vel_drift_y = lagrange_multipliers[:, :, 4]
- 
-    pl.streamplot(q1, q2, 
-                  vel_drift_x, vel_drift_y,
-                  density=2, color='blue',
-                  linewidth=0.7, arrowsize=1
-                 )
     
-    pl.xlim([domain.q1_start, domain.q1_end])
-    pl.ylim([domain.q2_start, domain.q2_end])
+    source = np.mean(density[0, source_indices])
+    drain  = np.mean(density[-1, drain_indices])
+
+    sensor_1_left   = np.mean(density[0,  sensor_1_left_indices] )
+    sensor_1_right  = np.mean(density[-1, sensor_1_right_indices])
+
+    sensor_1_signal = sensor_1_left - sensor_1_right
+
+    sensor_1_signal_array.append(sensor_1_signal)
+
+time_array = np.loadtxt("dump_time_array.txt")
+AC_freq = 1./100
+input_signal_array = np.sin(2.*np.pi*AC_freq*time_array)
+sensor_1_signal_array = np.array(sensor_1_signal_array)
+half_time = (int)(time_array.size/2)
+
+input_normalized = \
+        input_signal_array/np.max(np.abs(input_signal_array[half_time:]))
+sensor_normalized = \
+    sensor_1_signal_array/np.max(np.abs(sensor_1_signal_array[half_time:]))
+
+# Calculate the phase difference between input_signal_array and sensor_normalized
+# Code copied from :
+# https:/stackoverflow.com/questions/6157791/find-phase-difference-between-two-inharmonic-waves
+
+corr = correlate(input_normalized, sensor_normalized)
+nsamples = input_normalized.size
+time_corr = time_array[half_time:]
+dt_corr = np.linspace(-time_corr[-1] + time_corr[0],
+                            time_corr[-1] - time_corr[0], 2*nsamples-1)
+time_shift = dt_corr[corr.argmax()]
+
+#Force the phase shift to be in [-pi:pi]
+period = 1./AC_freq
+phase_diff = 2*np.pi*(((0.5 + time_shift/period) % 1.0) - 0.5)
+
+pl.plot(time_array, input_signal_array)
+pl.plot(time_array, sensor_normalized)
+pl.axhline(0, color='black', linestyle='--')
+
+pl.legend(['Source $I(t)$', 'Measured $V(t)$'], loc=1)
+pl.text(135, 1.14, '$\phi : %.2f \; rad$' %phase_diff)
+pl.xlabel(r'Time (ps)')
+pl.xlim([0, 200])
+pl.ylim([-1.1, 1.1])
+
+pl.suptitle('$\\tau_\mathrm{mc} = 0.2$ ps, $\\tau_\mathrm{mr} = 0.5$ ps')
+pl.savefig('images/iv' + '.png')
+pl.clf()
     
-    pl.gca().set_aspect('equal')
-    pl.xlabel(r'$x\;(\mu \mathrm{m})$')
-    pl.ylabel(r'$y\;(\mu \mathrm{m})$')
-    pl.suptitle('$\\tau_\mathrm{mc} = 0.2$ ps, $\\tau_\mathrm{mr} = 0.5$ ps')
-    pl.savefig('images/dump_' + '%06d'%file_number + '.png')
-    pl.clf()
 
