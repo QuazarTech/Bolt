@@ -197,6 +197,9 @@ while t0 < t_final:
                          ", file number =", file_number
                        )
         PETSc.Sys.Print("=====================================================")
+        if (params.rank==0):
+            np.savetxt("dump_time_array.txt", dump_time_array)
+
         nls.dump_moments('dumps/moments_' + file_number)
         #nls.dump_distribution_function('dumps/f_' + file_number)
         nls.dump_aux_arrays([params.mu,
@@ -339,8 +342,7 @@ while t0 < t_final:
          )
     PETSc.Sys.Print("--------------------\n")
 
-if (params.rank==0):
-    np.savetxt("dump_time_array.txt", dump_time_array)
+nls.dump_distribution_function('dumps/f_laststep')
 
 #phi_array = nls.poisson.glob_phi.getArray()
 #phi_array = phi_array.reshape([nls.poisson.N_q3_3D_local, \
