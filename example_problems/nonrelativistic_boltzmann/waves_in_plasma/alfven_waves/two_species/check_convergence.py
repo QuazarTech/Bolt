@@ -8,7 +8,7 @@ import domain as domain
 import params as params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -37,21 +37,21 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-# ('Eigenvalue   = ', 5.3944386867730924e-17 - 0.0898800439758432*I)
-# (delta_u2_e, ' = ', -4.85722573273506e-15 - 0.333061857862197*I)
-# (delta_u3_e, ' = ', -0.333061857862222 - 3.885780586188048e-16*I)
-# (delta_u2_i, ' = ', -4.801714581503802e-15 - 0.3692429960259134*I)
-# (delta_u3_i, ' = ', -0.3692429960259359 + 1.8041124150158794e-16*I)
-# (delta_B2, ' = ', 5.6066262743570405e-15 + 0.37389325198333345*I)
-# (delta_B3, ' = ', 0.37389325198336115)
-# (delta_E2, ' = ', 0.336055419305355 + 4.996003610813204e-16*I)
-# (delta_E3, ' = ', -4.7878367936959876e-15 - 0.33605541930533006*I)
+# ('Eigenvalue   = ', -6.830136365571758e-18 - 0.8256444603354367*I)
+# (delta_u2_e, ' = ', -3.469446951953614e-17 + 0.10249033165518363*I)
+# (delta_u3_e, ' = ', 0.10249033165518295 - 5.0306980803327406e-17*I)
+# (delta_u2_i, ' = ', -1.3183898417423734e-16 + 0.6363571202013185*I)
+# (delta_u3_i, ' = ', 0.6363571202013188)
+# (delta_B2, ' = ', -0.26876553878169535*I)
+# (delta_B3, ' = ', -0.26876553878169496 + 6.938893903907228e-18*I)
+# (delta_E2, ' = ', -0.11095238911208773 + 3.8163916471489756e-17*I)
+# (delta_E3, ' = ', -1.734723475976807e-17 + 0.11095238911208799*I)
 
 def v2e_analytic(q1, t):
-    
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
 
-    u2e_analytic = (params.amplitude * (-4.85722573273506e-15 - 0.333061857862197*1j) * \
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
+
+    u2e_analytic = (params.amplitude * (-3.469446951953614e-17 + 0.10249033165518363*1j) * \
                     np.exp(  1j * params.k_q1 * q1
                            + omega * t
                           )).real
@@ -60,9 +60,9 @@ def v2e_analytic(q1, t):
 
 def v3e_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    u3e_analytic = (params.amplitude * -0.333061857862222 * \
+    u3e_analytic = (params.amplitude * (0.10249033165518295 - 5.0306980803327406e-17 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -71,9 +71,9 @@ def v3e_analytic(q1, t):
 
 def v2i_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    u2i_analytic = (params.amplitude * (-4.801714581503802e-15 - 0.3692429960259134*1j) * \
+    u2i_analytic = (params.amplitude * (-1.3183898417423734e-16 + 0.6363571202013185*1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -82,9 +82,9 @@ def v2i_analytic(q1, t):
 
 def v3i_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    u3i_analytic = (params.amplitude * -0.3692429960259359 * \
+    u3i_analytic = (params.amplitude * 0.6363571202013188 * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -93,9 +93,9 @@ def v3i_analytic(q1, t):
 
 def E2_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    E2_analytic = (params.amplitude * (0.336055419305355 + 4.996003610813204e-16*1j) * \
+    E2_analytic = (params.amplitude * (-0.11095238911208773 + 3.8163916471489756e-17*1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -104,9 +104,9 @@ def E2_analytic(q1, t):
 
 def E3_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    E3_analytic = (params.amplitude * (-4.7878367936959876e-15 - 0.33605541930533006*1j) * \
+    E3_analytic = (params.amplitude * (-1.734723475976807e-17 + 0.11095238911208799*1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -115,9 +115,9 @@ def E3_analytic(q1, t):
 
 def B2_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    B2_analytic = (params.amplitude * (5.6066262743570405e-15 + 0.37389325198333345*1j) * \
+    B2_analytic = (params.amplitude * (-0.26876553878169535*1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
@@ -126,16 +126,16 @@ def B2_analytic(q1, t):
 
 def B3_analytic(q1, t):
     
-    omega = 5.3944386867730924e-17 - 0.0898800439758432 * 1j
+    omega = -6.830136365571758e-18 - 0.8256444603354367 * 1j
 
-    B3_analytic = (params.amplitude * 0.37389325198336115 * \
+    B3_analytic = (params.amplitude * (-0.26876553878169496 + 6.938893903907228e-18 * 1j) * \
                    np.exp(  1j * params.k_q1 * q1
                           + omega * t
                          )).real
 
     return(B3_analytic)
 
-N = np.array([80, 96, 112, 128, 144])
+N = np.array([32, 48, 64, 80, 96, 112, 128, 144, 160])
 
 error_v2e = np.zeros(N.size)
 error_v3e = np.zeros(N.size)
