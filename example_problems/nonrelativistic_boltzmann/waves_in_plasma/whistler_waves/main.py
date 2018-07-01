@@ -57,6 +57,7 @@ dt_fdtd = params.N_cfl * dq1 \
                        / params.c # lightspeed
 
 dt = min(dt_fvm, dt_fdtd)
+params.dt = dt
 
 # Defining the physical system to be solved:
 system = physical_system(domain,

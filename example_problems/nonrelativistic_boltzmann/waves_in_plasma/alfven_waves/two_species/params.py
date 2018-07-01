@@ -126,7 +126,7 @@ k_q1      = 2 * np.pi / l0
 
 # Time parameters:
 N_cfl   = 0.006
-t_final = 1 * t0
+t_final = 2.43 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -176,12 +176,12 @@ hybrid_model_enabled     = False
 
 # File-writing Parameters:
 # Set to zero for no file-writing
-dt_dump_f       = 1 * t0
+dt_dump_f       = 0.1 * t0
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 0.001 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 0 * t0
+t_restart = 2.0 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

@@ -65,18 +65,22 @@ time_array = np.arange(0, params.t_final + params.dt_dump_f,
                        params.dt_dump_f
                       )
 
-h5f = h5py.File('dump_f/t=%.3f'%(t0) + '.h5', 'r')
-f0  = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2, N_p3), (0, 3, 4))
+h5f = h5py.File('dump_f/t=0.000.h5', 'r')
+f0  = 0 * np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2, N_p3), (3, 2, 0))
 h5f.close()
 
 for time_index, t0 in enumerate(time_array):
     
     h5f = h5py.File('dump_f/t=%.3f'%(t0) + '.h5', 'r')
-    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2, N_p3), (0, 3, 4))
+    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2, N_p3), (3, 2, 0))
     h5f.close()
 
-    pl.contourf(p1, q2, f, 100)
-    pl.title('Time = %.2f'%t0)
+    print(f.min(), f.max())
+
+    pl.contourf(p1 / params.v0, q2 / params.l0, abs(f-f0), np.linspace(0, 4.4e7, 100))
+    pl.colorbar()
+    pl.xlabel(r'$v_x / v_A$')
+    pl.ylabel(r'$y / l_s$')
+    pl.title('Time = %.2f'%(t0 / params.t0)+r'$\omega_c^{-1}$')
     pl.savefig('images_f/%04d'%time_index + '.png')
-    pl.close(fig)
     pl.clf()

@@ -14,12 +14,12 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v1_bulk = params.v1_bulk
     T       = params.T_background
 
-    f = n * (m[0, 0] / (2 * np.pi * k * T))**(3 / 2) \
-          * 0.5 * (  af.exp(-m[0, 0] * (v1[:, 0] - v1_bulk)**2 / (2 * k * T))
-                   + af.exp(-m[0, 0] * (v1[:, 0] + v1_bulk)**2 / (2 * k * T))
+    f = n * (m / (2 * np.pi * k * T))**(3 / 2) \
+          * 0.5 * (  af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T))
+                   + af.exp(-m * (v1 + v1_bulk)**2 / (2 * k * T))
                   ) \
-          * af.exp(-m[0, 0] * (v2[:, 0])**2 / (2 * k * T)) \
-          * af.exp(-m[0, 0] * (v3[:, 0])**2 / (2 * k * T))
+          * af.exp(-m * (v2)**2 / (2 * k * T)) \
+          * af.exp(-m * (v3)**2 / (2 * k * T))
 
     af.eval(f)
     return (f)

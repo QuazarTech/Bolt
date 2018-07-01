@@ -79,7 +79,7 @@ def B3_analytic(q1, t):
 
     B3_analytic = (params.amplitude * (0.36717368446698745 + 7.502679033599691e-17) * \
                   np.exp(  1j * params.k_q1 * np.array(q1)
-                         + omega * (t + dt / 2)
+                         + omega * (t)
                         )).real
 
     return(B3_analytic)

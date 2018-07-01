@@ -84,16 +84,16 @@ gamma = 5 / 3 # adiabatic factor
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = 1 * m0
-# m_i = 2000 * m0
+m_e = (1 / 10) * m0
+m_i = 1 * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
-# e_i =  1 * e0
+e_i =  1 * e0
 
-mass               = [m_e]
+mass               = [m_e, m_i]
 boltzmann_constant = k0
-charge             = [e_e]
+charge             = [e_e, e_i]
 
 # Velocity, length and time scales:
 t0 = 1 / time_scales.cyclotron_frequency(B0, e0, m0)
@@ -105,10 +105,11 @@ L_x = 5   * l0
 L_y = 100 * l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_e = 0.0079 # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_i = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
 
 # Setting permeability:
-c   = v_max # |c| units(c)
+c   = v_max_e # |c| units(c)
 eps = 1 / (c**2 * mu)
 
 # Velocity Scales:
@@ -160,7 +161,7 @@ PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
 PETSc.Sys.Print("Sound Speed          :", sound_speed)
 PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
 PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
+#PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")

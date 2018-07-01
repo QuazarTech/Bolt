@@ -191,15 +191,18 @@ def determine_min_max(quantity):
     q_min = 1e10
 
     for time_index, t0 in enumerate(time_array):
+        try:
+          h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+          moments = np.swapaxes(h5f['moments'][:], 0, 1)
+          h5f.close()
+
+          h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+          fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+          h5f.close()
         
-        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
-
-        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-        h5f.close()
-
+        except:
+          pass
+  
         array = return_array_to_be_plotted(quantity, moments, fields)
 
         if(np.max(array)>q_max):
@@ -220,16 +223,19 @@ p3_min, p3_max = determine_min_max('p3')
 B3_min, B3_max = determine_min_max('B3')
 
 def plot_1d():
-
+    errc = 0
     for time_index, t0 in enumerate(time_array):
-        
-        h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-        moments = np.swapaxes(h5f['moments'][:], 0, 1)
-        h5f.close()
+        try:
+          h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+          moments = np.swapaxes(h5f['moments'][:], 0, 1)
+          h5f.close()
 
-        h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-        fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-        h5f.close()
+          h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+          fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+          h5f.close()
+        
+        except:
+          errc+=1
 
         # n  = return_array_to_be_plotted('density', moments, fields)
         # v1 = return_array_to_be_plotted('v1', moments, fields)
@@ -294,7 +300,7 @@ def plot_1d():
 
         # fig.tight_layout()
         fig.suptitle('Time = %.4f'%(t0 / params.t0) + r' $\tau_A$')
-        pl.savefig('images/%04d'%time_index + '.png')
+        pl.savefig('images/%04d'%(time_index-errc) + '.png')
         pl.close(fig)
         pl.clf()
 
