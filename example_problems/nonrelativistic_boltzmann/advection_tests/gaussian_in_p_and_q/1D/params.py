@@ -36,6 +36,12 @@ p0 = 1
 sigma_q = 0.05
 sigma_p = 0.4
 
+# Solver Switches:
+fields_enabled           = False
+source_enabled           = False
+instantaneous_collisions = False
+hybrid_model_enabled     = False
+
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):

@@ -4,13 +4,13 @@ import h5py
 import domain
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -33,7 +33,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-dt      = 0.01
+dt      = 0.001
 t_final = 1.0
 time    = np.arange(dt, t_final + dt, dt)
 
@@ -59,11 +59,9 @@ for time_index, t0 in enumerate(time):
     n   = h5f['n'][:].reshape(N_q1, N_q2)
     h5f.close()
 
-    if((time_index+1)%4==0):
-
-        pl.plot(q1, n)
-        pl.title('Time =' + str(t0))
-        pl.xlabel(r'$x$')
-        pl.ylabel(r'$n$')
-        pl.savefig('images/%04d'%((time_index+1)/4) + '.png')
-        pl.clf()
+    pl.plot(q1, n)
+    pl.title('Time =' + str(t0))
+    pl.xlabel(r'$x$')
+    pl.ylabel(r'$n$')
+    pl.savefig('images/%04d'%((time_index+1)) + '.png')
+    pl.clf()
