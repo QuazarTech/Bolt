@@ -70,12 +70,16 @@ def dump_moments(self, file_name):
         attributes.remove('integral_over_v')
 
     for i in range(len(attributes)):
+        print(attributes[i])
         if(i == 0):
             array_to_dump = self.compute_moments(attributes[i])[:, :, N_g:-N_g,N_g:-N_g]
         else:
             array_to_dump = af.join(1, array_to_dump,
                                     self.compute_moments(attributes[i])[:, :, N_g:-N_g, N_g:-N_g]
                                    )
+        
+        print("MEAN for species 1:", af.mean(array_to_dump[:, -2, N_g:-N_g, N_g:-N_g]))
+        print("MEAN for species 2:", af.mean(array_to_dump[:, -1, N_g:-N_g, N_g:-N_g]))
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
