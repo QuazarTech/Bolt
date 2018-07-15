@@ -70,20 +70,29 @@ def dump_moments(self, file_name):
         attributes.remove('integral_over_v')
 
     for i in range(len(attributes)):
-        print(attributes[i])
         if(i == 0):
             array_to_dump = self.compute_moments(attributes[i])[:, :, N_g:-N_g,N_g:-N_g]
         else:
             array_to_dump = af.join(1, array_to_dump,
                                     self.compute_moments(attributes[i])[:, :, N_g:-N_g, N_g:-N_g]
                                    )
-        
-        print("MEAN for species 1:", af.mean(array_to_dump[:, -2, N_g:-N_g, N_g:-N_g]))
-        print("MEAN for species 2:", af.mean(array_to_dump[:, -1, N_g:-N_g, N_g:-N_g]))
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
+
+    print('RAW DATA:')
+    print("MEAN_n for species 1:", af.mean(array_to_dump[:, 0, :, :]))
+    print("MEAN_n for species 2:", af.mean(array_to_dump[:, 1, :, :]))
+
+    h5f  = h5py.File(file_name + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
+    h5f.close()
+
+    print('RAW DATA:')
+    print("MEAN_n for species 1:", np.mean(moments[:, :, 0]))
+    print("MEAN_n for species 2:", np.mean(moments[:, :, 1]))
+
 
 def dump_distribution_function(self, file_name):
     """
