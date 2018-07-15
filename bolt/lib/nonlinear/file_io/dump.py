@@ -3,6 +3,7 @@
 
 from petsc4py import PETSc
 import numpy as np
+import h5py
 import arrayfire as af
 
 def dump_moments(self, file_name):
@@ -81,18 +82,15 @@ def dump_moments(self, file_name):
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
-    print('RAW DATA:')
-    print("MEAN_n for species 1:", af.mean(array_to_dump[:, 0, :, :]))
-    print("MEAN_n for species 2:", af.mean(array_to_dump[:, 1, :, :]))
+    print("MEAN_n for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
+    print("MEAN_n for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
 
-    h5f  = h5py.File(file_name + '.h5', 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
+    h5f = h5py.File(file_name + '.h5', 'r')
+    mom = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-    print('RAW DATA:')
-    print("MEAN_n for species 1:", np.mean(moments[:, :, 0]))
-    print("MEAN_n for species 2:", np.mean(moments[:, :, 1]))
-
+    print("MEAN_n for species 1(DUMP DATA):", np.mean(mom[:, :, 0]))
+    print("MEAN_n for species 2(DUMP DATA):", np.mean(mom[:, :, 1]))
 
 def dump_distribution_function(self, file_name):
     """
