@@ -35,12 +35,12 @@ t_final = 1.0
 time_array = np.arange(dt, t_final + dt, dt)
 
 n_nls = nls.compute_moments('density')
-
-h5f = h5py.File('dump/0000.h5', 'w')
-h5f.create_dataset('q1', data = nls.q1_center[:, :, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('q2', data = nls.q2_center[:, :, N_g:-N_g, N_g:-N_g])
-h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
-h5f.close()
+nls.dump_distribution_function('dump_f/0000')
+# h5f = h5py.File('dump/0000.h5', 'w')
+# h5f.create_dataset('q1', data = nls.q1_center[:, :, N_g:-N_g, N_g:-N_g])
+# h5f.create_dataset('q2', data = nls.q2_center[:, :, N_g:-N_g, N_g:-N_g])
+# h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
+# h5f.close()
 
 init_sum = af.sum(nls.f[:, :, N_g:-N_g, N_g:-N_g])
 
@@ -56,7 +56,5 @@ for time_index, t0 in enumerate(time_array):
     nls.strang_timestep(dt)
     n_nls = nls.compute_moments('density')
     
-    if((time_index + 1) % 16 == 0)
-    h5f = h5py.File('dump/%04d'%((time_index+1) / 16) + '.h5', 'w')
-    h5f.create_dataset('n', data = n_nls[:, :, N_g:-N_g, N_g:-N_g])
-    h5f.close()
+    if((time_index + 1) % 16 == 0):
+        nls.dump_distribution_function('dump_f/%04d'%((time_index+1) / 16))
