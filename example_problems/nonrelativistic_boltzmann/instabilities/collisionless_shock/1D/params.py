@@ -84,8 +84,8 @@ gamma = 5 / 3 # adiabatic factor
 num_devices = 4
 
 # Mass of electron and ion:
-m_e = (1 / 10) * m0
-m_i = 1 * m0
+m_e = 1   * m0
+m_i = 100 * m0
 
 # Charge of electron and ion:
 e_e = -1 * e0
@@ -105,8 +105,8 @@ L_x = 5   * l0
 L_y = 100 * l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max_e = 0.0079 # Setting this value depending upon temperature. Can be later determined in terms of v0
-v_max_i = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_e = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_i = 0.00025 # Setting this value depending upon temperature. Can be later determined in terms of v0
 
 # Setting permeability:
 c   = v_max_e # |c| units(c)
