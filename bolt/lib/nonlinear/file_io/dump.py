@@ -79,23 +79,21 @@ def dump_moments(self, file_name):
                                    )
         
         af.eval(array_to_dump)
-        print("MEAN for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
-        print("MEAN for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
-    print(array_to_dump.shape)
-    print("MEAN_n for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
-    print("MEAN_n for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
+    # Following segment shows discrepancy. Why??
+    # print("MEAN_n for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
+    # print("MEAN_n for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
 
-    h5f = h5py.File(file_name + '.h5', 'r')
-    mom = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
+    # h5f = h5py.File(file_name + '.h5', 'r')
+    # mom = np.swapaxes(h5f['moments'][:], 0, 1)
+    # h5f.close()
 
-    print("MEAN_n for species 1(DUMP DATA):", np.mean(mom[:, :, 0]))
-    print("MEAN_n for species 2(DUMP DATA):", np.mean(mom[:, :, 1]))
+    # print("MEAN_n for species 1(DUMP DATA):", np.mean(mom[:, :, 0]))
+    # print("MEAN_n for species 2(DUMP DATA):", np.mean(mom[:, :, 1]))
 
 def dump_distribution_function(self, file_name):
     """

@@ -29,7 +29,6 @@ system = physical_system(domain,
 nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
-
 # Time parameters:
 dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
                       / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
@@ -49,13 +48,6 @@ else:
     time_elapsed = params.t_restart
     nls.load_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
     nls.load_EM_fields('dump_fields/t=' + '%.3f'%time_elapsed)
-
-print(nls.f.shape)
-print(nls.compute_moments('density').shape)
-print(af.min(nls.f[:, 0, :, :]))
-print(af.min(nls.f[:, 1, :, :]))
-print(af.mean(nls.compute_moments('density')[:, 0, :, :]))
-print(af.mean(nls.compute_moments('density')[:, 1, :, :]))
 
 # Checking that the file writing intervals are greater than dt:
 assert(params.dt_dump_f > dt)

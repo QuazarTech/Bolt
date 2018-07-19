@@ -347,9 +347,9 @@ class nonlinear_solver(object):
                             )
 
         # Converting dp1, dp2, dp3 to af.Array:
-        self.dp1 = af.moddims(af.to_array(self.dp1), 1, self.N_species)
-        self.dp2 = af.moddims(af.to_array(self.dp2), 1, self.N_species)
-        self.dp3 = af.moddims(af.to_array(self.dp3), 1, self.N_species)
+        self.dp1 = af.moddims(af.to_array(np.array(self.dp1)), 1, self.N_species)
+        self.dp2 = af.moddims(af.to_array(np.array(self.dp2)), 1, self.N_species)
+        self.dp3 = af.moddims(af.to_array(np.array(self.dp3)), 1, self.N_species)
 
         # Converting p_start and p_end to af.Array:
         self.p1_start = af.moddims(af.to_array(self.p1_start), 1, self.N_species)

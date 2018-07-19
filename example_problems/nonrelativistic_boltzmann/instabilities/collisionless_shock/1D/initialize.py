@@ -8,18 +8,30 @@ import numpy as np
 
 def initialize_f(q1, q2, v1, v2, v3, params):
     
-    m       = params.mass
+    m_e     = params.mass[0, 0]
+    m_i     = params.mass[0, 1]
+
     k       = params.boltzmann_constant
     n       = params.n_background * q1**0
+
     v1_bulk = params.v1_bulk
     T       = params.T_background
 
-    f = n * (m / (2 * np.pi * k * T))**(3 / 2) \
-          * 0.5 * (  af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T))
-                   + af.exp(-m * (v1 + v1_bulk)**2 / (2 * k * T))
-                  ) \
-          * af.exp(-m * (v2)**2 / (2 * k * T)) \
-          * af.exp(-m * (v3)**2 / (2 * k * T))
+    f_e = n * (m_e / (2 * np.pi * k * T))**(3 / 2) \
+            * 0.5 * (  af.exp(-m_e * (v1[:, 0] - v1_bulk)**2 / (2 * k * T))
+                     + af.exp(-m_e * (v1[:, 0] + v1_bulk)**2 / (2 * k * T))
+                    ) \
+            * af.exp(-m_e * v2[:, 0]**2 / (2 * k * T)) \
+            * af.exp(-m_e * v3[:, 0]**2 / (2 * k * T))
+
+    f_i = n * (m_i / (2 * np.pi * k * T))**(3 / 2) \
+            * 0.5 * (  af.exp(-m_i * (v1[:, 1] - v1_bulk)**2 / (2 * k * T))
+                     + af.exp(-m_i * (v1[:, 1] + v1_bulk)**2 / (2 * k * T))
+                    ) \
+            * af.exp(-m_i * v2[:, 1]**2 / (2 * k * T)) \
+            * af.exp(-m_i * v3[:, 1]**2 / (2 * k * T))
+
+    f = af.join(1, f_e, f_i)
 
     af.eval(f)
     return (f)

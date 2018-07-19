@@ -55,7 +55,7 @@ T_background = 1e-7 * T0
 
 # Bulk velocity is set to be 5e-4. It is later determined this value in term of v0
 # Setting bulk velocity:
-v1_bulk = 5e-4
+v1_bulk = 1e-4
 
 B0 = np.sqrt(n_background * m0) * v1_bulk
 B1 = 1e-5 * B0
@@ -105,8 +105,8 @@ L_x = 5   * l0
 L_y = 100 * l0
 
 # Setting Maximum Velocities of Phase Space Grid:
-v_max_e = 0.0025 # Setting this value depending upon temperature. Can be later determined in terms of v0
-v_max_i = 0.00025 # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_e = 0.0025  # Setting this value depending upon temperature. Can be later determined in terms of v0
+v_max_i = 0.00027 # Setting this value depending upon temperature. Can be later determined in terms of v0
 
 # Setting permeability:
 c   = v_max_e # |c| units(c)
