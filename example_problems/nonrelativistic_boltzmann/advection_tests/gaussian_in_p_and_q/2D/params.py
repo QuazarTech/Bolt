@@ -34,6 +34,7 @@ p20 = 1
 
 sigma_q = 0.05
 sigma_p = 0.4
+t_final = 0.1
 
 # Solver Switches:
 fields_enabled           = False
