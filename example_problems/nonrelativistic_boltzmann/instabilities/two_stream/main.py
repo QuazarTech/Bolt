@@ -66,7 +66,7 @@ ls  = linear_solver(system)
 
 # Time parameters:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                  / max(domain.p1_end + domain.p2_end + domain.p3_end)
 
 time_array = np.arange(0, params.t_final + dt, dt)
 
@@ -78,6 +78,7 @@ ke_data_ls  = np.zeros_like(time_array)
 ke_data_nls = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
+    
     if(time_index%10 == 0):
         nls.dump_distribution_function('dump_f/%04d'%time_index)
 
@@ -94,7 +95,7 @@ for time_index, t0 in enumerate(time_array):
     ke_data_ls[time_index]  = af.mean(ls.compute_moments('mom_v1_bulk')**2 / ls.compute_moments('density'))
 
     nls.strang_timestep(dt)
-    ls.RK4_timestep(dt)
+    # ls.RK4_timestep(dt)
 
 import h5py
 h5f = h5py.File('data.h5', 'w')

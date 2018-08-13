@@ -77,14 +77,15 @@ def dump_moments(self, file_name):
             array_to_dump = af.join(1, array_to_dump,
                                     self.compute_moments(attributes[i])[:, :, N_g:-N_g, N_g:-N_g]
                                    )
-        
+
         af.eval(array_to_dump)
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
     viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
-    # Following segment shows discrepancy. Why??
+    # Following segment shows discrepancy due to buggy behaviour of af.mean
+    # Reported in https://github.com/QuazarTech/Bolt/issues/46
     # print("MEAN_n for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
     # print("MEAN_n for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
 

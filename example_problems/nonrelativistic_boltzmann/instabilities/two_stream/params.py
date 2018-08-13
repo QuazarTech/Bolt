@@ -19,7 +19,7 @@ reconstruction_method_in_q = 'minmod'
 reconstruction_method_in_p = 'minmod'
 
 t_final = 50
-N_cfl   = 0.4
+N_cfl   = 0.04
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 1
@@ -32,12 +32,13 @@ eps                = 1
 
 k_q1  = 0.5
 alpha = 0.01
- 
+
 fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * q1**0 * p1**0)
+    return (0.001 * q1**0 * p1**0)

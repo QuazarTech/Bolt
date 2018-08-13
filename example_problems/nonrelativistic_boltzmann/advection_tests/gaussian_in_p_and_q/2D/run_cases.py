@@ -23,7 +23,7 @@ for i in range(N.size):
     domain.N_q1 = int(N[i])
     domain.N_q2 = int(N[i])
     domain.N_p1 = int(N[i])
-    domain.N_p1 = int(N[i])
+    domain.N_p2 = int(N[i])
 
     # Defining the physical system to be solved:
     system = physical_system(domain,
