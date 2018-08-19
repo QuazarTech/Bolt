@@ -21,6 +21,12 @@ reconstruction_method_in_p = 'minmod'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
+# Alternate set of units to consider(from discussion with Mani):
+# Temperature isn't a very good base unit
+# Set v0 = 1(that is velocity is a base unit)
+# Set T0 = 1/2 m0 v0^2 / k_B, and set T = εT0; ε = small number
+# B0 is set the same way as before; B0 = sqrt(n_background * m0) * u_b
+
 # Units: l0, t0, m0, e0, n0, T0, v0, B0, E0
 # Independent: n0, T0, m0, e0, k0, eps0, E0, B0
 # Dependent  : l0, t0, v0
@@ -48,17 +54,20 @@ mu  = 1. # |mu0| units(mu0)
 n_background = 1    * n0
 T_background = 1e-7 * T0
 
+# Bulk velocity for electron is set to be 5e-5. 
+# It is later determined this value in terms of v0
+# We intend to set the velocities such that electrons and ions both 
+# have same initial energy per particle:
+# Setting bulk velocity:
+u_be = 5e-5
+u_bi = 5e-6
+
 # Getting scale B0 by setting omega_c = omega_p * u_b / c
 # => B0 = sqrt(n * m / eps) * u_b / c
 # => B0 = sqrt(n * m * c**2 * mu) * u_b / c
 # => B0 = sqrt(n * m * mu) * u_b
-
-# Bulk velocity is set to be 5e-4. It is later determined this value in term of v0
-# Setting bulk velocity:
-v1_bulk = 1e-4
-
-B0 = np.sqrt(n_background * m0) * v1_bulk
-B1 = 1e-5 * B0
+B0 = np.sqrt(n_background * m0) * u_be
+B1 = 5e-5 * B0
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
@@ -161,7 +170,8 @@ PETSc.Sys.Print("Thermal Speed        :", thermal_speed)
 PETSc.Sys.Print("Sound Speed          :", sound_speed)
 PETSc.Sys.Print("Alfven Velocity      :", alfven_velocity)
 PETSc.Sys.Print("Chosen Velocity Scale:", v0)
-#PETSc.Sys.Print("Maximum Velocity     :", v_max / v0, "|v0| units(v0)")
+PETSc.Sys.Print("Maximum Velocity(e)  :", v_max_e / v0, "|v0| units(v0)")
+PETSc.Sys.Print("Maximum Velocity(i)  :", v_max_i / v0, "|v0| units(v0)")
 PETSc.Sys.Print("==================================================\n")
 
 PETSc.Sys.Print("==================================================")
