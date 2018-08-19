@@ -37,7 +37,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N = 2**np.arange(5, 10)
+N = np.array([32, 48, 64, 96, 112, 128, 144, 160])
 
 def check_error(params):
 
@@ -68,11 +68,11 @@ def check_error(params):
 
         q2, q1, p1, p2, p3 = np.meshgrid(q2, q1, p1, p2, p3)
 
-        q1 = q1.reshape(domain.N_q1, domain.N_q2, domain.N_p1 * domain.N_p2 * domain.N_p3)
-        q2 = q2.reshape(domain.N_q1, domain.N_q2, domain.N_p1 * domain.N_p2 * domain.N_p3)
-        p1 = p1.reshape(domain.N_q1, domain.N_q2, domain.N_p1 * domain.N_p2 * domain.N_p3)
-        p2 = p2.reshape(domain.N_q1, domain.N_q2, domain.N_p1 * domain.N_p2 * domain.N_p3)
-        p3 = p3.reshape(domain.N_q1, domain.N_q2, domain.N_p1 * domain.N_p2 * domain.N_p3)
+        q1 = q1.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        q2 = q2.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        p1 = p1.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        p2 = p2.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        p3 = p3.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
         
         q1 = af.to_array(q1)
         q2 = af.to_array(q2)
@@ -97,6 +97,7 @@ def check_error(params):
 err = check_error(params)
 con = np.polyfit(np.log10(N), np.log10(err), 1)
 
+print('Error:', err)
 print('Convergence Rate:', con[0])
 
 pl.loglog(N, err, '-o', label = 'Numerical')
