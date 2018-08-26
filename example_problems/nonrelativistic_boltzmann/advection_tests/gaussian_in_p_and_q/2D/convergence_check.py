@@ -37,14 +37,15 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N = np.array([32, 48, 64, 96, 112, 128, 144, 160])
+N = np.array([32, 48, 64, 96, 112]) #, 128, 144, 160])
 
 def check_error(params):
 
     error = np.zeros(N.size)
 
     for i in range(N.size):
-
+        af.device_gc()
+        print(N[i])
         N_q1 = int(N[i])
         N_q2 = int(N[i])
         N_p1 = int(N[i])
@@ -73,16 +74,15 @@ def check_error(params):
         p1 = p1.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
         p2 = p2.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
         p3 = p3.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        
 
         h5f = h5py.File('dump/%04d'%(int(N[i])) + '.h5', 'r')
         f   = np.flip(np.swapaxes(h5f['distribution_function'][:], 0, 1), 2)
         h5f.close()
 
         f_reference = af.broadcast(initialize.initialize_f,
-                                   q1 - p1 * params.t_final, 
-                                   q2 - p2 * params.t_final, 
-                                   p1, p2, p3, params
+                                   af.to_array(q1) - af.to_array(p1) * params.t_final, 
+                                   af.to_array(q2) - af.to_array(p2) * params.t_final, 
+                                   af.to_array(p1), af.to_array(p2), af.to_array(p3), params
                                   )
 
         error[i] = np.mean(abs(f - np.array(f_reference)))

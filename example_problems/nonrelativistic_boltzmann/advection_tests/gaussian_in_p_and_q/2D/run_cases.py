@@ -14,7 +14,7 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-N     = 2**np.arange(5, 10)
+N     = np.array([32, 48, 64, 96, 112])
 error = np.zeros(N.size)
 
 for i in range(N.size):

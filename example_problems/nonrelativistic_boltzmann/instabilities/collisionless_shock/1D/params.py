@@ -59,15 +59,15 @@ T_background = 1e-7 * T0
 # We intend to set the velocities such that electrons and ions both 
 # have same initial energy per particle:
 # Setting bulk velocity:
-u_be = 5e-5
-u_bi = 5e-6
+u_be = 5e-4
+u_bi = 5e-5
 
 # Getting scale B0 by setting omega_c = omega_p * u_b / c
 # => B0 = sqrt(n * m / eps) * u_b / c
 # => B0 = sqrt(n * m * c**2 * mu) * u_b / c
 # => B0 = sqrt(n * m * mu) * u_b
 B0 = np.sqrt(n_background * m0) * u_be
-B1 = 5e-5 * B0
+B1 = 1e-5 * B0
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
@@ -138,8 +138,8 @@ alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, n_bac
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), T_background, k0, gamma)
 
 # Time parameters:
-N_cfl   = 0.1
-t_final = 200 * t0
+N_cfl   = 0.125
+t_final = 400 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -194,7 +194,7 @@ dt_dump_f       = 1 * t0
 dt_dump_moments = dt_dump_fields = 0.1 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 0 * t0
+t_restart = 200 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

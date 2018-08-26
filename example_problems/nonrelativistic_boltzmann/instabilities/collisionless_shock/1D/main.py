@@ -74,12 +74,11 @@ while(abs(time_elapsed - params.t_final) > 1e-12):
     time_elapsed += dt
 
     if(params.dt_dump_moments != 0):
-
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
                    * params.dt_dump_moments
 
-        if(delta_dt<dt):
+        if((delta_dt-dt)<1e-5):
             nls.strang_timestep(delta_dt)
             time_elapsed += delta_dt
             nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)

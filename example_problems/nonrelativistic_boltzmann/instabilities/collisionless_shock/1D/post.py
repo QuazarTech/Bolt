@@ -102,6 +102,8 @@ def return_array_to_be_plotted(name, moments, fields):
 
     if(name == 'density'):
         return n
+    elif(name == 'energy'):
+        return m * moments[:, :, 1*N_s:2*N_s]
 
     elif(name == 'v1'):
         return v1_bulk
@@ -158,7 +160,7 @@ def return_array_to_be_plotted(name, moments, fields):
         raise Exception('Not valid!')
 
 # Declaration of the time array:
-time_array = np.arange(0, 200 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 360 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -190,11 +192,10 @@ def determine_min_max(quantity):
 
 n_min, n_max   = determine_min_max('density')
 v1_min, v1_max = determine_min_max('v1')
-p_min, p_max   = determine_min_max('pressure')
+T_min, T_max   = determine_min_max('temperature')
 B1_min, B1_max = determine_min_max('B1')
 
 def plot_1d():
-
     for time_index, t0 in enumerate(time_array):
         
         h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
@@ -207,7 +208,7 @@ def plot_1d():
 
         n  = return_array_to_be_plotted('density', moments, fields)
         v1 = return_array_to_be_plotted('v1', moments, fields)
-        p  = return_array_to_be_plotted('pressure', moments, fields)
+        T  = return_array_to_be_plotted('temperature', moments, fields)
         B1 = return_array_to_be_plotted('B1', moments, fields)
 
         fig = pl.figure()
@@ -225,20 +226,20 @@ def plot_1d():
         ax2.plot(q2[0, :], v1[0, :, 1] / params.v0, '--', color = 'C3')
         ax2.set_xlabel(r'$y(l_s)$')
         ax2.set_ylabel(r'$v_x(v_0)$')
-        ax2.set_ylim([1.05 * v1_min, 1.05 * v1_max])
+        ax2.set_ylim([1.05 * v1_min / params.v0, 1.05 * v1_max / params.v0])
 
         ax3 = fig.add_subplot(2, 2, 3)
-        ax3.plot(q2[0, :], params.mass[0] * moments[:, :, 2] / n[0, :, 0] * params.T0, color = 'C0')
-        ax3.plot(q2[0, :], params.mass[1] * moments[:, :, 3] / n[0, :, 1] * params.T0, '--', color = 'C3')
+        ax3.plot(q2[0, :], T[0, :, 0] / params.T0, color = 'C0')
+        ax3.plot(q2[0, :], T[0, :, 1] / params.T0, '--', color = 'C3')
         ax3.set_xlabel(r'$y(l_s)$')
-        ax3.set_ylabel(r'$(E / n)(k T_0)$')
-        ax3.set_ylim([0.95 * p_min, 1.05 * p_max])
+        ax3.set_ylabel(r'$T(T_0)$')
+        ax3.set_ylim([0.95 * T_min / params.T0, 1.05 * T_max / params.T0])
 
         ax4 = fig.add_subplot(2, 2, 4)
         ax4.plot(q2[0, :], B1[0, :] / params.B0)
         ax4.set_xlabel(r'$y(l_s)$')
         ax4.set_ylabel(r'$B_x(\sqrt{n_0 m_0} v_0)$')
-        ax4.set_ylim([0.95 * B1_min, 1.05 * B1_max])
+        ax4.set_ylim([0.95 * B1_min / params.B0, 1.05 * B1_max / params.B0])
 
         # fig.tight_layout()
         fig.suptitle('Time = %.2f'%(t0 / params.t0)+r'$\omega_c^{-1}$=%.2f'%(t0 * params.plasma_frequency)+r'$\omega_p^{-1}$')
