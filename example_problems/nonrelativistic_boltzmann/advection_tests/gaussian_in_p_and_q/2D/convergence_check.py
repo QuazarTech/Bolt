@@ -1,6 +1,8 @@
 import arrayfire as af
 import numpy as np
 import h5py
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 
 import domain
@@ -67,21 +69,22 @@ def check_error(params):
         p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * dp2
         p3 = domain.p3_start[0] + (0.5 + np.arange(N_p3)) * dp3
 
-        q2, q1, p1, p2, p3 = np.meshgrid(q2, q1, p1, p2, p3)
+        p2, p1, p3 = np.meshgrid(p2, p1, p3)
+        q2, q1     = np.meshgrid(q2, q1)
 
-        q1 = q1.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        q2 = q2.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        p1 = p1.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        p2 = p2.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
-        p3 = p3.reshape(N_q1, N_q2, N_p1 * N_p2 * N_p3)
+        q1 = q1.reshape(1, N_q1, N_q2)
+        q2 = q2.reshape(1, N_q1, N_q2)
+        p1 = p1.reshape(N_p1 * N_p2 * N_p3, 1, 1)
+        p2 = p2.reshape(N_p1 * N_p2 * N_p3, 1, 1)
+        p3 = p3.reshape(N_p1 * N_p2 * N_p3, 1, 1)
 
         h5f = h5py.File('dump/%04d'%(int(N[i])) + '.h5', 'r')
-        f   = np.flip(np.swapaxes(h5f['distribution_function'][:], 0, 1), 2)
+        f   = np.swapaxes(h5f['distribution_function'][:], 0, 2)
         h5f.close()
 
         f_reference = af.broadcast(initialize.initialize_f,
-                                   af.to_array(q1) - af.to_array(p1) * params.t_final, 
-                                   af.to_array(q2) - af.to_array(p2) * params.t_final, 
+                                   af.to_array(q1 - p1 * params.t_final), 
+                                   af.to_array(q2 - p2 * params.t_final), 
                                    af.to_array(p1), af.to_array(p2), af.to_array(p3), params
                                   )
 
