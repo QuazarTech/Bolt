@@ -1,23 +1,23 @@
-from params import l0, v0
+from params import L_x, L_y, v_max_e, v_max_i
 
 q1_start = 0
-q1_end   = 100 * l0
-N_q1     = 1024
+q1_end   = L_x
+N_q1     = 36
 
 q2_start = 0
-q2_end   = 5 * l0
-N_q2     = 48
+q2_end   = L_y
+N_q2     = 384
 
-p1_start = [-300 * v0, -30 * v0]
-p1_end   = [ 300 * v0,  30 * v0]
-N_p1     = 20
+p1_start = [-v_max_e, -v_max_i]
+p1_end   = [ v_max_e,  v_max_i]
+N_p1     = 32
 
-p2_start = [-300 * v0, -30 * v0]
-p2_end   = [ 300 * v0,  30 * v0]
-N_p2     = 20
+p2_start = [-v_max_e, -v_max_i]
+p2_end   = [ v_max_e,  v_max_i]
+N_p2     = 32
 
-p3_start = [-300 * v0, -30 * v0]
-p3_end   = [ 300 * v0,  30 * v0]
-N_p3     = 20
+p3_start = [-v_max_e, -v_max_i]
+p3_end   = [ v_max_e,  v_max_i]
+N_p3     = 32
 
 N_ghost = 3

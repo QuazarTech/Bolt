@@ -30,8 +30,13 @@ nls = nonlinear_solver(system)
 N_g = nls.N_ghost
 
 # Time parameters:
-dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end + domain.p2_end + domain.p3_end) # Combining the lists
+dt_fvm = params.N_cfl * min(nls.dq1, nls.dq2) \
+                      / max(domain.p1_end + domain.p2_end + domain.p3_end) # joining elements of the list
+
+dt_fdtd = params.N_cfl * min(nls.dq1, nls.dq2) \
+                       / params.c # lightspeed
+
+dt = min(dt_fvm, dt_fdtd)
 
 if(params.t_restart == 0):
     time_elapsed = 0
@@ -49,18 +54,31 @@ assert(params.dt_dump_f > dt)
 assert(params.dt_dump_moments > dt)
 assert(params.dt_dump_fields > dt)
 
-while(time_elapsed < params.t_final):
+print('Printing the minimum of the distribution functions for electrons and ions:')
+print('f_min_electron:', af.min(nls.f[:, 0, :, :]))
+print('f_min_ion:', af.min(nls.f[:, 1, :, :]))
+
+print('MEAN DENSITY')
+n = nls.compute_moments('density')
+print('For electrons:', np.mean(np.array(n[:, 0, :, :])))
+print('For ions:', np.mean(np.array(n[:, 1, :, :])))
+
+print('MEAN ENERGY(PER UNIT MASS)')
+E = nls.compute_moments('energy')
+print('For electrons:', np.mean(np.array(E[:, 0, :, :])))
+print('For ions:', np.mean(np.array(E[:, 1, :, :])))
+
+while(abs(time_elapsed - params.t_final) > 1e-12):
     
     nls.strang_timestep(dt)
     time_elapsed += dt
 
     if(params.dt_dump_moments != 0):
-
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
                    * params.dt_dump_moments
 
-        if(delta_dt<dt):
+        if((delta_dt-dt)<1e-5):
             nls.strang_timestep(delta_dt)
             time_elapsed += delta_dt
             nls.dump_moments('dump_moments/t=' + '%.3f'%time_elapsed)
@@ -69,4 +87,4 @@ while(time_elapsed < params.t_final):
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
         nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
-    PETSc.Sys.Print('Computing For Time =', time_elapsed)
+    PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")

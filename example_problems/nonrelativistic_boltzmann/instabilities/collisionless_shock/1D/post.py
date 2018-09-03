@@ -160,7 +160,7 @@ def return_array_to_be_plotted(name, moments, fields):
         raise Exception('Not valid!')
 
 # Declaration of the time array:
-time_array = np.arange(0, 360 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, 300 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -250,7 +250,7 @@ def plot_1d():
 def plot_2d():
 
     for time_index, t0 in enumerate(time_array):
-        
+
         h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
         moments = np.swapaxes(h5f['moments'][:], 0, 1)
         h5f.close()
@@ -261,29 +261,29 @@ def plot_2d():
 
         n  = return_array_to_be_plotted('density', moments, fields)
         v1 = return_array_to_be_plotted('v1', moments, fields)
-        p  = return_array_to_be_plotted('pressure', moments, fields)
+        T  = return_array_to_be_plotted('temperature', moments, fields)
         B1 = return_array_to_be_plotted('B1', moments, fields)
 
         fig = pl.figure()
 
         ax1 = fig.add_subplot(2, 2, 1)
-        ax1.set_title(r'$n$')
         ax1.contourf(q1, q2, n[:, :, 0], np.linspace(0.99 * n_min, 1.01 * n_max, 100))
+        ax1.set_title(r'$n(n_0)$')
 
         ax2 = fig.add_subplot(2, 2, 2)
-        ax2.set_title(r'$v_x$')
-        ax2.contourf(q1, q2, v1[:, :, 0], np.linspace(0.99 * v1_min, 1.01 * v1_max, 100))
+        ax2.contourf(q1, q2, v1[:, :, 0] / params.v0, np.linspace(0.99 * v1_min / params.v0, 1.01 * v1_max / params.v0, 100))
+        ax2.set_title(r'$v_x(v_0)$')
 
         ax3 = fig.add_subplot(2, 2, 3)
-        ax3.set_title(r'$p$')
-        ax3.contourf(q1, q2, p[:, :, 0], np.linspace(0.99 * p_min, 1.01 * p_max, 100))
+        ax3.contourf(q1, q2, T[:, :, 0] / params.T0, np.linspace(0.99 * T_min / params.T0, 1.01 * T_max / params.T0, 100))
+        ax3.set_title(r'$T(T_0)$')
 
         ax4 = fig.add_subplot(2, 2, 4)
-        ax4.set_title(r'$B_x$')
-        ax4.contourf(q1, q2, B1, np.linspace(0.99 * B1_min, 1.01 * B1_max, 100))
+        ax4.contourf(q1, q2, B1[:, :, 0] / params.B0, np.linspace(0.99 * B1_min / params.B0, 1.01 * B1_max / params.B0, 100))
+        ax4.set_title(r'$B_x(\sqrt{n_0 m_0} v_0)$')
 
         # fig.tight_layout()
-        fig.suptitle('Time = %.2f'%t0)
+        fig.suptitle('Time = %.2f'%(t0 / params.t0)+r'$\omega_c^{-1}$=%.2f'%(t0 * params.plasma_frequency)+r'$\omega_p^{-1}$')
         pl.savefig('images/%04d'%time_index + '.png')
         pl.close(fig)
         pl.clf()
