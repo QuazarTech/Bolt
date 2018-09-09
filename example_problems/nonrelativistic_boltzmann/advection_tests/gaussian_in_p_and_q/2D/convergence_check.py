@@ -79,7 +79,7 @@ def check_error(params):
         p3 = p3.reshape(N_p1 * N_p2 * N_p3, 1, 1)
 
         h5f = h5py.File('dump/%04d'%(int(N[i])) + '.h5', 'r')
-        f   = np.swapaxes(h5f['distribution_function'][:], 0, 2)
+        f   = np.swapaxes(np.swapaxes(h5f['distribution_function'][:], 0, 2), 1, 2)
         h5f.close()
 
         f_reference = af.broadcast(initialize.initialize_f,
