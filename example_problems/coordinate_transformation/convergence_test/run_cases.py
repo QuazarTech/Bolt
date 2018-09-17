@@ -39,6 +39,15 @@ for i in range(N.size):
     nls = nonlinear_solver(system)
     N_g = nls.N_ghost
 
+    # DEBUGGING:
+    # h5f = h5py.File('data.h5', 'w')
+    # h5f.create_dataset('q1', data = nls.q1_center)
+    # h5f.create_dataset('q2', data = nls.q2_center)
+    # h5f.create_dataset('p1', data = nls.p1_center)
+    # h5f.create_dataset('p2', data = nls.p2_center)
+    # h5f.create_dataset('p3', data = nls.p3_center)
+    # h5f.close()
+
     # Time parameters:
     dt      = 0.001 * 32/nls.N_q1
     t_final = params.t_final

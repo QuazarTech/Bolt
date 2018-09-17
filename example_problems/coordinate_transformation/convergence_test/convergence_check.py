@@ -53,37 +53,56 @@ def check_error(params):
         N_theta    = int(N[i])
         N_rdot     = int(N[i])
         N_thetadot = int(N[i])
-        N_p3       = 1
-        N_g        = domain.N_ghost
+        N_phidot   = 1
 
         dr        = (domain.q1_end - domain.q1_start) / N_r
         dtheta    = (domain.q2_end - domain.q2_start) / N_theta
 
         drdot     = (domain.p1_end[0] - domain.p1_start[0]) / N_rdot
         dthetadot = (domain.p2_end[0] - domain.p2_start[0]) / N_thetadot
-        dp3       = (domain.p3_end[0] - domain.p3_start[0]) / N_p3
+        dphidot   = (domain.p3_end[0] - domain.p3_start[0]) / N_phidot
 
         r     = domain.q1_start + (0.5 + np.arange(N_r)) * dr
         theta = domain.q2_start + (0.5 + np.arange(N_theta)) * dtheta
 
         rdot     = domain.p1_start[0] + (0.5 + np.arange(N_rdot)) * drdot
         thetadot = domain.p2_start[0] + (0.5 + np.arange(N_thetadot)) * dthetadot
-        p3       = domain.p3_start[0] + (0.5 + np.arange(N_p3)) * dp3
+        phidot   = domain.p3_start[0] + (0.5 + np.arange(N_phidot)) * dphidot
 
-        thetadot, rdot, p3 = np.meshgrid(thetadot, rdot, p3)
-        theta, r           = np.meshgrid(theta, r)
+        thetadot, rdot, phidot = np.meshgrid(thetadot, rdot, phidot)
+        theta, r               = np.meshgrid(theta, r)
 
         r        = r.reshape(1, N_r, N_theta)
         theta    = theta.reshape(1, N_r, N_theta)
-        rdot     = rdot.reshape(N_rdot * N_thetadot * N_p3, 1, 1)
-        thetadot = thetadot.reshape(N_rdot * N_thetadot * N_p3, 1, 1)
-        p3       = p3.reshape(N_rdot * N_thetadot * N_p3, 1, 1)
+        rdot     = rdot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+        thetadot = thetadot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+        phidot   = phidot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+
+        # DEBUGGING:
+        # h5f = h5py.File('data.h5', 'r')
+        # q1r = ((h5f['q1'][:])[:, :, 1:-1, 1:-1]).reshape(1, 2, 3)
+        # q2r = ((h5f['q2'][:])[:, :, 1:-1, 1:-1]).reshape(1, 2, 3)
+        # p1r = (h5f['p1'][:])
+        # p2r = (h5f['p2'][:])
+        # p3r = (h5f['p3'][:])
+        # h5f.close()
+
+        # print(q1r.shape)
+        # print(np.sum(abs(q1r - r)))
+        # print(np.sum(abs(q2r - theta)))
+        # print(np.sum(abs(p1r - rdot)))
+        # print(np.sum(abs(p2r - thetadot)))
+        # print(np.sum(abs(p3r - phidot)))
+        # print(rdot.ravel())
+        # print(p2r.ravel())
+        # print(thetadot.ravel())
 
         q1 = r * np.cos(theta)
         q2 = r * np.sin(theta)
 
         p1 = rdot * np.cos(theta) - r * np.sin(theta) * thetadot
         p2 = rdot * np.sin(theta) + r * np.cos(theta) * thetadot
+        p3 = phidot
 
         f_reference = af.broadcast(initialize.initialize_f,
                                    af.to_array(q1 - p1 * params.t_final), 
@@ -92,7 +111,7 @@ def check_error(params):
                                   )
 
         h5f = h5py.File('dump/%04d'%(int(N[i])) + '.h5', 'r')
-        f   = np.swapaxes(np.swapaxes(h5f['distribution_function'][:], 0, 2), 1, 2)
+        f   = np.swapaxes(h5f['distribution_function'][:], 0, 2)
         h5f.close()
 
         error[i] = np.mean(abs(f - np.array(f_reference)))

@@ -2,7 +2,7 @@ import numpy as np
 import arrayfire as af
 
 fields_type       = 'None'
-fields_initialize = 'fft'
+fields_initialize = 'user-defined'
 fields_solver     = 'None'
 
 # Solver method:

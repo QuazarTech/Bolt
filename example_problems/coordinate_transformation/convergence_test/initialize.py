@@ -35,3 +35,21 @@ def initialize_f(r, theta, rdot, thetadot, phidot, params):
 
     af.eval(f)
     return (f)
+
+def initialize_E(q1, q2, params):
+
+    E1 = 0 * q1;
+    E2 = 0 * q1;
+    E3 = 0 * q1;
+
+    af.eval(E1, E2, E3)
+    return(E1, E2, E3)
+
+def initialize_B(q1, q2, params):
+
+    B1 = 0 * q1
+    B2 = 0 * q1
+    B3 = 0 * q1
+
+    af.eval(B1, B2, B3)
+    return(B1, B2, B3)
