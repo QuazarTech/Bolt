@@ -8,7 +8,7 @@ import numpy as np
 
 def initialize_f(q1, q2, p1, p2, p3, params):
 
-    m     = params.mass_particle
+    m     = params.mass
     k     = params.boltzmann_constant
 
     rho = af.select(q1<0.5, q1**0, 0.125)

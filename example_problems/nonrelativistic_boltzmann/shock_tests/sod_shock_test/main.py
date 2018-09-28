@@ -3,8 +3,7 @@ import numpy as np
 from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
 
 import domain
 import boundary_conditions
@@ -14,7 +13,7 @@ import initialize
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator \
     as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -23,7 +22,7 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.BGK,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:

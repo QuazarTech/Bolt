@@ -8,11 +8,11 @@ in_q2_bottom = 'periodic'
 in_q2_top    = 'periodic'
 
 @af.broadcast
-def f_left(f, q1, q2, p1, p2, p3, params):
+def f_left(f, t, q1, q2, p1, p2, p3, params):
     rho = 1 * q1**0
     T   = 1 * q1**0
 
-    m     = params.mass_particle
+    m     = params.mass
     k     = params.boltzmann_constant
 
     f = rho * af.sqrt(m / (2 * np.pi * k * T))**3 \
@@ -23,11 +23,11 @@ def f_left(f, q1, q2, p1, p2, p3, params):
     return(f)
 
 @af.broadcast
-def f_right(f, q1, q2, p1, p2, p3, params):
+def f_right(f, t, q1, q2, p1, p2, p3, params):
     rho = 0.125 * q1**0
     T   = 0.8   * q1**0
 
-    m     = params.mass_particle
+    m     = params.mass
     k     = params.boltzmann_constant
 
     f = rho * af.sqrt(m / (2 * np.pi * k * T))**3 \
@@ -36,3 +36,4 @@ def f_right(f, q1, q2, p1, p2, p3, params):
             * af.exp(-m * p3**2 / (2 * k * T))
 
     return(f)
+
