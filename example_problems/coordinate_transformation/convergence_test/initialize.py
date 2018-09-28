@@ -9,7 +9,6 @@ import domain
 import params
 
 def initialize_f(r, theta, rdot, thetadot, phidot, params):
-
     # Using a transformation to get the coordinates in the form used in regular cartesian coordinates:
     q1 = r * af.cos(theta)
     q2 = r * af.sin(theta)

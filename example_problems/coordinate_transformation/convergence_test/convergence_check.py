@@ -49,6 +49,7 @@ def check_error(params):
     for i in range(N.size):
         af.device_gc()
         print(N[i])
+
         N_r        = int(N[i])
         N_theta    = int(N[i])
         N_rdot     = int(N[i])
@@ -74,9 +75,9 @@ def check_error(params):
 
         r        = r.reshape(1, N_r, N_theta)
         theta    = theta.reshape(1, N_r, N_theta)
-        rdot     = rdot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
-        thetadot = thetadot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
-        phidot   = phidot.reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+        rdot     = rdot.flatten('F').reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+        thetadot = thetadot.flatten('F').reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
+        phidot   = phidot.flatten('F').reshape(N_rdot * N_thetadot * N_phidot, 1, 1)
 
         # DEBUGGING:
         # h5f = h5py.File('data.h5', 'r')
@@ -87,16 +88,12 @@ def check_error(params):
         # p3r = (h5f['p3'][:])
         # h5f.close()
 
-        # print(q1r.shape)
         # print(np.sum(abs(q1r - r)))
         # print(np.sum(abs(q2r - theta)))
         # print(np.sum(abs(p1r - rdot)))
         # print(np.sum(abs(p2r - thetadot)))
         # print(np.sum(abs(p3r - phidot)))
-        # print(rdot.ravel())
-        # print(p2r.ravel())
-        # print(thetadot.ravel())
-
+            
         q1 = r * np.cos(theta)
         q2 = r * np.sin(theta)
 
