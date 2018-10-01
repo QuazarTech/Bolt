@@ -10,9 +10,9 @@ import boundary_conditions
 import params
 import initialize
 
-import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
-import bolt.src.nonrelativistic_boltzmann.moments as moments
+import bolt.src.coordinate_transformation.advection_terms as advection_terms
+import bolt.src.coordinate_transformation.source_term as source_term
+import bolt.src.coordinate_transformation.moments as moments
 
 N     = np.array([32, 48, 64, 96, 112]) #, 128, 144, 160])
 error = np.zeros(N.size)
@@ -31,7 +31,7 @@ for i in range(N.size):
                              params,
                              initialize,
                              advection_terms,
-                             collision_operator.BGK,
+                             source_term.source_term,
                              moments
                             )
 

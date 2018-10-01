@@ -31,7 +31,11 @@ N_g = nls.N_ghost
 
 # Time parameters:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                  / max(domain.p1_end + domain.p2_end + domain.p3_end)
+
+print('Printing the minimum of the distribution functions for electrons and ions:')
+print('f_min_electron:', af.min(nls.f[:, 0, :, :]))
+print('f_min_ion:', af.min(nls.f[:, 1, :, :]))
 
 if(params.t_restart == 0):
     time_elapsed = 0
@@ -50,8 +54,43 @@ assert(params.dt_dump_moments > dt)
 assert(params.dt_dump_fields > dt)
 
 while(time_elapsed < params.t_final):
-    
+
+    # B1 = nls.fields_solver.yee_grid_EM_fields[3]
+    # B2 = nls.fields_solver.yee_grid_EM_fields[4]
+
+    # print(af.sum(af.abs(B1[:, :, 3:-3, 3:-3])))
+    # print(af.sum(af.abs(B2[:, :, 3:-3, 3:-3])))
+
+    # B1_plus_q1 = af.shift(B1, 0, 0, -1)
+    # B2_plus_q2 = af.shift(B2, 0, 0, 0, -1)
+
+    # divB = (B1_plus_q1 - B1) / nls.dq1 + (B2_plus_q2 - B2) / nls.dq2
+    # print(af.sum(af.abs(divB)))
+
+    # rho_n       = -1 * nls.compute_moments('density')
+    # rho_n[0, 1] = -1 * rho_n[0, 1]
+    # rho_n       = af.sum(rho_n, 1)
+
+    # divE = nls.fields_solver.compute_divE()
+    # print(af.mean(af.abs(divE - rho_n)[:, :, 3:-3, 3:-3]))
+
     nls.strang_timestep(dt)
+
+    # rho_n_plus_one       = -1 * nls.compute_moments('density')
+    # rho_n_plus_one[0, 1] = -1 * rho_n_plus_one[0, 1]
+    # rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
+
+    # drho_dt = (rho_n_plus_one - rho_n) / dt
+
+    # J1 = nls.fields_solver.J1
+    # J2 = nls.fields_solver.J2
+
+    # J1_plus_q1 = af.shift(nls.fields_solver.J1, 0, 0, -1)
+    # J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
+
+    # divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
+    # print(af.mean(af.abs(drho_dt + divJ)))
+
     time_elapsed += dt
 
     if(params.dt_dump_moments != 0):
