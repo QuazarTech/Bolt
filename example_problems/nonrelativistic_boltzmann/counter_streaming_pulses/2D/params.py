@@ -80,12 +80,18 @@ density_background     = 1 * n0
 temperature_background = 1 * T0
 
 plasma_beta = 100 # β = p / (B^2 / 2μ)
-# Setting magnetic field along z using plasma beta:
-B3 = np.sqrt(2 * mu * density_background * temperature_background / plasma_beta)
+# Setting magnetic unit using plasma beta:
+B0 = np.sqrt(2 * mu * density_background * temperature_background / plasma_beta)
+# Setting wave numbers for Bx and By:
+k_q1 = 2 * np.pi
+k_q2 = 4 * np.pi
+# Real and imag amplitude(for Bx and By):
+amp_real = 0.1
+amp_imag = 0.2
 
 # Velocity, length and time scales:
-t0 = 1 / time_scales.cyclotron_frequency(B3, e0, m0)
-v0 = velocity_scales.alfven_velocity(B3, density_background, m0, mu)
+t0 = 1 / time_scales.cyclotron_frequency(B0, e0, m0)
+v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
 l0 = v0 * t0 # positron skin depth
 
 # Setting the length of the box:
@@ -101,21 +107,21 @@ eps = 1 / (c**2 * mu)
 # Velocity Scales:
 thermal_speed   = velocity_scales.thermal_speed(temperature_background, m0, k0)
 sound_speed     = velocity_scales.sound_speed(temperature_background, k0, gamma)
-alfven_velocity = velocity_scales.alfven_velocity(B3, density_background, m0, mu) 
+alfven_velocity = velocity_scales.alfven_velocity(B0, density_background, m0, mu) 
 
 # Length scales:
 debye_length = length_scales.debye_length(density_background, temperature_background, e0, k0, eps)
 skin_depth   = length_scales.skin_depth(density_background, e0, c, m0, eps)
-gyroradius   = length_scales.gyroradius(velocity_scales.thermal_speed(temperature_background, m0, k0), B3, e0, m0)
+gyroradius   = length_scales.gyroradius(velocity_scales.thermal_speed(temperature_background, m0, k0), B0, e0, m0)
 
 # Time scales:
 plasma_frequency     = time_scales.plasma_frequency(density_background, e0, m0, eps)
-cyclotron_frequency  = time_scales.cyclotron_frequency(B3, e0, m0)
-alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B3, density_background, m0, mu)
+cyclotron_frequency  = time_scales.cyclotron_frequency(B0, e0, m0)
+alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, density_background, m0, mu)
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Time parameters:
-N_cfl   = 0.4
+N_cfl   = 0.1
 t_final = 20 * t0
 
 PETSc.Sys.Print("==================================================")

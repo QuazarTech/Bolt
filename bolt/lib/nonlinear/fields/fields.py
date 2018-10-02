@@ -336,8 +336,13 @@ class fields_solver(object):
                                                   self.params
                                                  )[0]
 
-            A3_plus_q2 = af.shift(A3, 0, 0,  0, -1)
-            A3_plus_q1 = af.shift(A3, 0, 0, -1,  0)
+            # NOTE: This is currently throwing a segfault on Savio:
+            # A3_plus_q2 = af.shift(A3, 0, 0,  0, -1)
+            # A3_plus_q1 = af.shift(A3, 0, 0, -1,  0)
+
+            # HACK: Change to numpy and change back:
+            A3_plus_q2 = af.to_array(np.roll(np.array(A3), -1, 3))
+            A3_plus_q1 = af.to_array(np.roll(np.array(A3), -1, 2))
 
             B1 =  (A3_plus_q2 - A3) / self.dq2 #  dA3_dq2
             B2 = -(A3_plus_q1 - A3) / self.dq1 # -dA3_dq1

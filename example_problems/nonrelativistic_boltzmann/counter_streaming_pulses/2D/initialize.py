@@ -5,6 +5,8 @@ the system.
 
 import arrayfire as af
 import numpy as np
+from domain import q1_end, q1_start, N_q1, \
+                   q2_end, q2_start, N_q2
 
 def initialize_f(q1, q2, v1, v2, v3, params):
 
@@ -24,7 +26,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
     v2_bulk_electron = params.v2_bulk_electron
     v2_bulk_positron = params.v2_bulk_positron
 
-    n = n_b + 0.01 * af.exp(-10 * (q1 - 5)**2 - * (q2 - 5)**2)
+    n = n_b + 0.01 * af.exp(-5 * (q1 - 5)**2 - 5 * (q2 - 5)**2)
 
     f_e = n * (m_e / (2 * np.pi * k * T_b)) \
             * af.exp(-m_e * (v1[:, 0] - v1_bulk_electron)**2 / (2 * k * T_b)) \
@@ -49,10 +51,39 @@ def initialize_E(q1, q2, params):
 
 def initialize_A3_B3(q1, q2, params):
 
-    # Arbitrary choice:
-    A3 =  0.1 * params.B3 * af.sin(2 * np.pi * q1) \
-         -0.2 * params.B3 * af.cos(4 * np.pi * q2)
-    B3 = params.B3 * q1**0
+    amp_real = params.amp_real
+    amp_imag = params.amp_imag
+
+    k_q1 = params.k_q1
+    k_q2 = params.k_q2
+
+    A3 =   amp_real * af.cos(k_q1 * q1 + k_q2 * q2) * params.B0 \
+         - amp_imag * af.sin(k_q1 * q1 + k_q2 * q2) * params.B0
+    B3 = params.B0 * q1**0
 
     af.eval(A3, B3)
     return(A3, B3)
+
+# Alternatively, trying this out(HACKY VERSION)
+# def initialize_B(q1, q2, params):
+#     amp_real = params.amp_real
+#     amp_imag = params.amp_imag
+
+#     k_q1 = params.k_q1
+#     k_q2 = params.k_q2
+
+#     A3 =   amp_real * af.cos(k_q1 * q1 + k_q2 * q2) * params.B0 \
+#          - amp_imag * af.sin(k_q1 * q1 + k_q2 * q2) * params.B0
+
+#     A3_plus_q2 = af.shift(A3, 0, 0,  0, -1)
+#     A3_plus_q1 = af.shift(A3, 0, 0, -1,  0)
+
+#     dq1 = (q1_end - q1_start) / N_q1
+#     dq2 = (q2_end - q2_start) / N_q2
+
+#     B1 =  (A3_plus_q2 - A3) / dq2 #  dA3_dq2
+#     B2 = -(A3_plus_q1 - A3) / dq1 # -dA3_dq1
+#     B3 = params.B0 * q1**0
+
+#     af.eval(B1, B2, B3)
+#     return(B1, B2, B3)
