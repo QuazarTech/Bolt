@@ -42,7 +42,7 @@ def initialize_E(q1, q2, params):
     return(E1, E2, E3)
 
 def initialize_A3_B3(q1, q2, params):
-    A3 = 0 * q1**0
-    B3 = 0 * q1**0
+    A3 = 0.01 * af.cos(2 * np.pi * q1)
+    B3 = 0.01 * af.sin(2 * np.pi * q1)
 
     return(A3, B3)

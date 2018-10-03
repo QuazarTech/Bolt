@@ -73,6 +73,7 @@ t_final = 10.0 * t0
 # Switch for solver components:
 fields_enabled           = True
 source_enabled           = False
+hybrid_model_enabled     = False
 instantaneous_collisions = False
 
 # Variation of collisional-timescale parameter through phase space:

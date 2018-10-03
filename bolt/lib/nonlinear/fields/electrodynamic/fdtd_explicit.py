@@ -65,6 +65,13 @@ def fdtd_evolve_E(self, dt):
         # E3 --> (i + 1/2, j + 1/2)
         self.yee_grid_EM_fields[2] += (dt / (mu * eps)) * curlB_3 - self.J3 * dt / eps
 
+        # USED TO CHECK:
+        # curlB1_plus_q1 = af.shift(curlB_1, 0, 0, -1)
+        # curlB2_plus_q2 = af.shift(curlB_2, 0, 0, 0, -1)
+
+        # divcurlB = (curlB1_plus_q1 - curlB_1) / self.dq1 + (curlB2_plus_q2 - curlB_2) / self.dq2
+        # print('Divergence of curlB:', af.mean(af.abs(divcurlB)))
+
     af.eval(self.yee_grid_EM_fields)
 
     if(self.performance_test_flag == True):

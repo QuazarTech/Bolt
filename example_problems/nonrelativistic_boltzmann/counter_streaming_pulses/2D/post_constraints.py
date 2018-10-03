@@ -39,7 +39,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-time_array = np.arange(0, params.t_final + params.dt_dump_moments, 
+time_array = np.arange(0, params.t_final + params.dt_dump_moments,  
                        params.dt_dump_moments
                       )
 
@@ -72,11 +72,18 @@ for time_index, t0 in enumerate(time_array):
     n[:, :, 0] = -1 * n[:, :, 0]
     n          = np.sum(n, 2)
 
-    divB = (np.roll(B1, -1, 0) - B1) / dq1 + (np.roll(B2, -1, 1) - B2) / dq2
+    divB = (B1 -  np.roll(B1, 1, 0)) / dq1 + (B2  - np.roll(B2, 1, 1)) / dq2
     divE = (np.roll(E1, -1, 0) - E1) / dq1 + (np.roll(E2, -1, 1) - E2) / dq2
 
     gauss_law_magnetic[time_index] = np.mean(abs(divB))
-    gauss_law_electric[time_index] = np.mean(abs(divE - n))
+    gauss_law_electric[time_index] = np.mean(abs(divE - n / params.eps))
 
 print(gauss_law_magnetic)
 print(gauss_law_electric)
+
+pl.semilogy(time_array, gauss_law_magnetic, label = r'$|\nabla \cdot \vec{E} - \rho|$')
+pl.semilogy(time_array, gauss_law_electric, label = r'$|\frac{d \rho}{d t} + \nabla \cdot \vec{J}|$')
+pl.xlabel('Time')
+pl.ylabel()
+pl.legend()
+pl.savefig('plot.png')

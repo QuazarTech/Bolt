@@ -21,13 +21,13 @@ class fields_solver(object):
     # Computing divB on cell edges
     def compute_divB(self):
         
-        B1 = self.yee_grid_EM_fields[3]
-        B2 = self.yee_grid_EM_fields[4]
+        B1 = self.yee_grid_EM_fields[3] # (i + 1/2, j)
+        B2 = self.yee_grid_EM_fields[4] # (i, j + 1/2)
 
-        B1_plus_q1 = af.shift(B1, 0, 0, -1)
-        B2_plus_q2 = af.shift(B2, 0, 0, 0, -1)
+        B1_minus_q1 = af.shift(B1, 0, 0, 1) # (i - 1/2, j)
+        B2_minus_q2 = af.shift(B2, 0, 0, 0, 1) # (i, j - 1/2)
 
-        divB = (B1_plus_q1 - B1) / self.dq1 + (B2_plus_q2 - B2) / self.dq2
+        divB = (B1 - B1_minus_q1) / self.dq1 + (B2 - B2_minus_q2) / self.dq2 # (i, j)
         return(divB)
 
     # Computing divE at cell centers
@@ -35,13 +35,13 @@ class fields_solver(object):
       
         communicate.communicate_fields(self, True)
         
-        E1 = self.yee_grid_EM_fields[0]
-        E2 = self.yee_grid_EM_fields[1]
+        E1 = self.yee_grid_EM_fields[0] # (i, j + 1/2)
+        E2 = self.yee_grid_EM_fields[1] # (i + 1/2, j)
 
-        E1_plus_q1 = af.shift(E1, 0, 0, -1)
-        E2_plus_q2 = af.shift(E2, 0, 0, 0, -1)
+        E1_plus_q1 = af.shift(E1, 0, 0, -1)    # (i + 1, j + 1/2)
+        E2_plus_q2 = af.shift(E2, 0, 0, 0, -1) # (i + 1/2, j + 1)
 
-        divE = (E1_plus_q1 - E1) / self.dq1 + (E2_plus_q2 - E2) / self.dq2
+        divE = (E1_plus_q1 - E1) / self.dq1 + (E2_plus_q2 - E2) / self.dq2 # (i + 1/2, j + 1/2)
         return(divE)
 
     def check_maxwells_contraint_equations(self, rho):
@@ -341,11 +341,11 @@ class fields_solver(object):
             # A3_plus_q1 = af.shift(A3, 0, 0, -1,  0)
 
             # HACK: Change to numpy and change back:
-            A3_plus_q2 = af.to_array(np.roll(np.array(A3), -1, 3))
-            A3_plus_q1 = af.to_array(np.roll(np.array(A3), -1, 2))
+            A3_minus_q2 = af.to_array(np.roll(np.array(A3), 1, 3))
+            A3_minus_q1 = af.to_array(np.roll(np.array(A3), 1, 2))
 
-            B1 =  (A3_plus_q2 - A3) / self.dq2 #  dA3_dq2
-            B2 = -(A3_plus_q1 - A3) / self.dq1 # -dA3_dq1
+            B1 =  (A3 - A3_minus_q2) / self.dq2 #  dA3_dq2
+            B2 = -(A3 - A3_minus_q1) / self.dq1 # -dA3_dq1
             B3 = self.initialize.initialize_A3_B3(self.q1_left_bot,
                                                   self.q2_left_bot,
                                                   self.params
@@ -427,7 +427,6 @@ class fields_solver(object):
             self.cell_centered_grid_to_yee_grid('E')
             # Initialize on Yee grid:
             self.initialize_magnetic_fields()
-
             # Transferring the information about the magnetic field to the cell centered grid:
             self.yee_grid_to_cell_centered_grid('B')
 

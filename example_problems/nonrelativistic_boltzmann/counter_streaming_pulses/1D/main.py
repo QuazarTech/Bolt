@@ -1,4 +1,5 @@
 import arrayfire as af
+af.set_backend('cpu')
 import numpy as np
 import h5py
 import matplotlib as mpl
@@ -63,9 +64,13 @@ N_g = system.N_ghost
 # Declaring a linear system object which will evolve the defined physical system:
 nls = nonlinear_solver(system)
 
+print('Printing the minimum of the distribution functions for electrons and ions:')
+print('f_min_electron:', af.min(nls.f[:, 0, :, :]))
+print('f_min_ion:', af.min(nls.f[:, 1, :, :]))
+
 # Timestep as set by the CFL condition:
 dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                  / max(domain.p1_end + domain.p2_end + domain.p3_end)
 
 time_array = np.arange(0, params.t_final + dt, dt)
 # Array used to hold the value of MEAN(|divE - rho|)
@@ -99,7 +104,7 @@ for time_index, t0 in enumerate(time_array[1:]):
     rho_n_plus_one       = af.sum(rho_n_plus_one, 1)
 
     divE = nls.fields_solver.compute_divE()
-    gauss_law[time_index + 1] = af.mean(af.abs(divE - rho_n_plus_one)[:, :, 3:-3, 3])
+    gauss_law[time_index + 1] = af.mean(af.abs(divE - rho_n_plus_one)[:, :, 3:-3, 3:-3])
 
     drho_dt = (rho_n_plus_one - rho_n) / dt
 

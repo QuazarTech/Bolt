@@ -58,21 +58,16 @@ while(time_elapsed < params.t_final):
     # B1 = nls.fields_solver.yee_grid_EM_fields[3]
     # B2 = nls.fields_solver.yee_grid_EM_fields[4]
 
-    # print(af.sum(af.abs(B1[:, :, 3:-3, 3:-3])))
-    # print(af.sum(af.abs(B2[:, :, 3:-3, 3:-3])))
-
-    # B1_plus_q1 = af.shift(B1, 0, 0, -1)
-    # B2_plus_q2 = af.shift(B2, 0, 0, 0, -1)
-
-    # divB = (B1_plus_q1 - B1) / nls.dq1 + (B2_plus_q2 - B2) / nls.dq2
-    # print(af.sum(af.abs(divB)))
+    # divB = nls.fields_solver.compute_divB()
+    # print('divB =', af.sum(af.abs(divB[:, :, 3:-3, 3:-3])))
 
     # rho_n       = -1 * nls.compute_moments('density')
     # rho_n[0, 1] = -1 * rho_n[0, 1]
     # rho_n       = af.sum(rho_n, 1)
+    # print('Net Charge:', af.sum(rho_n))
 
     # divE = nls.fields_solver.compute_divE()
-    # print(af.mean(af.abs(divE - rho_n)[:, :, 3:-3, 3:-3]))
+    # print('divE - rho = ', af.sum(af.abs(divE - rho_n / params.eps)[:, :, 3:-3, 3:-3]))
 
     nls.strang_timestep(dt)
 
@@ -89,7 +84,7 @@ while(time_elapsed < params.t_final):
     # J2_plus_q2 = af.shift(nls.fields_solver.J2, 0, 0, 0, -1)
 
     # divJ = (J1_plus_q1 - J1) / nls.dq1 + (J2_plus_q2 - J2) / nls.dq2
-    # print(af.mean(af.abs(drho_dt + divJ)))
+    # print('Residue of Continuity Eqn:', af.sum(af.abs(drho_dt[:, :, 3:-3, 3:-3] + divJ[:, :, 3:-3, 3:-3])))
 
     time_elapsed += dt
 
