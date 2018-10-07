@@ -16,7 +16,7 @@ def initialize_f(q1, q2, v1, v2, v3, params):
 
     u_be = params.u_be
     u_bi = params.u_bi
-    T   = params.T_background
+    T    = params.T_background
 
     f_e = n * (m_e / (2 * np.pi * k * T))**(3 / 2) \
             * 0.5 * (  af.exp(-m_e * (v1[:, 0] - u_be)**2 / (2 * k * T))
