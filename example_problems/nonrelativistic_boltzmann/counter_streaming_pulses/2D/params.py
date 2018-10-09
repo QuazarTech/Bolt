@@ -36,19 +36,23 @@ riemann_solver_in_p = 'upwind-flux'
 # Vacuum perm     ~ eps0; eps0 = |eps0| units(eps0)
 
 # Now choosing units: 
-n0  = 1. # |n| units(n)
-T0  = 1. # |T| units(T)
-m0  = 1. # |m_p| units(m)
-e0  = 1. # |e| units(e)
-k0  = 1. # |k| units(k)
-mu  = 1. # |mu0| units(mu0)
+n0 = 1. # |n| units(n)
+m0 = 1. # |m_p| units(m)
+e0 = 1. # |e| units(e)
+k0 = 1. # |k| units(k)
+B0 = 1. # |B0| units(B0)
+mu = 1. # |mu0| units(mu0)
+
+# Setting plasma β:
+beta = 1e-4 # β = p / (B^2 / 2μ)
+T0   = beta * (B0**2 / (2 * mu * n0 * k0)) # |T| units(T)
 
 # Printing Details About the Different Scales:
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("             Independent Units Chosen             ")
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("Density              :", n0, "|n| units(n)")
-PETSc.Sys.Print("Temperature          :", T0, "|T| units(n)")
+PETSc.Sys.Print("Temperature          :", T0, "|T| units(T)")
 PETSc.Sys.Print("Mass                 :", m0, "|m_e| units(m)")
 PETSc.Sys.Print("Charge               :", e0, "|e| units(e)")
 PETSc.Sys.Print("Boltzmann Constant   :", k0, "|k| units(k)")
@@ -76,29 +80,26 @@ boltzmann_constant = k0
 charge             = [e_e, e_p]
 
 # Background Quantities:
-density_background     = 0    * n0
-temperature_background = 1e-3 * T0
+density_background     = 0 * n0
+temperature_background = 1 * T0
 
-plasma_beta = 100 # β = p / (B^2 / 2μ)
-# Setting magnetic unit using plasma beta:
-B0 = np.sqrt(2 * mu * n0 * temperature_background / plasma_beta)
 # Setting wave numbers for Bx and By:
 k_q1 = 2 * np.pi
 k_q2 = 4 * np.pi
 # Real and imag amplitude(for Bx and By):
-amp_real = 0.1
-amp_imag = 0.2
+amp_real = 1.
+amp_imag = 0.
 
 # Velocity, length and time scales:
-t0 = 1 / time_scales.cyclotron_frequency(B0, e0, m0)
 v0 = velocity_scales.alfven_velocity(B0, n0, m0, mu)
-l0 = v0 * t0 # positron skin depth
+l0 = 1 # Box Length
+t0 = l0 / v0
 
 # Setting the length of the box:
-L_x = L_y = 10 * l0
+L_x = L_y = l0
 
 # Setting Maximum Velocity of Phase Space Grid:
-v_max = 70 * v0
+v_max = 0.07 * v0
 
 # Calculating Permittivity:
 c   = v_max
@@ -122,7 +123,7 @@ sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperatur
 
 # Time parameters:
 N_cfl   = 0.15
-t_final = 20 * t0
+t_final = 50 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -163,11 +164,11 @@ PETSc.Sys.Print("Light Speed :", c / v0, "|v0| units(v0)")
 PETSc.Sys.Print("Permittivity:", eps)
 PETSc.Sys.Print("==================================================\n")
 
-v1_bulk_electron =  10 * v0
-v1_bulk_positron = -10 * v0
+v1_bulk_electron =  0.01 * v0
+v1_bulk_positron = -0.01 * v0
 
-v2_bulk_electron =  10 * v0
-v2_bulk_positron = -10 * v0
+v2_bulk_electron =  0.01 * v0
+v2_bulk_positron = -0.01 * v0
 
 # Switch for solver components:
 fields_enabled           = True
