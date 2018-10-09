@@ -66,7 +66,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
 
         # Timestep as set by the CFL condition:
         dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                          / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                          / max(domain.p1_end + domain.p2_end + domain.p3_end)
 
         time_array = np.arange(dt, params.t_final + dt, dt)
         # Checking that time array doesn't cross final time:
