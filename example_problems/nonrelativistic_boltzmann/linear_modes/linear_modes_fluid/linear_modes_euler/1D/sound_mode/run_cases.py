@@ -33,7 +33,7 @@ for i in range(N.size):
 
     # Timestep as set by the CFL condition:
     dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                      / max(domain.p1_end, domain.p2_end, domain.p3_end)
+                      / max(domain.p1_end + domain.p2_end + domain.p3_end)
 
     time_array = np.arange(0, params.t_final + dt, dt)
 

@@ -80,7 +80,7 @@ boltzmann_constant = k0
 charge             = [e_e, e_p]
 
 # Background Quantities:
-density_background     = 0 * n0
+density_background     = 1 * n0
 temperature_background = 1 * T0
 
 # Setting wave numbers for Bx and By:
@@ -91,7 +91,7 @@ amp_real = 1.
 amp_imag = 0.
 
 # Velocity, length and time scales:
-v0 = velocity_scales.alfven_velocity(B0, n0, m0, mu)
+v0 = velocity_scales.alfven_velocity(B0, density_background, m0, mu)
 l0 = 1 # Box Length
 t0 = l0 / v0
 
@@ -108,17 +108,17 @@ eps = 1 / (c**2 * mu)
 # Velocity Scales:
 thermal_speed   = velocity_scales.thermal_speed(temperature_background, m0, k0)
 sound_speed     = velocity_scales.sound_speed(temperature_background, k0, gamma)
-alfven_velocity = velocity_scales.alfven_velocity(B0, n0, m0, mu) 
+alfven_velocity = velocity_scales.alfven_velocity(B0, density_background, m0, mu) 
 
 # Length scales:
-debye_length = length_scales.debye_length(n0, temperature_background, e0, k0, eps)
-skin_depth   = length_scales.skin_depth(n0, e0, c, m0, eps)
+debye_length = length_scales.debye_length(density_background, temperature_background, e0, k0, eps)
+skin_depth   = length_scales.skin_depth(density_background, e0, c, m0, eps)
 gyroradius   = length_scales.gyroradius(velocity_scales.thermal_speed(temperature_background, m0, k0), B0, e0, m0)
 
 # Time scales:
-plasma_frequency     = time_scales.plasma_frequency(n0, e0, m0, eps)
+plasma_frequency     = time_scales.plasma_frequency(density_background, e0, m0, eps)
 cyclotron_frequency  = time_scales.cyclotron_frequency(B0, e0, m0)
-alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, n0, m0, mu)
+alfven_crossing_time = time_scales.alfven_crossing_time(min(L_x, L_y), B0, density_background, m0, mu)
 sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), temperature_background, k0, gamma)
 
 # Time parameters:

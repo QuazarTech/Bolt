@@ -59,7 +59,7 @@ def initialize_A3_B3(q1, q2, params):
 
     A3 =   amp_real * af.cos(k_q1 * q1 + k_q2 * q2) * params.B0 \
          - amp_imag * af.sin(k_q1 * q1 + k_q2 * q2) * params.B0
-    B3 = 0 * q1**0
+    B3 = params.B0 * q1**0
 
     af.eval(A3, B3)
     return(A3, B3)

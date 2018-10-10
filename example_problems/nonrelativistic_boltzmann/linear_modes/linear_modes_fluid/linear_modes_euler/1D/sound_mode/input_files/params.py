@@ -23,9 +23,9 @@ p_dim = 1
 num_devices = 1
 
 # Constants:
-mass               = [1, 1]
+mass               = [1]
 boltzmann_constant = 1
-charge             = [0, 0]
+charge             = [0]
 
 # Initial Conditions used in initialize
 # NOTE: Density here is number density
@@ -34,18 +34,19 @@ temperature_background = 1
 v1_bulk_background     = 0
 
 k_q1      = 2 * np.pi
-amplitude = 1e-3
+amplitude = 1e-5
 
 # Time parameters:
-N_cfl   = 0.32
-t_final = 0.5
+N_cfl   = 32e-6
+t_final = 0.001
 
 # Switch for solver components:
 fields_enabled           = False
-source_enabled           = False
-instantaneous_collisions = True
+source_enabled           = True
+instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (0 * p1**0 * q1**0)
+    return (1e-7 * p1**0 * q1**0)

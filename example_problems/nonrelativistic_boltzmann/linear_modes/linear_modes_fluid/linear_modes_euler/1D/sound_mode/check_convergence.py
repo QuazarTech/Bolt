@@ -9,13 +9,13 @@ import input_files.params as params
 from input_files.solve_linear_modes import solve_linear_modes
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 15, 10
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -92,22 +92,22 @@ for i in range(N.size):
     h5f.close()
 
     n_nls  = mom[0, :, 0].ravel()
-    v1_nls = mom[0, :, 2].ravel() / n_nls
-    v2_nls = mom[0, :, 3].ravel() / n_nls
-    v3_nls = mom[0, :, 4].ravel() / n_nls
+    v1_nls = mom[0, :, 5].ravel() / n_nls
+    v2_nls = mom[0, :, 6].ravel() / n_nls
+    v3_nls = mom[0, :, 7].ravel() / n_nls
     T_nls  = (1 / params.p_dim) * (  2 * mom[0, :, 1].ravel() 
                                    - n_nls * v1_nls**2
                                    - n_nls * v2_nls**2
                                    - n_nls * v3_nls**2
                                   ) / n_nls
 
-    n_analytic  = n_analytic(q1, params.t_final)
-    v1_analytic = v1_analytic(q1, params.t_final)
-    T_analytic  = T_analytic(q1, params.t_final)
+    n_ana  = n_analytic(q1, params.t_final)
+    v1_ana = v1_analytic(q1, params.t_final)
+    T_ana  = T_analytic(q1, params.t_final)
 
-    error_n[i]  = np.mean(abs(n_nls - n_analytic))
-    error_v1[i] = np.mean(abs(v1_nls - v1_analytic))
-    error_T[i]  = np.mean(abs(T_nls - T_analytic))
+    error_n[i]  = np.mean(abs(n_nls - n_ana))
+    error_v1[i] = np.mean(abs(v1_nls - v1_ana))
+    error_T[i]  = np.mean(abs(T_nls - T_ana))
 
 print('Errors Obtained:')
 print('L1 norm of error for density:', error_n)
