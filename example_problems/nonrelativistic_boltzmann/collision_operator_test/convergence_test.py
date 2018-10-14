@@ -19,7 +19,7 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 15, 10
+pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -116,13 +116,15 @@ for i in range(dt_samples.size):
     # Setting back to initial value for next iteration:
     nls.f    = f_initial
 
+print(N_t)
+print(error)
+
 print('L1 norm of error:', error)
 print('Order of convergence:', np.polyfit(np.log10(N_t), np.log10(error), 1)[0])
 
 pl.loglog(N_t, error, '-o', label = 'Numerical')
-pl.loglog(N_t, error[0]*N_t[0]**2/N_t**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N_t, error[0]*N_t[0]**2/N_t**2, '--', color = 'black', label = r'$\mathcal{O}(N_t^{-2})$')
 pl.xlabel(r'$N_t$')
 pl.ylabel('Error')
-pl.legend()
-pl.savefig('convergenceplot.png')
-pl.savefig('convergenceplot.svg')
+pl.legend(fontsize = 28, framealpha = 0)
+pl.savefig('convergenceplot.png', bbox_inches = 'tight')
