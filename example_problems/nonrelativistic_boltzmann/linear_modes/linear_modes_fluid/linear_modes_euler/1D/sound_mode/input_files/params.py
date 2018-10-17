@@ -34,11 +34,11 @@ temperature_background = 1
 v1_bulk_background     = 0
 
 k_q1      = 2 * np.pi
-amplitude = 1e-5
+amplitude = 1e-3
 
 # Time parameters:
 N_cfl   = 32e-6
-t_final = 0.001
+t_final = 0.1
 
 # Switch for solver components:
 fields_enabled           = False

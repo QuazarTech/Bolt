@@ -9,7 +9,7 @@ import input_files.params as params
 from input_files.solve_linear_modes import solve_linear_modes
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 15, 10
+pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -76,7 +76,7 @@ def T_analytic(q1, t):
 
     return(T_analytic)
 
-N = 2**np.arange(5, 10)
+N = np.array([32, 48, 64, 96, 128, 144, 160])
 
 error_n  = np.zeros(N.size)
 error_v1 = np.zeros(N.size)
@@ -122,8 +122,8 @@ print('Order of convergence for temperature:', np.polyfit(np.log10(N), np.log10(
 pl.loglog(N, error_n, '-o', label = 'Density')
 pl.loglog(N, error_v1, '-o', label = 'Velocity')
 pl.loglog(N, error_T, '-o', label = 'Temperature')
-pl.loglog(N, error_n[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+pl.loglog(N, error_n[0]*32**2/N**2, '--', color = 'black', label = r'$\mathcal{O}(N^{-2})$')
 pl.xlabel(r'$N$')
 pl.ylabel('Error')
 pl.legend()
-pl.savefig('convergenceplot.png')
+pl.savefig('convergenceplot.png', bbox_inches = 'tight')
