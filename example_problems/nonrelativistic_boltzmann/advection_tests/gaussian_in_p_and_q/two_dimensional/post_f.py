@@ -56,8 +56,8 @@ p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * dp2
 p2, p1 = np.meshgrid(p2, p1)
 
 # Declaration of the time array:
-time_array = np.arange(0, params.t_final + params.dt_dump_f, 
-                       params.dt_dump_f
+time_array = np.arange(0, params.t_final + 0.01, 
+                       0.01
                       )
 
 h5f = h5py.File('dump_f/t=0.000.h5', 'r')
@@ -90,5 +90,5 @@ for time_index, t0 in enumerate(time_array):
     pl.xlabel(r'$v_x$')
     pl.ylabel(r'$v_y$')
     pl.title('Time = %.2f'%(t0))
-    pl.savefig('images_f/%04d'%time_index + '.png')
+    pl.savefig('images/%04d'%time_index + '.png')
     pl.clf()

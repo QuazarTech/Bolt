@@ -1,6 +1,8 @@
 import arrayfire as af
 import numpy as np
 import h5py
+import math
+from petsc4py import PETSc
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
@@ -38,7 +40,13 @@ print('Printing the minimum and maximum of the distribution functions :')
 print('f_min:', af.min(nls.f))
 print('f_max:', af.max(nls.f))
 
+# Dumping the distribution function at t = 0:
+nls.dump_distribution_function('dump_f/t=0.000')
+
 for time_index, t0 in enumerate(time_array):
+    
     nls.strang_timestep(dt)
-    if(t0 % 0.01 < 1e-10):
-        nls.dump_distribution_function('dump/%04d'%int(N[i]))
+    PETSc.Sys.Print('Computing For Time =', t0)
+
+    if(math.modf(t0 / 0.01)[0] < 1e-5):
+        nls.dump_distribution_function('dump_f/t=' + '%.3f'%t0)
