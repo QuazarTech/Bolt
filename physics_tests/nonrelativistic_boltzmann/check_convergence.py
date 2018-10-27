@@ -5,13 +5,13 @@ mpl.use('agg')
 import pylab as pl
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -42,11 +42,11 @@ def check_convergence():
     for i in range(N.size):
 
         h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
-        nls_f = h5f['distribution_function'][:]
+        nls_f = h5f['moments'][:]
         h5f.close()    
 
         h5f  = h5py.File('dump_files/lsf_' + str(N[i]) + '.h5')
-        ls_f = h5f['distribution_function'][:]
+        ls_f = h5f['moments'][:]
         h5f.close()
 
         error[i] = np.mean(abs(nls_f - ls_f))

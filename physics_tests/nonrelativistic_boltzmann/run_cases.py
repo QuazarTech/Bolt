@@ -65,8 +65,9 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         ls  = linear_solver(system)
 
         # Timestep as set by the CFL condition:
-        dt = params.N_cfl * min(nls.dq1, nls.dq2) \
-                          / max(domain.p1_end + domain.p2_end + domain.p3_end)
+        # dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+        #                   / max(domain.p1_end + domain.p2_end + domain.p3_end)
+        dt = 0.002 * (128 / nls.N_q1)
 
         time_array = np.arange(dt, params.t_final + dt, dt)
         # Checking that time array doesn't cross final time:
@@ -76,8 +77,6 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         for time_index, t0 in enumerate(time_array):
             nls.strang_timestep(dt)
             ls.RK4_timestep(dt)
-            n_nls = nls.compute_moments('density')
-            n_ls  = ls.compute_moments('density')
 
-        nls.dump_distribution_function('dump_files/nlsf_' + str(N[i]))
-        ls.dump_distribution_function('dump_files/lsf_' + str(N[i]))
+        nls.dump_moments('dump_files/nlsf_' + str(N[i]))
+        ls.dump_moments('dump_files/lsf_' + str(N[i]))

@@ -79,23 +79,23 @@ ke_data_nls = np.zeros_like(time_array)
 
 for time_index, t0 in enumerate(time_array):
     
-    if(time_index%10 == 0):
-        nls.dump_distribution_function('dump_f/%04d'%time_index)
+    # if(time_index%10 == 0):
+    #     nls.dump_distribution_function('dump_f/%04d'%time_index)
 
     print('Computing For Time =', t0)
 
-    E_data_nls[time_index] = af.max(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
+    E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
                                          * ifft2(ls.fields_solver.E1_hat)
                                     )
 
-    E_data_ls[time_index]  = af.max(E1_ls)
+    E_data_ls[time_index]  = af.sum(E1_ls**2)
 
     ke_data_nls[time_index] = af.mean(nls.compute_moments('mom_v1_bulk')**2 / nls.compute_moments('density'))
     ke_data_ls[time_index]  = af.mean(ls.compute_moments('mom_v1_bulk')**2 / ls.compute_moments('density'))
 
     nls.strang_timestep(dt)
-    # ls.RK4_timestep(dt)
+    ls.RK4_timestep(dt)
 
 import h5py
 h5f = h5py.File('data.h5', 'w')

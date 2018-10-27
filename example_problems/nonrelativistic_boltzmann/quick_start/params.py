@@ -1,15 +1,15 @@
 import numpy as np
 import arrayfire as af
 
-fields_type       = 'electrostatic'
+fields_type       = 'electrodynamic'
 fields_initialize = 'fft'
 fields_solver     = 'fdtd'
 
 solver_method_in_q = 'FVM'
 solver_method_in_p = 'FVM'
 
-reconstruction_method_in_q = 'weno5'
-reconstruction_method_in_p = 'weno5'
+reconstruction_method_in_q = 'minmod'
+reconstruction_method_in_p = 'minmod'
 
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
@@ -25,9 +25,10 @@ mass               = [1]
 boltzmann_constant = 1
 charge             = [-10]
 
-fields_enabled        = False
+fields_enabled           = True
 source_enabled           = False
 instantaneous_collisions = False
+hybrid_model_enabled     = False
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
@@ -43,5 +44,8 @@ p1_bulk_background = 0
 
 pert_real = 0.01
 pert_imag = 0.02
+
+eps = 1
+mu  = 1
 
 k_q1 = 2 * np.pi

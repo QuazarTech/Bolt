@@ -1,7 +1,8 @@
 from params import l0, v0
+from numpy import pi
 
-q1_start = -2 * np.pi * l0
-q1_end   = -2 * np.pi * l0
+q1_start = -2 * pi * l0
+q1_end   = -2 * pi * l0
 N_q1     = 512
 
 q2_start = 0 * l0

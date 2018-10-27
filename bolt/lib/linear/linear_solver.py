@@ -139,7 +139,7 @@ class linear_solver(object):
         PETSc.Sys.Print(indent('On Node: '+ socket.gethostname()))
         PETSc.Sys.Print(indent('Device Details:'))
         PETSc.Sys.Print(indent(af.info_str(), 2))
-        # PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
+        PETSc.Sys.Print(indent('Device Bandwidth = ' + str(bandwidth_test(100)) + ' GB / sec'))
         PETSc.Sys.Print()
 
         # Creating PETSc Vecs which are used in dumping to file:

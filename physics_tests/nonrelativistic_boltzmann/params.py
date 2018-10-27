@@ -62,7 +62,7 @@ n_background           = 1 * n0
 temperature_background = 1 * T0
 
 # Parameter controlling amplitude of perturbation introduced:
-alpha = 0.001
+alpha = 0.0001
 
 # Time parameters:
 N_cfl   = 0.32
