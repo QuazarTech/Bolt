@@ -36,33 +36,32 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = np.array([128, 192, 256, 384, 512]) #2**np.arange(7, 10)
+    N     = np.array([64, 80, 96, 112, 128, 144, 160, 176, 192]) #2**np.arange(7, 10)
     error = np.zeros(N.size)
     
     for i in range(N.size):
 
-        h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
-        nls_f = h5f['moments'][:]
+        h5f = h5py.File('dump_files/nls_' + str(N[i]) + '.h5')
+        nls = h5f['moments'][:]
         h5f.close()    
 
-        h5f  = h5py.File('dump_files/lsf_' + str(N[i]) + '.h5')
-        ls_f = h5f['moments'][:]
+        h5f = h5py.File('dump_files/ls_' + str(N[i]) + '.h5')
+        ls  = h5f['moments'][:]
         h5f.close()
 
-        error[i] = np.mean(abs(nls_f - ls_f))
+        error[i] = np.mean(abs(nls - ls))
 
     print(error)
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
     print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
-    pl.loglog(N, error[0]*128**2/N**2, '--', color = 'black', 
-              label = r'$O(N^{-2})$'
+    pl.loglog(N, error[0]*N[0]**2/N**2, '--', color = 'black', 
+              label = r'$\mathcal{O}(N^{-2})$'
              )
     pl.legend(loc = 'best')
     pl.ylabel('Error')
     pl.xlabel('$N$')
-    pl.savefig('convergence_plot.svg')
-    pl.savefig('convergence_plot.png')
+    pl.savefig('convergence_plot.png', bbox_inches = 'tight')
 
     assert(abs(poly[0] + 2)<0.25)

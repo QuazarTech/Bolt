@@ -14,7 +14,25 @@ import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
 import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
-N = np.array([128, 192, 256, 384, 512]) #2**np.arange(5, 10)
+N = np.array([64, 80, 96, 112, 128, 144, 160, 176, 192]) #2**np.arange(7, 10)
+
+def lowpass_filter(f):
+    f_hat = af.fft(f)
+    dp1   = (domain.p1_end[0] - domain.p1_start[0]) / domain.N_p1
+    k_v   = af.tile(af.to_array(np.fft.fftfreq(domain.N_p1, dp1)), 
+                    1, 1, f.shape[2], f.shape[3]
+                   )
+    
+    # Applying the filter:
+    f_hat_filtered = 0.5 * (f_hat * (  af.tanh((k_v + 0.9 * af.max(k_v)) / 0.5)
+                                     - af.tanh((k_v + 0.9 * af.min(k_v)) / 0.5)
+                                    )
+                           )
+
+    f_hat = af.select(af.abs(k_v) < 0.8 * af.max(k_v), f_hat, f_hat_filtered)
+    f = af.real(af.ifft(f_hat))
+    return(f) 
+
 def run_cases(q_dim, p_dim, charge_electron, tau):
     params.charge[0] = charge_electron
     params.tau       = tau
@@ -67,7 +85,7 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
         # Timestep as set by the CFL condition:
         # dt = params.N_cfl * min(nls.dq1, nls.dq2) \
         #                   / max(domain.p1_end + domain.p2_end + domain.p3_end)
-        dt = 0.002 * (128 / nls.N_q1)
+        dt = 0.005 * (N[0] / nls.N_q1)
 
         time_array = np.arange(dt, params.t_final + dt, dt)
         # Checking that time array doesn't cross final time:
@@ -75,8 +93,12 @@ def run_cases(q_dim, p_dim, charge_electron, tau):
             time_array = np.delete(time_array, -1)
 
         for time_index, t0 in enumerate(time_array):
-            nls.strang_timestep(dt)
-            ls.RK4_timestep(dt)
 
-        nls.dump_moments('dump_files/nlsf_' + str(N[i]))
-        ls.dump_moments('dump_files/lsf_' + str(N[i]))
+            if(time_index % 25 == 0):
+                nls.f = lowpass_filter(nls.f)
+
+            nls.strang_timestep(dt)
+            # ls.RK4_timestep(dt)
+
+        nls.dump_moments('dump_files/nls_' + str(N[i]))
+        # ls.dump_moments('dump_files/ls_' + str(N[i]))
