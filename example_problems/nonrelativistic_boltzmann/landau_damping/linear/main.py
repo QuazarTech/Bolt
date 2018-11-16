@@ -54,11 +54,13 @@ E1_ls = af.real(0.5 * (ls.N_q1 * ls.N_q2)
 
 E_data_ls[0] = af.max(E1_ls)
 
+nls.dump_distribution_function('data_f0')
+
 for time_index, t0 in enumerate(time_array[1:]):
 
     print('Computing For Time =', t0)
     nls.strang_timestep(dt)
-    ls.RK5_timestep(dt)
+    # ls.RK5_timestep(dt)
 
     n_data_nls[time_index + 1] = af.max(nls.compute_moments('density')[:, :, N_g:-N_g, N_g:-N_g])
     n_data_ls[time_index + 1]  = af.max(ls.compute_moments('density'))
@@ -71,6 +73,8 @@ for time_index, t0 in enumerate(time_array[1:]):
                    )
 
     E_data_ls[time_index + 1] = af.max(E1_ls)
+
+nls.dump_distribution_function('data_f')
 
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('n_nls', data = n_data_nls)

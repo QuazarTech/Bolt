@@ -4,6 +4,9 @@ import matplotlib as mpl
 mpl.use('agg')
 import pylab as pl
 
+import domain
+import params
+
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
@@ -35,45 +38,45 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 h5f        = h5py.File('data.h5', 'r')
-n_ls       = h5f['n_ls'][:]
-E_ls       = h5f['E_ls'][:]
 n_nls      = h5f['n_nls'][:]
 E_nls      = h5f['E_nls'][:]
 time_array = h5f['time'][:]
 h5f.close()
 
-# pl.plot(time_array, n_nls, label = r'{\tt bolt}')
-# pl.plot(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
-# pl.ylabel(r'$n$')
-# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-# pl.legend()
-# pl.savefig('n.png')
-# pl.savefig('n.svg')
-# pl.clf()
+h5f        = h5py.File('data_ls.h5', 'r')
+n_ls       = h5f['n_ls'][:]
+E_ls       = h5f['E_ls'][:]
+time_array = h5f['time'][:]
+h5f.close()
 
-# pl.plot(time_array, E_nls, label = r'{\tt bolt}')
-# #pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
-# pl.ylabel(r'MAX($E$)')
-# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-# #pl.legend()
-# pl.savefig('E.png')
-# pl.savefig('E.svg')
-# pl.clf()
+pl.plot(time_array, n_nls, label = r'{\tt bolt}')
+pl.plot(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
+pl.ylabel(r'$n$')
+pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+pl.legend()
+pl.savefig('n.png')
+pl.clf()
 
-# pl.semilogy(time_array, n_nls, label = r'{\tt bolt}')
-# pl.semilogy(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
-# pl.ylabel(r'$n$')
-# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-# pl.legend()
-# pl.savefig('n_semilogy.png')
-# pl.savefig('n_semilogy.svg')
-# pl.clf()
+pl.plot(time_array, E_nls, label = r'{\tt bolt}')
+#pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
+pl.ylabel(r'MAX($E$)')
+pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+#pl.legend()
+pl.savefig('E.png')
+pl.clf()
+
+pl.semilogy(time_array, n_nls, label = r'{\tt bolt}')
+pl.semilogy(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
+pl.ylabel(r'$n$')
+pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+pl.legend()
+pl.savefig('n_semilogy.png')
+pl.clf()
 
 pl.semilogy(time_array, E_nls, label = r'{\tt bolt}')
 pl.semilogy(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
 pl.ylabel(r'MAX($E$)')
 pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-pl.xlim(0, 20)
-pl.legend(fontsize = 28, framealpha = 0)
+# pl.legend()
 pl.savefig('E_semilogy.png', bbox_inches = 'tight')
 pl.clf()
