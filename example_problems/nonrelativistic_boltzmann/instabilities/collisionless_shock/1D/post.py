@@ -8,8 +8,8 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 16, 10
-pl.rcParams['figure.dpi']      = 80
+pl.rcParams['figure.figsize']  = 9, 4
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -160,9 +160,9 @@ def return_array_to_be_plotted(name, moments, fields):
         raise Exception('Not valid!')
 
 # Declaration of the time array:
-time_array = np.arange(0, 300 * params.t0 + params.dt_dump_moments, 
-                       params.dt_dump_moments
-                      )
+# time_array = np.arange(0, 300 * params.t0 + params.dt_dump_moments, 
+#                        params.dt_dump_moments
+#                       )
 
 # Traversal to determine the maximum and minimum:
 def determine_min_max(quantity):
@@ -190,10 +190,10 @@ def determine_min_max(quantity):
 
     return(q_min, q_max)
 
-n_min, n_max   = determine_min_max('density')
-v1_min, v1_max = determine_min_max('v1')
-T_min, T_max   = determine_min_max('temperature')
-B1_min, B1_max = determine_min_max('B1')
+# n_min, n_max   = determine_min_max('density')
+# v1_min, v1_max = determine_min_max('v1')
+# T_min, T_max   = determine_min_max('temperature')
+# B1_min, B1_max = determine_min_max('B1')
 
 def plot_1d():
     for time_index, t0 in enumerate(time_array):
@@ -288,4 +288,35 @@ def plot_2d():
         pl.close(fig)
         pl.clf()
 
-plot_1d()
+# plot_1d()
+
+h5f      = h5py.File('fields_data_initial.h5', 'r')
+fields_i = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+h5f.close()
+
+h5f      = h5py.File('fields_data_final.h5', 'r')
+fields_f = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+h5f.close()
+
+pl.plot(q2[0, :], (fields_i[:, :, 5])[0, :] / params.B0, color = 'C2', label = r'$t = 0$')
+pl.plot(q2[0, :], (fields_f[:, :, 5])[0, :] / params.B0, color = 'C1', label = r'$t = 1000 \omega_c^{-1}$')
+pl.legend(framealpha = 0, fontsize = 20, bbox_to_anchor = (0.4, 0.69))
+pl.xlabel(r'$y(l_s)$')
+pl.ylabel(r'$B_x(B_0)$')
+pl.tight_layout()
+pl.savefig('plot.png', bbox_inches = 'tight')
+
+# h5f       = h5py.File('moments_data_initial.h5', 'r')
+# moments_i = np.swapaxes(h5f['moments'][:], 0, 1)
+# h5f.close()
+
+# h5f       = h5py.File('moments_data_final.h5', 'r')
+# moments_f = np.swapaxes(h5f['moments'][:], 0, 1)
+# h5f.close()
+
+# pl.plot(q2[0, :], (return_array_to_be_plotted('density', moments_f, moments_f)[:, :, 0])[0, :] / params.n0, label = r'Electrons')
+# pl.plot(q2[0, :], (return_array_to_be_plotted('density', moments_f, moments_f)[:, :, 1])[0, :] / params.n0, '--', color = 'C3', label = r'Ions')
+# # pl.legend(framealpha = 0)
+# pl.xlabel(r'$y(l_s)$')
+# pl.ylabel(r'$n(n_0)$')
+# pl.savefig('plot.png', bbox_inches = 'tight')
