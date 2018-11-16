@@ -18,4 +18,4 @@ p3_start = [-10]
 p3_end   = [10]
 N_p3     = 16
 
-N_ghost = 2
+N_ghost = 3

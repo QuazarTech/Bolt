@@ -34,13 +34,13 @@ import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operat
 import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.figsize']  = 9, 4
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -70,6 +70,7 @@ class test_periodic(object):
         domain.N_q1 = int(N)
         domain.N_q2 = int(N)
 
+        N_g    = domain.N_ghost
         system = physical_system(domain,
                                  boundary_conditions,
                                  params,
@@ -80,7 +81,9 @@ class test_periodic(object):
                                 )
 
         self.fields_solver = fields_solver(system, 
-                                           af.constant(0, 1, 1, int(N)+6, int(N)+6, 
+                                           af.constant(0, 1, 1, 
+                                                       domain.N_q1 + 2 * N_g, 
+                                                       domain.N_q2 + 2 * N_g, 
                                                        dtype = af.Dtype.f64
                                                       )
                                           )
@@ -94,6 +97,7 @@ class test_mirror(object):
         domain.N_q1 = int(N)
         domain.N_q2 = int(N)
 
+        N_g    = domain.N_ghost
         system = physical_system(domain,
                                  boundary_conditions_mirror,
                                  params,
@@ -104,16 +108,18 @@ class test_mirror(object):
                                 )
 
         self.fields_solver = fields_solver(system, 
-                                           af.constant(0, 1, 1, int(N)+6, int(N)+6, 
+                                           af.constant(0, 1, 1, 
+                                                       domain.N_q1 + 2 * N_g, 
+                                                       domain.N_q2 + 2 * N_g, 
                                                        dtype = af.Dtype.f64
-                                                      ) 
+                                                      )
                                           )
 
         return
 
 def test_fdtd_mode1_periodic():
 
-    N = 2**np.arange(5, 8)
+    N = np.array([128, 196, 256, 384, 512]) #2**np.arange(5, 8)
 
     error_B1 = np.zeros(N.size)
     error_B2 = np.zeros(N.size)
@@ -136,7 +142,12 @@ def test_fdtd_mode1_periodic():
         for time_index, t0 in enumerate(time):
             J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
             obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
-        
+
+            # pl.contourf(np.array(obj.fields_solver.yee_grid_EM_fields[2]).reshape(134, 134), 40)
+            # pl.savefig('images/%04d'%time_index + '.png')
+            # pl.clf()
+ 
+
         error_B1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[3, :, N_g:-N_g, N_g:-N_g] -
                                     B1_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
@@ -160,15 +171,18 @@ def test_fdtd_mode1_periodic():
     print(error_B2)
     print(error_E3)
 
+    print(poly_B1)
+    print(poly_B2)
+    print(poly_E3)
+
     pl.loglog(N, error_B1, '-o', label = r'$B_x$')
     pl.loglog(N, error_B2, '-o', label = r'$B_y$')
     pl.loglog(N, error_E3, '-o', label = r'$E_z$')
-    pl.loglog(N, error_B1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.loglog(N, error_B2[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
     pl.xlabel(r'$N$')
     pl.ylabel('Error')
     pl.legend()
     pl.savefig('convergenceplot.png')
-    pl.savefig('convergenceplot.svg')
 
     assert (abs(poly_B1[0] + 2) < 0.2)
     assert (abs(poly_B2[0] + 2) < 0.2) 
@@ -231,7 +245,6 @@ def test_fdtd_mode2_periodic():
     pl.ylabel('Error')
     pl.legend()
     pl.savefig('convergenceplot.png')
-    pl.savefig('convergenceplot.svg')
 
     print(poly_E1)
     print(poly_E2)
@@ -243,7 +256,7 @@ def test_fdtd_mode2_periodic():
 
 def test_fdtd_mode1_mirror():
 
-    N = 2**np.arange(5, 8)
+    N = np.array([128]) #2**np.arange(5, 11)
 
     error_B1 = np.zeros(N.size)
     error_B2 = np.zeros(N.size)
@@ -251,8 +264,8 @@ def test_fdtd_mode1_mirror():
 
     for i in range(N.size):
 
-        dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
-        time = np.arange(dt, 4 * np.sqrt(9/5) + dt, dt)
+        dt   = (1 / int(N[i])) *  np.sqrt(9 / 5) / 2
+        time = np.arange(dt, 4 * np.sqrt(9 / 5) + dt, dt)
 
         params.dt = dt
 
@@ -267,6 +280,14 @@ def test_fdtd_mode1_mirror():
             J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
             obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
         
+            # pl.plot(np.array(obj.fields_solver.yee_grid_EM_fields[2]).reshape(134, 9)[3:-3, 0], label = r'$E_z$')
+            # pl.plot(np.array(obj.fields_solver.yee_grid_EM_fields[4]).reshape(134, 9)[3:-3, 0], label = r'$B_y$')
+            # pl.legend()
+            # pl.ylim([-2, 2])
+            # pl.title('Time = %.2f'%t0)
+            # pl.savefig('images/%04d'%time_index + '.png')
+            # pl.clf()
+            
         error_B1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[3, :, N_g:-N_g, N_g:-N_g] -
                                     B1_initial[:, :, N_g:-N_g, N_g:-N_g]
                                    )
@@ -293,16 +314,21 @@ def test_fdtd_mode1_mirror():
     pl.loglog(N, error_B1, '-o', label = r'$B_x$')
     pl.loglog(N, error_B2, '-o', label = r'$B_y$')
     pl.loglog(N, error_E3, '-o', label = r'$E_z$')
-    pl.loglog(N, error_B1[0]*32**2/N**2, '--', color = 'black', label = r'$O(N^{-2})$')
+    pl.loglog(N, error_B1[0]*N[0]**1/N**1, '--', color = 'black', 
+              label = r'$\mathcal{O}(N^{-1})$'
+             )
     pl.xlabel(r'$N$')
     pl.ylabel('Error')
-    pl.legend()
-    pl.savefig('convergenceplot.png')
-    pl.savefig('convergenceplot.svg')
+    pl.legend(framealpha = 0)
+    pl.savefig('convergenceplot.png', bbox_inches = 'tight')
 
-    assert (abs(poly_B1[0] + 2) < 0.2)
-    assert (abs(poly_B2[0] + 2) < 0.2) 
-    assert (abs(poly_E3[0] + 2) < 0.2)
+    print(poly_B1)
+    print(poly_B2)
+    print(poly_E3)
+
+    assert (abs(poly_B1[0] + 1) < 0.2)
+    assert (abs(poly_B2[0] + 1) < 0.2) 
+    assert (abs(poly_E3[0] + 1) < 0.2)
 
 def test_fdtd_mode2_mirror():
 
@@ -361,11 +387,7 @@ def test_fdtd_mode2_mirror():
     pl.ylabel('Error')
     pl.legend()
     pl.savefig('convergenceplot.png')
-    pl.savefig('convergenceplot.svg')
 
-    assert (abs(poly_E1[0] + 2) < 0.2)
-    assert (abs(poly_E2[0] + 2) < 0.2)
-    assert (abs(poly_B3[0] + 2) < 0.2)
-
-test_fdtd_mode1_periodic()
-test_fdtd_mode2_periodic()
+    assert (abs(poly_E1[0] + 1) < 0.2)
+    assert (abs(poly_E2[0] + 1) < 0.2)
+    assert (abs(poly_B3[0] + 1) < 0.2)

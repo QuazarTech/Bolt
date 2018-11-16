@@ -35,23 +35,22 @@ def maxwell_boltzmann(rho, T, p1_b, p2_b, p3_b, p1, p2, p3):
     af.eval(f)
     return(f)
 
-
 class test(object):
     def __init__(self):
         self.physical_system = type('obj', (object,),
                                     {'moments': moments}
                                    )
-        self.p1_start = -10
-        self.p2_start = -10
-        self.p3_start = -10
+        self.p1_start = [-10]
+        self.p2_start = [-10]
+        self.p3_start = [-10]
 
         self.N_p1 = 32
         self.N_p2 = 32
         self.N_p3 = 32
 
-        self.dp1 = (-2 * self.p1_start) / self.N_p1
-        self.dp2 = (-2 * self.p2_start) / self.N_p2
-        self.dp3 = (-2 * self.p3_start) / self.N_p3
+        self.dp1 = (-2 * self.p1_start[0]) / self.N_p1
+        self.dp2 = (-2 * self.p2_start[0]) / self.N_p2
+        self.dp3 = (-2 * self.p3_start[0]) / self.N_p3
 
         self.q1_start = 0; self.q2_start = 0
         self.q1_end   = 1; self.q2_end   = 1
@@ -71,13 +70,14 @@ class test(object):
         self.p1_center, self.p2_center, self.p3_center = \
             calculate_p_center(self.p1_start, self.p2_start, self.p3_start,
                                self.N_p1, self.N_p2, self.N_p3,
-                               self.dp1, self.dp2, self.dp3, 1
+                               [self.dp1], [self.dp2], [self.dp3]
                               )
 
         rho = (1 + 0.01 * af.sin(  2 * np.pi * self.q1_center 
                                  + 4 * np.pi * self.q2_center
                                 )
               )
+        
         T   = (1 + 0.01 * af.cos(  2 * np.pi * self.q1_center 
                                  + 4 * np.pi * self.q2_center
                                 )
@@ -129,8 +129,18 @@ def test_compute_moments():
 
     error_p3b = af.mean(af.abs(mom_p3b_num - mom_p3b_ana))
 
+    print(error_rho)
+    print(error_E)
+    print(error_p1b)
+    print(error_p2b)
+    print(error_p3b)
+
+    print((error_rho + error_E + error_p1b + error_p2b + error_p3b) / 5)
+
     assert(error_rho < 1e-13)
     assert(error_E   < 1e-13)
     assert(error_p1b < 1e-13)
     assert(error_p2b < 1e-13)
     assert(error_p3b < 1e-13)
+
+test_compute_moments()

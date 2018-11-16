@@ -438,9 +438,22 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         #   0   1   2   3   4   5
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
+
         if(on_fdtd_grid == True):
             self.yee_grid_EM_fields[:, :, :N_g] = \
                 af.flip(self.yee_grid_EM_fields[:, :, N_g:2 * N_g], 2)
+
+            # E1 = (self.yee_grid_EM_fields[0])[:, :, :N_g]
+            # E2 = 0 * (self.yee_grid_EM_fields[1])[:, :, :N_g]
+            # E3 = (self.yee_grid_EM_fields[2])[:, :, :N_g]
+
+            # B1 = 0 * (self.yee_grid_EM_fields[3])[:, :, :N_g]
+            # B2 = (self.yee_grid_EM_fields[4])[:, :, :N_g]
+            # B3 = 0 * (self.yee_grid_EM_fields[5])[:, :, :N_g]
+
+            # self.yee_grid_EM_fields[:, :, :N_g] = \
+            #     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
         else:
             self.cell_centered_EM_fields[:, :, :N_g] = \
                 af.flip(self.cell_centered_EM_fields[:, :, N_g:2 * N_g], 2)
@@ -454,6 +467,18 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             self.yee_grid_EM_fields[:, :, -N_g:] = \
                 af.flip(self.yee_grid_EM_fields[:, :, -2 * N_g:-N_g], 2)
+
+            # E1 = (self.yee_grid_EM_fields[0])[:, :, -N_g:]
+            # E2 = 0 * (self.yee_grid_EM_fields[1])[:, :, -N_g:]
+            # E3 = (self.yee_grid_EM_fields[2])[:, :, -N_g:]
+
+            # B1 = 0 * (self.yee_grid_EM_fields[3])[:, :, -N_g:]
+            # B2 = (self.yee_grid_EM_fields[4])[:, :, -N_g:]
+            # B3 = 0 * (self.yee_grid_EM_fields[5])[:, :, -N_g:]
+
+            # self.yee_grid_EM_fields[:, :, -N_g:] = \
+            #     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
         else:
             self.cell_centered_EM_fields[:, :, -N_g:] = \
                 af.flip(self.cell_centered_EM_fields[:, :, -2 * N_g:-N_g], 2)
@@ -468,6 +493,17 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
             self.yee_grid_EM_fields[:, :, :, :N_g] = \
                 af.flip(self.yee_grid_EM_fields[:, :, :, N_g:2 * N_g], 3)
 
+            # E1 = 0 * (self.yee_grid_EM_fields[0])[:, :, :, :N_g]
+            # E2 = (self.yee_grid_EM_fields[1])[:, :, :, :N_g]
+            # E3 = (self.yee_grid_EM_fields[2])[:, :, :, :N_g]
+
+            # B1 = (self.yee_grid_EM_fields[3])[:, :, :, :N_g]
+            # B2 = 0 * (self.yee_grid_EM_fields[4])[:, :, :, :N_g]
+            # B3 = 0 * (self.yee_grid_EM_fields[5])[:, :, :, :N_g]
+
+            # self.yee_grid_EM_fields[:, :, :, :N_g] = \
+            #     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
         else:
             self.cell_centered_EM_fields[:, :, :, :N_g] = \
                 af.flip(self.cell_centered_EM_fields[:, :, :, N_g:2 * N_g], 3)
@@ -481,7 +517,18 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             self.yee_grid_EM_fields[:, :, :, -N_g:] = \
                 af.flip(self.yee_grid_EM_fields[:, :, :, -2 * N_g:-N_g], 3)
-        
+
+            # E1 = 0 * (self.yee_grid_EM_fields[0])[:, :, :, -N_g:]
+            # E2 = (self.yee_grid_EM_fields[1])[:, :, :, -N_g:]
+            # E3 = (self.yee_grid_EM_fields[2])[:, :, :, -N_g:]
+
+            # B1 = (self.yee_grid_EM_fields[3])[:, :, :, -N_g:]
+            # B2 = 0 * (self.yee_grid_EM_fields[4])[:, :, :, -N_g:]
+            # B3 = 0 * (self.yee_grid_EM_fields[5])[:, :, :, -N_g:]
+
+            # self.yee_grid_EM_fields[:, :, :, -N_g:] = \
+            #     af.join(0, E1, E2, E3, af.join(0, B1, B2, B3))
+
         else:
             self.cell_centered_EM_fields[:, :, :, -N_g:] = \
                 af.flip(self.cell_centered_EM_fields[:, :, :, -2 * N_g:-N_g], 3)
