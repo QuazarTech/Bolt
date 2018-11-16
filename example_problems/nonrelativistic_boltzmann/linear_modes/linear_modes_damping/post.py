@@ -34,35 +34,36 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-N = np.array([64, 96, 128, 192, 256, 384, 512])
+N = np.array([64, 96, 128, 192, 256, 384, 512, 1024])
 
 for i in range(N.size):
     
-    h5f        = h5py.File('dump/data_Nx_'+ str(int(N[i])) + '_Nv_' + str(int(N[i])) + '.h5', 'r')
-    n_nls      = h5f['n_nls'][:]
-    n_nls2     = h5f['n_nls2'][:]
+    h5f        = h5py.File('dump/data_Nx_64' + '_Nv_' + str(int(N[i])) + '.h5', 'r')
+    E_nls      = h5f['E_nls'][:]
+    E_nls2     = h5f['E_nls2'][:]
     time_array = h5f['time'][:]
     h5f.close()
 
     h5f         = h5py.File('dump/data_Nx_64_Nv_1024.h5', 'r')
-    n_ls        = h5f['n_ls'][:]
+    E_ls        = h5f['E_ls'][:]
     time_array2 = h5f['time'][:]
     h5f.close()
 
-    pl.plot(time_array, n_nls2, label = 'Without Filter')
-    pl.plot(time_array, n_nls, '--', color = 'red', label = 'With Filter')
-    pl.plot(time_array2, n_ls, '--', color = 'black', label = 'Linear Theory')
-    pl.ylabel('$n$')
-    pl.xlabel('Time')
-    pl.legend(fontsize = 25)
-    pl.savefig('plots/n' + str(int(N[i])) + '.png', bbox_inches = 'tight')
-    pl.clf()
+    # pl.plot(time_array, E_nls2, label = 'Without Filter')
+    # pl.plot(time_array, E_nls, '--', color = 'red', label = 'With Filter')
+    # pl.plot(time_array2, E_ls, '--', color = 'black', label = 'Linear Theory')
+    # pl.ylabel('$n$')
+    # pl.xlabel('Time')
+    # pl.legend(fontsize = 25)
+    # pl.savefig('plots/n' + str(int(N[i])) + '.png', bbox_inches = 'tight')
+    # pl.clf()
 
-    pl.semilogy(time_array, n_nls2-1, label = 'Without Filter')
-    pl.semilogy(time_array, n_nls-1, '--', color = 'red', label = 'With Filter')
-    pl.plot(time_array2, n_ls-1, '--', color = 'black', label = 'Linear Theory')
-    pl.ylabel(r'$\delta n$')
-    pl.xlabel('Time')
-    pl.legend(fontsize = 25)
+    pl.semilogy(time_array, E_nls2, label = 'Without Filter')
+    pl.semilogy(time_array, E_nls, '--', color = 'red', label = 'With Filter')
+    pl.plot(time_array2, E_ls, '--', color = 'black', label = 'Linear Theory')
+    pl.title('$N_v$ = ' + str(N[i]))
+    pl.ylabel(r'MAX($E$)')
+    pl.xlabel(r'Time($\omega_p^{-1}$)')
+    # pl.legend(fontsize = 20, framealpha = 0)
     pl.savefig('plots/n_semilogy_' + str(int(N[i])) + '.png', bbox_inches = 'tight')
     pl.clf()
