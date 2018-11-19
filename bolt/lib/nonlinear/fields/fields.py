@@ -536,23 +536,27 @@ class fields_solver(object):
         self.J2 = af.sum(J2, 1)
         self.J3 = af.sum(J3, 1)
 
+        # E_at_n holds (E_x^n , E_y^n, E_z^n)
         # cell_centered_EM_fields[:3] => (E_x^n , E_y^n, E_z^n)
-        # cell_centered_EM_fields_at_n[:3] => (E_x^n , E_y^n, E_z^n)
-        self.cell_centered_EM_fields_at_n[:3] = self.cell_centered_EM_fields[:3]
-
-        # cell_centered_EM_fields[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
+        E_at_n = self.cell_centered_EM_fields[:3]
+        self.cell_centered_EM_fields_at_n[:3] = E_at_n
+ 
+        # B_at_n_minus_half holds (B_x^{n-1/2} , B_y^{n-1/2}, B_z^{n-1/2})
         # cell_centered_EM_fields_at_n_plus_half[3:] => (B_x^{n-1/2} , B_y^{n-1/2}, B_z^{n-1/2})
         # ^ NOTE: This is because cell_centered_EM_fields_at_n_plus_half has not been updated for
-        # this timestep
+        # this timestep, and holds the information for the previous timestep:
+        B_at_n_minus_half = cell_centered_EM_fields_at_n_plus_half[3:]
+
+        # cell_centered_EM_fields[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
+        B_at_n_plus_half = self.cell_centered_EM_fields[3:]
+
         # cell_centered_EM_fields_at_n[3:] => (B_x^n , B_y^n, B_z^n)
-        self.cell_centered_EM_fields_at_n[3:] = \
-            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[3:]
-                   + self.cell_centered_EM_fields[3:]
-                  )
+        B_at_n = 0.5 * (B_at_n_minus_half + B_at_n_plus_half)
+        self.cell_centered_EM_fields_at_n[3:] = B_at_n
 
         # Now updating cell_centered_EM_fields_at_n_plus_half for this timestep:
         # cell_centered_EM_fields_at_n_plus_half[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
-        self.cell_centered_EM_fields_at_n_plus_half[3:] = self.cell_centered_EM_fields[3:]
+        self.cell_centered_EM_fields_at_n_plus_half[3:] = B_at_n_plus_half
 
         # Evolving:
         # cell_centered_EM_fields[:3] => (E_x^n ,     E_y^n,     E_z^n) --> 
@@ -562,14 +566,12 @@ class fields_solver(object):
         fdtd(self, dt)
         self.yee_grid_to_cell_centered_grid()
 
-        # Here
-        # cell_centered_EM_fields_at_n[:3]           => (E_x^{n} ,    E_y^{n},     E_z^{n})
-        # cell_centered_EM_fields[:3]                => (E_x^{n+1} ,  E_y^{n+1},   E_z^{n+1})
+        # cell_centered_EM_fields[:3] => (E_x^{n+1} ,  E_y^{n+1},   E_z^{n+1})
+        E_at_n_plus_one = self.cell_centered_EM_fields[:3]
+        
         # cell_centered_EM_fields_at_n_plus_half[:3] => (E_x^{n+1/2}, E_y^{n+1/2}, E_z^{n+1/2})
-        self.cell_centered_EM_fields_at_n_plus_half[:3] = \
-            0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
-                   + self.cell_centered_EM_fields[:3]
-                  )
+        E_at_n_plus_half = 0.5 * (E_at_n + E_at_n_plus_one)
+        self.cell_centered_EM_fields_at_n_plus_half[:3] = E_at_n_plus_half
 
         # Update time elapsed:
         self.time_elapsed += dt
