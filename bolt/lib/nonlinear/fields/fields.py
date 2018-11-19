@@ -516,18 +516,35 @@ class fields_solver(object):
     def evolve_electrodynamic_fields(self, J1, J2, J3, dt):
         """
         Evolve the fields using FDTD.
+        
+        Updates:
+        self_cell_centered_EM_fields[:3] => (E_x^n,     E_y^n,     E_z^n) --->
+                                            (E_x^{n+1}, E_y^{n+1}, E_z^{n+1})
+
+        self_cell_centered_EM_fields[3:] => (B_x^{n+1/2}, B_y^{n+1/2}, B_z^{n+1/2}) --->
+                                            (B_x^{n+3/2}, B_y^{n+3/2}, B_z^{n+3/2})
+
+        self.cell_centered_EM_fields_at_n => (E_x^{n-1}, E_y^{n-1}, E_z^{n-1}
+                                              B_x^{n-1}, B_y^{n-1}, B_z^{n-1}) --->
+                                             (E_x^{n}, E_y^{n}, E_z^{n}
+                                              B_x^{n}, B_y^{n}, B_z^{n})
+
+        self.cell_centered_EM_fields_at_n_plus_half => (E_x^{n-1/2}, E_y^{n-1/2}, E_z^{n-1/2}
+                                                        B_x^{n-1/2}, B_y^{n-1/2}, B_z^{n-1/2}) --->
+                                                       (E_x^{n+1/2}, E_y^{n+1/2}, E_z^{n+1/2}
+                                                        B_x^{n+1/2}, B_y^{n+1/2}, B_z^{n+1/2})
 
         Parameters
         ----------
 
         J1 : af.Array
-             Array which contains the J1 current for each species.        
-        
+             Array which contains the J1 current for each species at (n + 1/2)        
+              
         J2 : af.Array
-             Array which contains the J2 current for each species.        
+             Array which contains the J2 current for each species at (n + 1/2).        
         
         J3 : af.Array
-             Array which contains the J3 current for each species.        
+             Array which contains the J3 current for each species at (n + 1/2).        
         
         dt: double
             Timestep size
