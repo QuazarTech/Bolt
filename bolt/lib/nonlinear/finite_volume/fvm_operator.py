@@ -24,12 +24,14 @@ def timestep_fvm(self, dt):
     # rho_n[0, 1] = -1 * rho_n[0, 1]
     # rho_n       = af.sum(rho_n, 1)
 
-    f_initial = self.f
-    self.f    = self.f + df_dt_fvm(self.f, self) * (dt / 2)
+    f_initial = self.f # this is f^{n}
+    self.f    = self.f + df_dt_fvm(self.f, self) * (dt / 2) # this is f{n+1/2}
     
     self._communicate_f()
     self._apply_bcs_f()
 
+    # this is equivalent to f^{n+1} = f^n + df_dt(f = f^{n+1/2}) * dt
+    # there df_dt() is the function that returns df / dt
     self.f = f_initial + df_dt_fvm(self.f, self) * dt
 
     # self.count += 1

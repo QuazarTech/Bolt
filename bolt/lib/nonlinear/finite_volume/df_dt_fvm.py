@@ -225,6 +225,13 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
                               self.compute_moments('mom_v3_bulk', f = f)
                              ) # (i + 1/2, j + 1/2)
 
+            # This gets called only at the (n+1/2)-th step
+            # This means that J's are at (n+1/2)
+            # evolves E^n       --> E^{n + 1}
+            # evolves B^{n+1/2} --> B^{n + 3 / 2}
+            # Updates cell_centered_EM_fields_at_{n/n_plus_half}:
+            # cell_centered_EM_fields_at_n from (E^{n-1}, B^{n-1}) ---> (E^{n}, B^{n})
+            # cell_centered_EM_fields_at_n_plus_half from (E^{n-1/2}, B^{n-1/2}) ---> (E^{n+1/2}, B^{n+1/2})
             self.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, self.dt)
 
         if(self.physical_system.params.fields_type == 'electrostatic'):
