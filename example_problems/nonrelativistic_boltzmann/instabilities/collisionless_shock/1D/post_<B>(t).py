@@ -49,17 +49,27 @@ for time_index, t0 in enumerate(time_array):
     fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
     h5f.close()
 
-    B1 = fields[:, :, 3]
+    B1 = fields[0, :, 3] / params.B0
+    B2 = fields[0, :, 4] / params.B0
+    B3 = fields[0, :, 5] / params.B0
+    
+    # if(time_index % 1000 == 0):
+    #     pl.plot(B1 / params.B0)
+    #     pl.show()
 
-    B_mean_data[time_index] = np.mean(B1)
+    B_mean_data[time_index] = np.mean(B1**2 + B2**2 + B3**2)
 
-h5f = h5py.File('B_mean_data.h5', 'w')
-h5f.create_dataset('B_mean', data = B_mean_data)
-h5f.close()
+# h5f = h5py.File('B_mean_data.h5', 'w')
+# h5f.create_dataset('B_mean', data = B_mean_data)
+# h5f.close()
 
-h5f = h5py.File('B_mean_data.h5', 'r')
-B_mean_data = h5f['B_mean'][:] / params.B0
-h5f.close()
+# h5f = h5py.File('B_mean_data.h5', 'r')
+# B_mean_data = h5f['B_mean'][:] / params.B0
+# h5f.close()
 
-pl.plot(time_array, B_mean_data)
+pl.semilogy(time_array / params.t0, B_mean_data, label = r'$<B_x^2>$')
+pl.xlabel(r'Time($\omega_c^{-1})$')
+pl.ylabel(r'$<B^2>$')
+pl.xlim([0, 200])
+# pl.legend()
 pl.savefig('plot.png', bbox_inches = 'tight')

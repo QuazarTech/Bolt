@@ -64,6 +64,7 @@ for i in range(N.size):
     pl.title('$N_v$ = ' + str(N[i]))
     pl.ylabel(r'MAX($E$)')
     pl.xlabel(r'Time($\omega_p^{-1}$)')
+    pl.ylim([1e-11, 5e-2])
     # pl.legend(fontsize = 20, framealpha = 0)
     pl.savefig('plots/n_semilogy_' + str(int(N[i])) + '.png', bbox_inches = 'tight')
     pl.clf()
