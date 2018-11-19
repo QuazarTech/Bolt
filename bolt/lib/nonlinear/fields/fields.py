@@ -536,26 +536,36 @@ class fields_solver(object):
         self.J2 = af.sum(J2, 1)
         self.J3 = af.sum(J3, 1)
 
-        # Here:
-        # cell_centered_EM_fields[:3] is at n
-        # cell_centered_EM_fields[3:] is at n+1/2
-        # cell_centered_EM_fields_at_n_plus_half[3:] is at n-1/2
-
+        # cell_centered_EM_fields[:3] => (E_x^n , E_y^n, E_z^n)
+        # cell_centered_EM_fields_at_n[:3] => (E_x^n , E_y^n, E_z^n)
         self.cell_centered_EM_fields_at_n[:3] = self.cell_centered_EM_fields[:3]
+
+        # cell_centered_EM_fields[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
+        # cell_centered_EM_fields_at_n_plus_half[3:] => (B_x^{n-1/2} , B_y^{n-1/2}, B_z^{n-1/2})
+        # ^ NOTE: This is because cell_centered_EM_fields_at_n_plus_half has not been updated for
+        # this timestep
+        # cell_centered_EM_fields_at_n[3:] => (B_x^n , B_y^n, B_z^n)
         self.cell_centered_EM_fields_at_n[3:] = \
-            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[3:] 
+            0.5 * (  self.cell_centered_EM_fields_at_n_plus_half[3:]
                    + self.cell_centered_EM_fields[3:]
                   )
 
+        # Now updating cell_centered_EM_fields_at_n_plus_half for this timestep:
+        # cell_centered_EM_fields_at_n_plus_half[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
         self.cell_centered_EM_fields_at_n_plus_half[3:] = self.cell_centered_EM_fields[3:]
 
+        # Evolving:
+        # cell_centered_EM_fields[:3] => (E_x^n ,     E_y^n,     E_z^n) --> 
+        #                                (E_x^{n+1} , E_y^{n+1}, E_z^{n+1})
+        # cell_centered_EM_fields[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2}) -->
+        #                                (B_x^{n+3/2} , B_y^{n+3/2}, B_z^{n+3/2})
         fdtd(self, dt)
         self.yee_grid_to_cell_centered_grid()
 
         # Here
-        # cell_centered_EM_fields[:3] is at n+1
-        # cell_centered_EM_fields[3:] is at n+3/2
-
+        # cell_centered_EM_fields_at_n[:3]           => (E_x^{n} ,    E_y^{n},     E_z^{n})
+        # cell_centered_EM_fields[:3]                => (E_x^{n+1} ,  E_y^{n+1},   E_z^{n+1})
+        # cell_centered_EM_fields_at_n_plus_half[:3] => (E_x^{n+1/2}, E_y^{n+1/2}, E_z^{n+1/2})
         self.cell_centered_EM_fields_at_n_plus_half[:3] = \
             0.5 * (  self.cell_centered_EM_fields_at_n[:3] 
                    + self.cell_centered_EM_fields[:3]
