@@ -1,6 +1,6 @@
 q1_start = 0
 q1_end   = 1
-N_q1     = 512
+N_q1     = 64
 
 q2_start = 0
 q2_end   = 1
@@ -8,7 +8,7 @@ N_q2     = 3
 
 p1_start = [-4]
 p1_end   = [4]
-N_p1     = 512
+N_p1     = 64
 
 p2_start = [-0.5]
 p2_end   = [0.5]

@@ -41,12 +41,20 @@ print('f_min:', af.min(nls.f))
 print('f_max:', af.max(nls.f))
 
 # Dumping the distribution function at t = 0:
-nls.dump_distribution_function('dump_f/t=0.000')
+# nls.dump_distribution_function('dump_f/t=0.000')
+nls.dump_moments('dump_moments/t=0.000')
 
 for time_index, t0 in enumerate(time_array):
     
     nls.strang_timestep(dt)
     PETSc.Sys.Print('Computing For Time =', t0)
 
-    if(math.modf(t0 / 0.01)[0] < 1e-5):
-        nls.dump_distribution_function('dump_f/t=' + '%.3f'%t0)
+    delta_dt =   (1 - math.modf(t0/params.dt_dump_moments)[0]) \
+               * params.dt_dump_moments
+
+    nls.dump_moments('dump_moments/t=' + '%.3f'%t0)
+    # nls.dump_distribution_function('dump_f/t=' + '%.3f'%t0)
+
+    # if((delta_dt-dt) < 1e-5):
+    #     nls.dump_distribution_function('dump_f/t=' + '%.3f'%t0)
+    #     nls.dump_moments('dump_moments/t=' + '%.3f'%t0)

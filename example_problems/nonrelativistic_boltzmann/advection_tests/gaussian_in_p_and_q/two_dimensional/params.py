@@ -32,9 +32,11 @@ q20 = 0.5
 p10 = 1
 p20 = 1
 
-sigma_q = 0.05
-sigma_p = 0.4
-t_final = 1.0
+sigma_q         = 0.05
+sigma_p         = 0.4
+t_final         = 5
+dt_dump_moments = 0.001
+
 
 # Solver Switches:
 fields_enabled           = False

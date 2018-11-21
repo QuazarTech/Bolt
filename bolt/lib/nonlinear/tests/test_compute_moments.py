@@ -135,7 +135,7 @@ def test_compute_moments():
     print(error_p2b)
     print(error_p3b)
 
-    print((error_rho + error_E + error_p1b + error_p2b + error_p3b) / 5)
+    # print((error_rho + error_E + error_p1b + error_p2b + error_p3b) / 5)
 
     assert(error_rho < 1e-13)
     assert(error_E   < 1e-13)

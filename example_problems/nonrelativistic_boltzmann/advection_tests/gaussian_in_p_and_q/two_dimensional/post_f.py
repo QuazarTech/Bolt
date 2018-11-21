@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('agg')
+# matplotlib.use('agg')
 import pylab as pl
 
 import h5py
@@ -48,47 +48,49 @@ dq2 = (domain.q2_end - domain.q2_start) / N_q2
 
 dp1 = (domain.p1_end[0] - domain.p1_start[0]) / N_p1
 dp2 = (domain.p2_end[0] - domain.p2_start[0]) / N_p2
-dp3 = (domain.p3_end[0] - domain.p3_start[0]) / N_p3
 
 p1 = domain.p1_start[0] + (0.5 + np.arange(N_p1)) * dp1
 p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * dp2
 
-p2, p1 = np.meshgrid(p2, p1)
+q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
+q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
+
+q1, p1 = np.meshgrid(q1, p1)
 
 # Declaration of the time array:
-time_array = np.arange(0, params.t_final + 0.01, 
-                       0.01
+time_array = np.arange(0, params.t_final + 0.001, 
+                       0.001
                       )
 
 h5f = h5py.File('dump_f/t=0.000.h5', 'r')
-f0  = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2, N_p3), (3, 2, 0))
+f0  = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2), (1, 3))
 h5f.close()
 
 f_max = -1e100
 f_min =  1e100
 
 for time_index, t0 in enumerate(time_array):
-    
+    print(t0)
     h5f = h5py.File('dump_f/t=%.3f'%(t0) + '.h5', 'r')
-    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2), (0, 1))
+    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2), (1, 3))
     h5f.close()
 
     if(f.max() > f_max):
-        f_max = f.max()
+        f_max = abs(f-f0).max()
 
     if(f.min() < f_min):
-        f_min = f.min()
+        f_min = abs(f-f0).min()
 
 for time_index, t0 in enumerate(time_array):
     
     h5f = h5py.File('dump_f/t=%.3f'%(t0) + '.h5', 'r')
-    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2), (0, 1))
+    f   = np.mean(np.swapaxes(h5f['distribution_function'][:], 0, 1).reshape(N_q1, N_q2, N_p1, N_p2), (1, 3))
     h5f.close()
 
-    pl.contourf(p1, p2, f, np.linspace(f_min, f_max, 100))
+    pl.contourf(p1, q1, abs(f-f0), np.linspace(f_min, f_max, 100))
     pl.colorbar()
     pl.xlabel(r'$v_x$')
-    pl.ylabel(r'$v_y$')
+    pl.ylabel(r'$x$')
     pl.title('Time = %.2f'%(t0))
     pl.savefig('images/%04d'%time_index + '.png')
     pl.clf()

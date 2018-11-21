@@ -131,6 +131,9 @@ def A_p(t, q1, q2, v1, v2, v3,
     e = params.charge
     m = params.mass
 
+    # Returns the cell centered fields
+    # On the n-th step it returns (E1^{n}, E2^{n}, E3^{n}, B1^{n}, B2^{n}, B3^{n})
+    # On the (n+1/2)-th step it returns (E1^{n+1/2}, E2^{n+1/2}, E3^{n+1/2}, B1^{n+1/2}, B2^{n+1/2}, B3^{n+1/2})
     E1, E2, E3, B1, B2, B3 = fields_solver.get_fields()
 
     A_p1 = (e/m) * (E1 + v2 * B3 - v3 * B2)

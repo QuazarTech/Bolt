@@ -8,7 +8,7 @@ import params
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 15, 10
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 80
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -45,20 +45,24 @@ p1, q1 = np.meshgrid(p1, q1)
 
 time_array  = np.arange(0, 1.001, 0.001)
 
-# Traversal for the range:
-max_f = 65 #0
-min_f = 0 #1000
-# for time_index, t0 in enumerate(time_array):
+h5f = h5py.File('dump_f/0000.h5', 'r')
+f0  = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+h5f.close()
 
-#     h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
-#     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
-#     h5f.close()
+# # Traversal for the range:
+max_f = -100000 #0
+min_f = 100000 #1000
+for time_index, t0 in enumerate(time_array):
 
-#     if(np.max(f)>max_f):
-#         max_f = np.max(f)
+    h5f = h5py.File('dump_f/%04d'%time_index + '.h5', 'r')
+    f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
+    h5f.close()
 
-#     if(np.min(f)<min_f):
-#         min_f = np.min(f)
+    if(np.max(f)>max_f):
+        max_f = np.max(abs(f-f0))
+
+    if(np.min(f)<min_f):
+        min_f = np.min(abs(f-f0))
     
 for time_index, t0 in enumerate(time_array):
 
@@ -66,7 +70,7 @@ for time_index, t0 in enumerate(time_array):
     f   = h5f['distribution_function'][:][0, :, :].reshape(domain.N_q1, domain.N_p1)
     h5f.close()
 
-    pl.contourf(p1, q1, f, np.linspace(min_f, max_f, 100))
+    pl.contourf(p1, q1, abs(f-f0), np.linspace(min_f, max_f, 100))
     pl.xlabel(r'$v$')
     pl.ylabel(r'$x$')
     pl.title('Time = %.3f'%(t0))

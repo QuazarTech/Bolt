@@ -8,8 +8,8 @@ import domain
 import params
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 15, 10
-pl.rcParams['figure.dpi']      = 80
+pl.rcParams['figure.figsize']  = 9, 4
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -49,7 +49,7 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
 
-N_s = 2 
+N_s = 1
 
 def return_array_to_be_plotted(name, moments, fields):
     m       = np.array(params.mass).reshape(1, 1, len(params.mass))
@@ -91,7 +91,7 @@ def return_array_to_be_plotted(name, moments, fields):
     if(name == 'density'):
         return n
     elif(name == 'energy'):
-        return 1 * moments[:, :, 1*N_s:2*N_s]
+        return m * moments[:, :, 1*N_s:2*N_s]
 
     elif(name == 'v1'):
         return v1_bulk
@@ -147,18 +147,21 @@ def return_array_to_be_plotted(name, moments, fields):
     else:
         raise Exception('Not valid!')
 
-# Declaration of the time array:
-time_array   = np.arange(0, 20 * params.t0 + params.dt_dump_moments, 
-                         params.dt_dump_moments
-                        )
+# Time parameters:
+dt      = 0.001
+t_final = params.t_final
 
-kinetic_energy_error  = np.zeros(time_array.size)
-electric_energy_error = np.zeros(time_array.size)
-magnetic_energy_error = np.zeros(time_array.size)
+time_array  = np.arange(dt, t_final + dt, dt)
 
-kinetic_energy_initial  = 0
-electric_energy_initial = 0
-magnetic_energy_initial = 0
+kinetic_energy_error = np.zeros(time_array.size)
+mass_error           = np.zeros(time_array.size)
+momentum_x_error     = np.zeros(time_array.size)
+momentum_y_error     = np.zeros(time_array.size)
+
+kinetic_energy_initial = 0
+mass_initial           = 0
+momentum_x_initial     = 0
+momentum_y_initial     = 0
 
 for time_index, t0 in enumerate(time_array):
 
@@ -166,40 +169,40 @@ for time_index, t0 in enumerate(time_array):
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-    h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-    fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+    h5f   = h5py.File('dump_moments2/t=%.3f'%(t0) + '.h5', 'r')
+    moments2 = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-    E  = return_array_to_be_plotted('energy', moments, fields)
-
-    E1 = return_array_to_be_plotted('E1', moments, fields)
-    E2 = return_array_to_be_plotted('E2', moments, fields)
-    E3 = return_array_to_be_plotted('E3', moments, fields)
-
-    B1 = return_array_to_be_plotted('B1', moments, fields)
-    B2 = return_array_to_be_plotted('B2', moments, fields)
-    B3 = return_array_to_be_plotted('B3', moments, fields)
-
+    E  = return_array_to_be_plotted('energy', moments, moments)
+    n  = return_array_to_be_plotted('density', moments, moments)
+    n2 = return_array_to_be_plotted('density', moments2, moments2)
+    px = return_array_to_be_plotted('v1', moments, moments) * return_array_to_be_plotted('density', moments, moments) 
+    py = return_array_to_be_plotted('v2', moments, moments) * return_array_to_be_plotted('density', moments, moments) 
+    
     if(time_index == 0):
-        kinetic_energy_initial  = np.mean(E) 
-        electric_energy_initial = np.mean(E1**2 + E2**2 + E3**2) * params.eps / 2
-        magnetic_energy_initial = np.mean(B1**2 + B2**2 + B3**2) / (2 * params.mu) 
+        print(n.shape)
+        mass_initial           = np.mean(n)
+        momentum_x_initial     = np.mean(px)
+        momentum_y_initial     = np.mean(py)
+        kinetic_energy_initial = np.mean(E)
 
-    kinetic_energy  = np.mean(E) 
-    electric_energy = np.mean(E1**2 + E2**2 + E3**2) * params.eps / 2
-    magnetic_energy = np.mean(B1**2 + B2**2 + B3**2) / (2 * params.mu) 
+    mass           = np.max(n)
+    mass2          = np.max(n2)
+    momentum_x     = np.mean(px)
+    momentum_y     = np.mean(py)
+    kinetic_energy = np.mean(E) 
 
-    kinetic_energy_error[time_index]  = (kinetic_energy - kinetic_energy_initial)
-    electric_energy_error[time_index] = (electric_energy - electric_energy_initial)
-    magnetic_energy_error[time_index] = (magnetic_energy - magnetic_energy_initial)
+    mass_error[time_index]           = (mass - 0*mass_initial)
+    momentum_x_error[time_index]     = (mass2 - 0 * momentum_x - 0 * momentum_x_initial)
+    momentum_y_error[time_index]     = (momentum_y - momentum_y_initial)
+    kinetic_energy_error[time_index] = (kinetic_energy - kinetic_energy_initial)
 
-print(kinetic_energy_error[:100])
-print(electric_energy_error[:100])
-print(magnetic_energy_error[:100])
-
-pl.semilogy(time_array / params.t0, abs(kinetic_energy_error + electric_energy_error + magnetic_energy), label = r'$|$KE(t) - KE(t = 0)$|$')
-# pl.semilogy(time_array / params.t0, abs(electric_energy_error + magnetic_energy), label = r'$|$EME(t) - EME(t = 0)$|$')
-# pl.semilogy(time_array / params.t0, (magnetic_energy_error), label = r'$0.5 <>$')
-pl.legend()
-pl.xlabel(r'Time($\tau_A$)')
+pl.semilogy(time_array, abs(mass_error), label = r'$N=32$', alpha = 1)
+pl.semilogy(time_array, abs(momentum_x_error), label = r'$N=64$', alpha = 1)
+# pl.semilogy(time_array, abs(momentum_y_error), label = 'y-Momentum', alpha = 0.5)
+# pl.semilogy(time_array, abs(kinetic_energy_error), label = 'Kinetic Energy', alpha = 0.5)
+# pl.ylim([1e-17, 1e-11])
+pl.ylabel(r'MAX($n$)')
+pl.legend(framealpha = 0, fontsize = 25)
+pl.xlabel(r'Time')
 pl.savefig('plot.png', bbox_inches = 'tight')
