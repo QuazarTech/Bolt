@@ -562,7 +562,7 @@ class fields_solver(object):
         # cell_centered_EM_fields_at_n_plus_half[3:] => (B_x^{n-1/2} , B_y^{n-1/2}, B_z^{n-1/2})
         # ^ NOTE: This is because cell_centered_EM_fields_at_n_plus_half has not been updated for
         # this timestep, and holds the information for the previous timestep:
-        B_at_n_minus_half = cell_centered_EM_fields_at_n_plus_half[3:]
+        B_at_n_minus_half = self.cell_centered_EM_fields_at_n_plus_half[3:]
 
         # cell_centered_EM_fields[3:] => (B_x^{n+1/2} , B_y^{n+1/2}, B_z^{n+1/2})
         B_at_n_plus_half = self.cell_centered_EM_fields[3:]

@@ -35,7 +35,7 @@ import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'gist_heat'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -119,7 +119,7 @@ class test_mirror(object):
 
 def test_fdtd_mode1_periodic():
 
-    N = np.array([128, 196, 256, 384, 512]) #2**np.arange(5, 8)
+    N = np.array([128]) #2**np.arange(5, 8)
 
     error_B1 = np.zeros(N.size)
     error_B2 = np.zeros(N.size)
@@ -135,18 +135,44 @@ def test_fdtd_mode1_periodic():
         obj = test_periodic(int(N[i]), initialize_fdtd_mode1, params)
         N_g = obj.fields_solver.N_g
 
+        E1_initial = obj.fields_solver.yee_grid_EM_fields[0].copy()
+        E2_initial = obj.fields_solver.yee_grid_EM_fields[1].copy()
         E3_initial = obj.fields_solver.yee_grid_EM_fields[2].copy()
+
         B1_initial = obj.fields_solver.yee_grid_EM_fields[3].copy()
         B2_initial = obj.fields_solver.yee_grid_EM_fields[4].copy()
+        B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
+
+        energy_initial =   0.5 * (E1_initial**2 + E2_initial**2 + E3_initial**2) \
+                         + 0.5 * (B1_initial**2 + B2_initial**2 + B3_initial**2)
+        energy_initial = np.sum(energy_initial)
+
+        error    = np.zeros([time.size+1]) #+1 for t = 0
+        error[0] = 0
 
         for time_index, t0 in enumerate(time):
+
             J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
             obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
+
+            E1 = obj.fields_solver.yee_grid_EM_fields[0]
+            E2 = obj.fields_solver.yee_grid_EM_fields[1]
+            E3 = obj.fields_solver.yee_grid_EM_fields[2]
+            B1 = obj.fields_solver.yee_grid_EM_fields[3]
+            B2 = obj.fields_solver.yee_grid_EM_fields[4]
+            B3 = obj.fields_solver.yee_grid_EM_fields[5]
+
+            energy = np.sum(0.5 * (E1**2 + E2**2 + E3**2) + 0.5 * (B1**2 + B2**2 + B3**2))
+            error[time_index+1] = abs(energy - energy_initial)
 
             # pl.contourf(np.array(obj.fields_solver.yee_grid_EM_fields[2]).reshape(134, 134), 40)
             # pl.savefig('images/%04d'%time_index + '.png')
             # pl.clf()
- 
+
+        pl.plot(time, error)
+        pl.xlabel('Time')
+        pl.ylabel('Error')
+        pl.savefig('plot.png', bbox_inches = 'tight')
 
         error_B1[i] = af.sum(af.abs(obj.fields_solver.yee_grid_EM_fields[3, :, N_g:-N_g, N_g:-N_g] -
                                     B1_initial[:, :, N_g:-N_g, N_g:-N_g]
@@ -391,3 +417,6 @@ def test_fdtd_mode2_mirror():
     assert (abs(poly_E1[0] + 1) < 0.2)
     assert (abs(poly_E2[0] + 1) < 0.2)
     assert (abs(poly_B3[0] + 1) < 0.2)
+
+
+test_fdtd_mode1_periodic()
