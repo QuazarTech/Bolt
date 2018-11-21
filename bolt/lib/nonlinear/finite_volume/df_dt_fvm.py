@@ -243,6 +243,13 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
 
                 self.fields_solver.compute_electrostatic_fields(rho)
 
+
+        # Fields solver object is passed to C_p where the get_fields method
+        # is used to get the electromagnetic fields. The fields returned are
+        # located at the center of the cell. The fields returned are in accordance with
+        # the time level of the simulation. i.e:
+        # On the n-th step it returns (E1^{n}, E2^{n}, E3^{n}, B1^{n}, B2^{n}, B3^{n})
+        # On the (n+1/2)-th step it returns (E1^{n+1/2}, E2^{n+1/2}, E3^{n+1/2}, B1^{n+1/2}, B2^{n+1/2}, B3^{n+1/2})
         self._C_p1 = af.broadcast(self._C_p, self.time_elapsed,
                                   self.q1_center, self.q2_center,
                                   self.p1_left, self.p2_left, self.p3_left,
