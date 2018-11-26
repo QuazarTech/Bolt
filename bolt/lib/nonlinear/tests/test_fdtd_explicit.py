@@ -126,9 +126,10 @@ def test_fdtd_mode1_periodic():
     error_E3 = np.zeros(N.size)
 
     for i in range(N.size):
+
         af.device_gc()
         dt   = (1 / int(N[i])) * np.sqrt(9/5) / 2
-        time = np.arange(dt, np.sqrt(9/5) + dt, dt)
+        time = np.arange(0, np.sqrt(9/5) + dt, dt)
 
         params.dt = dt
 
@@ -143,27 +144,73 @@ def test_fdtd_mode1_periodic():
         B2_initial = obj.fields_solver.yee_grid_EM_fields[4].copy()
         B3_initial = obj.fields_solver.yee_grid_EM_fields[5].copy()
 
-        energy_initial =   0.5 * (E1_initial**2 + E2_initial**2 + E3_initial**2) \
-                         + 0.5 * (B1_initial**2 + B2_initial**2 + B3_initial**2)
-        energy_initial = np.sum(energy_initial)
+        electric_energy = 1/4 * (  E3_initial**2                       # Ez(i+1/2, j+1/2)
+                                 + af.shift(E3_initial, 0, 0, 1, 0)**2 # Ez(i-1/2, j+1/2)
+                                 + af.shift(E3_initial, 0, 0, 0, 1)**2 # Ez(i+1/2, j-1/2)
+                                 + af.shift(E3_initial, 0, 0, 1, 1)**2 # Ez(i-1/2, j-1/2)
+                                )
 
-        error    = np.zeros([time.size+1]) #+1 for t = 0
+        # A3(-1/2)
+        A3 = af.sin(  2 * np.pi * (obj.fields_solver.q1_center + 0.5 * np.sqrt(5 / 9) * dt)
+                    + 4 * np.pi * (obj.fields_solver.q2_center + 0.5 * np.sqrt(5 / 9) * dt)
+                   )
+
+        A3_minus_q2 = af.to_array(np.roll(np.array(A3), 1, 3))
+        A3_minus_q1 = af.to_array(np.roll(np.array(A3), 1, 2))
+
+        B1_n_minus_half =  (A3 - A3_minus_q2) / obj.fields_solver.dq2 #  dA3_dq2
+        B2_n_minus_half = -(A3 - A3_minus_q1) / obj.fields_solver.dq1 # -dA3_dq1
+
+        # At t = 0: (n - 1/2) magnetic fields == (n + 1/2)
+        B1_n_minus_half = B1_initial.copy()
+        B2_n_minus_half = B2_initial.copy()
+
+        B1_n_plus_half  = B1_initial.copy()
+        B2_n_plus_half  = B2_initial.copy()
+
+        magnetic_energy_x = 0.5 * (  B1_n_plus_half * B1_n_minus_half                        # (i+1/2, j)
+                                   + af.shift(B1_n_plus_half * B1_n_minus_half, 0, 0, 1, 0)  # (i-1/2, j)
+                                  )
+
+        magnetic_energy_y = 0.5 * (  B2_n_plus_half * B2_n_minus_half                       # (i, j+1/2)
+                                   + af.shift(B2_n_plus_half * B2_n_minus_half, 0, 0, 0, 1) # (i, j-1/2)
+                                  )
+
+        energy_initial = electric_energy + magnetic_energy_x + magnetic_energy_y
+        energy_initial = af.sum(energy_initial)
+
+        error    = np.zeros([time.size])
         error[0] = 0
 
-        for time_index, t0 in enumerate(time):
+        for time_index, t0 in enumerate(time[1:]):
+
+            B1_n_minus_half = obj.fields_solver.yee_grid_EM_fields[3].copy()
+            B2_n_minus_half = obj.fields_solver.yee_grid_EM_fields[4].copy()
 
             J1 = J2 = J3 = 0 * obj.fields_solver.q1_center**0
             obj.fields_solver.evolve_electrodynamic_fields(J1, J2, J3, dt)
 
-            E1 = obj.fields_solver.yee_grid_EM_fields[0]
-            E2 = obj.fields_solver.yee_grid_EM_fields[1]
-            E3 = obj.fields_solver.yee_grid_EM_fields[2]
-            B1 = obj.fields_solver.yee_grid_EM_fields[3]
-            B2 = obj.fields_solver.yee_grid_EM_fields[4]
-            B3 = obj.fields_solver.yee_grid_EM_fields[5]
+            B1_n_plus_half = obj.fields_solver.yee_grid_EM_fields[3].copy()
+            B2_n_plus_half = obj.fields_solver.yee_grid_EM_fields[4].copy()
 
-            energy = np.sum(0.5 * (E1**2 + E2**2 + E3**2) + 0.5 * (B1**2 + B2**2 + B3**2))
-            error[time_index+1] = abs(energy - energy_initial)
+            E3 = obj.fields_solver.yee_grid_EM_fields[2].copy()
+
+            electric_energy = 1/4 * (  E3**2                       # Ez(i+1/2, j+1/2)
+                                     + af.shift(E3, 0, 0, 1, 0)**2 # Ez(i-1/2, j+1/2)
+                                     + af.shift(E3, 0, 0, 0, 1)**2 # Ez(i+1/2, j-1/2)
+                                     + af.shift(E3, 0, 0, 1, 1)**2 # Ez(i-1/2, j-1/2)
+                                    )
+
+            magnetic_energy_x = 0.5 * (  B1_n_plus_half * B1_n_minus_half                        # (i+1/2, j)
+                                       + af.shift(B1_n_plus_half * B1_n_minus_half, 0, 0, 1, 0)  # (i-1/2, j)
+                                      )
+
+            magnetic_energy_y = 0.5 * (  B2_n_plus_half * B2_n_minus_half                       # (i, j+1/2)
+                                       + af.shift(B2_n_plus_half * B2_n_minus_half, 0, 0, 0, 1) # (i, j-1/2)
+                                      )
+
+            energy = af.sum(electric_energy + magnetic_energy_x + magnetic_energy_y)
+            error[time_index + 1] = abs(energy - energy_initial)
 
             # pl.contourf(np.array(obj.fields_solver.yee_grid_EM_fields[2]).reshape(134, 134), 40)
             # pl.savefig('images/%04d'%time_index + '.png')
