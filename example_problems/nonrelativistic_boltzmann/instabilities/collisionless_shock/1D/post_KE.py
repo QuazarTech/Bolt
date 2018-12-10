@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib
-matplotlib.use('agg')
 import pylab as pl
 
 import h5py
@@ -37,39 +36,39 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
+N_q1 = domain.N_q1
+N_q2 = domain.N_q2
+N_g  = domain.N_ghost
+
+dq1 = (domain.q1_end - domain.q1_start) / N_q1
+dq2 = (domain.q2_end - domain.q2_start) / N_q2
+
 time_array = np.arange(0, 1000 * params.t0 + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
-B_mean_data = np.zeros(time_array.size)
+KE_electrons = np.zeros(time_array.size)
+KE_ions      = np.zeros(time_array.size)
 
 for time_index, t0 in enumerate(time_array):
     
-    h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-    fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
+    h5f     = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+    moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-    B1 = fields[0, :, 3] / params.B0
-    B2 = fields[0, :, 4] / params.B0
-    B3 = fields[0, :, 5] / params.B0
-    
-    # if(time_index % 1000 == 0):
-    #     pl.plot(B1 / params.B0)
-    #     pl.show()
+    Ee = 1   * moments[:, :, 2] / params.v0**2
+    Ei = 100 * moments[:, :, 3] / params.v0**2
 
-    B_mean_data[time_index] = np.mean(B1**2 + B2**2 + B3**2)
+    # ne, ni        = n[:, :, 0], n[:, :, 1]
+    # v1e, v2e, v3e = v1_bulk[:, :, 0], v2_bulk[:, :, 0], v3_bulk[:, :, 0]
+    # v1i, v2i, v3i = v1_bulk[:, :, 1], v2_bulk[:, :, 1], v3_bulk[:, :, 1]
 
-# h5f = h5py.File('B_mean_data.h5', 'w')
-# h5f.create_dataset('B_mean', data = B_mean_data)
-# h5f.close()
+    KE_electrons[time_index] = np.sum(Ee) * dq1 * dq2
+    KE_ions[time_index]      = np.sum(Ei) * dq1 * dq2
 
-# h5f = h5py.File('B_mean_data.h5', 'r')
-# B_mean_data = h5f['B_mean'][:] / params.B0
-# h5f.close()
-
-pl.semilogy(time_array * params.plasma_frequency, B_mean_data, label = r'$<B_x^2>$')
-pl.xlabel(r'Time($\omega_p^{-1})$')
-pl.ylabel(r'$<B^2>$')
-pl.xlim([0, 1000])
-# pl.legend()
+pl.semilogy(time_array / params.t0, KE_electrons, label = r'Electrons')
+pl.semilogy(time_array / params.t0, KE_ions, '--', color = 'C3', label = r'Ions')
+pl.xlabel(r'Time($\omega_c^{-1})$')
+pl.ylabel(r'Kinetic Energy')
+pl.legend()
 pl.savefig('plot.png', bbox_inches = 'tight')
