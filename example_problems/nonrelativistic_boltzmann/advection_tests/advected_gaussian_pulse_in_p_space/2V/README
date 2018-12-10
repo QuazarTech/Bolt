@@ -1,0 +1,26 @@
+This folder contains tests where a gaussian pulse is advected through p-space:
+
+In this folder we consider a thorough convergence check which needs to be passing at O(N^{-2}) to validate the correctness of our implementation for operations in p-space. Similar to the advected gaussian pulse in q-space, each individual folder contains a main.py which outputs dump files upon which a post processing script is used to get images which are a visual check of how the blob advects in p-space. The convergence tests can be run by executing convergence_test.py
+
+We consider 3 different convergence tests for this:
+
+- Advection with constant (E1, E2), zero (B1, B2, B3) till a time t before blob hits boundaries in p space
+  Reference Solution: f(p1 - (e/m)*E1*t, p2 - (e/m)*E2*t)
+
+- Rotation with zero (E1, E2), (B1=0, B2=0, B3!=0)
+  Reference Solution: Initial Solution.
+
+- Advection with constant (E1, E2), (B1=0, B2=0, B3!=0) 
+    
+    For this problem, we can test using 2 different convergence tests:
+    
+    - Reference Solution: Initial State
+      We trace the trajectory of the center of the blob using odeint to get the time when the blob returns
+      to the center(numerically:distance from origin is minimum), and improve the accuracy of the solution 
+      using scipy.optimize.root. We evolve to this final time on the nonlinear solver. 
+    
+    - Reference Solution: f(p1 - p1_center_final, p2 - p2_center_final)
+      We trace the trajectory of the center of the blob using odeint to get the final resting spot of the
+      center of the blob (p1_center_final, p2_center_final). Then using this, we get the reference distribution
+      function f(p1 - p1_center_final, p2 - p2_center_final) to check against what we get numerically using the
+      nonlinear solver.

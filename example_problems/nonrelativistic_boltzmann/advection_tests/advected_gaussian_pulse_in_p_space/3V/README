@@ -1,0 +1,14 @@
+This folder contains tests where a gaussian pulse is advected through p-space:
+
+In this folder we consider a set of thorough convergence checks which need to be passing at O(N^{-2}) to validate the correctness of our implementation for operations in p-space. The convergence tests can be run by executing convergence_test.py
+
+In 3V, we consider the following convergence checks:
+
+- Advection with constant (E1, E2, E3, B1, B2, B3) != 0
+    Reference Solution: f(p1 - p1_center_final, p2 - p2_center_final, p3 - p3_center_final)
+      We trace the trajectory of the center of the blob using odeint to get the final resting spot of the
+      center of the blob (p1_center_final, p2_center_final, p3_center_final). Then using this, we get the reference distribution function f(p1 - p1_center_final, p2 - p2_center_final, p3 - p3_center_final) to check against 
+      what we get numerically using the nonlinear solver.
+
+- Rotation with constant (B1, B2, B3) != 0;(E1, E2, E3) = 0
+    Reference Solution: Initial distribution.

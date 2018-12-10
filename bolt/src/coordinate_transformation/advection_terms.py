@@ -4,30 +4,32 @@ nonrelativistic Boltzmann equation.
 """
 
 # Conservative Advection terms in q-space:
-def C_q(q1, q2, p1, p2, p3, params):
+def C_q(t, r, theta, rdot, thetadot, phidot, params):
     """Return the terms C_q1, C_q2."""
-    import arrayfire as af
-    return (  af.tile(p2**2,   1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0]), 
-              -af.tile(p1 * p2, 1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0])
-           )
+    return(rdot, thetadot)
 
-def A_q(q1, q2, p1, p2, p3, params):
+def A_q(t, r, theta, rdot, thetadot, phidot, params):
     """Return the terms A_q1, A_q2."""
-    import arrayfire as af
-    return (  af.tile(p2**2,   1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0]), 
-              -af.tile(p1 * p2, 1, q1.shape[1], q1.shape[2])/af.tile(q1, p1.shape[0])
-           )
-
-def A_p(q1, q2, p1, p2, p3,
-        E1, E2, E3, B1, B2, B3,
+    return(rdot, thetadot)
+   
+def A_p(t, r, theta, rdot, thetadot, phidot,
+        fields_solver,
         params
        ):
-    """Return the terms A_p1, A_p2 and A_p3."""
-    F1 =   (params.charge_electron / params.mass_particle) \
-         * (E1 + p2 * B3 - p3 * B2)
-    F2 =   (params.charge_electron / params.mass_particle) \
-         * (E2 - p1 * B3 + p3 * B1)
-    F3 =   (params.charge_electron / params.mass_particle) \
-         * (E3 - p2 * B1 + p1 * B2)
 
-    return (F1, F2, F3)
+    A_p1 = r * thetadot**2
+    A_p2 = - 2 * rdot * thetadot / r
+    A_p3 = 0 * r * thetadot
+
+    return (A_p1, A_p2, A_p3)
+
+def C_p(t, r, theta, rdot, thetadot, phidot,
+        fields_solver,
+        params
+       ):
+
+    C_p1 = r * thetadot**2
+    C_p2 = - 2 * rdot * thetadot / r
+    C_p3 = 0 * r * thetadot
+
+    return (C_p1, C_p2, C_p3)

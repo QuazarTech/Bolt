@@ -1,0 +1,13 @@
+This folder contains tests where a gaussian perturbation is advected through q-space:
+
+While one of the scripts in each of the folders shows outputs the images every timestep to show how the pulse advects for one time period for a visual check, we consider a more thorough convergence check which needs to be passing at O(N^{-2}) to validate the correctness of our implementation.
+
+We consider 2 different convergence tests for this:
+
+- Advection for a single time period back to the initial state
+  Reference Solution: Initial Solution
+
+- Advection till a time t before the blob hits the boundaries
+  Reference Solution: f(q1 - p1*t, q2 - p2*t)
+
+We run the above test cases checking using periodic as well as mirror boundary conditions.

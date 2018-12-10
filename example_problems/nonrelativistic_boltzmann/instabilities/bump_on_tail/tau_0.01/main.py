@@ -1,26 +1,23 @@
 import arrayfire as af
 import numpy as np
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 import h5py
 
 from bolt.lib.physical_system import physical_system
-
-from bolt.lib.nonlinear_solver.nonlinear_solver \
-    import nonlinear_solver
-
-from bolt.lib.linear_solver.linear_solver import linear_solver
+from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
+from bolt.lib.linear.linear_solver import linear_solver
+from bolt.lib.utils.fft_funcs import ifft2
 
 import domain
 import boundary_conditions
-import params
 import initialize
+import params
 
 import bolt.src.nonrelativistic_boltzmann.advection_terms as advection_terms
-
-import bolt.src.nonrelativistic_boltzmann.collision_operator \
-    as collision_operator
-
-import bolt.src.nonrelativistic_boltzmann.moment_defs as moment_defs
+import bolt.src.nonrelativistic_boltzmann.collision_operator as collision_operator
+import bolt.src.nonrelativistic_boltzmann.moments as moments
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -59,7 +56,7 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.BGK,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a linear system object which will evolve the defined physical system:
@@ -68,44 +65,58 @@ N_g = nls.N_ghost
 ls  = linear_solver(system)
 
 # Time parameters:
-dt      = 0.0005
-t_final = 20.0
+dt = params.N_cfl * min(nls.dq1, nls.dq2) \
+                  / max(domain.p1_end, domain.p2_end, domain.p3_end)
 
-time_array = np.arange(0, t_final + dt, dt)
+time_array  = np.arange(0, params.t_final + dt, dt)
 
 # Initializing Arrays used in storing the data:
 E_data_ls  = np.zeros_like(time_array)
 E_data_nls = np.zeros_like(time_array)
 
-for time_index, t0 in enumerate(time_array):
+n_data_ls  = np.zeros_like(time_array)
+n_data_nls = np.zeros_like(time_array)
 
-    E_data_nls[time_index] = af.sum(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]**2)
+for time_index, t0 in enumerate(time_array):
+    
+    if(time_index%100 == 0):
+        
+        print('Computing For Time =', t0)
+        
+        nls.dump_distribution_function('dump_f/%04d'%time_index)
+        # nls.dump_moments('dump_moments/%04d'%time_index)
+
+    E_data_nls[time_index] = af.sum(nls.fields_solver.cell_centered_EM_fields[:, :, N_g:-N_g, N_g:-N_g]**2)
     E1_ls                  = af.real(0.5 * (ls.N_q1 * ls.N_q2) 
-                                         * af.ifft2(ls.E1_hat[:, :, 0])
+                                         * ifft2(ls.fields_solver.E1_hat)
                                     )
 
     E_data_ls[time_index]  = af.sum(E1_ls**2)
 
+    n_data_nls[time_index] = af.max(nls.compute_moments('density'))
+    n_data_ls[time_index]  = af.max(ls.compute_moments('density'))
+
     nls.strang_timestep(dt)
     ls.RK4_timestep(dt)
-        
-time_evolution()
 
 h5f = h5py.File('data.h5', 'w')
 h5f.create_dataset('electrical_energy_ls', data = E_data_ls)
 h5f.create_dataset('electrical_energy_nls', data = E_data_nls)
+h5f.create_dataset('density_ls', data = n_data_ls)
+h5f.create_dataset('density_nls', data = n_data_nls)
+h5f.create_dataset('time', data = time_array)
 h5f.close()
 
-pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.plot(time_array, E_data_nls, label='Nonlinear Solver')
+pl.plot(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'SUM($|E|^2$)')
 pl.xlabel('Time')
 pl.legend()
 pl.savefig('linearplot.png')
 pl.clf()
 
-pl.semilogy(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.semilogy(time_array, E_data_nls, label='Nonlinear Solver')
+pl.semilogy(time_array, E_data_ls, '--', color = 'black', label = 'Linear Solver')
 pl.ylabel(r'SUM($|E|^2$)')
 pl.xlabel('Time')
 pl.legend()

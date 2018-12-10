@@ -38,7 +38,7 @@ error = np.zeros(N_x.size)
 for i in range(N_x.size):
     # Analytical:
     h5f = h5py.File('analytical_' + str(N_x[i]) + '.h5', 'r')
-    temp_ana = h5f['temperature'][:]
+    temp_analytic = h5f['temperature'][:]
     h5f.close()
 
     # Numerical:
@@ -48,7 +48,7 @@ for i in range(N_x.size):
 
     x = (np.arange(N_x[i]) + 0.5) * 1/N_x[i]
 
-    pl.plot(x, temp_ana, '--', color = 'black', label = 'Analytical')
+    pl.plot(x, temp_analytic, '--', color = 'black', label = 'Analytical')
     pl.plot(x, temp_num, label = 'Numerical')
     pl.title(r'$N_x=$' + str(N_x[i]))
     pl.xlabel(r'$x$')
@@ -57,7 +57,7 @@ for i in range(N_x.size):
     pl.savefig(str(N_x[i])+'.png')
     pl.clf()
 
-    error[i] = np.mean(abs(temp_num - temp_ana))
+    error[i] = np.mean(abs(temp_num - temp_analytic))
 
 # Plotting:
 pl.loglog(N_x, error, label = 'Numerical')

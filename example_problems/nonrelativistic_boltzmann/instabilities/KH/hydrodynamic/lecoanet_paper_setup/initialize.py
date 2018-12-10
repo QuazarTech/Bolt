@@ -6,9 +6,9 @@ the system.
 import arrayfire as af
 import numpy as np
 
-def initialize_f(q1, q2, p1, p2, p3, params):
+def initialize_f(q1, q2, v1, v2, v3, params):
 
-    m = params.mass_particle
+    m = params.mass
     k = params.boltzmann_constant
 
     q2_minus = 0.5
@@ -16,25 +16,24 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     regulator = 20  # larger value makes the transition sharper
 
-    rho = 1 + 0.5 * (  af.tanh(( q2 - q2_minus)*regulator) 
-                     - af.tanh(( q2 - q2_plus )*regulator)
-                    )
+    n = 1 + 0.5 * (  af.tanh(( q2 - q2_minus)*regulator) 
+                   - af.tanh(( q2 - q2_plus )*regulator)
+                  )
 
-    p1_bulk = (  af.tanh(( q2 - q2_minus)*regulator)
+    v1_bulk = (  af.tanh(( q2 - q2_minus)*regulator)
                - af.tanh(( q2 - q2_plus )*regulator) - 1
               )
 
-    p2_bulk = 0.5 * af.sin(2*np.pi*q1) *\
+    v2_bulk = 0.01 * af.sin(2 * np.pi * q1) *\
               (  af.exp(-25 * (q2 - q2_minus)**2)
                + af.exp(-25 * (q2 - q2_plus )**2)
               )
               
-    T = (10 / rho)
+    T = (10 / n)
 
-    f = rho * (m / (2 * np.pi * k * T))**(3 / 2) \
-            * af.exp(-m * (p1 - p1_bulk)**2 / (2 * k * T)) \
-            * af.exp(-m * (p2 - p2_bulk)**2 / (2 * k * T)) \
-            * af.exp(-m * (p3)**2 / (2 * k * T))
+    f = n * (m / (2 * np.pi * k * T)) \
+          * af.exp(-m * (v1 - v1_bulk)**2 / (2 * k * T)) \
+          * af.exp(-m * (v2 - v2_bulk)**2 / (2 * k * T)) 
 
     af.eval(f)
     return (f)

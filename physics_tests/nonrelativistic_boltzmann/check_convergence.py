@@ -1,15 +1,17 @@
 import numpy as np 
 import h5py
+import matplotlib as mpl
+mpl.use('agg')
 import pylab as pl
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 20
+pl.rcParams['font.size']       = 30
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -34,37 +36,32 @@ pl.rcParams['ytick.direction']  = 'in'
 
 # Checking the errors
 def check_convergence():
-    N     = 2**np.arange(5, 8)
+    N     = np.array([64, 80, 96, 112, 128, 144, 160, 176, 192]) #2**np.arange(7, 10)
     error = np.zeros(N.size)
     
     for i in range(N.size):
-        
 
-        h5f   = h5py.File('dump_files/nlsf_' + str(N[i]) + '.h5')
-        nls_f = h5f['distribution_function'][:]
+        h5f = h5py.File('dump_files/nls_' + str(N[i]) + '.h5')
+        nls = h5f['moments'][:]
         h5f.close()    
 
-        h5f  = h5py.File('dump_files/lsf_' + str(N[i]) + '.h5')
-        ls_f = h5f['distribution_function'][:]
+        h5f = h5py.File('dump_files/ls_' + str(N[i]) + '.h5')
+        ls  = h5f['moments'][:]
         h5f.close()
 
-        print(nls_f.shape)
-
-        error[i] = np.mean(abs(nls_f - ls_f))
+        error[i] = np.mean(abs(nls - ls))
 
     print(error)
     poly = np.polyfit(np.log10(N), np.log10(error), 1)
     print(poly)
 
     pl.loglog(N, error, 'o-', label = 'Numerical')
-    pl.loglog(N, error[0]*32**2/N**2, '--', color = 'black', 
-              label = r'$O(N^{-2})$'
+    pl.loglog(N, error[0]*N[0]**2/N**2, '--', color = 'black', 
+              label = r'$\mathcal{O}(N^{-2})$'
              )
     pl.legend(loc = 'best')
     pl.ylabel('Error')
     pl.xlabel('$N$')
-    pl.savefig('convergence_plot.png')
+    pl.savefig('convergence_plot.png', bbox_inches = 'tight')
 
-    poly = np.polyfit(np.log10(N), np.log10(error), 1)
-    print(poly)
     assert(abs(poly[0] + 2)<0.25)
