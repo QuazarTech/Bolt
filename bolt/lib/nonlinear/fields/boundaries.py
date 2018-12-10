@@ -442,7 +442,6 @@ def apply_mirror_bcs_fields(self, boundary, on_fdtd_grid):
         if(on_fdtd_grid == True):
             self.yee_grid_EM_fields[:, :, :N_g] = \
                 af.flip(self.yee_grid_EM_fields[:, :, N_g:2 * N_g], 2)
-
             # E1 = (self.yee_grid_EM_fields[0])[:, :, :N_g]
             # E2 = 0 * (self.yee_grid_EM_fields[1])[:, :, :N_g]
             # E3 = (self.yee_grid_EM_fields[2])[:, :, :N_g]
