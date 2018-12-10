@@ -43,38 +43,38 @@ E_nls      = h5f['E_nls'][:]
 time_array = h5f['time'][:]
 h5f.close()
 
-h5f        = h5py.File('data_ls.h5', 'r')
-n_ls       = h5f['n_ls'][:]
-E_ls       = h5f['E_ls'][:]
-time_array = h5f['time'][:]
+h5f         = h5py.File('data_ls.h5', 'r')
+n_ls        = h5f['n_ls'][:]
+E_ls        = h5f['E_ls'][:]
+time_array2 = h5f['time'][:]
 h5f.close()
 
-pl.plot(time_array, n_nls, label = r'{\tt bolt}')
-pl.plot(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
-pl.ylabel(r'$n$')
-pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-pl.legend()
-pl.savefig('n.png')
-pl.clf()
+# pl.plot(time_array, n_nls, label = r'{\tt bolt}')
+# pl.plot(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
+# pl.ylabel(r'$n$')
+# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+# pl.legend()
+# pl.savefig('n.png')
+# pl.clf()
 
-pl.plot(time_array, E_nls, label = r'{\tt bolt}')
-#pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
-pl.ylabel(r'MAX($E$)')
-pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-#pl.legend()
-pl.savefig('E.png')
-pl.clf()
+# pl.plot(time_array, E_nls, label = r'{\tt bolt}')
+# #pl.plot(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
+# pl.ylabel(r'MAX($E$)')
+# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+# #pl.legend()
+# pl.savefig('E.png')
+# pl.clf()
 
-pl.semilogy(time_array, n_nls, label = r'{\tt bolt}')
-pl.semilogy(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
-pl.ylabel(r'$n$')
-pl.xlabel(r'Time (${\omega_p}^{-1}$)')
-pl.legend()
-pl.savefig('n_semilogy.png')
-pl.clf()
+# pl.semilogy(time_array, n_nls, label = r'{\tt bolt}')
+# pl.semilogy(time_array, n_ls, '--', color = 'black', label = 'Linear Theory')
+# pl.ylabel(r'$n$')
+# pl.xlabel(r'Time (${\omega_p}^{-1}$)')
+# pl.legend()
+# pl.savefig('n_semilogy.png')
+# pl.clf()
 
 pl.semilogy(time_array, E_nls, label = r'{\tt bolt}')
-pl.semilogy(time_array, E_ls, '--', color = 'black', label = 'Linear Theory')
+# pl.semilogy(time_array2, E_ls, '--', color = 'black', label = 'Linear Theory')
 pl.ylabel(r'MAX($E$)')
 pl.xlabel(r'Time (${\omega_p}^{-1}$)')
 # pl.legend()

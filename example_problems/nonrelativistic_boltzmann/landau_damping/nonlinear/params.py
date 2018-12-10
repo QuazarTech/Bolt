@@ -64,7 +64,7 @@ temperature_background = 1 * T0
 alpha = 0.5
 
 # Time parameters:
-N_cfl   = 0.45
+N_cfl   = 0.9
 t_final = 60.0
 
 # Switch for solver components:

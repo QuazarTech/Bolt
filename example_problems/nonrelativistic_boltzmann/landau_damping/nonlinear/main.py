@@ -58,7 +58,7 @@ for time_index, t0 in enumerate(time_array[1:]):
 
     print('Computing For Time =', t0)
     nls.strang_timestep(dt)
-    ls.RK5_timestep(dt)
+    # ls.RK5_timestep(dt)
 
     n_data_nls[time_index + 1] = af.max(nls.compute_moments('density')[:, :, N_g:-N_g, N_g:-N_g])
     n_data_ls[time_index + 1]  = af.max(ls.compute_moments('density'))
