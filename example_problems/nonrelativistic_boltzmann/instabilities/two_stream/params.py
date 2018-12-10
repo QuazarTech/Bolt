@@ -18,7 +18,7 @@ riemann_solver_in_p = 'upwind-flux'
 reconstruction_method_in_q = 'minmod'
 reconstruction_method_in_p = 'minmod'
 
-t_final = 100
+t_final = 50
 N_cfl   = 0.04
 
 # Number of devices(GPUs/Accelerators) on each node:
@@ -34,7 +34,7 @@ k_q1  = 0.5
 alpha = 0.01
 
 fields_enabled           = True
-source_enabled           = False
+source_enabled           = True
 instantaneous_collisions = False
 hybrid_model_enabled     = False
 
