@@ -34,7 +34,7 @@ p20 = 1
 
 sigma_q         = 0.05
 sigma_p         = 0.4
-t_final         = 5
+t_final         = 0.5
 dt_dump_moments = 0.001
 
 

@@ -82,9 +82,20 @@ def check_error(params):
         f   = np.swapaxes(np.swapaxes(h5f['distribution_function'][:], 0, 2), 1, 2)
         h5f.close()
 
+        q1_new = af.to_array(q1 - p1 * params.t_final)
+        q2_new = af.to_array(q2 - p2 * params.t_final)
+
+        # Periodic B.Cs
+        for j in range(5):
+
+            q1_new = af.select(q1_new < 0, q1_new + 1, q1_new)
+            q2_new = af.select(q2_new < 0, q2_new + 1, q2_new)
+
+            q1_new = af.select(q1_new > 1, q1_new - 1, q1_new)
+            q2_new = af.select(q2_new > 1, q2_new - 1, q2_new)
+
         f_reference = af.broadcast(initialize.initialize_f,
-                                   af.to_array(q1 - p1 * params.t_final), 
-                                   af.to_array(q2 - p2 * params.t_final), 
+                                   q1_new, q2_new, 
                                    af.to_array(p1), af.to_array(p2), af.to_array(p3), params
                                   )
 
