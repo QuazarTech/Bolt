@@ -65,8 +65,11 @@ def return_moment_to_be_plotted(name, moments):
     'temperature'
     'p1', 'p2', 'p3' --> 'p_x', 'p_y', 'p_z'
     'pressure'       --> total pressure
-    'q1', 'q2', 'q3' --> heat fluxes
-
+    
+    'heat_flux_x', 
+    'heat_flux_y', --> heat fluxes
+    'heat_flux_z' 
+    
     NOTE: This function returns the quantity of interest for all species. For
           instance, if we have two species, return_moment_to_be_plotted('density', moments)
           would return an array of shape(N_q1, N_q2, 2), where array[:, :, 0] denotes
@@ -156,13 +159,13 @@ def return_moment_to_be_plotted(name, moments):
     elif(name == 'pressure'):
         return(n * T)
 
-    elif(name == 'q1'):
+    elif(name == 'heat_flux_x'):
         return heat_flux_1
 
-    elif(name == 'q2'):
+    elif(name == 'heat_flux_y'):
         return heat_flux_2
 
-    elif(name == 'q3'):
+    elif(name == 'heat_flux_z'):
         return heat_flux_3
 
     else:
