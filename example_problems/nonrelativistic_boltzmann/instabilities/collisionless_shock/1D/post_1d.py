@@ -6,7 +6,7 @@ import h5py
 import domain
 import params
 
-from post import return_array_to_be_plotted, return_field_to_be_plotted, determine_min_max
+from post import return_moment_to_be_plotted, return_field_to_be_plotted, determine_min_max
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
@@ -50,16 +50,22 @@ B1_min, B1_max = determine_min_max('B1', time_array)
 for time_index, t0 in enumerate(time_array):
     
     h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+    # dump_moments writes files in the structure (q2, q1, N_s)
+    # But the post-processing functions require it in the form (q1, q2, N_s)
+    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
     h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+    # dump_EM_fields writes files in the structure (q2, q1, N_s)
+    # But the post-processing functions require it in the form (q1, q2, N_s)
+    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
     fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
     h5f.close()
 
-    n  = return_array_to_be_plotted('density', moments)
-    v1 = return_array_to_be_plotted('v1', moments)
-    T  = return_array_to_be_plotted('temperature', moments)
+    n  = return_moment_to_be_plotted('density', moments)
+    v1 = return_moment_to_be_plotted('v1', moments)
+    T  = return_moment_to_be_plotted('temperature', moments)
     B1 = return_field_to_be_plotted('B1', fields)
 
     fig = pl.figure()

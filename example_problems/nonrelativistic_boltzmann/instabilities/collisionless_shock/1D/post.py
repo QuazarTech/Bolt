@@ -52,7 +52,7 @@ q2, q1 = np.meshgrid(q2, q1)
 # Finding the number of species, by looking at the number of elements in mass:
 N_s = len(params.mass)
 
-def return_array_to_be_plotted(name, moments):
+def return_moment_to_be_plotted(name, moments):
     """
     Returns the quantity of interest to the user. This is provided
     by giving a string indicating quantity to plot. All these quantities
@@ -68,7 +68,7 @@ def return_array_to_be_plotted(name, moments):
     'q1', 'q2', 'q3' --> heat fluxes
 
     NOTE: This function returns the quantity of interest for all species. For
-          instance, if we have two species, return_array_to_be_plotted('density', moments)
+          instance, if we have two species, return_moment_to_be_plotted('density', moments)
           would return an array of shape(N_q1, N_q2, 2), where array[:, :, 0] denotes
           the first species and array[:, :, 1] denotes the second species 
 
@@ -260,7 +260,7 @@ def determine_min_max(name, time_array):
             moments = np.swapaxes(h5f['moments'][:], 0, 1)
             h5f.close()
 
-            array = return_array_to_be_plotted(name, moments)
+            array = return_moment_to_be_plotted(name, moments)
 
         if(np.max(array)>q_max):
             q_max = np.max(array)

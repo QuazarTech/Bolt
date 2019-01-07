@@ -48,6 +48,9 @@ B_mean_data = np.zeros(time_array.size)
 for time_index, t0 in enumerate(time_array):
     
     h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+    # dump_EM_fields writes files in the structure (q2, q1, N_s)
+    # But the post-processing functions require it in the form (q1, q2, N_s)
+    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
     fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
     h5f.close()
 

@@ -6,7 +6,7 @@ import h5py
 import domain
 import params
 
-from post import return_array_to_be_plotted
+from post import return_moment_to_be_plotted
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
@@ -54,10 +54,13 @@ KE_ions      = np.zeros(time_array.size)
 for time_index, t0 in enumerate(time_array):
     
     h5f     = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
+    # dump_moments writes files in the structure (q2, q1, N_s)
+    # But the post-processing functions require it in the form (q1, q2, N_s)
+    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
     moments = np.swapaxes(h5f['moments'][:], 0, 1)
     h5f.close()
 
-    E  = return_array_to_be_plotted('energy', moments)
+    E  = return_moment_to_be_plotted('energy', moments)
     Ee = E[:, :, 0] / params.v0**2
     Ei = E[:, :, 1] / params.v0**2
 
