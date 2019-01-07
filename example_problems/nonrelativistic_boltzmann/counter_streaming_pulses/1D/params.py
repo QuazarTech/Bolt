@@ -68,7 +68,7 @@ v1_bulk_positron       = -1 * v0
 
 # Time parameters:
 N_cfl   = 0.32
-t_final = 10.0 * t0
+t_final = 1.0 * t0
 
 # Switch for solver components:
 fields_enabled           = True

@@ -7,6 +7,8 @@ import h5py
 import domain
 import params
 
+from post import return_field_to_be_plotted
+
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
 pl.rcParams['figure.dpi']      = 300
@@ -37,7 +39,7 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-time_array = np.arange(0, 1000 * params.t0 + params.dt_dump_moments, 
+time_array = np.arange(0, params.t_final + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -46,30 +48,20 @@ B_mean_data = np.zeros(time_array.size)
 for time_index, t0 in enumerate(time_array):
     
     h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
+    # dump_EM_fields writes files in the structure (q2, q1, N_s)
+    # But the post-processing functions require it in the form (q1, q2, N_s)
+    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
     fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
     h5f.close()
 
-    B1 = fields[0, :, 3] / params.B0
-    B2 = fields[0, :, 4] / params.B0
-    B3 = fields[0, :, 5] / params.B0
-    
-    # if(time_index % 1000 == 0):
-    #     pl.plot(B1 / params.B0)
-    #     pl.show()
+    B1 = return_field_to_be_plotted('B1', fields) / params.B0
+    B2 = return_field_to_be_plotted('B2', fields) / params.B0
+    B3 = return_field_to_be_plotted('B3', fields) / params.B0
 
     B_mean_data[time_index] = np.mean(B1**2 + B2**2 + B3**2)
 
-# h5f = h5py.File('B_mean_data.h5', 'w')
-# h5f.create_dataset('B_mean', data = B_mean_data)
-# h5f.close()
-
-# h5f = h5py.File('B_mean_data.h5', 'r')
-# B_mean_data = h5f['B_mean'][:] / params.B0
-# h5f.close()
-
-pl.semilogy(time_array * params.plasma_frequency, B_mean_data, label = r'$<B_x^2>$')
+pl.semilogy(time_array * params.plasma_frequency, B_mean_data)
 pl.xlabel(r'Time($\omega_p^{-1})$')
 pl.ylabel(r'$<B^2>$')
 pl.xlim([0, 1000])
-# pl.legend()
 pl.savefig('plot.png', bbox_inches = 'tight')

@@ -57,7 +57,6 @@ class fields_solver(object):
         divE           = self.compute_divE()
         mean_gauss_law = af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
         PETSc.Sys.Print('MEAN(|divE-rho|) =', mean_gauss_law)
-
         # Appropriately raising exceptions:
         # Checking for ∇.B = 0
         try:
@@ -134,11 +133,13 @@ class fields_solver(object):
         
         if(   self.boundary_conditions.in_q1_left == 'periodic'
            or self.boundary_conditions.in_q1_left == 'shearing-box'
+           or self.boundary_conditions.in_q1_left == 'mirror'
           ):
             petsc_bc_in_q1 = 'periodic'
 
         if(   self.boundary_conditions.in_q2_bottom == 'periodic'
            or self.boundary_conditions.in_q2_bottom == 'shearing-box'
+           or self.boundary_conditions.in_q2_bottom == 'mirror'
           ):
             petsc_bc_in_q2 = 'periodic'
 
@@ -281,7 +282,7 @@ class fields_solver(object):
         af.eval(self.yee_grid_EM_fields)
         return
 
-    def initialize_magnetic_fields(self):
+    def initialize_magnetic_fields(self, update_yee_grid_fields = True):
 
         if(    'initialize_B' in dir(self.initialize)
            and 'initialize_A3_B3' in dir(self.initialize)
@@ -354,9 +355,13 @@ class fields_solver(object):
         else:
             raise NotImplementedError('Initialization method for magnetic fields not valid/found')
 
-        self.yee_grid_EM_fields[3:] = af.join(0, B1, B2, B3)
-        af.eval(self.yee_grid_EM_fields)
-        return
+        if(update_yee_grid_fields == True):
+            self.yee_grid_EM_fields[3:] = af.join(0, B1, B2, B3)
+            af.eval(self.yee_grid_EM_fields)
+            return
+
+        else:
+            return(af.join(0, B1, B2, B3))
 
     def _initialize(self, rho_initial):
         """
