@@ -2,6 +2,8 @@ import arrayfire as af
 import numpy as np
 import math
 from petsc4py import PETSc
+from mpi4py import MPI
+MPI.WTIME_IS_GLOBAL=True
 
 from bolt.lib.physical_system import physical_system
 from bolt.lib.nonlinear.nonlinear_solver import nonlinear_solver
@@ -68,9 +70,13 @@ E = nls.compute_moments('energy')
 print('For electrons:', np.mean(np.array(E[:, 0, :, :])))
 print('For ions:', np.mean(np.array(E[:, 1, :, :])))
 
+timing_data = []
 while(abs(time_elapsed - params.t_final) > 1e-12):
-    
+
+    tic = MPI.Wtime()
     nls.strang_timestep(dt)
+    toc = MPI.Wtime()
+
     time_elapsed += dt
 
     if(params.dt_dump_moments != 0):
@@ -87,4 +93,13 @@ while(abs(time_elapsed - params.t_final) > 1e-12):
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
         nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
-    PETSc.Sys.Print('Computing For Time =', time_elapsed / params.t0, "|t0| units(t0)")
+    PETSc.Sys.Print('Computing For Time      =', time_elapsed / params.t0, "|t0| units(t0)")
+    PETSc.Sys.Print('Time Taken For Timestep =', toc - tic)
+
+    timing_data.append(toc - tic)
+
+# Writing the timing data to file:
+import h5py
+h5f = h5py.File('timing_data.h5', 'w')
+h5f.create_dataset('time_taken', data = np.array(timing_data))
+h5f.close()

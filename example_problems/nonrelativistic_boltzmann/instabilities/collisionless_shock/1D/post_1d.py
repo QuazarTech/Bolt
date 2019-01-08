@@ -6,7 +6,7 @@ import h5py
 import domain
 import params
 
-from post import return_moment_to_be_plotted, return_field_to_be_plotted, determine_min_max
+from post import return_moment_to_be_plotted, return_field_to_be_plotted, determine_min_max, q1, q2
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 9, 4
