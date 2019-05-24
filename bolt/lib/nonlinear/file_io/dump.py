@@ -3,7 +3,6 @@
 
 from petsc4py import PETSc
 import numpy as np
-import h5py
 import arrayfire as af
 
 def dump_moments(self, file_name):
@@ -81,7 +80,7 @@ def dump_moments(self, file_name):
         af.eval(array_to_dump)
 
     af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self._glob_moments)
 
     # Following segment shows discrepancy due to buggy behaviour of af.mean
@@ -147,7 +146,7 @@ def dump_distribution_function(self, file_name):
     
     array_to_dump = af.flat(array_to_dump[:, :, N_g:-N_g, N_g:-N_g])
     array_to_dump.to_ndarray(self._glob_f_array)
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self._glob_f)
 
     return
@@ -212,7 +211,7 @@ def dump_EM_fields(self, file_name):
         af.flat(self.fields_solver.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
     flattened_global_EM_fields_array.to_ndarray(self.fields_solver._glob_fields_array)
     
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self.fields_solver._glob_fields)
 
     return

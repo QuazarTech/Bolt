@@ -1,21 +1,25 @@
 import numpy as np
 import matplotlib
+matplotlib.use('agg')
 import pylab as pl
+from petsc4py import PETSc
 
-import h5py
 import domain
 import params
 
-from post import return_moment_to_be_plotted, return_field_to_be_plotted, determine_min_max, q1, q2
+from post import return_moment_to_be_plotted
+from post import return_field_to_be_plotted
+from post import determine_min_max, q1, q2
+from post import da_moments, da_fields, moments_vec, fields_vec
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 9, 4
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.figsize']  = 18, 8
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
 pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 30
+pl.rcParams['font.size']       = 25
 pl.rcParams['font.sans-serif'] = 'serif'
 pl.rcParams['text.usetex']     = True
 pl.rcParams['axes.linewidth']  = 1.5
@@ -42,26 +46,34 @@ time_array = np.arange(0, params.t_final + params.dt_dump_moments,
                        params.dt_dump_moments
                       )
 
+print("Determining limits...")
 n_min, n_max   = determine_min_max('density', time_array)
 v1_min, v1_max = determine_min_max('v1', time_array)
 T_min, T_max   = determine_min_max('temperature', time_array)
 B1_min, B1_max = determine_min_max('B1', time_array)
 
-for time_index, t0 in enumerate(time_array):
-    
-    h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-    # dump_moments writes files in the structure (q2, q1, N_s)
-    # But the post-processing functions require it in the form (q1, q2, N_s)
-    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
+for time_index, t0 in enumerate(time_array[::-1]):
 
-    h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-    # dump_EM_fields writes files in the structure (q2, q1, N_s)
-    # But the post-processing functions require it in the form (q1, q2, N_s)
-    # By using swapaxes we change (q2, q1, N_s) --> (q1, q2, N_s)
-    fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-    h5f.close()
+    print("file = ", time_index)
+    
+    moments_file = 'dump_moments/t=%.3f'%(t0) + '.bin'
+    fields_file  = 'dump_fields/t=%.3f'%(t0) + '.bin'
+
+    # Load moments
+    viewer = PETSc.Viewer().createBinary(moments_file, 
+                                         PETSc.Viewer.Mode.READ, 
+                                        )
+
+    moments_vec.load(viewer)
+    moments = da_moments.getVecArray(moments_vec) # [N_q1, N_q2, N_moments]
+
+    # Load fields
+    viewer = PETSc.Viewer().createBinary(fields_file, 
+                                         PETSc.Viewer.Mode.READ, 
+                                        )
+
+    fields_vec.load(viewer)
+    fields = da_fields.getVecArray(fields_vec) # [N_q1, N_q2, N_fields]
 
     n  = return_moment_to_be_plotted('density', moments)
     v1 = return_moment_to_be_plotted('v1', moments)
@@ -81,6 +93,13 @@ for time_index, t0 in enumerate(time_array):
     ax2 = fig.add_subplot(2, 2, 2)
     ax2.plot(q2[0, :], v1[0, :, 0] / params.v0, color = 'C0')
     ax2.plot(q2[0, :], v1[0, :, 1] / params.v0, '--', color = 'C3')
+    ax2.axvline(100/24, color='black', linestyle='--')
+    ax2.axvline(200/24, color='black', linestyle='--')
+    ax2.axvline(300/24, color='black', linestyle='--')
+    ax2.axvline(400/24, color='black', linestyle='--')
+    ax2.axvline(500/24, color='black', linestyle='--')
+    ax2.axvline(600/24, color='black', linestyle='--')
+    ax2.axvline(700/24, color='black', linestyle='--')
     ax2.set_xlabel(r'$y(l_s)$')
     ax2.set_ylabel(r'$v_x(v_0)$')
     ax2.set_ylim([1.05 * v1_min / params.v0, 1.05 * v1_max / params.v0])

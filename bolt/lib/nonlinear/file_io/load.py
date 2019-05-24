@@ -28,10 +28,10 @@ def load_distribution_function(self, file_name):
     # Additionally, we also obtain the size of the local zone
     ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 
-                                       PETSc.Viewer.Mode.READ, 
-                                       comm=self._comm
-                                      )
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 
+                                         PETSc.Viewer.Mode.READ, 
+                                         comm=self._comm
+                                        )
     self._glob_f.load(viewer)
     N_g = self.N_ghost
 
@@ -62,10 +62,10 @@ def load_EM_fields(self, file_name):
     The above statemant will load the EM fields data stored in the file
     data_EM_fields.h5 into self.cell_centered_EM_fields
     """
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 
-                                       PETSc.Viewer.Mode.READ, 
-                                       comm=self._comm
-                                      )
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 
+                                         PETSc.Viewer.Mode.READ, 
+                                         comm=self._comm
+                                        )
     
     self.fields_solver._glob_fields.load(viewer)
 

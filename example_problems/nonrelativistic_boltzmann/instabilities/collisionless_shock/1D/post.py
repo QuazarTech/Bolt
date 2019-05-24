@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('agg')
 import pylab as pl
+from petsc4py import PETSc
 
-import h5py
 import domain
 import params
 
@@ -48,6 +48,17 @@ q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
 q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
+
+da_fields = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
+                                 dof=(6), stencil_width=0
+                               )
+fields_vec = da_fields.createGlobalVec()
+
+da_moments = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
+                                 dof=(22), stencil_width=0
+                               )
+moments_vec = da_moments.createGlobalVec()
+
 
 # Finding the number of species, by looking at the number of elements in mass:
 N_s = len(params.mass)
@@ -227,6 +238,16 @@ def return_field_to_be_plotted(name, fields):
     else:
         raise Exception('Not valid!')
 
+da_fields = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
+                                 dof=(6), stencil_width=0
+                               )
+fields_vec = da_fields.createGlobalVec()
+
+da_moments = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
+                                 dof=(22), stencil_width=0
+                               )
+moments_vec = da_moments.createGlobalVec()
+
 # Traversal to determine the maximum and minimum:
 def determine_min_max(name, time_array):
     """
@@ -252,16 +273,30 @@ def determine_min_max(name, time_array):
     for time_index, t0 in enumerate(time_array):
         
         if(name in ['E1', 'E2', 'E3', 'B1', 'B2', 'B3']):
-            h5f    = h5py.File('dump_fields/t=%.3f'%(t0) + '.h5', 'r')
-            fields = np.swapaxes(h5f['EM_fields'][:], 0, 1)
-            h5f.close()
+
+            fields_file  = 'dump_fields/t=%.3f'%(t0) + '.bin'
+
+            # Load fields
+            viewer = PETSc.Viewer().createBinary(fields_file, 
+                                                 PETSc.Viewer.Mode.READ, 
+                                                )
+
+            fields_vec.load(viewer)
+            fields = da_fields.getVecArray(fields_vec) # [N_q1, N_q2, N_fields]
 
             array = return_field_to_be_plotted(name, fields)
 
         else:
-            h5f  = h5py.File('dump_moments/t=%.3f'%(t0) + '.h5', 'r')
-            moments = np.swapaxes(h5f['moments'][:], 0, 1)
-            h5f.close()
+
+            moments_file = 'dump_moments/t=%.3f'%(t0) + '.bin'
+
+            # Load moments
+            viewer = PETSc.Viewer().createBinary(moments_file, 
+                                                 PETSc.Viewer.Mode.READ, 
+                                                )
+
+            moments_vec.load(viewer)
+            moments = da_moments.getVecArray(moments_vec) # [N_q1, N_q2, N_moments]
 
             array = return_moment_to_be_plotted(name, moments)
 
