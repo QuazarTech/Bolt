@@ -1,0 +1,4 @@
+#!/bin/bash
+#SBATCH -p gpu -n 4 --gres=gpu:4 -c1 --hint=nomultithread -t 2-00:00
+#  (Note: use one MPI process per gpu, update both gres and -n together; max 6)
+time mpirun python main.py -snes_monitor -snes_max_it 1 -snes_lag_jacobian_persists TRUE -snes_lag_jacobian 1000000 -snes_atol 1e-50 -snes_rtol 1e-50 > output.txt
