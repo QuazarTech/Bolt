@@ -110,31 +110,28 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     j_x     = moments[:, :, 1]
     j_y     = moments[:, :, 2]
 
-    print('moments : ', moments.shape)
-    print('density : ', density.shape)
-
     pl.contourf(q1_meshgrid, q2_meshgrid, density, 100, cmap='bwr')
     pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
 
 
-    #h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
-    #lagrange_multipliers = h5f['lagrange_multipliers'][:]
-    #h5f.close()
+    h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
+    lagrange_multipliers = h5f['lagrange_multipliers'][:]
+    h5f.close()
 
-    #mu    = lagrange_multipliers[:, :, 0]
-    #mu_ee = lagrange_multipliers[:, :, 1]
-    #T_ee  = lagrange_multipliers[:, :, 2]
-    #vel_drift_x = lagrange_multipliers[:, :, 3]
-    #vel_drift_y = lagrange_multipliers[:, :, 4]
+    mu    = lagrange_multipliers[:, :, 0]
+    mu_ee = lagrange_multipliers[:, :, 1]
+    T_ee  = lagrange_multipliers[:, :, 2]
+    vel_drift_x = lagrange_multipliers[:, :, 3]
+    vel_drift_y = lagrange_multipliers[:, :, 4]
  
-    #pl.streamplot(q1, q2, 
-    #              vel_drift_x, vel_drift_y,
-    #              density=2, color='blue',
-    #              linewidth=0.7, arrowsize=1
-    #             )
+    pl.streamplot(q1, q2, 
+                  vel_drift_x, vel_drift_y,
+                  density=2, color='blue',
+                  linewidth=0.7, arrowsize=1
+                 )
     
-    pl.xlim([domain.q1_start, domain.q1_end])
-    pl.ylim([domain.q2_start, domain.q2_end])
+    pl.xlim([q1[0], q1[-1]])
+    pl.ylim([q2[0], q2[-1]])
     
     pl.gca().set_aspect('equal')
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')

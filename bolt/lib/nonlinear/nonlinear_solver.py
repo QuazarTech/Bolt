@@ -276,6 +276,10 @@ class nonlinear_solver(object):
                                                     comm       = self._comm
                                                    )
 
+        # For dumping aux arrays:
+        self.dump_aux_arrays_initial_call = 1
+
+
         # Creation of the local and global vectors from the DA:
         # This is for the distribution function
         self._glob_f  = self._da_f.createGlobalVec()
@@ -519,6 +523,7 @@ class nonlinear_solver(object):
 
     dump_distribution_function = dump.dump_distribution_function
     dump_moments               = dump.dump_moments
+    dump_aux_arrays            = dump.dump_aux_arrays
     dump_EM_fields             = dump.dump_EM_fields
 
     load_distribution_function = load.load_distribution_function

@@ -204,13 +204,13 @@ while t0 < t_final:
         if (time_step==0):
             nls.dump_distribution_function('dumps/f_' + file_number)
         nls.dump_distribution_function('dumps/f_' + file_number)
-        #nls.dump_aux_arrays([params.mu,
-        #                     params.mu_ee,
-        #                     params.T_ee,
-        #                     params.vel_drift_x, params.vel_drift_y],
-        #                     'lagrange_multipliers',
-        #                     'dumps/lagrange_multipliers_' + file_number
-        #                    )
+        nls.dump_aux_arrays([params.mu,
+                             params.mu_ee,
+                             params.T_ee,
+                             params.vel_drift_x, params.vel_drift_y],
+                             'lagrange_multipliers',
+                             'dumps/lagrange_multipliers_' + file_number
+                            )
 
         # Dump EM fields
         #af.flat(nls.cell_centered_EM_fields[:, N_g:-N_g, N_g:-N_g]).to_ndarray(nls._glob_fields_array)
