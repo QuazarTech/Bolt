@@ -344,16 +344,18 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
         f = f0_defect_constant_T(f, p1, p2, p3, params)
     
         return(f)
-    print('RTA : ', f.shape)
-    print ('RTA : ',f0_defect_constant_T(f, p1, p2, p3, params).shape)
+    
+    # Activate the following lines to enable normal operation of collision
+    # operator
     C_f = -(  f - f0_defect_constant_T(f, p1, p2, p3, params) \
            ) / params.tau_defect(q1, q2, p1, p2, p3) \
           -(  f - f0_ee(f, p1, p2, p3, params)
            ) / params.tau_ee(q1, q2, p1, p2, p3)
+    
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
     # TODO: WORKAROUND
 
-    # Activate the following line to set collision operator to zero
+    # Activate the following line to disable the collision operator
     #C_f = 0.*f
 
     af.eval(C_f)
