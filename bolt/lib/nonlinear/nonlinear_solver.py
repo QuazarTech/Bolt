@@ -393,7 +393,7 @@ class nonlinear_solver(object):
             # If local zone includes the bottom physical boundary:
             if(i_q2_start == 0):
                 self.f[:, :, :, :N_g] = self.boundary_conditions.\
-                                        f_bot(*args)[:, :, :, :N_g]
+                                        f_bottom(*args)[:, :, :, :N_g]
 
         if(self.physical_system.boundary_conditions.in_q2_top == 'dirichlet'):
             # If local zone includes the top physical boundary:
