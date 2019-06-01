@@ -108,7 +108,13 @@ def tau_ee(q1, q2, p1, p2, p3):
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))
 
-def band_energy(p_x, p_y):
+def band_energy(p1, p2):
+
+    if (p_space_grid == 'cartesian'):
+        p_x = p1
+        p_y = p2
+    else : 
+        raise NotImplementedError('Unsupported coordinate system in p_space')
     
     p = af.sqrt(p_x**2. + p_y**2.)
     
@@ -117,8 +123,14 @@ def band_energy(p_x, p_y):
     af.eval(E_upper)
     return(E_upper)
 
-def band_velocity(p_x, p_y):
+def band_velocity(p1, p2):
 
+    if (p_space_grid == 'cartesian'):
+        p_x = p1
+        p_y = p2
+    else : 
+        raise NotImplementedError('Unsupported coordinate system in p_space') 
+    
     p     = af.sqrt(p_x**2. + p_y**2.)
     p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
 

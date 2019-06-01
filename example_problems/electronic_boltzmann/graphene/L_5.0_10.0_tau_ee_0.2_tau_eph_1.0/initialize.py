@@ -28,8 +28,14 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     E_upper = params.E_band + params.charge[0]*params.phi
 
-    f = (1./(af.exp( (E_upper - params.vel_drift_x*p1 
-                              - params.vel_drift_y*p2 
+    if (params.p_space_grid == 'cartesian'):
+        p_x = p1
+        p_y = p2
+    else:
+        raise NotImplementedError('Unsupported coordinate system in p_space')
+
+    f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
+                              - params.vel_drift_y*p_y
                               - params.mu
                     )/(k*params.T) 
                   ) + 1.
