@@ -224,10 +224,10 @@ def apply_dirichlet_bcs_f(self, boundary):
 
     return
 
-def apply_mirror_bcs_f(self, boundary):
+def apply_mirror_bcs_f_cartesian(self, boundary):
     """
     Applies mirror boundary conditions along boundary specified 
-    for the distribution function
+    for the distribution function when momentum space is on a cartesian grid
     
     Parameters
     ----------
@@ -332,10 +332,16 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'left')
 
         elif(self.boundary_conditions.in_q1_left == 'mirror'):
-            apply_mirror_bcs_f(self, 'left')            
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'left')            
+            else :
+                raise NotImplementedError('Unsupported coordinate system in p_space')
 
         elif(self.boundary_conditions.in_q1_left == 'mirror+dirichlet'):
-            apply_mirror_bcs_f(self, 'left')            
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'left')
+            else :
+                raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'left')
         
         # This is automatically handled by the PETSc function globalToLocal()
@@ -355,12 +361,18 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'right')
 
         elif(self.boundary_conditions.in_q1_right == 'mirror'):
-            apply_mirror_bcs_f(self, 'right')
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'right')
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
         
         elif(self.boundary_conditions.in_q1_right == 'mirror+dirichlet'):
-            apply_mirror_bcs_f(self, 'right')            
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'right')
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'right')
-        
+
         # This is automatically handled by the PETSc function globalToLocal()
         elif(self.boundary_conditions.in_q1_right == 'periodic'):
             pass
@@ -378,10 +390,16 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'bottom')
 
         elif(self.boundary_conditions.in_q2_bottom == 'mirror'):
-            apply_mirror_bcs_f(self, 'bottom')            
+            if (self.physical_system.params.p_space_grid =='cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'bottom')
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
 
         elif(self.boundary_conditions.in_q2_bottom == 'mirror+dirichlet'):
-            apply_mirror_bcs_f(self, 'bottom')            
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'bottom')
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'bottom')
         
         # This is automatically handled by the PETSc function globalToLocal()
@@ -401,10 +419,16 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'top')
 
         elif(self.boundary_conditions.in_q2_top == 'mirror'):
-            apply_mirror_bcs_f(self, 'top')
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'top')
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
         
         elif(self.boundary_conditions.in_q2_top == 'mirror+dirichlet'):
-            apply_mirror_bcs_f(self, 'top')            
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'top')            
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'top')
         
         # This is automatically handled by the PETSc function globalToLocal()

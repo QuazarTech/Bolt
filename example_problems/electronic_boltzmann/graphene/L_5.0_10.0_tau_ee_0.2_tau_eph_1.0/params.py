@@ -48,6 +48,7 @@ t_final = 200.     # ps
 
 # Dimensionality considered in velocity space:
 p_dim = 2
+p_space_grid = 'cartesian' # Supports 'cartesian' or 'polar' grids
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
