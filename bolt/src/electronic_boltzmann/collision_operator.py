@@ -502,13 +502,13 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
 
     return(fermi_dirac)
 
-def RTA(f, q1, q2, p1, p2, p3, moments, params, flag = False):
+def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
     """Return BGK operator -(f-f0)/tau."""
 
     if (params.p_space_grid == 'cartesian'):
-	p_x = p1
-	p_y = p2
-	p_z = p3
+        p_x = p1
+        p_y = p2
+        p_z = p3
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
