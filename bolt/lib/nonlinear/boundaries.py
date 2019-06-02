@@ -310,6 +310,108 @@ def apply_mirror_bcs_f_cartesian(self, boundary):
 
     return
 
+def apply_mirror_bcs_f_polar(self, boundary):
+    """
+    Applies mirror boundary conditions along boundary specified 
+    for the distribution function when momentum space is on a polar grid
+    
+    Parameters
+    ----------
+    boundary: str
+              Boundary along which the boundary condition is to be applied.
+    """
+
+    N_g = self.N_ghost
+
+    if(boundary == 'left'):
+        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
+        #   0   1   2   3   4   5
+        # For mirror boundary conditions:
+        # 0 = 5; 1 = 4; 2 = 3;
+        self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
+        
+        # For a particle moving with initial momentum at an angle \theta
+        # with the x-axis, a collision with the left boundary changes
+        # the angle of momentum after reflection to (pi - \theta)
+        # To do this, we split the array into to equal halves,
+        # flip each of the halves along the p_theta axis and then
+        # join the two flipped halves together.
+        
+        N_theta = self.N_p2
+
+        tmp1 = self._convert_to_p_expanded(self.f)[:, :N_theta/2, :, :]
+        tmp1 = af.flip(tmp1, 1)
+        tmp2 = self._convert_to_p_expanded(self.f)[:, N_theta/2:, :, :]
+        tmp2 = af.flip(tmp2, 1)
+        tmp = af.join(1, tmp1, tmp2)
+
+        self.f[:, :, :N_g] = \
+                self._convert_to_q_expanded(tmp)[:, :, :N_g]
+
+    elif(boundary == 'right'):
+        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
+        #      -6  -5  -4  -3  -2  -1
+        # For mirror boundary conditions:
+        # -1 = -6; -2 = -5; -3 = -4;
+        self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
+
+        # For a particle moving with initial momentum at an angle \theta
+        # with the x-axis, a collision with the right boundary changes
+        # the angle of momentum after reflection to (pi - \theta)
+        # To do this, we split the array into to equal halves,
+        # flip each of the halves along the p_theta axis and then
+        # join the two flipped halves together.
+
+        N_theta = self.N_p2
+
+        tmp1 = self._convert_to_p_expanded(self.f)[:, :N_theta/2, :, :]
+        tmp1 = af.flip(tmp1, 1)
+        tmp2 = self._convert_to_p_expanded(self.f)[:, N_theta/2:, :, :]
+        tmp2 = af.flip(tmp2, 1)
+        tmp = af.join(1, tmp1, tmp2)
+
+        self.f[:, :, -N_g:] = \
+                self._convert_to_q_expanded(tmp)[:, :, -N_g:]
+
+    elif(boundary == 'bottom'):
+        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
+        #   0   1   2   3   4   5
+        # For mirror boundary conditions:
+        # 0 = 5; 1 = 4; 2 = 3;
+        self.f[:, :, :, :N_g] = af.flip(self.f[:, :, :, N_g:2 * N_g], 3)
+
+        # For a particle moving with initial momentum at an angle \theta
+        # with the x-axis, a collision with the bottom boundary changes
+        # the angle of momentum after reflection to (2*pi - \theta) = (-\theta)
+        # To do this we flip the axis that contains the variation in p_theta
+        self.f[:, :, :, :N_g] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                1
+                                               )
+                                       )[:, :, :, :N_g]
+
+    elif(boundary == 'top'):
+        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
+        #      -6  -5  -4  -3  -2  -1
+        # For mirror boundary conditions:
+        # -1 = -6; -2 = -5; -3 = -4;
+        self.f[:, :, :, -N_g:] = af.flip(self.f[:, :, :, -2 * N_g:-N_g], 3)
+
+        # For a particle moving with initial momentum at an angle \theta
+        # with the x-axis, a collision with the top boundary changes
+        # the angle of momentum after reflection to (2*pi - \theta) = (-\theta)
+        # To do this we flip the axis that contains the variation in p_theta
+        self.f[:, :, :, -N_g:] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                1
+                                               )
+                                       )[:, :, :, -N_g:]
+
+    else:
+        raise Exception('Invalid choice for boundary')
+
+    return
+
 def apply_bcs_f(self):
     """
     Applies boundary conditions to the distribution function as specified by 
@@ -334,12 +436,16 @@ def apply_bcs_f(self):
         elif(self.boundary_conditions.in_q1_left == 'mirror'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'left')            
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'left')
             else :
                 raise NotImplementedError('Unsupported coordinate system in p_space')
 
         elif(self.boundary_conditions.in_q1_left == 'mirror+dirichlet'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'left')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'left')
             else :
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'left')
@@ -363,12 +469,16 @@ def apply_bcs_f(self):
         elif(self.boundary_conditions.in_q1_right == 'mirror'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'right')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'right')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         
         elif(self.boundary_conditions.in_q1_right == 'mirror+dirichlet'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'right')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'right')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'right')
@@ -392,12 +502,16 @@ def apply_bcs_f(self):
         elif(self.boundary_conditions.in_q2_bottom == 'mirror'):
             if (self.physical_system.params.p_space_grid =='cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'bottom')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'bottom')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
 
         elif(self.boundary_conditions.in_q2_bottom == 'mirror+dirichlet'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'bottom')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'bottom')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'bottom')
@@ -421,12 +535,16 @@ def apply_bcs_f(self):
         elif(self.boundary_conditions.in_q2_top == 'mirror'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'top')
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'top')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         
         elif(self.boundary_conditions.in_q2_top == 'mirror+dirichlet'):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'top')            
+            elif (self.physical_system.params.p_space_grid == 'polar'):
+                apply_mirror_bcs_f_polar(self, 'top')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'top')

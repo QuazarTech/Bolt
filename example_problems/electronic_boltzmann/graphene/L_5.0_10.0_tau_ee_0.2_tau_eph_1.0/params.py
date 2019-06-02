@@ -113,6 +113,9 @@ def band_energy(p1, p2):
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
+    elif (p_space_grid == 'polar'):
+        p_x = p1 * af.cos(p2)
+        p_y = p1 * af.sin(p2)
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
     
@@ -128,6 +131,9 @@ def band_velocity(p1, p2):
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
+    elif (p_space_grid == 'polar'):
+        p_x = p1 * af.cos(p2)
+        p_y = p1 * af.sin(p2)
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space') 
     
