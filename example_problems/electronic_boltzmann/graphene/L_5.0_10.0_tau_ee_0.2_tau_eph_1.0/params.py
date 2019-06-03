@@ -48,7 +48,8 @@ t_final = 200.     # ps
 
 # Dimensionality considered in velocity space:
 p_dim = 2
-p_space_grid = 'cartesian' # Supports 'cartesian' or 'polar' grids
+p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
+# Set p-space start and end points accordingly in domain.py
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
@@ -113,7 +114,7 @@ def band_energy(p1, p2):
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
-    elif (p_space_grid == 'polar'):
+    elif (p_space_grid == 'polar2D'):
         p_x = p1 * af.cos(p2)
         p_y = p1 * af.sin(p2)
     else : 
@@ -131,7 +132,7 @@ def band_velocity(p1, p2):
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
-    elif (p_space_grid == 'polar'):
+    elif (p_space_grid == 'polar2D'):
         p_x = p1 * af.cos(p2)
         p_y = p1 * af.sin(p2)
     else : 

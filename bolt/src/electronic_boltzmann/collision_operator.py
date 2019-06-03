@@ -509,7 +509,7 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
         p_x = p1
         p_y = p2
         p_z = p3
-    elif (params.p_space_grid == 'polar'):
+    elif (params.p_space_grid == 'polar2D'):
         p_x = p1 * af.cos(p2)
         p_y = p1 * af.sin(p2)
         p_z = p3

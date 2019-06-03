@@ -22,7 +22,7 @@ N_p1     =  16
 #p1_end   =  [0.04]
 
 
-# In the polar representation of momentum space,
+# In the 2D polar representation of momentum space,
 # p1 = p_r (magnitude of momentum)
 # p1_start and p1_end are set such that p1_center is mu
 p1_start = [params.initial_mu - \
@@ -42,7 +42,7 @@ N_p2     =  16
 #p2_start = [-0.04]
 #p2_end   =  [0.04]
 
-# In the polar representation of momentum space,
+# In the 2D polar representation of momentum space,
 # p2 = p_theta (angle of momentum)
 # N_p_theta MUST be even.
 p2_start =  [-np.pi]
