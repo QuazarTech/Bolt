@@ -90,7 +90,7 @@ p_dim = 3
 gamma = 5 / 3 # adiabatic factor
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 4
+num_devices = 6
 
 # Mass of electron and ion:
 m_e = 1   * m0
@@ -139,7 +139,7 @@ sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), T_backgrou
 
 # Time parameters:
 N_cfl   = 0.125
-t_final = 400 * t0
+t_final = 500 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -194,7 +194,7 @@ dt_dump_f       = 1 * t0
 dt_dump_moments = dt_dump_fields = 0.1 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 200 * t0
+t_restart = 0 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast

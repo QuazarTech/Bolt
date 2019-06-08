@@ -47,12 +47,9 @@ def initialize_E(q1, q2, params):
     return(E1, E2, E3)
 
 def initialize_B(q1, q2, params):
-
+    
     # Seeding with random fluctuation:
-    B1 = params.B1 * af.randu(q1.shape[0], q1.shape[1], 
-                              q1.shape[2], q1.shape[3],
-                              dtype = af.Dtype.f64
-                             )
+    B1 = params.B1 * params.random_vals
     B2 = 0 * q1**0
     B3 = 0 * q1**0
 

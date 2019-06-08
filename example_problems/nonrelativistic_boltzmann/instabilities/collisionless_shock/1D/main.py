@@ -70,6 +70,7 @@ E = nls.compute_moments('energy')
 print('For electrons:', np.mean(np.array(E[:, 0, :, :])))
 print('For ions:', np.mean(np.array(E[:, 1, :, :])))
 
+#nls.strang_timestep(dt)
 timing_data = []
 while(abs(time_elapsed - params.t_final) > 1e-12):
 
@@ -93,13 +94,12 @@ while(abs(time_elapsed - params.t_final) > 1e-12):
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
         nls.dump_distribution_function('dump_f/t=' + '%.3f'%time_elapsed)
 
-    PETSc.Sys.Print('Computing For Time      =', time_elapsed / params.t0, "|t0| units(t0)")
-    PETSc.Sys.Print('Time Taken For Timestep =', toc - tic)
+    PETSc.Sys.Print('Computing for time =', time_elapsed / params.t0, 't0, time taken = ', toc - tic, 'secs')
 
     timing_data.append(toc - tic)
 
 # Writing the timing data to file:
-import h5py
-h5f = h5py.File('timing_data.h5', 'w')
-h5f.create_dataset('time_taken', data = np.array(timing_data))
-h5f.close()
+#import h5py
+#h5f = h5py.File('timing_data.h5', 'w')
+#h5f.create_dataset('time_taken', data = np.array(timing_data))
+#h5f.close()

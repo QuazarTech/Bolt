@@ -4,6 +4,7 @@
 from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
+from bolt.lib.utils.af_petsc_conversion import af_to_petsc_glob_array
 
 def dump_moments(self, file_name):
     """
@@ -71,29 +72,19 @@ def dump_moments(self, file_name):
 
     for i in range(len(attributes)):
         if(i == 0):
-            array_to_dump = self.compute_moments(attributes[i])[:, :, N_g:-N_g,N_g:-N_g]
+            array_to_dump = self.compute_moments(attributes[i])
         else:
             array_to_dump = af.join(1, array_to_dump,
-                                    self.compute_moments(attributes[i])[:, :, N_g:-N_g, N_g:-N_g]
+                                    self.compute_moments(attributes[i])
                                    )
 
         af.eval(array_to_dump)
 
-    af.flat(array_to_dump).to_ndarray(self._glob_moments_array)
+    
+    af_to_petsc_glob_array(self, array_to_dump, self._glob_moments_array)
+
     viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self._glob_moments)
-
-    # Following segment shows discrepancy due to buggy behaviour of af.mean
-    # Reported in https://github.com/QuazarTech/Bolt/issues/46
-    # print("MEAN_n for species 1(RAW DATA):", af.mean(array_to_dump[:, 0, :, :]))
-    # print("MEAN_n for species 2(RAW DATA):", af.mean(array_to_dump[:, 1, :, :]))
-
-    # h5f = h5py.File(file_name + '.h5', 'r')
-    # mom = np.swapaxes(h5f['moments'][:], 0, 1)
-    # h5f.close()
-
-    # print("MEAN_n for species 1(DUMP DATA):", np.mean(mom[:, :, 0]))
-    # print("MEAN_n for species 2(DUMP DATA):", np.mean(mom[:, :, 1]))
 
 def dump_distribution_function(self, file_name):
     """
@@ -137,15 +128,8 @@ def dump_distribution_function(self, file_name):
 
     >> solver.load_distribution_function('distribution_function')
     """
-    N_g = self.N_ghost
-    
-    N_q1_local = self.f.shape[2]
-    N_q2_local = self.f.shape[3]
 
-    array_to_dump = self.f
-    
-    array_to_dump = af.flat(array_to_dump[:, :, N_g:-N_g, N_g:-N_g])
-    array_to_dump.to_ndarray(self._glob_f_array)
+    af_to_petsc_glob_array(self, self.f, self._glob_f_array)
     viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self._glob_f)
 
@@ -205,12 +189,12 @@ def dump_EM_fields(self, file_name):
 
     >> solver.load_EM_fields('data_EM_fields')
     """
-    N_g = self.N_ghost
     
-    flattened_global_EM_fields_array = \
-        af.flat(self.fields_solver.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g])
-    flattened_global_EM_fields_array.to_ndarray(self.fields_solver._glob_fields_array)
-    
+    af_to_petsc_glob_array(self, 
+                           self.fields_solver.yee_grid_EM_fields,
+                           self.fields_solver._glob_fields_array
+                          )
+
     viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self.fields_solver._glob_fields)
 

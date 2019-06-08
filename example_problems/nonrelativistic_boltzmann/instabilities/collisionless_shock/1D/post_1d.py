@@ -42,7 +42,8 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-time_array = np.arange(0, params.t_final + params.dt_dump_moments, 
+t_final = 284 * params.t0
+time_array = np.arange(0, t_final + params.dt_dump_moments, 
                        params.dt_dump_moments
                       )
 
@@ -52,7 +53,7 @@ v1_min, v1_max = determine_min_max('v1', time_array)
 T_min, T_max   = determine_min_max('temperature', time_array)
 B1_min, B1_max = determine_min_max('B1', time_array)
 
-for time_index, t0 in enumerate(time_array[::-1]):
+for time_index, t0 in enumerate(time_array):
 
     print("file = ", time_index)
     
@@ -93,13 +94,6 @@ for time_index, t0 in enumerate(time_array[::-1]):
     ax2 = fig.add_subplot(2, 2, 2)
     ax2.plot(q2[0, :], v1[0, :, 0] / params.v0, color = 'C0')
     ax2.plot(q2[0, :], v1[0, :, 1] / params.v0, '--', color = 'C3')
-    ax2.axvline(100/24, color='black', linestyle='--')
-    ax2.axvline(200/24, color='black', linestyle='--')
-    ax2.axvline(300/24, color='black', linestyle='--')
-    ax2.axvline(400/24, color='black', linestyle='--')
-    ax2.axvline(500/24, color='black', linestyle='--')
-    ax2.axvline(600/24, color='black', linestyle='--')
-    ax2.axvline(700/24, color='black', linestyle='--')
     ax2.set_xlabel(r'$y(l_s)$')
     ax2.set_ylabel(r'$v_x(v_0)$')
     ax2.set_ylim([1.05 * v1_min / params.v0, 1.05 * v1_max / params.v0])

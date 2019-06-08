@@ -12,13 +12,13 @@ from .boundaries import apply_bcs_fields
 from .electrostatic.fft import fft_poisson
 from .electrodynamic.fdtd_explicit import fdtd
 
-from bolt.lib.utils.calculate_q import \
-    calculate_q_center, calculate_q_left_center, \
-    calculate_q_center_bot, calculate_q_left_bot
+from bolt.lib.utils.calculate_q import calculate_q
+from bolt.lib.utils.af_petsc_conversion import af_to_petsc_glob_array
+from bolt.lib.utils.af_petsc_conversion import petsc_local_array_to_af
 
 class fields_solver(object):
-  
-    # Computing divB on cell edges
+
+    # Computing divB at cell corners (i, j)
     def compute_divB(self):
         
         B1 = self.yee_grid_EM_fields[3] # (i + 1/2, j)
@@ -27,10 +27,11 @@ class fields_solver(object):
         B1_minus_q1 = af.shift(B1, 0, 0, 1) # (i - 1/2, j)
         B2_minus_q2 = af.shift(B2, 0, 0, 0, 1) # (i, j - 1/2)
 
-        divB = (B1 - B1_minus_q1) / self.dq1 + (B2 - B2_minus_q2) / self.dq2 # (i, j)
+        divB = (B1 - B1_minus_q1)/self.dq1 + (B2 - B2_minus_q2)/self.dq2 # (i, j)
+       
         return(divB)
 
-    # Computing divE at cell centers
+    # Computing divE at cell centers (i+1/2, j+1/2)
     def compute_divE(self):
       
         communicate.communicate_fields(self, True)
@@ -41,36 +42,38 @@ class fields_solver(object):
         E1_plus_q1 = af.shift(E1, 0, 0, -1)    # (i + 1, j + 1/2)
         E2_plus_q2 = af.shift(E2, 0, 0, 0, -1) # (i + 1/2, j + 1)
 
-        divE = (E1_plus_q1 - E1) / self.dq1 + (E2_plus_q2 - E2) / self.dq2 # (i + 1/2, j + 1/2)
+        divE = (E1_plus_q1 - E1)/self.dq1 + (E2_plus_q2 - E2)/self.dq2 # (i + 1/2, j + 1/2)
         return(divE)
 
     def check_maxwells_contraint_equations(self, rho):
 
-        N_g = self.N_g
-
         PETSc.Sys.Print("Initial Maxwell's Constraints:")
-        mean_divB = af.mean(af.abs(self.compute_divB()[:, :, N_g:-N_g, N_g:-N_g]))
-        PETSc.Sys.Print('MEAN(|divB|) =', mean_divB)
+        divB_error = af.abs(self.compute_divB())
+        af_to_petsc_glob_array(self, divB_error, self._glob_divB_error_array)
 
-        rho_by_eps     = rho / self.params.eps
+        PETSc.Sys.Print('MAX(|divB|) =', self._glob_divB_error.max())
+
+        # TODO: What the is going on here? rho_b??
+        rho_by_eps     = rho #/ self.params.dielectric_epsilon
         rho_b          = af.mean(rho_by_eps) # background
-        divE           = self.compute_divE()
-        mean_gauss_law = af.mean(af.abs((divE- rho_by_eps + rho_b)[:, :, N_g:-N_g, N_g:-N_g]))
-        PETSc.Sys.Print('MEAN(|divE-rho|) =', mean_gauss_law)
+        divE_error     = self.compute_divE() - rho_by_eps + rho_b
+
+        af_to_petsc_glob_array(self, divE_error, self._glob_divE_error_array)
+        PETSc.Sys.Print('MAX(|divE-rho|) =', self._glob_divE_error.max())
         # Appropriately raising exceptions:
         # Checking for ∇.B = 0
-        try:
-            assert(mean_divB < 1e-10)
-        except:
-            raise SystemExit('divB contraint isn\'t preserved')
-
-        # Checking for ∇.E = ρ/ε:
-        # TODO: Need to look into this further:
-        # try:
-        #     assert(mean_gauss_law < 1e-7)
-        # except:
-        #     raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
-
+#        try:
+#            assert(mean_divB < params.divB_tol)
+#        except:
+#            raise SystemExit('divB contraint isn\'t preserved')
+#
+#        # Checking for ∇.E = ρ/ε:
+#        # TODO: Need to look into this further:
+#        try:
+#            assert(mean_gauss_law < params.divE_tol)
+#        except:
+#            raise SystemExit('divE - rho/epsilon contraint isn\'t preserved')
+#
     def __init__(self, physical_system, rho_initial, performance_test_flag = False):
         """
         Constructor for the fields_solver object, which takes in the physical system
@@ -99,7 +102,7 @@ class fields_solver(object):
         self.N_q1 = physical_system.N_q1
         self.N_q2 = physical_system.N_q2
         
-        self.N_g = physical_system.N_ghost
+        self.N_ghost = self.N_g = physical_system.N_ghost
 
         self.dq1 = physical_system.dq1
         self.dq2 = physical_system.dq2
@@ -121,8 +124,8 @@ class fields_solver(object):
 
         self.time_elapsed = 0
         
-        petsc_bc_in_q1 = 'ghosted'
-        petsc_bc_in_q2 = 'ghosted'
+        petsc_bc_in_q1 = 'ghosted'; self.N_g1 = self.N_ghost
+        petsc_bc_in_q2 = 'ghosted'; self.N_g2 = self.N_ghost
 
         # Only for periodic boundary conditions or shearing-box boundary conditions 
         # do the boundary conditions passed to the DA need to be changed. PETSc
@@ -142,6 +145,12 @@ class fields_solver(object):
            or self.boundary_conditions.in_q2_bottom == 'mirror'
           ):
             petsc_bc_in_q2 = 'periodic'
+
+        if(self.boundary_conditions.in_q1_left == 'none'):
+            petsc_bc_in_q1 = 'none'; self.N_g1 = 0
+
+        if(self.boundary_conditions.in_q2_bottom == 'none'):
+            petsc_bc_in_q2 = 'none'; self.N_g2 = 0
 
         nproc_in_q1 = PETSc.DECIDE  
         nproc_in_q2 = PETSc.DECIDE
@@ -170,38 +179,64 @@ class fields_solver(object):
                                               comm          = self._comm
                                              )
 
+        # Make to da to create aux vecs, such as holding random numbers,
+        # storing errors etc
+        self._da_aux = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                            dof           = 1,
+                                            stencil_width = self.N_g,
+                                            boundary_type = (petsc_bc_in_q1,
+                                                             petsc_bc_in_q2
+                                                            ),
+                                            proc_sizes    = (nproc_in_q1, 
+                                                             nproc_in_q2
+                                                            ),
+                                            stencil_type  = 1,
+                                            comm          = self._comm
+                                           )
 
-        # Obtaining start coordinates for the local zone
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
+        # Get start (corner) indices of the local zone wrt global ordering and its size
+        ((_i_q1_start, _i_q2_start), (_N_q1_local, _N_q2_local)) = \
+            self._da_fields.getCorners()
 
-        self.q1_center, self.q2_center = \
-            calculate_q_center(self.q1_start + i_q1_start * self.dq1, 
-                               self.q2_start + i_q2_start * self.dq2,
-                               N_q1_local, N_q2_local, self.N_g,
-                               self.dq1, self.dq2
-                              )
+        # Coordinates of the local zone in a global coord system
+        self.q1_start_local = self.q1_start + _i_q1_start * self.dq1
+        self.q2_start_local = self.q2_start + _i_q2_start * self.dq2
 
-        self.q1_left_center, self.q2_left_center = \
-            calculate_q_left_center(self.q1_start + i_q1_start * self.dq1, 
-                                    self.q2_start + i_q2_start * self.dq2,
-                                    N_q1_local, N_q2_local, self.N_g,
-                                    self.dq1, self.dq2
-                                   )
+        self.N_q1_local = _N_q1_local
+        self.N_q2_local = _N_q2_local
 
-        self.q1_center_bot, self.q2_center_bot = \
-            calculate_q_center_bot(self.q1_start + i_q1_start * self.dq1, 
-                                   self.q2_start + i_q2_start * self.dq2,
-                                   N_q1_local, N_q2_local, self.N_g,
-                                   self.dq1, self.dq2
-                                  )
+        self.N_q1_local_with_Ng = _N_q1_local + 2*self.N_g1
+        self.N_q2_local_with_Ng = _N_q2_local + 2*self.N_g2
 
-        self.q1_left_bot, self.q2_left_bot = \
-            calculate_q_left_bot(self.q1_start + i_q1_start * self.dq1, 
-                                 self.q2_start + i_q2_start * self.dq2,
-                                 N_q1_local, N_q2_local, self.N_g,
-                                 self.dq1, self.dq2
-                                )
+        # Indexing vars used through out
+        self.i_q1_start = self.N_g1; self.i_q1_end = -self.N_g1
+        self.i_q2_start = self.N_g2; self.i_q2_end = -self.N_g2
+        if (self.N_g1 == 0):
+            self.i_q1_end = 1
+
+        if (self.N_g2 == 0):
+            self.i_q2_end = 1
+
+        # Obtaining the array values of spatial coordinates:
+        q_left_bot, q_center_bot, q_left_center, q_center = \
+            calculate_q(self.q1_start_local, 
+                        self.q2_start_local,
+                        self.N_q1_local, self.N_q2_local, 
+                        self.N_g1, self.N_g2,
+                        self.dq1, self.dq2
+                       )
+
+        self.q1_left_bot    = q_left_bot[0]
+        self.q2_left_bot    = q_left_bot[1]
+             
+        self.q1_center_bot  = q_center_bot[0]
+        self.q2_center_bot  = q_center_bot[1]
+             
+        self.q1_left_center = q_left_center[0]
+        self.q2_left_center = q_left_center[1]
+             
+        self.q1_center      = q_center[0]
+        self.q2_center      = q_center[1]
 
         # The following global and local vectors are used in
         # the communication routines for EM fields
@@ -212,7 +247,27 @@ class fields_solver(object):
         self._local_fields_array = self._local_fields.getArray()
 
         PETSc.Object.setName(self._glob_fields, 'EM_fields')
+
+        self._glob_divB_error = self._da_aux.createGlobalVec()
+        self._glob_divE_error = self._da_aux.createGlobalVec()
+
+        self._glob_divB_error_array = self._glob_divB_error.getArray()
+        self._glob_divE_error_array = self._glob_divE_error.getArray()
         
+        # Create a random number vec to use when needed, e.g, initial conditions
+        self._glob_random     = self._da_aux.createGlobalVec()
+        self._glob_random.setRandom()
+        self._glob_random_array = self._glob_random.getArray()
+
+        self._local_random    = self._da_aux.createLocalVec()
+        self._da_aux.globalToLocal(self._glob_random, self._local_random)
+        self._local_random_array = self._local_random.getArray()
+    
+        self.random_vals = petsc_local_array_to_af(self, 1, 1, self._local_random_array)
+        # Inject random_vals into params so that it can be used for
+        # initialization
+        self.params.random_vals = self.random_vals
+
         # Alternating upon each call to get_fields for FVM:
         # This ensures that the fields are staggerred correctly in time:
         self.at_n = True
@@ -376,37 +431,33 @@ class fields_solver(object):
                      The initial charge density array that's passed to an electrostatic 
                      solver for initialization
         """
-        # Obtaining start coordinates for the local zone
-        # Additionally, we also obtain the size of the local zone
-        ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_fields.getCorners()
-
         # Following quantities are cell-centered (i + 0.5, j + 0.5):
         # Electric fields are defined at the n-th timestep:
         # Magnetic fields are defined at the (n-1/2)-th timestep:
         self.cell_centered_EM_fields = af.constant(0, 6, 1, 
-                                                   N_q1_local + 2 * self.N_g,
-                                                   N_q2_local + 2 * self.N_g,
+                                                   self.N_q1_local_with_Ng,
+                                                   self.N_q2_local_with_Ng,
                                                    dtype=af.Dtype.f64
                                                   )
 
         # Field values at n-th timestep:
         self.cell_centered_EM_fields_at_n = af.constant(0, 6, 1, 
-                                                        N_q1_local + 2 * self.N_g,
-                                                        N_q2_local + 2 * self.N_g,
+                                                        self.N_q1_local_with_Ng,
+                                                        self.N_q2_local_with_Ng,
                                                         dtype=af.Dtype.f64
                                                        )
 
         # Field values at (n+1/2)-th timestep:
         self.cell_centered_EM_fields_at_n_plus_half = af.constant(0, 6, 1, 
-                                                                  N_q1_local + 2 * self.N_g,
-                                                                  N_q2_local + 2 * self.N_g,
+                                                                  self.N_q1_local_with_Ng,
+                                                                  self.N_q2_local_with_Ng,
                                                                   dtype=af.Dtype.f64
                                                                  )
 
         # Declaring the arrays which store data on the yee grid for FDTD:
         self.yee_grid_EM_fields = af.constant(0, 6, 1, 
-                                              N_q1_local + 2 * self.N_g,
-                                              N_q2_local + 2 * self.N_g,
+                                              self.N_q1_local_with_Ng,
+                                              self.N_q2_local_with_Ng,
                                               dtype=af.Dtype.f64
                                              )
 
@@ -471,7 +522,6 @@ class fields_solver(object):
                                                  + af.shift(B3, 0, 0, 1, 1)
                                                 ) # (i, j)
 
-        af.eval(self.yee_grid_EM_fields)
         return
 
     def yee_grid_to_cell_centered_grid(self, fields_to_transform = None):
@@ -504,7 +554,6 @@ class fields_solver(object):
                                                       + af.shift(B3_yee, 0, 0, -1, -1)
                                                      )
 
-        af.eval(self.cell_centered_EM_fields)
         return
 
     def compute_electrostatic_fields(self, rho):
@@ -515,8 +564,6 @@ class fields_solver(object):
             fft_poisson(self, rho)
             communicate.communicate_fields(self)
             apply_bcs_fields(self)
-
-        # ADD SNES BELOW
 
     def evolve_electrodynamic_fields(self, J1, J2, J3, dt):
         """

@@ -111,6 +111,7 @@ class physical_system(object):
 
         # Finding the number of species:
         N_species = len(params.charge)
+        self.N_species = N_species
 
         try:
             assert(len(params.mass) == len(params.charge))
