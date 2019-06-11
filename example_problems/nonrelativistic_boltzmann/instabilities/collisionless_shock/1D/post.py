@@ -274,7 +274,7 @@ def determine_min_max(name, time_array):
         
         if(name in ['E1', 'E2', 'E3', 'B1', 'B2', 'B3']):
 
-            fields_file  = 'dump_fields/t=%.3f'%(t0) + '.bin'
+            fields_file  = 'dump_fields/t=%.6f'%(t0) + '.bin'
 
             # Load fields
             viewer = PETSc.Viewer().createBinary(fields_file, 
@@ -288,7 +288,7 @@ def determine_min_max(name, time_array):
 
         else:
 
-            moments_file = 'dump_moments/t=%.3f'%(t0) + '.bin'
+            moments_file = 'dump_moments/t=%.6f'%(t0) + '.bin'
 
             # Load moments
             viewer = PETSc.Viewer().createBinary(moments_file, 

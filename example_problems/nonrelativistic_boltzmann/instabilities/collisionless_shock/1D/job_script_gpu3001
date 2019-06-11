@@ -1,0 +1,4 @@
+#!/bin/bash
+#SBATCH -p gpu -n 4 --gres=gpu:4 -c1 --hint=nomultithread -t 2-00:00
+#  (Note: use one MPI process per gpu, update both gres and -n together; max 6)
+time mpirun python main.py > output.txt
