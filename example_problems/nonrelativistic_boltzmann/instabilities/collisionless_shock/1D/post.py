@@ -39,7 +39,13 @@ pl.rcParams['ytick.direction']  = 'in'
 
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
+N_p1 = domain.N_p1
+N_p2 = domain.N_p2
+N_p3 = domain.N_p3
 N_g  = domain.N_ghost
+
+# Finding the number of species, by looking at the number of elements in mass:
+N_s = len(params.mass)
 
 dq1 = (domain.q1_end - domain.q1_start) / N_q1
 dq2 = (domain.q2_end - domain.q2_start) / N_q2
@@ -48,6 +54,21 @@ q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * dq1
 q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * dq2
 
 q2, q1 = np.meshgrid(q2, q1)
+
+dp1 = []; dp2 = []; dp3 = []
+p1  = []; p2  = []; p3  = []
+for s in range(N_s):
+    dp1.append((domain.p1_end[s] - domain.p1_start[s]) / domain.N_p1)
+    dp2.append((domain.p2_end[s] - domain.p2_start[s]) / domain.N_p2)
+    dp3.append((domain.p3_end[s] - domain.p3_start[s]) / domain.N_p3)
+
+    p1.append(domain.p1_start[s] + (0.5 + np.arange(domain.N_p1)) * dp1[s])
+    p2.append(domain.p2_start[s] + (0.5 + np.arange(domain.N_p2)) * dp2[s])
+    p3.append(domain.p3_start[s] + (0.5 + np.arange(domain.N_p3)) * dp3[s])
+
+p1 = np.array(p1)
+p2 = np.array(p2)
+p3 = np.array(p3)
 
 da_fields = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
                                  dof=(6), stencil_width=0
@@ -59,9 +80,44 @@ da_moments = PETSc.DMDA().create([domain.N_q1, domain.N_q2],
                                )
 moments_vec = da_moments.createGlobalVec()
 
+da_f  = PETSc.DMDA().create([domain.N_q1, domain.N_q2], 
+                             dof=(N_s*N_p1*N_p2*N_p3), stencil_width=0
+                           )
+f_vec = da_f.createGlobalVec()
 
-# Finding the number of species, by looking at the number of elements in mass:
-N_s = len(params.mass)
+def return_f(file_name):
+    """
+    Returns the distribution function in the desired format of 
+    (q1, q2, p1, p2, p3), when the file that is written by the 
+    dump_distribution_function is passed as the argument
+
+    Parameters
+    ----------
+
+    file_name : str
+                Pass the name of the file that needs to be read as
+                a string. This should be the file that is written by
+                dump_distribution_function
+
+    N_s: int
+         Pass the species that is in consideration. For instance when
+         the run is carried out for 2 species, passing N_s = 0 returns
+         the distribution function for the first species while N_s = 1
+         returns the distribution function of the second species.
+    """
+
+    # When written using the routine dump_distribution_function, 
+    # distribution function gets written in the format (q2, q1, p1 * p2 * p3 * Ns)
+    viewer = PETSc.Viewer().createBinary(file_name, 
+                                         PETSc.Viewer.Mode.READ, 
+                                        )
+
+    f_vec.load(viewer)
+    f = da_f.getVecArray(f_vec) # [N_q1, N_q2, N_p1*N_p2*N_p3*N_s]
+
+    f = np.array(f[:]).reshape([N_q1, N_q2, N_s, N_p3, N_p2, N_p1])
+
+    return f
 
 def return_moment_to_be_plotted(name, moments):
     """
