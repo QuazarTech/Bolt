@@ -19,11 +19,11 @@ for tau in np.arange(tau_start, tau_end, tau_step):
     # If folder does not exist, make one and add all files from source folder
 
     if not os.path.isdir(filepath):
-        os.mkdir(filepath)
-        os.mkdir(filepath+"/dump_f")
-        os.mkdir(filepath+"/dump_fields")
-        os.mkdir(filepath+"/dump_moments")
-        os.mkdir(filepath+"/images")
+        os.makedirs(filepath)
+        os.makedirs(filepath+"/dump_f")
+        os.makedirs(filepath+"/dump_fields")
+        os.makedirs(filepath+"/dump_moments")
+        os.makedirs(filepath+"/images")
 
         os.system("cp " + (source_filepath + "/*.py ") 
                         + (source_filepath + "/" + job_script_file)
