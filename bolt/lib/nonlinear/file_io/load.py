@@ -5,6 +5,8 @@ from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
 
+from bolt.lib.utils.af_petsc_conversion import petsc_local_array_to_af
+
 def load_distribution_function(self, file_name):
     """
     This function is used to load the distribution function from the
@@ -24,22 +26,19 @@ def load_distribution_function(self, file_name):
     The above statemant will load the distribution function data stored in the file
     distribution_function.h5 into self.f
     """
-    # Obtaining start coordinates for the local zone
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self._da_f.getCorners()
 
     viewer = PETSc.Viewer().createBinary(file_name + '.bin', 
                                          PETSc.Viewer.Mode.READ, 
                                          comm=self._comm
                                         )
     self._glob_f.load(viewer)
-    N_g = self.N_ghost
+    self._da_f.globalToLocal(self._glob_f, self._local_f)
 
-    # Reassigning back the distribution function:
-    self.f[:, :, N_g:-N_g, N_g:-N_g] = af.moddims(af.to_array(self._glob_f_array),
-                                                  self.N_p1 * self.N_p2 * self.N_p3,
-                                                  self.N_species, N_q1_local, N_q2_local
-                                                 )
+    self.f = petsc_local_array_to_af(self, 
+                                     self.N_p1*self.N_p2*self.N_p3,
+                                     self.N_species,
+                                     self._local_f_array
+                                    )
 
     return
 
@@ -69,16 +68,12 @@ def load_EM_fields(self, file_name):
     
     self.fields_solver._glob_fields.load(viewer)
 
-    # Obtaining start coordinates for the local zone
-    # Additionally, we also obtain the size of the local zone
-    ((i_q1_start, i_q2_start), (N_q1_local, N_q2_local)) = self.fields_solver._da_fields.getCorners()
-
-    N_g = self.N_ghost
+    self.fields_solver._da_fields.globalToLocal(self.fields_solver._glob_fields, 
+                                                self.fields_solver._local_fields
+                                               )
     
-    self.fields_solver.yee_grid_EM_fields[:, :, N_g:-N_g, N_g:-N_g] = \
-        af.moddims(af.to_array(self.fields_solver._glob_fields_array), 
-                   6, 1, N_q1_local, N_q2_local
-                  )
+    self.fields_solver.yee_grid_EM_fields = \
+            petsc_local_array_to_af(self, 6, 1, self.fields_solver._local_fields_array)
 
     self.fields_solver.yee_grid_to_cell_centered_grid()
     return
