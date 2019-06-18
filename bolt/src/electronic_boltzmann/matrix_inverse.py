@@ -2,6 +2,14 @@ import numpy as np
 import arrayfire as af
 
 def inverse_4x4_matrix(A):
+    """
+    Return the inverse of a 4x4 matrix.
+    Parameters:
+    -----------
+    A : Array to be inverted 
+        shape:(4, 4)
+    """
+
 # TO TEST:
 #        A_test     = np.random.rand(4, 4)
 #        A_inv_test = np.linalg.inv(A_test)
@@ -38,8 +46,6 @@ def inverse_4x4_matrix(A):
     af.eval(det)
 
     #TODO : Raise an exception if the matrix is singular
-    #print ('determinant : ')
-    #print (det)
 
     A_inv = [[0, 0, 0, 0],
              [0, 0, 0, 0],
@@ -194,6 +200,14 @@ def inverse_4x4_matrix(A):
 
 
 def inverse_3x3_matrix(A):
+    """
+    Return the inverse of a 3x3 matrix.
+    Parameters:
+    -----------
+    A : Array to be inverted 
+        shape:(3, 3)
+    """
+
 # TO TEST:
 #        A_test     = np.random.rand(3, 3)
 #        A_inv_test = np.linalg.inv(A_test)
@@ -212,8 +226,6 @@ def inverse_3x3_matrix(A):
     af.eval(det)
 
     #TODO : Raise an exception if the matrix is singular
-    #print ('determinant : ')
-    #print (det)
 
     A_inv = [[0, 0, 0], \
              [0, 0, 0], \

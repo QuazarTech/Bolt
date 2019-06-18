@@ -9,6 +9,27 @@ import domain
 
 @af.broadcast
 def f0_defect_constant_T(f, p_x, p_y, p_z, params):
+    """
+    Return the local equilibrium distribution corresponding to the tau_D
+    relaxation time when lattice temperature, T, is set to constant.
+    Parameters:
+    -----------
+    f : Distribution function array
+        shape:(N_v, N_s, N_q1, N_q2)
+    
+    p_x : The array that holds data for the v1 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_y : The array that holds data for the v2 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_z : The array that holds data for the v3 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+    
+    params: The parameters file/object that is originally declared by the user.
+            This can be used to inject other functions/attributes into the function
+
+    """
 
     mu = params.mu
     T  = params.T
@@ -79,6 +100,27 @@ def f0_defect_constant_T(f, p_x, p_y, p_z, params):
 # on arrays of different sizes.
 @af.broadcast
 def f0_defect(f, p_x, p_y, p_z, params):
+    """
+    Return the local equilibrium distribution corresponding to the tau_D
+    relaxation time.
+    Parameters:
+    -----------
+    f : Distribution function array
+        shape:(N_v, N_s, N_q1, N_q2)
+    
+    p_x : The array that holds data for the v1 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_y : The array that holds data for the v2 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_z : The array that holds data for the v3 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+    
+    params: The parameters file/object that is originally declared by the user.
+            This can be used to inject other functions/attributes into the function
+
+    """
 
     # Initial guess
     mu  = params.mu
@@ -167,6 +209,27 @@ def f0_defect(f, p_x, p_y, p_z, params):
 
 @af.broadcast
 def f0_ee(f, p_x, p_y, p_z, params):
+    """
+    Return the local equilibrium distribution corresponding to the tau_ee
+    relaxation time.
+    Parameters:
+    -----------
+    f : Distribution function array
+        shape:(N_v, N_s, N_q1, N_q2)
+    
+    p_x : The array that holds data for the v1 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_y : The array that holds data for the v2 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_z : The array that holds data for the v3 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+    
+    params: The parameters file/object that is originally declared by the user.
+            This can be used to inject other functions/attributes into the function
+
+    """
 
     # Initial guess
     mu_ee       = params.mu_ee
@@ -337,6 +400,27 @@ def f0_ee(f, p_x, p_y, p_z, params):
 
 @af.broadcast
 def f0_ee_constant_T(f, p_x, p_y, p_z, params):
+    """
+    Return the local equilibrium distribution corresponding to the tau_ee
+    relaxation time when lattice temperature, T, is set to constant.
+    Parameters:
+    -----------
+    f : Distribution function array
+        shape:(N_v, N_s, N_q1, N_q2)
+    
+    p_x : The array that holds data for the v1 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_y : The array that holds data for the v2 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p_z : The array that holds data for the v3 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+    
+    params: The parameters file/object that is originally declared by the user.
+            This can be used to inject other functions/attributes into the function
+
+    """
 
     # Initial guess
     mu_ee       = params.mu_ee
@@ -503,7 +587,38 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
     return(fermi_dirac)
 
 def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
-    """Return BGK operator -(f-f0)/tau."""
+    """
+    Return RTA (Relaxation Time Approximation) operator 
+     - (f-f0_D)/tau_D - (f-f0_ee)/tau_ee
+
+    Parameters:
+    -----------
+    f : Distribution function array
+        shape:(N_v, N_s, N_q1, N_q2)
+    
+    t : Time elapsed
+    
+    q1 : The array that holds data for the q1 dimension in q-space
+         shape:(1, 1, N_q1, N_q2)
+
+    q2 : The array that holds data for the q2 dimension in q-space
+         shape:(1, 1, N_q1, N_q2)
+
+    p1 : The array that holds data for the v1 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p2 : The array that holds data for the v2 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    p3 : The array that holds data for the v3 dimension in v-space
+         shape:(N_v, N_s, 1, 1)
+
+    params: The parameters file/object that is originally declared by the user.
+            This can be used to inject other functions/attributes into the function
+    
+    flag: Toggle used for evaluating tau = 0 cases need to be evaluated. When set to True, this
+          function is made to return f0, thus setting f = f0 wherever tau = 0
+    """
 
     if (params.p_space_grid == 'cartesian'):
         p_x = p1
