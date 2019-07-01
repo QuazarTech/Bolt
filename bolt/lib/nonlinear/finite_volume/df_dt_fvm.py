@@ -88,9 +88,7 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
         df_dt += - (right_flux - left_flux) / self.dq1 \
                  - (top_flux   - bot_flux ) / self.dq2 \
 
-        if(    self.physical_system.params.source_enabled == True 
-           and self.physical_system.params.instantaneous_collisions != True
-          ):
+        if(self.physical_system.params.source_enabled == True):
             df_dt += self._source(f, self.time_elapsed, 
                                   self.q1_center, self.q2_center,
                                   self.p1_center, self.p2_center, self.p3_center, 
@@ -104,7 +102,7 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
         if(    self.physical_system.params.fields_type == 'electrodynamic'
            and self.fields_solver.at_n == False
           ):
-            
+            #TODO: Remove hybrid_model from lib and put into src 
             if(self.physical_system.params.hybrid_model_enabled == True):
 
                 communicate_fields(self.fields_solver, True)

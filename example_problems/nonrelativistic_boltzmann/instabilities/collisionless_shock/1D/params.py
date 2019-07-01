@@ -21,10 +21,10 @@ reconstruction_method_in_p = 'minmod'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-# Alternate set of units to consider(from discussion with Mani):
+# Alternate set of units to consider:
 # Temperature isn't a very good base unit
 # Set v0 = 1(that is velocity is a base unit)
-# Set T0 = 1/2 m0 v0^2 / k_B, and set T = εT0; ε = small number
+# Set T0 = 1/2 m0 v0^2 / k_B, and set T = eps * T0;eps = small number
 # B0 is set the same way as before; B0 = sqrt(n_background * m0) * u_b
 
 # Units: l0, t0, m0, e0, n0, T0, v0, B0, E0
@@ -139,7 +139,7 @@ sound_crossing_time  = time_scales.sound_crossing_time(min(L_x, L_y), T_backgrou
 
 # Time parameters:
 N_cfl   = 0.125
-t_final = 400 * t0
+t_final = 500 * t0
 
 PETSc.Sys.Print("==================================================")
 PETSc.Sys.Print("          Length Scales of the System             ")
@@ -183,8 +183,7 @@ PETSc.Sys.Print("==================================================\n")
 
 # Switch for solver components:
 fields_enabled           = True
-source_enabled           = False
-instantaneous_collisions = False
+source_enabled           = True
 hybrid_model_enabled     = False
 
 # File-writing Parameters:
@@ -194,9 +193,9 @@ dt_dump_f       = 1 * t0
 dt_dump_moments = dt_dump_fields = 0.1 * t0
 
 # Restart(Set to zero for no-restart):
-t_restart = 200 * t0
+t_restart = 0 * t0
 
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau(q1, q2, p1, p2, p3):
-    return (np.inf * t0 * p1**0 * q1**0)
+    return (tau_collisions * t0 * p1**0 * q1**0)

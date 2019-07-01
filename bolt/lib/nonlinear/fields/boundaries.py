@@ -595,7 +595,9 @@ def apply_bcs_fields(self, on_fdtd_grid = False):
             apply_dirichlet_bcs_fields(self, 'left', on_fdtd_grid)
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q1_left == 'periodic'):
+        elif(   self.boundary_conditions.in_q1_left == 'periodic'
+             or self.boundary_conditions.in_q1_left == 'none'
+            ):
             pass
 
         elif(self.boundary_conditions.in_q1_left == 'shearing-box'):
@@ -618,7 +620,9 @@ def apply_bcs_fields(self, on_fdtd_grid = False):
             apply_dirichlet_bcs_fields(self, 'right', on_fdtd_grid)
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q1_right == 'periodic'):
+        elif(   self.boundary_conditions.in_q1_right == 'periodic'
+             or self.boundary_conditions.in_q1_right == 'none'
+            ):
             pass
 
         elif(self.boundary_conditions.in_q1_right == 'shearing-box'):
@@ -641,7 +645,9 @@ def apply_bcs_fields(self, on_fdtd_grid = False):
             apply_dirichlet_bcs_fields(self, 'bottom', on_fdtd_grid)
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q2_bottom == 'periodic'):
+        elif(   self.boundary_conditions.in_q2_bottom == 'periodic'
+             or self.boundary_conditions.in_q2_bottom == 'none'
+            ):
             pass
 
         elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
@@ -664,7 +670,9 @@ def apply_bcs_fields(self, on_fdtd_grid = False):
             apply_dirichlet_bcs_fields(self, 'top', on_fdtd_grid)
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q2_top == 'periodic'):
+        elif(   self.boundary_conditions.in_q2_top == 'periodic'
+             or self.boundary_conditions.in_q2_top == 'none'
+            ):
             pass
 
         elif(self.boundary_conditions.in_q2_top == 'shearing-box'):

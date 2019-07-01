@@ -451,7 +451,9 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'left')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q1_left == 'periodic'):
+        elif(   self.boundary_conditions.in_q1_left == 'periodic'
+             or self.boundary_conditions.in_q1_left == 'none' # no ghost zones (1D)
+            ):
             pass
 
         elif(self.boundary_conditions.in_q1_left == 'shearing-box'):
@@ -484,7 +486,9 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'right')
 
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q1_right == 'periodic'):
+        elif(   self.boundary_conditions.in_q1_right == 'periodic'
+             or self.boundary_conditions.in_q1_right == 'none' # no ghost zones (1D)
+            ):
             pass
 
         elif(self.boundary_conditions.in_q1_right == 'shearing-box'):
@@ -517,7 +521,9 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'bottom')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q2_bottom == 'periodic'):
+        elif(   self.boundary_conditions.in_q2_bottom == 'periodic'
+             or self.boundary_conditions.in_q2_bottom == 'none' # no ghost zones (1D)
+            ):
             pass
 
         elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
@@ -550,7 +556,9 @@ def apply_bcs_f(self):
             apply_dirichlet_bcs_f(self, 'top')
         
         # This is automatically handled by the PETSc function globalToLocal()
-        elif(self.boundary_conditions.in_q2_top == 'periodic'):
+        elif(   self.boundary_conditions.in_q2_top == 'periodic'
+             or self.boundary_conditions.in_q2_top == 'none' # no ghost zones (1D)
+            ):
             pass
 
         elif(self.boundary_conditions.in_q2_top == 'shearing-box'):
