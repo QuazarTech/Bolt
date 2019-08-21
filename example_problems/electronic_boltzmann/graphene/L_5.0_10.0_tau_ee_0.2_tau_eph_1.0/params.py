@@ -2,8 +2,9 @@ import numpy as np
 import arrayfire as af
 
 instantaneous_collisions = False #TODO : Remove from lib
-hybrid_model_enabled = False #TODO : Remove from lib
-source_enabled = True
+hybrid_model_enabled     = False #TODO : Remove from lib
+source_enabled           = True
+disable_collision_op     = False
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -47,7 +48,7 @@ dt      = 0.025/2 # ps
 t_final = 200.     # ps
 
 # Dimensionality considered in velocity space:
-p_dim = 2
+p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 
@@ -89,6 +90,8 @@ mu_ee       = None # chemical potential used in the e-e operator
 T_ee        = None # Electron temperature used in the e-e operator
 vel_drift_x = None
 vel_drift_y = None
+j_x         = None
+j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)

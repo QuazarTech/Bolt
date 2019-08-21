@@ -639,18 +639,41 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
 
         return(f)
 
-    # Activate the following lines to enable normal operation of collision
-    # operator
-    C_f = -(  f - f0_defect_constant_T(f, p_x, p_y, p_z, params) \
-           ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
-          -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
-           ) / params.tau_ee(q1, q2, p_x, p_y, p_z)
+    if (params.disable_collision_op):
+        # Activate the following line to disable the collision operator
+        C_f = 0.*f
+    else:
+        # Activate the following lines to enable normal operation of collision
+        # operator
+        if (params.p_dim==1)
+            C_f = -(  f - f0_defect_constant_T(f, p_x, p_y, p_z, params) \
+                   ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
+                  -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
+                  ) / params.tau_ee(q1, q2, p_x, p_y, p_z)
+
+        elif (params.p_dim==2)
+            C_f = -(  f - f0_defect(f, p_x, p_y, p_z, params) \
+                   ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
+                  -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
+                  ) / params.tau_ee(q1, q2, p_x, p_y, p_z)
 
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
     # TODO: WORKAROUND
+ 
 
-    # Activate the following line to disable the collision operator
-    #C_f = 0.*f
+    # Inject j_x and j_y into params
+
+    # TODO : Multiply by dp1*dp2 and the phase space degeneracy factor
+    # (4./(2.*np.pi*params.h_bar)**2.)
+
+    multiply = lambda a, b:a*b
+
+    print ('f : ',f.shape)
+    print ('p_x : ', p_x.shape)
+
+    params.j_x = af.sum(af.broadcast(multiply, f, p_x), 0)
+    params.j_y = af.sum(af.broadcast(multiply, f, p_y), 0)
+
 
     af.eval(C_f)
     return(C_f)

@@ -22,6 +22,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.T_ee        = params.T.copy()
     params.vel_drift_x = 0.*q1 + 0e-3
     params.vel_drift_y = 0.*q1 + 0e-3
+    params.j_x         = 0.*q1
+    params.j_y         = 0.*q1
 
     params.E_band   = params.band_energy(p1, p2)
     params.vel_band = params.band_velocity(p1, p2)
