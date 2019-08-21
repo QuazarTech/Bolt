@@ -577,10 +577,10 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
 	 )
     N_g = domain.N_ghost
     print("    rank = ", params.rank,
-          "mu_ee = ", af.mean(params.mu_ee[0, N_g:-N_g, N_g:-N_g]),
-          "T_ee = ", af.mean(params.T_ee[0, N_g:-N_g, N_g:-N_g]),
-          "<v_x> = ", af.mean(params.vel_drift_x[0, N_g:-N_g, N_g:-N_g]),
-          "<v_y> = ", af.mean(params.vel_drift_y[0, N_g:-N_g, N_g:-N_g])
+          "mu_ee = ", af.mean(params.mu_ee[0, 0, N_g:-N_g, N_g:-N_g]),
+          "T_ee = ", af.mean(params.T_ee[0, 0, N_g:-N_g, N_g:-N_g]),
+          "<v_x> = ", af.mean(params.vel_drift_x[0, 0, N_g:-N_g, N_g:-N_g]),
+          "<v_y> = ", af.mean(params.vel_drift_y[0, 0, N_g:-N_g, N_g:-N_g])
          )
     PETSc.Sys.Print("    ------------------")
 
@@ -643,7 +643,7 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
     # operator
     C_f = -(  f - f0_defect_constant_T(f, p_x, p_y, p_z, params) \
            ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
-          -(  f - f0_ee(f, p_x, p_y, p_z, params)
+          -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
            ) / params.tau_ee(q1, q2, p_x, p_y, p_z)
 
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0

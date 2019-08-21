@@ -2,6 +2,7 @@ import arrayfire as af
 import numpy as np
 from scipy.signal import correlate
 import glob
+import os
 import h5py
 import matplotlib
 import matplotlib.gridspec as gridspec
@@ -13,6 +14,7 @@ yt.enable_parallelism()
 
 import petsc4py, sys; petsc4py.init(sys.argv)
 from petsc4py import PETSc
+import PetscBinaryIO
 
 import domain
 import boundary_conditions
@@ -58,6 +60,16 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
+N_p1 = domain.N_p1
+N_p2 = domain.N_p2
+
+p1 = domain.p1_start[0] + (0.5 + np.arange(N_p1)) * (domain.p1_end[0] - \
+        domain.p1_start[0])/N_p1
+p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * (domain.p2_end[0] - \
+        domain.p2_start[0])/N_p2
+
+print ('Momentum space : ', p1[-1], p2[int(N_p2/2)])
+
 source_start = params.contact_start
 source_end   = params.contact_end
 
@@ -86,47 +98,55 @@ sensor_2_right_end   = 7.5 # um
 sensor_2_left_indices  = (q2 > sensor_2_left_start ) & (q2 < sensor_2_left_end)
 sensor_2_right_indices = (q2 > sensor_2_right_start) & (q2 < sensor_2_right_end)
 
-filepath = \
-'/home/mchandra/gitansh/bolt_master/example_problems/electronic_boltzmann/graphene/L_5.0_10.0_tau_ee_0.2_tau_eph_1.0/dumps'
-moment_files 		  = np.sort(glob.glob(filepath+'/moment*.h5'))
+#filepath = \
+#'/home/mchandra/gitansh/bolt_master/example_problems/electronic_boltzmann/graphene/L_5.0_10.0_tau_ee_0.2_tau_eph_1.0/dumps'
+filepath = os.getcwd() + "/dumps"
+moment_files 		  = np.sort(glob.glob(filepath+'/moment*.bin'))
 lagrange_multiplier_files = \
         np.sort(glob.glob(filepath+'/lagrange_multipliers*.h5'))
+
+print ("moment files : ", moment_files.size)
+print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
 dt = params.dt
 dump_interval = params.dump_steps
 
 time_array = np.loadtxt("dump_time_array.txt")
 
+io = PetscBinaryIO.PetscBinaryIO()
+
 for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
 
     print("file number = ", file_number, "of ", moment_files.size)
 
-    h5f  = h5py.File(dump_file, 'r')
-    moments = np.swapaxes(h5f['moments'][:], 0, 1)
-    h5f.close()
-
-
+    moments = io.readBinaryFile(dump_file)
+    moments = moments[0].reshape(N_q2, N_q1, 3)
+    
     density = moments[:, :, 0]
     j_x     = moments[:, :, 1]
     j_y     = moments[:, :, 2]
 
-    pl.contourf(q1_meshgrid, q2_meshgrid, density, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-
-
+    #lagrange_multipliers = \
+    #    io.readBinaryFile(lagrange_multiplier_files[file_number])
+    #lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
     h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
     lagrange_multipliers = h5f['lagrange_multipliers'][:]
     h5f.close()
+    
+    mu           = lagrange_multipliers[:, :, 0]
+    mu_ee        = lagrange_multipliers[:, :, 1]
+    T_ee         = lagrange_multipliers[:, :, 2]
+    vel_drift_x  = lagrange_multipliers[:, :, 3]
+    vel_drift_y  = lagrange_multipliers[:, :, 4]
 
-    mu    = lagrange_multipliers[:, :, 0]
-    mu_ee = lagrange_multipliers[:, :, 1]
-    T_ee  = lagrange_multipliers[:, :, 2]
-    vel_drift_x = lagrange_multipliers[:, :, 3]
-    vel_drift_y = lagrange_multipliers[:, :, 4]
- 
+    print (vel_drift_x.shape)
+    print (density.shape)
+    
+    pl.contourf(q1_meshgrid, q2_meshgrid, density.T, 100, cmap='bwr')
+    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
     pl.streamplot(q1, q2, 
                   vel_drift_x, vel_drift_y,
-                  density=2, color='blue',
+                  density=2, color='k',
                   linewidth=0.7, arrowsize=1
                  )
     

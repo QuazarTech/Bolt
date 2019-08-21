@@ -3,17 +3,17 @@ import params
 
 q1_start = 0.
 q1_end   = 5.0
-N_q1     = 10
+N_q1     = 20
 
 q2_start = 0.
 q2_end   = 10.
-N_q2     = 20
+N_q2     = 40
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
 # TODO : Check and fix discrepancy between this and the claim
 # that p1_center = mu in polar representation
-N_p1     =  16
+N_p1     =  1
 
 # In the cartesian representation of momentum space,
 # p1 = p_x (magnitude of momentum)
@@ -25,16 +25,18 @@ N_p1     =  16
 # In the 2D polar representation of momentum space,
 # p1 = p_r (magnitude of momentum)
 # p1_start and p1_end are set such that p1_center is mu
-p1_start = [params.initial_mu - \
-        16.*params.boltzmann_constant*params.initial_temperature]
-p1_end   = [params.initial_mu + \
-        16.*params.boltzmann_constant*params.initial_temperature]
+#p1_start = [params.initial_mu - \
+#        16.*params.boltzmann_constant*params.initial_temperature]
+#p1_end   = [params.initial_mu + \
+#        16.*params.boltzmann_constant*params.initial_temperature]
 
+p1_start = [0.5*params.initial_mu]
+p1_end   = [1.5*params.initial_mu]
 
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
 # symmetric about zero
-N_p2     =  16
+N_p2     =  1024
 
 # In the cartesian representation of momentum space,
 # p2 = p_y (magnitude of momentum)
