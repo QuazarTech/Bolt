@@ -3,6 +3,7 @@ import numpy as np
 from scipy.signal import correlate
 import glob
 import h5py
+import os
 import matplotlib
 import matplotlib.gridspec as gridspec
 import matplotlib.patches as patches
@@ -13,12 +14,9 @@ yt.enable_parallelism()
 
 import petsc4py, sys; petsc4py.init(sys.argv)
 from petsc4py import PETSc
+import PetscBinaryIO
 
 import domain
-import boundary_conditions
-import params
-import initialize
-
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 8, 8
@@ -53,60 +51,84 @@ pl.rcParams['ytick.direction']  = 'in'
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
 
-q1 = domain.q1_start + (0.5 + np.arange(N_q1)) * (domain.q1_end - \
-        domain.q1_start)/N_q1
-q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - \
-        domain.q2_start)/N_q2
+q1_start = domain.q1_start
+q1_end   = domain.q1_end
+q2_start = domain.q2_start
+q2_end   = domain.q2_end
+
+q1 = q1_start + (0.5 + np.arange(N_q1)) * (q1_end - q1_start)/N_q1
+q2 = q2_start + (0.5 + np.arange(N_q2)) * (q2_end - q2_start)/N_q2
 
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 N_p1 = domain.N_p1
 N_p2 = domain.N_p2
 
-p1 = domain.p1_start[0] + (0.5 + np.arange(N_p1)) * (domain.p1_end[0] - \
-        domain.p1_start[0])/N_p1
-p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * (domain.p2_end[0] - \
-        domain.p2_start[0])/N_p2
+p1_start = domain.p1_start
+p1_end   = domain.p1_end
+p2_start = domain.p2_start
+p2_end   = domain.p2_end
 
-p2_meshgrid, p1_meshgrid = np.meshgrid(p2, p1)
+p1 = p1_start[0] + (0.5 + np.arange(N_p1)) * (p1_end[0] - p1_start[0])/N_p1
+p2 = p2_start[0] + (0.5 + np.arange(N_p2)) * (p2_end[0] - p2_start[0])/N_p2
 
-filepath = \
-'/home/mchandra/gitansh/bolt_master/example_problems/electronic_boltzmann/graphene/L_5.0_10.0_tau_ee_0.2_tau_eph_1.0/dumps'
-moment_files 		        = np.sort(glob.glob(filepath+'/moment*.h5'))
-lagrange_multiplier_files   = \
+p1_meshgrid, p2_meshgrid = np.meshgrid(p1, p2)
+
+p_x = p1_meshgrid * np.cos(p2_meshgrid)
+p_y = p1_meshgrid * np.sin(p2_meshgrid)
+
+#p2_meshgrid, p1_meshgrid = np.meshgrid(p2, p1)
+
+io = PetscBinaryIO.PetscBinaryIO()
+
+filepath = os.getcwd() + "/dumps"
+moment_files 		  = np.sort(glob.glob(filepath+'/moment*.bin'))
+lagrange_multiplier_files = \
         np.sort(glob.glob(filepath+'/lagrange_multipliers*.h5'))
-distribution_function_files = np.sort(glob.glob(filepath+'/f_*.h5'))
+dist_func_files 		  = np.sort(glob.glob(filepath+'/f_*.bin'))
 
-dt = params.dt
-dump_interval = params.dump_steps
+dist_func_bg_file = dist_func_files[0]
+dist_func_file = dist_func_files[-1]
 
-time_array = np.loadtxt("dump_time_array.txt")
+dist_func_background = io.readBinaryFile(dist_func_bg_file)
+#dist_func_background = dist_func_background[0].reshape(N_q2, N_q1, N_p2, N_p1)
+dist_func_background = dist_func_background[0].reshape(N_q1, N_q2, 1, 1, N_p2, N_p1)
+dist_func = io.readBinaryFile(dist_func_file)
 
-h5f  = h5py.File(distribution_function_files[0], 'r')
-dist_func_background = h5f['distribution_function'][:]
-h5f.close()
+print (dist_func[0].shape)
 
-q1_position = 10
-q2_position = 100
-
-for file_number, dump_file in yt.parallel_objects(enumerate(distribution_function_files)):
-    
-    print("file number = ", file_number, "of ", distribution_function_files.size)
-
-    h5f  = h5py.File(distribution_function_files[file_number], 'r')
-    dist_func = h5f['distribution_function'][:]
-    h5f.close()
+dist_func = dist_func[0].reshape(N_q1, N_q2, 1, 1, N_p2, N_p1)
 
 
-    f_at_desired_q = np.reshape((dist_func - dist_func_background)[q2_position, q1_position, :],
-                                [N_p1, N_p2]
+N = 7
+for index_1 in range(N):
+    for index_2 in range(N):
+
+        q1_position = int(N_q1*((index_1/N)+(1/(2*N))))
+        q2_position = int(N_q2*((index_2/N)+(1/(2*N))))
+        
+        #a = np.max((dist_func - dist_func_background)[q2_position, q1_position, :, :])
+        #b = np.abs(np.min((dist_func - dist_func_background)[q2_position, q1_position, :, :]))
+        #norm_factor = np.maximum(a, b)
+        #f_at_desired_q = \
+        #        np.reshape((dist_func-dist_func_background)[q2_position, q1_position, :, :],
+        #        [N_p2, N_p1])/norm_factor
+        
+        f_at_desired_q = np.reshape((dist_func - \
+            dist_func_background)[q1_position, q2_position, :],
+                                [N_p2, N_p1]
                                )
-    pl.contourf(p1_meshgrid, p2_meshgrid, f_at_desired_q, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-    pl.xlabel('$p_x$')
-    pl.ylabel('$p_y$')
-    pl.gca().set_aspect('equal')
-    pl.colorbar()
-    pl.savefig('images/dist_func_' + '%06d'%file_number + '.png')
-    pl.clf()
+        pl.contourf(p1_meshgrid, p2_meshgrid, f_at_desired_q, 100, cmap='bwr')
+
+        #np.savetxt('data/f_vs_theta_%d_%d.txt'%(index_1, index_2), f_at_desired_q)
+        #f = np.loadtxt('data/f_vs_theta_%d_%d.txt'%(index_1, index_2))
+    
+    
+        #pl.contourf(p_x, p_y, f_at_desired_q, 100, cmap='bwr')
+        #pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
+        pl.xlabel('$p_x$')
+        pl.ylabel('$p_y$')
+        pl.gca().set_aspect('equal')
+        pl.savefig('images/dist_func_at_a_point_%d_%d.png'%(index_1, index_2))       
+        pl.clf()
 
